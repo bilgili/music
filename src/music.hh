@@ -3,10 +3,19 @@
 namespace MUSIC
 {
 
+  setup
+  init (int color, int* argc, char** argv[]);
+
   class setup
   {
     void
-    init (int color, int* argc, char** argv[]);
+    declare (double* data, int count, char* name);
+
+    void
+    import (int peer, char* name);
+
+    void
+    export (int peer, char* name);
 
     runtime
     done ();

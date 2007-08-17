@@ -1,3 +1,7 @@
+2007-08-17  orjan  <orjan@nada.kth.se>
+
+	* music.hh (MUSIC): Add binding routines
+
 2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Bong!

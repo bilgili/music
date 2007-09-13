@@ -1,26 +1,26 @@
 #include <mpi.h>
-#include "music.hh"
+#include "music/runtime.hh"
 
 
-class MUSIC::runtime
-{
+namespace MUSIC {
+  
   MPI_Comm
-  MUSIC::communicator ()
+  runtime::communicator ()
   {
     return myCommunicator;
   }
 
 
   void
-  MUSIC::finalize ()
+  runtime::finalize ()
   {
-    MPI_Comm_free(&myCommunicator);
-    MPI_Finalize();
+    MPI_Comm_free (&myCommunicator);
+    MPI_Finalize ();
   }
 
 
   void
-  MUSIC::tick (double time)
+  runtime::tick (double time)
   {
   }
 }

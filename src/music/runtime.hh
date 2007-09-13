@@ -16,25 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MUSIC_RUNTIME_HH
+
 #include <mpi.h>
-#include "music/setup.hh"
-#include "music/runtime.hh"
 
 namespace MUSIC {
 
-  setup::setup (int color, int* argc, char** argv[])
-  {
-    int myRank;
+  class runtime {
+  private:
+    MPI_Comm myCommunicator;
+  
+  public:
+    runtime (MPI_Comm c) : myCommunicator (c) { }
+    
+    MPI_Comm communicator ();
 
-    MPI_Init(argc, argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-    MPI_Comm_split(MPI_COMM_WORLD, color, myRank, &myCommunicator);
-  }
+    void finalize ();
 
+    void tick (double time);
+  };
 
-  runtime*
-  setup::done ()
-  {
-    return new runtime (myCommunicator);
-  }
 }
+
+#define MUSIC_RUNTIME_HH
+#endif

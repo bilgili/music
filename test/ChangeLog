@@ -1,3 +1,9 @@
+2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application1.cc: Modified to conform to setup.hh and runtime.hh.
+
+	* Makefile.am: New file.
+
 2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Pling!

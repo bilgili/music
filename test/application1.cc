@@ -6,7 +6,7 @@
 
 
 #include <mpi.h>
-#include "music.hh"
+#include <music.hh>
 
 #define APPLICATION_ID 1
 #define DATA_SIZE 1000
@@ -20,9 +20,11 @@ main (int nargs, char* argv[])
   double time;
   int rank;
 
-  MUSIC::init (APPLICATION_ID, &nargs, &argv);
+  MUSIC::setup* setup = new MUSIC::setup (APPLICATION_ID, &nargs, &argv);
 
-  MPI_Comm_rank (MUSIC::communicator (), &rank);
+  MUSIC::runtime* runtime = setup->done ();
+
+  MPI_Comm_rank (runtime->communicator (), &rank);
 
   for (time = 0.0; time < 1.0; time += 0.1) {
     if (rank == 0) {
@@ -35,12 +37,12 @@ main (int nargs, char* argv[])
 
     MPI_Scatter (data, DATA_SIZE, MPI_DOUBLE,
 		 data, DATA_SIZE, MPI_DOUBLE,
-		 0, MUSIC::communicator ());
+		 0, runtime->communicator ());
 
-    MUSIC::tick (time);
+    runtime->tick (time);
   }
 
-  MUSIC::finalize ();
+  runtime->finalize ();
 
   return 0;
 }

@@ -1,0 +1,4 @@
+2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* AUTHORS, COPYING, INSTALL, NEWS, README, ChangeLog,
+	configure.ac, Makefile.am, autogen.sh, aclocal.sh: New files

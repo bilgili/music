@@ -20,15 +20,23 @@ Please specify environment variable MPI_CXXFLAGS manually], 1)
   case "$MPI_CXX" in
     mpiCC)
       changequote(<, >)
-      CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
+      if $MPI_CXX -compile_info >/dev/null 2>/dev/null; then
+        SYSGUESS=mpich
+        CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
+      else
+        SYSGUESS=openmpi
+        CXX="$MPI_CXX"
+      fi
       changequote([, ])
       echo "$CXX"
       ;;
     mpixlcxx|mpicxx)
+      SYSGUESS=bgl
       CXX="$MPI_CXX"
       echo "$CXX"
       ;;
     *)
+      SYSGUESS=unknown
       ;;
   esac
 fi
@@ -37,34 +45,45 @@ AC_MSG_CHECKING(MPI_CXXFLAGS)
 if test "$MPI_CXXFLAGS" != ""; then
   echo "$MPI_CXXFLAGS"
 else
-  case "$MPI_CXX" in
-    mpiCC)
+  case "$SYSGUESS" in
+    mpich)
       changequote(<, >)
       MPI_CXXFLAGS="`$MPI_CXX -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
-      echo "$MPI_CXXFLAGS"
       ;;
-    mpixlcxx|mpicxx)
+    openmpi)
+      MPI_CXXFLAGS=""    
+      ;;
+    bgl)
       MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
       ;;
-  esac  
+    *)
+      AC_MSG_ERROR([
+Could not determine proper value for MPI_CXXFLAGS.  Please see README.])
+      ;;
+  esac
+  echo "$MPI_CXXFLAGS"
 fi
 
 AC_MSG_CHECKING(MPI_LDFLAGS)
 if test "$MPI_LDFLAGS" != ""; then
   echo "$MPI_LDFLAGS"
 else
-  case "$MPI_CXX" in
-    mpiCC)
+  case "$SYSGUESS" in
+    mpich)
       changequote(<, >)
       MPI_LDFLAGS="`$MPI_CXX -link_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
-      echo "$MPI_LDFLAGS"
       ;;
-    mpixlcxx|mpicxx)
+    openmpi|bgl)
       MPI_LDFLAGS=""
       ;;
+    *)
+      AC_MSG_ERROR([
+Could not determine proper value for MPI_LDFLAGS.  Please see README.])
+      ;;
   esac
+  echo "$MPI_LDFLAGS"
 fi
 
 if test "$ac_test_CXXFLAGS" != set; then

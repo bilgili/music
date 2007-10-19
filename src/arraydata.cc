@@ -22,7 +22,7 @@
 
 namespace MUSIC {
 
-  arraydata::arraydata (void* buffer, MPI_Datatype type, index_map* map)
+  array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
   {
   }
 

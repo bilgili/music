@@ -1,8 +1,8 @@
 namespace MUSIC {
 
-  class arraydata : public data_map {
+  class array_data : public data_map {
   public:
-    arraydata (void* buffer, MPI_Datatype type, index_map* map);
+    array_data (void* buffer, MPI_Datatype type, index_map* map);
   };
 
 }

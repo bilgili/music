@@ -1,3 +1,15 @@
+2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* arraydata.cc, linearindex.cc, music/arraydata.hh,
+	music/linearindex.hh, music/setup.hh (array_data, linear_index):
+	Renamed from arraydata and linearindex everywhere.
+
+	* Makefile.am (libmusic_la_SOURCES): Added linear_index.cc,
+	music/linear_index.hh music/index_map.hh mysic/array_data.hh
+	array_data.cc music/array_data.hh.
+	(musicinclude_HEADERS): Added music/index_map.hh music/data_map.hh
+	music/linear_index.hh music/array_data.hh.
+
 2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
 
 	* Makefile.am, music/arraydata.hh, music/data_map.hh,

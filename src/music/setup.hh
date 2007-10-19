@@ -20,12 +20,14 @@
 
 #include <mpi.h>
 
+#include <string>
+
 #include <music/runtime.hh>
 
 #include <music/index_map.hh>
-#include <music/linearindex.hh>
+#include <music/linear_index.hh>
 #include <music/data_map.hh>
-#include <music/arraydata.hh>
+#include <music/array_data.hh>
 
 
 namespace MUSIC {

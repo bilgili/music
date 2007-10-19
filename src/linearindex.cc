@@ -22,7 +22,7 @@
 
 namespace MUSIC {
 
-  linearindex::linearindex (int baseindex, int size)
+  linear_index::linear_index (int baseindex, int size)
   {
   }
 

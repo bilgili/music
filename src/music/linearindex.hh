@@ -1,8 +1,8 @@
 namespace MUSIC {
 
-  class linearindex : public index_map {
+  class linear_index : public index_map {
   public:
-    linearindex (int baseindex, int size);
+    linear_index (int baseindex, int size);
   };
 
 }

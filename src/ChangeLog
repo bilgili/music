@@ -1,5 +1,11 @@
 2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* array_data.cc, music/array_data.hh: Renamed from arraydata.cc,
+	music/arraydata.hh.
+
+	* linear_index.cc, music/linear_index.hh: Renamed from
+	linearindex.cc, music/linearindex.hh.
+
 	* arraydata.cc, linearindex.cc, music/arraydata.hh,
 	music/linearindex.hh, music/setup.hh (array_data, linear_index):
 	Renamed from arraydata and linearindex everywhere.

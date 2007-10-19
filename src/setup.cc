@@ -39,6 +39,31 @@ namespace MUSIC {
   }
 
 
+  string
+  config_get_string (string var)
+  {
+  }
+
+  int
+  config_get_int (string var)
+  {
+  }
+
+  double
+  config_get_double (string var)
+  {
+  }
+
+  bool
+  is_port (string identifier)
+  {
+  }
+
+  int
+  port_size (string identifier)
+  {
+  }
+
   void
   setup::publish (data_map* map, std::string identifier)
   {

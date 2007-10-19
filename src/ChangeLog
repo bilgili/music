@@ -1,5 +1,9 @@
 2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/setup.hh, setup.cc (setup::config_get_string,
+	setup::config_get_int, setup::config_get_double, setup::is_port,
+	setup::port_size): New methods.
+
 	* array_data.cc, music/array_data.hh: Renamed from arraydata.cc,
 	music/arraydata.hh.
 

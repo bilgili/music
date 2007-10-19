@@ -30,6 +30,8 @@
 #include <music/array_data.hh>
 
 
+using std::string;
+
 namespace MUSIC {
   
   class setup {
@@ -42,8 +44,23 @@ namespace MUSIC {
     MPI_Comm
     communicator ();
 
+    string
+    config_get_string (string var);
+
+    int
+    config_get_int (string var);
+
+    double
+    config_get_double (string var);
+
+    bool
+    is_port (string identifier);
+
+    int
+    port_size (string identifier);
+
     void
-    publish (data_map* map, std::string identifier);
+    publish (data_map* map, string identifier);
 
     runtime*
     done ();

@@ -24,12 +24,12 @@ namespace MUSIC {
 
   class runtime {
   private:
-    MPI_Comm myCommunicator;
+    MPI::Intercomm myCommunicator;
   
   public:
-    runtime (MPI_Comm c) : myCommunicator (c) { }
+    runtime (MPI::Intercomm c) : myCommunicator (c) { }
     
-    MPI_Comm
+    MPI::Intercomm
     communicator ();
 
     void

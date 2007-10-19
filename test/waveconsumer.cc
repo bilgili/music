@@ -1,15 +1,14 @@
-// Wavegenerator
+// Waveconsumer
 // 
-// This is a placeholder for a data generating application interfaced
+// This is a placeholder for a data sink application interfaced
 // to Music
 
 
 
 #include <mpi.h>
 #include <music.hh>
-#include <math.h>
 
-#define APPLICATION_ID 1
+#define APPLICATION_ID 2
 #define DATA_SIZE 1000
 
 
@@ -24,13 +23,13 @@ main (int nargs, char* argv[])
   MUSIC::setup* setup = new MUSIC::setup (APPLICATION_ID, nargs, argv);
 
   // Find out who we are
-  rank = setup->communicator ().Get_rank ();
+  rank = setup->communicator ().Get_rank();
 
-  // Declare what data we have to export
-  setup->publish (new MUSIC::array_data (data, MPI::DOUBLE,
-					 new MUSIC::linear_index (DATA_SIZE,
-								  DATA_SIZE*rank)),
-		  "Wavedata");
+  // Subscribe to data from the wavegenerator application
+  setup->subscribe (new MUSIC::array_data (data, MPI::DOUBLE,
+					   new MUSIC::linear_index (DATA_SIZE,
+								    DATA_SIZE*rank)),
+		    "Wavedata");
 
   MUSIC::runtime* runtime = setup->done ();
 
@@ -46,7 +45,7 @@ main (int nargs, char* argv[])
     // Broadcast these data out to all nodes
     runtime->communicator ().Bcast (data, DATA_SIZE, MPI::DOUBLE, 0);
 
-    // Make data available for other programs
+    // Retrieve data from other program
     runtime->tick (time);
   }
 

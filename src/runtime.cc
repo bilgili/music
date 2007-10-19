@@ -4,7 +4,7 @@
 
 namespace MUSIC {
   
-  MPI_Comm
+  MPI::Intercomm
   runtime::communicator ()
   {
     return myCommunicator;
@@ -14,8 +14,8 @@ namespace MUSIC {
   void
   runtime::finalize ()
   {
-    MPI_Comm_free (&myCommunicator);
-    MPI_Finalize ();
+    myCommunicator.Free ();
+    MPI::Finalize ();
   }
 
 

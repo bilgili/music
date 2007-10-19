@@ -36,12 +36,12 @@ namespace MUSIC {
   
   class setup {
   private:
-    MPI_Comm myCommunicator;
+    MPI::Intracomm myCommunicator;
 
   public:
-    setup (int color, int* argc, char** argv[]);
+    setup (int color, int& argc, char**& argv);
 
-    MPI_Comm
+    MPI::Intracomm
     communicator ();
 
     string

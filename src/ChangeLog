@@ -1,3 +1,8 @@
+2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* music/runtime.hh, runtime.cc, music/setup.hh, setup.cc:
+	Replace C MPI calls to their equivalent C++ versions.
+
 2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/setup.hh, setup.cc (setup::config_get_string,

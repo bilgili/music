@@ -22,17 +22,17 @@
 
 namespace MUSIC {
 
-  setup::setup (int color, int* argc, char** argv[])
+  setup::setup (int color, int& argc, char**& argv)
   {
-    int myRank;
+    int my_rank;
 
-    MPI_Init(argc, argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
-    MPI_Comm_split(MPI_COMM_WORLD, color, myRank, &myCommunicator);
+    MPI::Init (argc, argv);
+    my_rank = MPI::COMM_WORLD.Get_rank ();
+    myCommunicator = MPI::COMM_WORLD.Split (color, my_rank);
   }
 
 
-  MPI_Comm
+  MPI::Intracomm
   setup::communicator ()
   {
     return myCommunicator;

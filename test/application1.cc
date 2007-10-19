@@ -20,11 +20,11 @@ main (int nargs, char* argv[])
   double time;
   int rank;
 
-  MUSIC::setup* setup = new MUSIC::setup (APPLICATION_ID, &nargs, &argv);
+  MUSIC::setup* setup = new MUSIC::setup (APPLICATION_ID, nargs, argv);
 
   MUSIC::runtime* runtime = setup->done ();
 
-  MPI_Comm_rank (runtime->communicator (), &rank);
+  rank = runtime->communicator ().Get_rank ();
 
   for (time = 0.0; time < 1.0; time += 0.1) {
     if (rank == 0) {
@@ -35,9 +35,9 @@ main (int nargs, char* argv[])
 	data[i] = 17.0;
     }
 
-    MPI_Scatter (data, DATA_SIZE, MPI_DOUBLE,
-		 data, DATA_SIZE, MPI_DOUBLE,
-		 0, runtime->communicator ());
+    runtime->communicator ().Scatter (data, DATA_SIZE, MPI_DOUBLE,
+				      data, DATA_SIZE, MPI_DOUBLE,
+				      0);
 
     runtime->tick (time);
   }

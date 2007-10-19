@@ -27,8 +27,9 @@ main (int nargs, char* argv[])
   MPI_Comm_rank (setup->communicator (), &rank);
 
   // Declare what data we have to export
-  setup->publish (new MUSIC::arraydata(data, MPI_DOUBLE,
-				       new MUSIC::linearindex(DATA_SIZE, DATA_SIZE*rank)),
+  setup->publish (new MUSIC::array_data (data, MPI_DOUBLE,
+					 new MUSIC::linear_index (DATA_SIZE,
+								  DATA_SIZE*rank)),
 		  "Wavedata");
 
   MUSIC::runtime* runtime = setup->done ();

@@ -1,3 +1,12 @@
+2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* Makefile.am, music/arraydata.hh, music/data_map.hh,
+	music/index_map.hh, music/linearindex.hh, arraydata.cc,
+	linearindex.cc: Added abstraction classes for data indexing.
+
+	* music/setup.hh, setup.cc: Added publish method.
+	Add communicator access method (duplication from runtime).
+
 2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* runtime.cc, setup.cc: Rewritten.

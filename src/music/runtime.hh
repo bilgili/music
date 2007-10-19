@@ -29,11 +29,14 @@ namespace MUSIC {
   public:
     runtime (MPI_Comm c) : myCommunicator (c) { }
     
-    MPI_Comm communicator ();
+    MPI_Comm
+    communicator ();
 
-    void finalize ();
+    void
+    finalize ();
 
-    void tick (double time);
+    void
+    tick (double time);
   };
 
 }

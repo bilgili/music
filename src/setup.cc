@@ -32,9 +32,23 @@ namespace MUSIC {
   }
 
 
+  MPI_Comm
+  setup::communicator ()
+  {
+    return myCommunicator;
+  }
+
+
+  void
+  setup::publish (data_map* map, std::string identifier)
+  {
+  }
+
+
   runtime*
   setup::done ()
   {
     return new runtime (myCommunicator);
   }
+
 }

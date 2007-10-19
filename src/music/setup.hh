@@ -22,6 +22,12 @@
 
 #include <music/runtime.hh>
 
+#include <music/index_map.hh>
+#include <music/linearindex.hh>
+#include <music/data_map.hh>
+#include <music/arraydata.hh>
+
+
 namespace MUSIC {
   
   class setup {
@@ -31,7 +37,14 @@ namespace MUSIC {
   public:
     setup (int color, int* argc, char** argv[]);
 
-    runtime* done ();
+    MPI_Comm
+    communicator ();
+
+    void
+    publish (data_map* map, std::string identifier);
+
+    runtime*
+    done ();
   };
   
 }

@@ -1,3 +1,9 @@
+2007-10-18  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* wavegenerator.cc: Added new miniature application.
+
+	* Makefile.am: Added rule to build wavegenerator.
+
 2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* application1.cc: Modified to conform to setup.hh and runtime.hh.

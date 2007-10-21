@@ -1,7 +1,7 @@
-\documentclass{report}
+\documentclass[a4paper]{report}
 
 \usepackage[utf8]{inputenc}
-
+\usepackage{fancyhdr}
 
 \title{MUSIC --- Multi-Simulation Coordinator\\Provisional
   Specification}
@@ -28,13 +28,161 @@
 
 \section{Scope}
 
+Music is a standard for large scale simulators to exchange data at
+run-time.  The standard is designed specifically for interconnecting
+neuronal simulators, either with each-other or with other tools.
+
+
+\subsection{Portability}
+
+The interface and support software should be written to support most
+high-end hardware that is used and will be used for large scale
+neuronal modelling in the foreseeable future.
+
+
+\subsubsection{Based on MPI}
+
+Most, if not all, current efforts in large scale neuronal simulations
+are based in the MPI standard.  Music will use MPI to run the
+different simulators, and must allow each simulator to use MPI
+internally without interfering with each other.
+
+MPI encapsulates software optimizations for specific hardware.  By
+basing the interface on MPI, we can benefit from such optimizations.
+
+
+\subsubsection{Possible to run on BG/L}
+
+BG/L nodes do not support multiple parallel tasks.  It's e.g. not
+possible to start both Neuron and Genesis on the same node.
+
+
+\subsection{Easy to use and to adapt existing software}
+
+It must be possible to adapt existing simulators so that they can
+participate in a multi-simulation without too much effort.  We rely in
+the simulator developers to make these adaptations.
+
+It should also be simple to write new applications to facilitate the
+development of general purpose tools.  For example, a researcher can
+develop a tool for calculating synthetic EEG from simulation data.
+Via Music, this tool should then be useful for anybody using any
+neuronal simulator which supports the common interface.
+
+
 \section{Concepts}
+
+We need to support efficient transfer of spike events and continuous
+values.  How should these be handled in the API?  What can be expected
+and utilized from the native data representation in existing programs?
+
+Each module will communicate data via \emph{ports}.  These are either
+\emph{imports} or \emph{exports}.
+
 
 \chapter{Application Program Interface}
 
+\section{Launching}
+
+We will have to provide tools for starting the simulators.  This
+procedure will also take care of initializing communication between
+processes.  Since most simulators will use parallel processing also
+internally, it is necessary for the simulator to rely in the interface
+for some of its own initialization too.  The tools should therefore be
+useful for running simulators even in situations when only one
+simulator is running.
+
+
+\subsection{execve}
+
+MPI-2 comes with a program mpiexec which is capable of starting
+multiple applications directly.  In MPI-1 one can achieve the same
+result by starting a small "launcher" program which uses execve to
+start the real applications.  We should be able to write our interface
+so that it works in both situations.
+
+
+\subsection{MPI::Init}
+
+Each application will have to call an initialization routine in the API
+which in turn initializes MPI.
+
+
+\subsection{Communicators}
+
+One communicator for each application, given to the application from
+the API.
+
+We should probably use the global communicator for all
+inter-application communication.
+
+\paragraph{Consideration:} Check if there are any advantages of having one
+separate communicator for each communication channel.
+
+
 \section{Setup}
 
+\paragraph{Idea:} initialization call returns a \emph{setup object}
+which has methods for binding and other types of setup specification
+operations.  The setup phase ends via a setup-done call which consumes
+the setup object (to prevent further setup operations), and returns a
+run-time object.  The run-time object contains the API for
+synchronization (tick) and data transfer operations.
+
+Both sender and receiver should be able to choose what variables to
+transfer.
+
+
 \section{Runtime}
+
+\subsection{tick ()}
+
+Called in the local simulation loop of each application.
+The interface may, or may not, exchange data with other applications
+at the tick call.
+
+The application must ensure that exported data values are valid when
+tick() is called.  It must also expect that imported values may change.
+
+The tick() is called at regular intervals in simulation time.
+The application chooses the interval, normally based on the time step
+used in the application.  The interface must handle that different
+applications can use different tick-intervals.
+
+
+\subsection{Aliasing}
+
+The interface should take care of spatial and temporal aliasing, that
+is, to interpolate in space and time when the space and time steps of
+two applications do not match.
+
+To minimize communication, we always want to do the conversion on the
+side which has the most dense data.
+
+\paragraph{Motivation:} The application or model should not have to be
+adapted to the steps used in other applications.
+
+
+\subsubsection{Filters on sender side}
+
+When the receiver of a data-flow has a longer tick-interval than the
+receiver, then filters can be engaged to compress, smoothen, average,
+or otherwise aggregate the data before transmission.
+
+\paragraph{Motivation:} Filtering is needed on the sender side.  If we
+connect an old simulation with a receiver with longer time step, we
+don't want to rewrite the old simulation code to perform filtering.
+Thus, the interface must support filtering.
+
+
+\subsubsection{Interpolation on receiver side}
+
+Needed when sender is slower than receiver.
+
+Note that to make it possible to do interpolation, the sender has to
+produce the next value before the receiver can enter the intermediate
+time interval.  This needs careful scheduling of the transmissions to
+avoid dead-lock situations.
 
 \end{document}
 

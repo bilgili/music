@@ -2,17 +2,33 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{fancyhdr}
+\usepackage{color}
 
-\title{MUSIC --- Multi-Simulation Coordinator\\Provisional
-  Specification}
+%%%%% Formatting %%%%%
 
-\author{Örjan Ekeberg and Mikael Djurfeldt}
+% Use the metatext environment around text that should not appear in
+% the final document
+\newenvironment{metatext}%
+{\color{blue}}%
+{}
+
+
+% Use the rationale environment around arguments for design decisions
+\newenvironment{rationale}%
+{\par\paragraph{Rationale:}}%
+{\par}
 
 
 \pagestyle{fancy}
 
 
+%%%%% Actual content starts here %%%%%
 \begin{document}
+
+\title{MUSIC --- Multi-Simulation Coordinator\\
+  Provisional Specification}
+
+\author{Örjan Ekeberg and Mikael Djurfeldt}
 
 \maketitle
 
@@ -95,12 +111,13 @@ simulator is running.
 
 \subsection{execve}
 
-MPI-2 comes with a program mpiexec which is capable of starting
-multiple applications directly.  In MPI-1 one can achieve the same
-result by starting a small "launcher" program which uses execve to
-start the real applications.  We should be able to write our interface
-so that it works in both situations.
-
+\begin{metatext}
+  MPI-2 comes with a program mpiexec which is capable of starting
+  multiple applications directly.  In MPI-1 one can achieve the same
+  result by starting a small "launcher" program which uses execve to
+  start the real applications.  We should be able to write our interface
+  so that it works in both situations.
+\end{metatext}
 
 \subsection{MPI::Init}
 
@@ -116,8 +133,10 @@ the API.
 We should probably use the global communicator for all
 inter-application communication.
 
-\paragraph{Consideration:} Check if there are any advantages of having one
-separate communicator for each communication channel.
+\begin{metatext}
+  \paragraph{Consideration:} Check if there are any advantages of having one
+  separate communicator for each communication channel.
+\end{metatext}
 
 
 \section{Setup}
@@ -169,10 +188,12 @@ When the receiver of a data-flow has a longer tick-interval than the
 receiver, then filters can be engaged to compress, smoothen, average,
 or otherwise aggregate the data before transmission.
 
-\paragraph{Motivation:} Filtering is needed on the sender side.  If we
-connect an old simulation with a receiver with longer time step, we
-don't want to rewrite the old simulation code to perform filtering.
-Thus, the interface must support filtering.
+\begin{rationale}
+  Filtering is needed on the sender side.  If we connect an existing
+  simulation with a receiver with longer time step, we don't want to
+  rewrite the simulation code to perform filtering.  Thus, the
+  interface must support filtering.
+\end{rationale}
 
 
 \subsubsection{Interpolation on receiver side}

@@ -96,6 +96,8 @@ Each module will communicate data via \emph{ports}.  These are either
 \emph{imports} or \emph{exports}.
 
 
+\chapter{Running a music simulation}
+
 \chapter{Application Program Interface}
 
 \section{Launching}
@@ -204,6 +206,27 @@ Note that to make it possible to do interpolation, the sender has to
 produce the next value before the receiver can enter the intermediate
 time interval.  This needs careful scheduling of the transmissions to
 avoid dead-lock situations.
+
+\section{Specification file syntax}
+
+\newcommand{\nt}[1]{$<$#1$>$}
+
+\begin{tabular}{lcl}
+\nt{simulation spec}   & ::= & \{ \nt{application block} \} \\
+\nt{application block} & ::= & \nt{newline} '[' \nt{application id} ']' \{ \nt{declaration}
+\} \\
+\nt{application id}    & ::= & \nt{symbol} \\
+\nt{declaration}       & ::= & \nt{variable def} $|$ \nt{connection} \\
+\nt{variable def}      & ::= & \nt{variable} '=' \nt{value} \\
+\nt{variable}	       & ::= & \nt{symbol} \\
+\nt{value} 	       & ::= & \nt{integer} $|$ \nt{float} $|$ \nt{string} \\
+\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{size} ] \\
+\nt{port id}	       & ::= & \nt{application id} '.' \nt{port} $|$
+\nt{port} \\
+\nt{port}	       & ::= & \nt{symbol} \\
+\nt{direction}	       & ::= & $->$ $|$ $<-$ \\
+\nt{size}	       & ::= & '[' \nt{integer} ']' \\
+\end{tabular}
 
 \end{document}
 

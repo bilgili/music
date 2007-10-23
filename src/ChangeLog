@@ -1,3 +1,10 @@
+2007-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (setup::config_string): Renamed from
+	config_get_string.
+	(setup::config_int): Renamed from config_get_int.
+	(setup::config_double): Renamed from config_get_double.
+
 2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
 
 	* music/runtime.hh, runtime.cc, music/setup.hh, setup.cc:

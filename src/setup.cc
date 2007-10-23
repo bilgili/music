@@ -40,17 +40,17 @@ namespace MUSIC {
 
 
   string
-  config_get_string (string var)
+  config_string (string var)
   {
   }
 
   int
-  config_get_int (string var)
+  config_int (string var)
   {
   }
 
   double
-  config_get_double (string var)
+  config_double (string var)
   {
   }
 

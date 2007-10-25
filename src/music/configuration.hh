@@ -16,19 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_APPLICATION_MAP_HH
+#ifndef MUSIC_CONFIGURATION_HH
 
-#include <music/configuration.hh>
+#include <string>
 
 namespace MUSIC {
 
-  class application_map {
+  class configuration {
   public:
-    configuration* configuration_for_rank (int rank);
-    void write_env ();
+    std::string lookup_string (std::string name);
   };
-  
+
 }
 
-#define MUSIC_APPLICATION_MAP_HH
+#define MUSIC_CONFIGURATION_HH
 #endif

@@ -1,6 +1,11 @@
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* music/application_map.hh: New file.
+	* Makefile.am: Added configuration.cc, music/configuration.hh,
+	application_map.cc music/application_map.hh.
+
+	* application_map.cc, music/application_map.hh: New files.
+
+	* configuration.cc, music/configuration.hh: New files.
 
 2007-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

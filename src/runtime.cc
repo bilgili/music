@@ -4,7 +4,7 @@
 
 namespace MUSIC {
   
-  MPI::Intercomm
+  MPI::Intracomm
   runtime::communicator ()
   {
     return myCommunicator;

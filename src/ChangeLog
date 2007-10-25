@@ -1,3 +1,7 @@
+2007-10-26  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* runtime.cc, music/runtime.hh: Use type Intracomm for communicator.
+
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am: Added configuration.cc, music/configuration.hh,

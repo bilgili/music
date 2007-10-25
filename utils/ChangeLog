@@ -1,6 +1,6 @@
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* Makefile.am, music.cc, parse.hh: New files.
+	* Makefile.am, music.cc, parse.cc, parse.hh: New files.
 
 2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

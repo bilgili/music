@@ -1,3 +1,7 @@
+2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/application_map.hh: New file.
+
 2007-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/setup.hh, setup.cc (setup::config_string): Renamed from

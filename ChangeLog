@@ -1,3 +1,10 @@
+2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Added test for rts_get_personality; Generate
+	utils/Makefile.
+
+	* Makefile.am (SUBDIRS): Added utils.
+
 2007-10-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Introduced guessing of host MPI framework. Handle

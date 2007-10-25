@@ -86,6 +86,11 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   echo "$MPI_LDFLAGS"
 fi
 
+save_CC=$CC
+CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
+AC_CHECK_FUNCS([rts_get_personality])
+CC=$save_CC
+
 if test "$ac_test_CXXFLAGS" != set; then
   if test "$CXXFLAGS" = "-O2"; then
     CXXFLAGS="-O3"
@@ -102,6 +107,7 @@ AC_CONFIG_FILES([
   Makefile
   src/Makefile
   test/Makefile
+  utils/Makefile
 ])
 
 AC_OUTPUT

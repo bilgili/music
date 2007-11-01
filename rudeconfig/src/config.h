@@ -25,6 +25,8 @@
 #ifndef INCLUDED_RUDE_CONFIG_H
 #define INCLUDED_RUDE_CONFIG_H
 
+#include <istream>
+
 namespace rude{
 
 namespace config{
@@ -219,6 +221,8 @@ public:
 	// Use clear() if the config object already has data that you want to discard.
 	//=
 	bool load(const char *filename);
+
+	bool load(std::istream& file);
 
 	//=
 	// Returns the most recent error string, if there is one.

@@ -1,6 +1,6 @@
 // config.cpp
 //
-// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Matthew Flood
+// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007 Matthew Flood
 // See file AUTHORS for contact information
 //
 // This file is part of RudeConfig.
@@ -140,6 +140,11 @@ bool Config::load()
 bool Config::load(const char *filename)
 {
 	return d_implementation->load(filename);
+}
+
+bool Config::load(std::istream& file)
+{
+	return d_implementation->load(file);
 }
 
 

@@ -1,6 +1,11 @@
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/config.h, src/config.cpp (Config::load): Added new method
+	for std::istream&.
+
  ChangeLog for RudeConfig C++ Library
 
- Copyright (C) 2005 Matthew Flood
+ Copyright (C) 2005, 2007 Matthew Flood
  See file AUTHORS for contact information
 
  This file is part of RudeConfig.

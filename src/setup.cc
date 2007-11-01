@@ -19,16 +19,21 @@
 #include <mpi.h>
 #include "music/setup.hh"
 #include "music/runtime.hh"
+#include "music/parse.hh"
 
 namespace MUSIC {
 
-  setup::setup (int color, int& argc, char**& argv)
+  setup::setup (int& argc, char**& argv)
   {
-    int my_rank;
-
     MPI::Init (argc, argv);
-    my_rank = MPI::COMM_WORLD.Get_rank ();
-    myCommunicator = MPI::COMM_WORLD.Split (color, my_rank);
+    int my_rank = MPI::COMM_WORLD.Get_rank ();
+    _config = new configuration ();
+    myCommunicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);
+    string binary;
+    _config->lookup ("binary", &binary);
+    string args;
+    _config->lookup ("args", &args);
+    argv = parse_args (binary, args, &argc);
   }
 
 
@@ -39,19 +44,22 @@ namespace MUSIC {
   }
 
 
-  string
-  config_string (string var)
+  bool
+  setup::config (string var, string* result)
   {
+    return _config->lookup (var, result);
   }
 
-  int
-  config_int (string var)
+  bool
+  setup::config (string var, int* result)
   {
+    return _config->lookup (var, result);
   }
 
-  double
-  config_double (string var)
+  bool
+  setup::config (string var, double* result)
   {
+    return _config->lookup (var, result);
   }
 
   bool

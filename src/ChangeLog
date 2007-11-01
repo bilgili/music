@@ -1,3 +1,21 @@
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/parse.hh, parse.cc: Moved here from utils subdirectory.
+
+	* music/configuration.hh, condiguration.cc
+	(configuration::configuration, configuration::lookup,
+	configuration::write_env,
+	configuration::insert, configuration::color): New methods.
+
+	* music/application_map.hh, application_map.cc: Moved to utils
+	subdirectory.
+
+	* Makefile.am (libmusic_la_SOURCES): Removed
+	music/application_map.hh, application_map.cc; Added
+	music/parse.hh, parse.cc.
+
+	* music/setup.hh, setup.cc: Rewritten.
+
 2007-10-26  Örjan Ekeberg  <orjan@nada.kth.se>
 
 	* runtime.cc, music/runtime.hh: Use type Intracomm for communicator.

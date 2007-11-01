@@ -28,7 +28,7 @@
 #include <music/linear_index.hh>
 #include <music/data_map.hh>
 #include <music/array_data.hh>
-
+#include <music/application_map.hh>
 
 using std::string;
 
@@ -36,34 +36,27 @@ namespace MUSIC {
   
   class setup {
   private:
+    configuration* _config;
     MPI::Intracomm myCommunicator;
 
   public:
-    setup (int color, int& argc, char**& argv);
+    setup (int& argc, char**& argv);
 
-    MPI::Intracomm
-    communicator ();
+    MPI::Intracomm communicator ();
 
-    string
-    config_string (string var);
+    bool config (string var, string* result);
 
-    int
-    config_int (string var);
+    bool config (string var, int* result);
 
-    double
-    config_double (string var);
+    bool config (string var, double* result);
 
-    bool
-    is_port (string identifier);
+    bool is_port (string identifier);
 
-    int
-    port_size (string identifier);
+    int port_size (string identifier);
 
-    void
-    publish (data_map* map, string identifier);
+    void publish (data_map* map, string identifier);
 
-    runtime*
-    done ();
+    runtime* done ();
   };
   
 }

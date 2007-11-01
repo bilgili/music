@@ -19,12 +19,27 @@
 #ifndef MUSIC_CONFIGURATION_HH
 
 #include <string>
+#include <map>
 
 namespace MUSIC {
 
   class configuration {
+  private:
+    static const char* const config_env_var_name;
+    int _color;
+    configuration* default_config;
+    std::map<std::string, std::string> dict;
+    void tap (std::ostringstream& env, configuration* mask);
   public:
-    std::string lookup_string (std::string name);
+    configuration ();
+    configuration (int color, configuration* def);
+    void write_env ();
+    int color () { return _color; };
+    bool lookup (std::string name);
+    bool lookup (std::string name, std::string* result);
+    bool lookup (std::string name, int* result);
+    bool lookup (std::string name, double* result);
+    void insert (std::string name, std::string value);
   };
 
 }

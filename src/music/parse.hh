@@ -16,19 +16,29 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_APPLICATION_MAP_HH
+#ifndef MUSIC_PARSE_HH
 
-#include <music/configuration.hh>
+#include <string>
+#include <vector>
+#include <istream>
+#include <music/application_map.hh>
 
 namespace MUSIC {
-
-  class application_map {
-  public:
-    configuration* configuration_for_rank (int rank);
-    void write_env ();
-  };
   
+  class parser {
+    std::istream* in;
+    void parse_string (std::ostringstream& arg, char delim);
+  public:
+    parser (std::string s);
+    bool eof () { return in->eof (); }
+    void ignore_whitespace ();
+    std::string next_arg ();
+  };
+
+  char ** parse_args (std::string cmd,
+		      std::string args,
+		      int* argc);
 }
 
-#define MUSIC_APPLICATION_MAP_HH
+#define MUSIC_PARSE_HH
 #endif

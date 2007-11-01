@@ -1,3 +1,7 @@
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* rudeconfig: Added.
+
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Added test for rts_get_personality; Generate

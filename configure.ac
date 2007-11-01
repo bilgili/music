@@ -103,6 +103,8 @@ AC_PROG_LIBTOOL
 
 AC_SUBST([MPI_CXXFLAGS MPI_LDFLAGS])
 
+AC_CONFIG_SUBDIRS(rudeconfig)
+
 AC_CONFIG_FILES([
   Makefile
   src/Makefile

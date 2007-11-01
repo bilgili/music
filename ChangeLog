@@ -1,5 +1,7 @@
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* configure.ac: Added AC_CONFIG_SUBDIRS(rudeconfig).
+					 
 	* rudeconfig: Added.
 
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>

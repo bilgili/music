@@ -1,0 +1,8 @@
+binary=launchtest
+np=3
+[1]
+  args=hej du glade
+  param=1.0
+[2]
+  args=ta en spade
+  param=2.0

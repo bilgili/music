@@ -1,3 +1,15 @@
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (bin_PROGRAMS): Added launchtest.
+
+	* launchest.cc, launchtest.music: New files.
+
+	* wavegenerator.cc (main): Don't pass color to setup.
+
+	* waveconsumer.cc (main): Don't pass color to setup.
+
+	* application1.cc (main): Don't pass color to setup.
+
 2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
 
 	* wavegenerator.cc, waveconsumer.cc, application1.cc: Replace C

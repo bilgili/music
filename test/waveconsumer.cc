@@ -8,7 +8,6 @@
 #include <mpi.h>
 #include <music.hh>
 
-#define APPLICATION_ID 2
 #define DATA_SIZE 1000
 
 
@@ -20,7 +19,7 @@ main (int nargs, char* argv[])
   double time;
   int rank;
 
-  MUSIC::setup* setup = new MUSIC::setup (APPLICATION_ID, nargs, argv);
+  MUSIC::setup* setup = new MUSIC::setup (nargs, argv);
 
   // Find out who we are
   rank = setup->communicator ().Get_rank();

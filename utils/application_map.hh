@@ -16,17 +16,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "parse.hh"
+#ifndef MUSIC_APPLICATION_MAP_HH
 
-MUSIC::application_map*
-parse_config (std::ifstream* config_file)
-{
-  return 0;
-}
+#include <istream>
+#include <map>
 
-char **
-parse_args (std::string args)
-{
-  return 0;
-}
+#include <music/configuration.hh>
 
+class application_map {
+  std::map<std::string, MUSIC::configuration*> configs;
+public:
+  application_map (std::istream* config_file);
+  MUSIC::configuration* configuration_for_rank (int rank);
+};
+
+#define MUSIC_APPLICATION_MAP_HH
+#endif

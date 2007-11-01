@@ -21,10 +21,13 @@
 #include <fstream>
 #include <iostream>
 
-#include "parse.hh"
+#include "application_map.hh"
 
 extern "C" {
-  #include <getopt.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <stdlib.h>
 };
 
 using std::string;
@@ -32,10 +35,16 @@ using std::ifstream;
 
 // Implementation-dependent code
 
+#ifdef HAVE_RTS_GET_PERSONALITY
+#define BGL
+#else
+#define MPICH
+#endif
+
 int
 get_rank (int argc, char *argv[])
 {
-#ifdef HAVE_RTS_GET_PERSONALITY
+#ifdef BGL
   // BG/L
   BGLPersonality p;
   rts_get_personality (&p, sizeof (p));
@@ -43,7 +52,8 @@ get_rank (int argc, char *argv[])
   unsigned int rank, np;
   rts_rankForCoordinates (p.xCoord, p.yCoord, p.zCoord, pid, &rank, &np);
   return rank;
-#else
+#endif
+#ifdef MPICH
   // mpich
   int rank;
   const std::string rankopt = "-p4rmrank";
@@ -58,6 +68,48 @@ get_rank (int argc, char *argv[])
 #endif
 }
 
+#ifdef MPICH
+std::string
+get_shared_dir ()
+{
+  std::ostringstream dirname;
+  char* music_shared_dir = getenv ("MUSIC_SHARED_DIR");
+  if (music_shared_dir)
+    dirname << music_shared_dir;
+  else
+    {
+      char* home = getenv ("HOME");
+      dirname << home;
+    }
+  return dirname.str ();
+}
+#endif
+
+std::istream*
+get_config (int rank, int argc, char** argv)
+{
+#ifdef BGL
+  return new ifstream (argv[1]);
+#endif
+#ifdef MPICH
+  std::ostringstream fname;
+  fname << get_shared_dir () << "/.musicconf";
+  std::string confname;
+  if (rank == 0)
+    {
+      std::ofstream f (fname.str ().c_str ());
+      confname = argv[1];
+      f << confname;
+    }
+  else
+    {
+      std::ifstream f (fname.str ().c_str ());
+      f >> confname;
+    }
+  return new std::ifstream (confname.c_str ());
+#endif
+}
+
 // Generic code
 
 void
@@ -69,23 +121,21 @@ usage (int rank)
 		<< "`music' launches an application as part of a multi-simulator job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl << std::endl
 		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
-      exit (1);
     }
+  exit (1);
 }
 
 void
-launch (int rank, MUSIC::application_map* map)
+launch (int rank, application_map* map, char** argv)
 {
   MUSIC::configuration* config = map->configuration_for_rank (rank);
-  string binary = config->lookup_string ("binary");
-  string args = config->lookup_string ("args");
-  char **argv = parse_args (args);
-  
-  map->write_env ();
+  string binary;
+  config->lookup ("binary", &binary);
+  config->write_env ();
   execvp (binary.data (), argv);
 
   // if we get here, something is wrong
-  perror ("MUSIC:");
+  perror ("MUSIC");
   exit (1);
 }
 
@@ -118,28 +168,23 @@ main (int argc, char *argv[])
 	  break; // ignore unknown options
 	case 'h':
 	  usage (rank);
-	  break;
 
 	default:
 	  abort ();
 	}
     }
 
-  // check that we have at least one arg and that this is not an option
-  if (argc < 2 || *argv[1] == '-')
-    usage (rank);
+  std::istream* config_file = get_config (rank, argc, argv);
 
-  ifstream config_file (argv[1]);
   if (!config_file)
     {
       if (rank == 0)
 	std::cerr << "Couldn't open config file " << argv[1] << std::endl;
       exit (1);
     }
-  
-  MUSIC::application_map* map = parse_config (&config_file);
+  application_map* map = new application_map (config_file);
 
-  launch (rank, map);
+  launch (rank, map, argv);
 
   return 0;
 }

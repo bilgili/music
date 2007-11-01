@@ -1,5 +1,7 @@
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/error.hh, error.cc: Added.
+
 	* music/parse.hh, parse.cc: Moved here from utils subdirectory.
 
 	* music/configuration.hh, condiguration.cc

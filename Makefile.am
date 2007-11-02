@@ -1,1 +1,1 @@
-SUBDIRS = src test utils
+SUBDIRS = src test rudeconfig utils

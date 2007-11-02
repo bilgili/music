@@ -2,6 +2,8 @@ dnl Process this file with autoconf to produce configure.
 AC_INIT(music, 0.0.0)
 AM_INIT_AUTOMAKE
 
+AC_CONFIG_SUBDIRS(rudeconfig)
+
 AC_PROG_CXX
 if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
@@ -102,8 +104,6 @@ fi
 AC_PROG_LIBTOOL
 
 AC_SUBST([MPI_CXXFLAGS MPI_LDFLAGS])
-
-AC_CONFIG_SUBDIRS(rudeconfig)
 
 AC_CONFIG_FILES([
   Makefile

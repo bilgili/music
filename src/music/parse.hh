@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 #include <istream>
-#include <music/application_map.hh>
 
 namespace MUSIC {
   

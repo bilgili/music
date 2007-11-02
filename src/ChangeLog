@@ -1,6 +1,9 @@
 2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* music/setup.hh: Don't include music/application_map.hh.
+	* music/setup.hh, music/parse.hh: Don't #include
+	<music/application_map.hh>.
+
+	* music/setup.hh: #include <music/configuration.hh>.
 
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

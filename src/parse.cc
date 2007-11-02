@@ -22,13 +22,14 @@
 #include <vector>
 
 namespace MUSIC {
-
+  
   parser::parser (std::string s)
     : in (new std::istringstream (s))
   {
   
   }
 
+  
   void
   parser::ignore_whitespace ()
   {
@@ -36,6 +37,7 @@ namespace MUSIC {
       in->ignore ();
   }
 
+  
   void
   parser::parse_string (std::ostringstream& arg, char delim)
   {
@@ -62,6 +64,7 @@ namespace MUSIC {
       }  
   }
 
+  
   std::string
   parser::next_arg ()
   {
@@ -91,6 +94,7 @@ namespace MUSIC {
     return arg.str ();
   }
 
+  
   char **
   parse_args (std::string cmd,
 	      std::string argstring,

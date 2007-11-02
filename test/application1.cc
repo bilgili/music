@@ -13,6 +13,7 @@
 
 double data[DATA_SIZE];
 
+
 int
 main (int nargs, char* argv[])
 {

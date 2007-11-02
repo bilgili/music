@@ -45,6 +45,7 @@ using std::ifstream;
 #endif
 #endif
 
+
 int
 get_rank (int argc, char *argv[])
 {
@@ -78,6 +79,7 @@ get_rank (int argc, char *argv[])
 #endif
 }
 
+
 #ifdef MPICH
 std::string
 get_shared_dir ()
@@ -94,6 +96,7 @@ get_shared_dir ()
   return dirname.str ();
 }
 #endif
+
 
 std::istream*
 get_config (int rank, int argc, char** argv)
@@ -119,6 +122,7 @@ get_config (int rank, int argc, char** argv)
 #endif
 }
 
+
 // Generic code
 
 void
@@ -134,6 +138,7 @@ usage (int rank)
   exit (1);
 }
 
+
 void
 launch (int rank, application_map* map, char** argv)
 {
@@ -147,6 +152,7 @@ launch (int rank, application_map* map, char** argv)
   perror ("MUSIC");
   exit (1);
 }
+
 
 int
 main (int argc, char *argv[])

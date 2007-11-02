@@ -20,6 +20,8 @@
 
 #include "rudeconfig/src/config.h"
 #include <iostream>
+
+
 // This is where we parse the configuration file
 // *fixme* Should check here that obligatory parameters exists
 application_map::application_map (std::istream* config_file)
@@ -48,6 +50,7 @@ application_map::application_map (std::istream* config_file)
 	configs.insert (std::make_pair (name, config));
     }
 }
+
 
 MUSIC::configuration*
 application_map::configuration_for_rank (int rank)

@@ -26,15 +26,17 @@ extern "C" {
 #include "music/error.hh"
 
 namespace MUSIC {
-
+  
   const char* const configuration::config_env_var_name = "_MUSIC_CONFIG_";
 
+  
   configuration::configuration (int color, configuration* def)
     : _color (color), default_config (def)
   {
     
   }
 
+  
   configuration::configuration ()
     : default_config (0)
   {
@@ -70,6 +72,7 @@ namespace MUSIC {
       }
   }
 
+  
   void
   configuration::tap (std::ostringstream& env, configuration* mask)
   {
@@ -100,6 +103,7 @@ namespace MUSIC {
 	  }
       }
   }
+
   
   void
   configuration::write_env ()
@@ -110,12 +114,14 @@ namespace MUSIC {
     default_config->tap (env, this);
     setenv (config_env_var_name, env.str ().c_str (), 1);
   }
+
   
   bool
   configuration::lookup (std::string name)
   {
     return dict.find (name) != dict.end ();
   }
+
   
   bool
   configuration::lookup (std::string name, std::string* result)
@@ -130,6 +136,7 @@ namespace MUSIC {
       return default_config && default_config->lookup (name, result);
   }
 
+  
   bool
   configuration::lookup (std::string name, int* result)
   {
@@ -150,6 +157,7 @@ namespace MUSIC {
       return default_config && default_config->lookup (name, result);
   }
 
+  
   bool
   configuration::lookup (std::string name, double* result)
   {
@@ -170,10 +178,11 @@ namespace MUSIC {
       return default_config && default_config->lookup (name, result);
   }
 
+  
   void
   configuration::insert (std::string name, std::string value)
   {
     dict.insert (std::make_pair (name, value));
   }
-  
+
 }

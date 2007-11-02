@@ -50,28 +50,33 @@ namespace MUSIC {
     return _config->lookup (var, result);
   }
 
+  
   bool
   setup::config (string var, int* result)
   {
     return _config->lookup (var, result);
   }
 
+  
   bool
   setup::config (string var, double* result)
   {
     return _config->lookup (var, result);
   }
 
+  
   bool
   is_port (string identifier)
   {
   }
 
+  
   int
   port_size (string identifier)
   {
   }
 
+  
   void
   setup::publish (data_map* map, std::string identifier)
   {

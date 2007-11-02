@@ -21,7 +21,7 @@
 #include "music/runtime.hh"
 
 namespace MUSIC {
-
+  
   linear_index::linear_index (int baseindex, int size)
   {
   }

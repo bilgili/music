@@ -21,7 +21,7 @@
 #include <iostream>
 
 namespace MUSIC {
-
+  
   void
   error (std::string msg)
   {

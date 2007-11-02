@@ -21,9 +21,9 @@
 #include "music/runtime.hh"
 
 namespace MUSIC {
-
+  
   array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
   {
   }
-
+  
 }

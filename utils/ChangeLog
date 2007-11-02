@@ -1,3 +1,7 @@
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music.cc (get_rank): Support OPENMPI.
+
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* parse.hh, parse.cc: Moved to src.

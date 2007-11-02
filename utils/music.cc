@@ -38,14 +38,17 @@ using std::ifstream;
 #ifdef HAVE_RTS_GET_PERSONALITY
 #define BGL
 #else
+#ifdef HAVE_OMPI_COMM_CREATE
+#define OPENMPI
+#else
 #define MPICH
+#endif
 #endif
 
 int
 get_rank (int argc, char *argv[])
 {
 #ifdef BGL
-  // BG/L
   BGLPersonality p;
   rts_get_personality (&p, sizeof (p));
   int pid = rts_get_processor_id ();
@@ -54,7 +57,6 @@ get_rank (int argc, char *argv[])
   return rank;
 #endif
 #ifdef MPICH
-  // mpich
   int rank;
   const std::string rankopt = "-p4rmrank";
   for (int i = argc - 2; i > 0; --i)
@@ -65,6 +67,14 @@ get_rank (int argc, char *argv[])
 	return rank;
       }
   return 0;
+#endif
+#ifdef OPENMPI
+  char* vpid = getenv ("OMPI_MCA_ns_nds_vpid");
+  /*fixme* more error checking here */
+  std::istringstream iss (vpid);
+  int rank;
+  iss >> rank;
+  return rank;
 #endif
 }
 
@@ -88,9 +98,6 @@ get_shared_dir ()
 std::istream*
 get_config (int rank, int argc, char** argv)
 {
-#ifdef BGL
-  return new ifstream (argv[1]);
-#endif
 #ifdef MPICH
   std::ostringstream fname;
   fname << get_shared_dir () << "/.musicconf";
@@ -107,6 +114,8 @@ get_config (int rank, int argc, char** argv)
       f >> confname;
     }
   return new std::ifstream (confname.c_str ());
+#else
+  return new ifstream (argv[1]);
 #endif
 }
 

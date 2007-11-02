@@ -1,5 +1,10 @@
 2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* application_map.hh: #include "rudeconfig/src/config.h" instead
+	of <rude/config.h>.
+
+	* Makefile.am (music_CXXFLAGS): Added -I$(top_srcdir).
+
 	* music.cc (get_rank): Support OPENMPI.
 
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>

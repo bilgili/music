@@ -18,7 +18,7 @@
 
 #include "application_map.hh"
 
-#include <rude/config.h>
+#include "rudeconfig/src/config.h"
 #include <iostream>
 // This is where we parse the configuration file
 // *fixme* Should check here that obligatory parameters exists

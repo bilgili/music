@@ -28,7 +28,6 @@
 #include <music/linear_index.hh>
 #include <music/data_map.hh>
 #include <music/array_data.hh>
-#include <music/application_map.hh>
 
 using std::string;
 

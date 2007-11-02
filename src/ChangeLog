@@ -1,3 +1,7 @@
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh: Don't include music/application_map.hh.
+
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/error.hh, error.cc: Added.

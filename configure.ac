@@ -88,7 +88,7 @@ fi
 
 save_CC=$CC
 CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
-AC_CHECK_FUNCS([rts_get_personality])
+AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
 CC=$save_CC
 
 if test "$ac_test_CXXFLAGS" != set; then

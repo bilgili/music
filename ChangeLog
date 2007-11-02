@@ -1,3 +1,8 @@
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Test for ompi_comm_create (used to identify
+	OPENMPI).
+
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Added AC_CONFIG_SUBDIRS(rudeconfig).

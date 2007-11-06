@@ -1,3 +1,9 @@
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Rewritten to make better use of AC_PROG_CXX; Logic
+	added to manage subdirectory rudeconfig directly (tests moved from
+	original rudeconfig configure.ac).
+
 2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Test for ompi_comm_create (used to identify

@@ -2,46 +2,35 @@ dnl Process this file with autoconf to produce configure.
 AC_INIT(music, 0.0.0)
 AM_INIT_AUTOMAKE
 
-AC_CONFIG_SUBDIRS(rudeconfig)
-
-AC_PROG_CXX
 if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
-else
-  dnl Look for MPI C++ compiler
-  AC_CHECK_PROGS(MPI_CXX, [mpiCC mpixlcxx mpicxx], "no")
-  if test "$MPI_CXX" = "no"; then
-    if test "$MPI_CXXFLAGS" = "" -o "$MPI_LDFLAGS" = ""; then
-      AC_MSG_ERROR([
-Can't find out how to compile with MPI on your system.
-Please specify environment variable MPI_CXXFLAGS manually], 1)
-    fi
-  fi
-
-  AC_MSG_CHECKING([which C++-compiler to use])
-  case "$MPI_CXX" in
-    mpiCC)
-      changequote(<, >)
-      if $MPI_CXX -compile_info >/dev/null 2>/dev/null; then
-        SYSGUESS=mpich
-        CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
-      else
-        SYSGUESS=openmpi
-        CXX="$MPI_CXX"
-      fi
-      changequote([, ])
-      echo "$CXX"
-      ;;
-    mpixlcxx|mpicxx)
-      SYSGUESS=bgl
-      CXX="$MPI_CXX"
-      echo "$CXX"
-      ;;
-    *)
-      SYSGUESS=unknown
-      ;;
-  esac
 fi
+
+AC_PROG_CXX([mpiCC mpixlcxx mpicxx])
+MPI_CXX="$CXX"
+
+AC_MSG_CHECKING([which MPI system we think we are using])
+case "$MPI_CXX" in
+  mpiCC)
+    changequote(<, >)
+    if $MPI_CXX -compile_info >/dev/null 2>/dev/null; then
+      SYSGUESS=mpich
+      CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
+    else
+      SYSGUESS=openmpi
+      CXX="$MPI_CXX"
+    fi
+    changequote([, ])
+    ;;
+  mpixlcxx|mpicxx)
+    SYSGUESS=bgl
+    CXX="$MPI_CXX"
+    ;;
+  *)
+    SYSGUESS=unknown
+    ;;
+esac
+echo "$SYSGUESS"
 
 AC_MSG_CHECKING(MPI_CXXFLAGS)
 if test "$MPI_CXXFLAGS" != ""; then
@@ -88,11 +77,6 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   echo "$MPI_LDFLAGS"
 fi
 
-save_CC=$CC
-CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
-AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
-CC=$save_CC
-
 if test "$ac_test_CXXFLAGS" != set; then
   if test "$CXXFLAGS" = "-O2"; then
     CXXFLAGS="-O3"
@@ -101,7 +85,21 @@ if test "$ac_test_CXXFLAGS" != set; then
   fi
 fi
 
+AC_PROG_CC
 AC_PROG_LIBTOOL
+
+dnl Checks for rudeconfig:
+AC_HEADER_STDC
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+
+AC_CHECK_FUNCS([strrchr])
+
+save_CC="$CC"
+CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
+AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
+CC="$save_CC"
 
 AC_SUBST([MPI_CXXFLAGS MPI_LDFLAGS])
 
@@ -109,6 +107,7 @@ AC_CONFIG_FILES([
   Makefile
   src/Makefile
   test/Makefile
+  rudeconfig/Makefile
   utils/Makefile
 ])
 

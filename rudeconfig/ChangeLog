@@ -1,3 +1,9 @@
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* INSTALL, Makefile.in, aclocal.m4, config.guess, config.sub,
+	configure.ac, configure, depcomp, install-sh, ltmain.sh, missing:
+	Removed.
+
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* src/config.h, src/config.cpp (Config::load): Added new method

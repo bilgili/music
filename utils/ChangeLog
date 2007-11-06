@@ -1,3 +1,7 @@
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music.cc (BGL): #include <rts.h>
+
 2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* application_map.hh: #include "rudeconfig/src/config.h" instead

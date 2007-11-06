@@ -45,6 +45,9 @@ using std::ifstream;
 #endif
 #endif
 
+#ifdef BGL
+#include <rts.h>
+#endif
 
 int
 get_rank (int argc, char *argv[])

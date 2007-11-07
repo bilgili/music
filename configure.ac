@@ -47,6 +47,7 @@ else
       ;;
     bgl)
       MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+      enable_shared=no
       ;;
     *)
       AC_MSG_ERROR([

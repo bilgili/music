@@ -1,3 +1,9 @@
+2007-11-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Don't try to build shared libraries on BGL.
+
+	* autogen.sh, aclocal.sh: Suppress error messages from which.
+
 2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Rewritten to make better use of AC_PROG_CXX; Logic

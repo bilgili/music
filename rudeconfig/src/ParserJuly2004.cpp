@@ -1,6 +1,6 @@
 // ParserJuly2004.cc
 //
-// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Matthew Flood
+// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007 Matthew Flood
 // See file AUTHORS for contact information
 //
 // This file is part of RudeConfig.
@@ -100,7 +100,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 		return false;
 	}
 	
-	register char c;
+	register int c;
 		
 	// eof only gets set when error_flag is set on previous operation
 	// as such, you need to peek() at the end ot the while loop
@@ -347,7 +347,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 				{
 					case KEY:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 							
 							if(c == EOF || isEOL(c))
 							{
@@ -396,7 +396,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case KEYESCAPE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 							if(c == EOF)
 							{
 								setError("107", "End of stream found after un-escaped backslash");
@@ -419,7 +419,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case STARTVALUE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
 							{
@@ -453,7 +453,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case FINDCOMMENT:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
 							{
@@ -484,7 +484,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case COMMENT:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
 							{
@@ -503,7 +503,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case VALUE:
 					{
-						char c = infile.peek();
+						int c = infile.peek();
 						if(c == '"')
 						{
 							// discard '"'
@@ -520,7 +520,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEVALUE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 							if(c == EOF)
 							{
 								setError("106", "End of stream found before final quote (\") in value");
@@ -554,7 +554,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEESCAPE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 							if(c == EOF)
 							{
 								setError("107", "End of stream found after un-escaped backslash");
@@ -572,7 +572,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEVALUE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
 							{
@@ -610,7 +610,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEESCAPE:
 					{
-							char c = infile.peek();
+							int c = infile.peek();
 							if(c == EOF)
 							{
 								setError("107", "End of stream found after un-escaped backslash");

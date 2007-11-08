@@ -53,14 +53,14 @@ namespace MUSIC {
 	std::ostringstream value;
 	while (true)
 	  {
-	    char c;
-	    switch (c = env.get ())
+	    int c = env.get ();
+	    switch (c)
 	      {
 	      case '\\':
 		value << (char) env.get ();
 		continue;
 	      default:
-		value << c;
+		value << (char) c;
 		continue;
 	      case ':':
 	      case EOF:
@@ -86,14 +86,14 @@ namespace MUSIC {
 	    std::istringstream value (pos->second);
 	    while (true)
 	      {
-		char c;
+		int c;
 		switch (c = value.get ())
 		  {
 		  case '\\':
 		  case ':':
 		    env << '\\';
 		  default:
-		    env << c;
+		    env << (char) c;
 		    continue;
 		  case EOF:
 		    break;

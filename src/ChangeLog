@@ -1,3 +1,12 @@
+2007-11-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* parse.cc (parser::parse_string, parser::next_arg): Use int
+	instead of char to handle characters.
+
+	* configuration.cc (configuration::configuration,
+	configuration::tap): Use int instead of char to handle
+	characters.
+
 2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/setup.hh, music/parse.hh: Don't #include

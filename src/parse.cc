@@ -43,7 +43,7 @@ namespace MUSIC {
   {
     while (true)
       {
-	char c;
+	int c;
 	switch (c = in->get ())
 	  {
 	  case '\'':
@@ -51,7 +51,7 @@ namespace MUSIC {
 	    if (c == delim)
 	      break;
 	  default:
-	    arg << c;
+	    arg << (char) c;
 	    continue;
 	  case '\\':
 	    arg << (char) in->get ();
@@ -71,11 +71,11 @@ namespace MUSIC {
     std::ostringstream arg;
     while (true)
       {
-	char c;
+	int c;
 	switch (c = in->get ())
 	  {
 	  default:
-	    arg << c;
+	    arg << (char) c;
 	    continue;
 	  case '\\':
 	    arg << (char) in->get ();

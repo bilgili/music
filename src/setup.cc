@@ -28,19 +28,28 @@ namespace MUSIC {
     MPI::Init (argc, argv);
     int my_rank = MPI::COMM_WORLD.Get_rank ();
     _config = new configuration ();
-    myCommunicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);
-    string binary;
-    _config->lookup ("binary", &binary);
-    string args;
-    _config->lookup ("args", &args);
-    argv = parse_args (binary, args, &argc);
+    if (_config->launched_by_music ())
+      {
+	// launched by the music utility
+	my_communicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);
+	string binary;
+	_config->lookup ("binary", &binary);
+	string args;
+	_config->lookup ("args", &args);
+	argv = parse_args (binary, args, &argc);
+      }
+    else
+      {
+	// launched with mpirun
+	my_communicator = MPI::COMM_WORLD;
+      }
   }
 
 
   MPI::Intracomm
   setup::communicator ()
   {
-    return myCommunicator;
+    return my_communicator;
   }
 
 
@@ -86,7 +95,7 @@ namespace MUSIC {
   runtime*
   setup::done ()
   {
-    return new runtime (myCommunicator);
+    return new runtime (my_communicator);
   }
 
 }

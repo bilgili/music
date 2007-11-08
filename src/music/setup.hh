@@ -37,7 +37,7 @@ namespace MUSIC {
   class setup {
   private:
     configuration* _config;
-    MPI::Intracomm myCommunicator;
+    MPI::Intracomm my_communicator;
 
   public:
     setup (int& argc, char**& argv);

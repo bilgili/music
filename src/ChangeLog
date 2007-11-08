@@ -1,5 +1,16 @@
 2007-11-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* configuration.cc (configuration::configuration): Handle dirct
+	launch by mpirun.
+
+	* music/configuration.hh (setup::launched_by_music): New method.
+
+	* music/configuration.hh (setup::_launched_by_music): New private
+	member.
+
+	* music/setup.hh, setup.cc (setup::my_communicator): Renamed from
+	myCommunicator.
+
 	* parse.cc (parser::parse_string, parser::next_arg): Use int
 	instead of char to handle characters.
 

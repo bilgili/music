@@ -41,34 +41,44 @@ namespace MUSIC {
     : default_config (0)
   {
     int n_vars;
-    std::istringstream env (getenv (config_env_var_name));
-    env >> _color;
-    env.ignore (); // ignore initial colon
-    while (!env.eof ())
+    char* config_str = getenv (config_env_var_name);
+    if (config_str == NULL)
       {
-	const int maxsize = 80;
-	char* name = new char[maxsize];
-	env.get (name, maxsize, '=');
-	env.ignore ();
-	std::ostringstream value;
-	while (true)
+	_launched_by_music = false;
+      }
+    else
+      {
+	_launched_by_music = true;
+	std::istringstream env (config_str);
+	env >> _color;
+	// parse config string
+	env.ignore (); // ignore initial colon
+	while (!env.eof ())
 	  {
-	    int c = env.get ();
-	    switch (c)
+	    const int maxsize = 80;
+	    char* name = new char[maxsize];
+	    env.get (name, maxsize, '=');
+	    env.ignore ();
+	    std::ostringstream value;
+	    while (true)
 	      {
-	      case '\\':
-		value << (char) env.get ();
-		continue;
-	      default:
-		value << (char) c;
-		continue;
-	      case ':':
-	      case EOF:
+		int c = env.get ();
+		switch (c)
+		  {
+		  case '\\':
+		    value << (char) env.get ();
+		    continue;
+		  default:
+		    value << (char) c;
+		    continue;
+		  case ':':
+		  case EOF:
+		    break;
+		  }
 		break;
 	      }
-	    break;
+	    insert (name, value.str ());
 	  }
-	insert (name, value.str ());
       }
   }
 

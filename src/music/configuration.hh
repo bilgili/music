@@ -26,6 +26,7 @@ namespace MUSIC {
   class configuration {
   private:
     static const char* const config_env_var_name;
+    bool _launched_by_music;
     int _color;
     configuration* default_config;
     std::map<std::string, std::string> dict;
@@ -33,6 +34,7 @@ namespace MUSIC {
   public:
     configuration ();
     configuration (int color, configuration* def);
+    bool launched_by_music () { return _launched_by_music; }
     void write_env ();
     int color () { return _color; };
     bool lookup (std::string name);

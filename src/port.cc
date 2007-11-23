@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,35 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_RUNTIME_HH
-
-#include <mpi.h>
-#include <vector>
-
 #include "music/port.hh"
 
 namespace MUSIC {
-
-  class runtime {
-  private:
-    MPI::Intracomm myCommunicator;
-    std::vector<input_port>* input_ports;
-    std::vector<output_port>* output_ports;
   
-  public:
-    runtime (MPI::Intracomm c) : myCommunicator (c) { }
-    
-    MPI::Intracomm
-    communicator ();
-
-    void
-    finalize ();
-
-    void
-    tick (double time);
-  };
 
 }
-
-#define MUSIC_RUNTIME_HH
-#endif

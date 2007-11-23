@@ -16,14 +16,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_DATA_MAP_HH
+#ifndef MUSIC_SPIKE_DATA_HH
+
+#include "music/data_map.hh"
 
 namespace MUSIC {
 
-  class data_map {
+  class spike_data : public data_map {
+  public:
+    spike_data (index_map* map);
+    spike_data (int base_index, int size);
   };
 
 }
 
-#define MUSIC_DATA_MAP_HH
+#define MUSIC_SPIKE_DATA_HH
 #endif

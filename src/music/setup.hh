@@ -54,7 +54,9 @@ namespace MUSIC {
 
     int port_size (string identifier);
 
-    void publish (data_map* map, string identifier);
+    input_port* publish_input (string identifier, data_map* map);
+
+    output_port* publish_output (string identifier, data_map* map);
 
     runtime* done ();
   };

@@ -1,5 +1,16 @@
 2007-11-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/spike_data.hh: New file.
+
+	* music/setup.hh (setup::publish): Removed
+	(setup::publish_input, setup::publish_output): New methods.
+
+	* music/array_data.hh, music/data_map.hh, music/index_map.hh,
+	music/linear_index.hh: Added copyright notice + #ifdef logic.
+
+	* music/array_data.hh (array_data::array_data): Data type argument
+	moved first; added new constructor for linear arrays.
+
 	* Makefile.am: Added music/port.hh, port.cc.
 
 	* music/port.hh, port.cc: New files.

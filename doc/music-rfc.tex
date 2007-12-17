@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{fancyhdr}
 \usepackage{color}
+\usepackage{graphicx}
 
 %%%%% Formatting %%%%%
 
@@ -172,6 +173,22 @@ applications can use different tick-intervals.
 
 
 \subsection{Aliasing}
+
+\begin{figure}
+  \begin{center}
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic}
+      \caption{Transfer of data when sender has a shorter
+        tick interval then the receiver}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic2}
+      \caption{Transfer of data when sender has a longer
+        tick interval then the receiver}
+    \end{minipage}
+  \end{center}
+\end{figure}
 
 The interface should take care of spatial and temporal aliasing, that
 is, to interpolate in space and time when the space and time steps of

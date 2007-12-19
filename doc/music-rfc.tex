@@ -35,7 +35,13 @@
 
 \begin{abstract}
   MUSIC is an API allowing large scale neuron simulators using MPI
-  internally to exchange data during runtime.
+  internally to exchange data during runtime.  MUSIC provides
+  mechanisms to transfer massive amounts of event information and
+  continuous values from one parallel application to another.  Special
+  care has been taken to ensure that existing simulators can be
+  adapted to MUSIC.  In particular, MUSIC handles data transfer
+  between applications that use different time steps and different
+  data allocation strategies.
 \end{abstract}
 
 
@@ -89,15 +95,49 @@ neuronal simulator which supports the common interface.
 
 \section{Concepts}
 
-We need to support efficient transfer of spike events and continuous
-values.  How should these be handled in the API?  What can be expected
-and utilized from the native data representation in existing programs?
+\begin{description}
+\item[application] We use the term \emph{application} to denote a
+  simulator or other program interfaced to MUSIC.  Each application is
+  a parallel program, normally running on several processors.
 
-Each module will communicate data via \emph{ports}.  These are either
-\emph{imports} or \emph{exports}.
+\item[port] Each application declares its ability to
+  produce and consume data by publishing \emph{ports}.  Ports are
+  named by the application along with information about the datatype
+  and mapping onto different processors.
+
+\item[channel] During the setup phase, MUSIC connects pairs of ports
+  together to form \emph{channels}.  During the phase, data is
+  transferred over the channel from the producer of the data to the
+  consumer.
+
+\item[ticks] During the runtime phase, all processes in each
+  application must make a \emph{tick} call at regular intervals in
+  simulated time.  At these tick points, MUSIC is allowed to use MPI
+  to transfer the data between processors.
+\end{description}
+
+
 
 
 \chapter{Running a music simulation}
+
+A multi-simulation, i.e. a set of interconnected parallel
+applications, is executed in a few distinct phases:
+\begin{enumerate}
+\item \emph{Launching} is the phase where all the applications are
+  started on the processors.  This has to be done before MPI is
+  initialized and therefore has to be handled separately for different
+  MPI implementations.
+\item \emph{Setup} is the phase when all applications must publish
+  what ports they are interested in, the time step they will use, and
+  where data will be present (where in memory and/or on what processor).
+\item \emph{Runtime} is the phase then simulation data are actually
+  tranferred.  Via the tick calls the simulated time of the
+  applications are kept in order.
+\end{enumerate}
+
+
+
 
 \chapter{Application Program Interface}
 

@@ -51,9 +51,21 @@
 
 \section{Scope}
 
-Music is a standard for large scale simulators to exchange data at
+MUSIC is a standard for large scale simulators to exchange data at
 run-time.  The standard is designed specifically for interconnecting
 neuronal simulators, either with each-other or with other tools.
+
+
+\subsection{Comparison to existing software}
+
+To better understand the purpose and peculiarities of MUSIC, we will
+now review some related software.
+
+\subsubsection{PyNN}
+
+\subsubsection{Neurospaces}
+
+\subsubsection{Neosim}
 
 
 \subsection{Portability}
@@ -66,7 +78,7 @@ neuronal modelling in the foreseeable future.
 \subsubsection{Based on MPI}
 
 Most, if not all, current efforts in large scale neuronal simulations
-are based in the MPI standard.  Music will use MPI to run the
+are based in the MPI standard.  MUSIC will use MPI to run the
 different simulators, and must allow each simulator to use MPI
 internally without interfering with each other.
 
@@ -89,7 +101,7 @@ the simulator developers to make these adaptations.
 It should also be simple to write new applications to facilitate the
 development of general purpose tools.  For example, a researcher can
 develop a tool for calculating synthetic EEG from simulation data.
-Via Music, this tool should then be useful for anybody using any
+Via MUSIC, this tool should then be useful for anybody using any
 neuronal simulator which supports the common interface.
 
 
@@ -103,7 +115,8 @@ neuronal simulator which supports the common interface.
 \item[port] Each application declares its ability to
   produce and consume data by publishing \emph{ports}.  Ports are
   named by the application along with information about the datatype
-  and mapping onto different processors.
+  and mapping onto different processors.  Ports are either
+\verb|input_ports| or \verb|output_ports|.
 
 \item[channel] During the setup phase, MUSIC connects pairs of ports
   together to form \emph{channels}.  During the phase, data is
@@ -119,7 +132,7 @@ neuronal simulator which supports the common interface.
 
 
 
-\chapter{Running a music simulation}
+\chapter{Running a MUSIC simulation}
 
 A multi-simulation, i.e. a set of interconnected parallel
 applications, is executed in a few distinct phases:
@@ -206,7 +219,7 @@ at the tick call.
 The application must ensure that exported data values are valid when
 tick() is called.  It must also expect that imported values may change.
 
-The tick() is called at regular intervals in simulation time.
+The tick() should be called at regular intervals in simulation time.
 The application chooses the interval, normally based on the time step
 used in the application.  The interface must handle that different
 applications can use different tick-intervals.
@@ -284,6 +297,173 @@ avoid dead-lock situations.
 \nt{direction}	       & ::= & $->$ $|$ $<-$ \\
 \nt{size}	       & ::= & '[' \nt{integer} ']' \\
 \end{tabular}
+
+\chapter{Implementation notes}
+
+\section{Data structures}
+
+\begin{description}
+  \item[setup] Used to ask for configuration information and create
+    ports.
+  \item[runtime] Used during simulation.  Provides the \verb|tick ()|
+    method.
+  \item[port] A \verb|port| is the interface used to send or receive
+    data from other applications.  It can be distributed over many MPI
+    processes.  A port contains a \verb|datamap|.  There are
+    \verb|output_port|s and \verb|input_port|s.
+  \item[connector] An internal datastructure which represents the
+    sending or receiving end of a connection between two ports.  An
+    \verb|output_port| can have multiple connectors while an
+    \verb|input_port| can have only one.
+  \item[data\_map] Defines the data to be communicated through the
+    port.  A data\_map consists of a pointer to the memory location
+    containing the data (for continuous-valued data) and an
+    index\_map.
+  \item[index\_map] Defines which global indices are handled in the
+    local MPI process and how they are organized in memory.
+\end{description}
+
+\subsection{Ports}
+
+Ports have two stages in life: the \emph{empty} stage and the
+\emph{mapped} stage.  A port is empty when created.  The MUSIC
+configuration file specifies connections between ports.  It is
+possible to ask an empty port if it is connected, if it has a
+specified size and what size it has if this size is specified.
+
+\verb|port::is_connected ()|
+
+A port becomes mapped when its method \verb|map| is called with a
+datamap.
+
+\subsection{Connectors}
+
+A connector has at least the following components:
+\begin{itemize}
+  \item an inter-communicator
+  \item a buffer for continuous data
+  \item a remap strategy
+\end{itemize}
+
+A connector does \emph{not} support re-computation of spike time
+stamps, i.e., it does not provide axonal delays.  Instead, it is
+recommended that the receiver takes care of such delays.
+
+A connected pair of an output connector and an input connector is a
+\emph{connector pair}, which essentially constitutes a MUSIC channel.
+
+\subsection{Data maps}
+
+\subsection{Index maps}
+
+\verb|linear_map| can be implemented in terms of
+\verb|permutation_map| which is the most general form of index map.
+
+\section{The MUSIC application}
+
+\subsection{Responsibilities visavi the MUSIC library}
+\label{sec:responsibilities}
+
+An application creates a \verb|setup| object.  \verb|argc| and
+\verb|argv| are passed by reference to the \verb|setup| constructor
+which may modify these variables.  The setup constructor calls
+MPI:Init for the application.
+
+\begin{rationale}
+  The idea here is to replace the call to MPI:Init with a call to the
+  setup constructor.  This way, it is not possible to forget to call
+  an extra initialization routine.
+\end{rationale}
+
+The setup object is then used to query about configuration
+information, to get the local communicator, and to create ports.
+
+There should be no need to link an application differently when it is
+used together with other applications in a MUSIC setting compared to
+when it is used in a stand-alone setting.  In order to support
+``standard'' operation for the application,
+\verb|setup::communicator ()|, therefore, will return MPI::COMM\_WORLD
+if the job is started directly with \verb|mpirun| instead of with the
+MUSIC launcher.
+
+Calling \verb|setup::done ()| will implicitly call the \verb|runtime|
+object constructor.
+
+During simulation, the application should repeatedly call
+\verb|runtime::tick ()|.  This is typically done at each simulation
+time step.
+
+\subsection{Phases of execution}
+
+As can be seen from section \ref{sec:responsibilities}, a MUSIC job
+has three phases of execution:
+\begin{enumerate}
+  \item \textbf{Launch} is concerned with distributing and launching
+    the application set within the set of MPI processes allocated to
+    the MUSIC job.  The launch phase begins when mpirun launches the
+    MUSIC binary and ends when the setup object constructor returns.
+  \item \textbf{Setup} is concerned with the creation of ports and
+    setting of parameters.  The setup phase begins when the setup
+    object has been created and ends when the runtime object
+    constructor returns.
+  \item \textbf{Runtime} is the phase where simulation data is passed
+    around between participating applications.  The runtime phase
+    begins when the runtime object has been created and ends when the
+    runtime method \verb|finalize| is called.
+\end{enumerate}
+
+\section{Timing considerations}
+
+During a MUSIC simulation data is communicated between two connectors
+by pairwise blocking communication.  Both sends and receives occur
+within a \verb|tick ()| call.
+
+\subsection{Global clock}
+
+Connector pairs do not necessarily communicate at every tick.  It is
+therefore important that both sender and receiver know when to
+communicate.  In order to determine this deterministically MUSIC uses
+an internal global integer clock.  Application specific tick intervals
+are translated to an integral number of global clock time steps using
+the MUSIC \emph{timebase}.  The timebase can be specified in the
+configuration file using the variable name ``timebase''.  The default
+value is 1 ns.
+
+The reference implementation uses a 64-bit integer to represent the
+global clock.
+
+\begin{rationale}
+  \emph{Discuss indeterminacy of floating-point arithmetic, in particular
+    with regard to re-ordering of arithmetic operations by the compiler.}
+\end{rationale}
+
+\subsection{Time zone difference}
+
+Minimal latency
+
+\subsection{Communication schedule}
+
+The order of calls to \verb|MPI::Send| and \verb|MPI::Receive| within
+output and input connectors can be important.  Consider two
+applications connected by two connector pairs A and B.  If application
+1 sends on output connectors A and B in sequence, within the same
+tick, while application 2 receives on the corresponding input
+connectors in reverse order (B, A) there will be a dead-lock.
+
+Such dead-lock:s are avoided by imposing a fixed pairwise
+communication schedule.  The setup phase creates and sorts output and
+input connectors into a vector according to this schedule.  This
+vector is passed to the runtime object.  At each \verb|tick ()|, the
+runtime object iterates through the vector, giving each connector an
+opportunity to communicate.
+
+\subsection{Initialization}
+
+Before calling \verb|setup::done ()| at the end of the setup phase,
+the user must initialize all data associated to output ports through
+datamap:s.  During \verb|setup::done ()|, this data is transferred to
+all input ports.  This is so that data can subsequently be correctly
+interpolated.
 
 \end{document}
 

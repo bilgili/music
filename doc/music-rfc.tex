@@ -20,6 +20,18 @@
 {\par}
 
 
+% Use the head environment around method heads
+\newenvironment{head}%
+{\texttt}%
+{}
+
+
+% Use the head environment around method code examples
+\newenvironment{code}%
+{\texttt}%
+{}
+
+
 \pagestyle{fancy}
 
 
@@ -189,9 +201,6 @@ for some of its own initialization too.  The tools should therefore be
 useful for running simulators even in situations when only one
 simulator is running.
 
-
-\subsection{execve}
-
 \begin{metatext}
   MPI-2 comes with a program mpiexec which is capable of starting
   multiple applications directly.  In MPI-1 one can achieve the same
@@ -200,11 +209,29 @@ simulator is running.
   so that it works in both situations.
 \end{metatext}
 
-\subsection{MPI::Init}
+\subsection{The setup constructor}
 
+The setup constructor creates the setup object through which
 Each application will have to call an initialization routine in the API
 which in turn initializes MPI.
 
+\begin{head}
+  setup::setup (int\& argc, char**\& argv)
+\end{head}
+
+This constructor must be called at most once; subsequent calls are
+erroneous.  It accepts the \verb|argc| and \verb|argv| that are
+provided by the arguments to \verb|main|:
+
+\begin{code}
+int main (int argc, char *argv[])
+{
+  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+
+  /* parse arguments */
+  /* rest of program */
+}
+\end{code}
 
 \subsection{Communicators}
 

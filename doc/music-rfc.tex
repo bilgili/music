@@ -55,12 +55,6 @@ MUSIC is a standard for large scale simulators to exchange data at
 run-time.  The standard is designed specifically for interconnecting
 neuronal simulators, either with each-other or with other tools.
 
-
-\subsection{Comparison to existing software}
-
-To better understand the purpose and peculiarities of MUSIC, we will
-now review some related software.
-
 \subsubsection{PyNN}
 
 \subsubsection{Neurospaces}
@@ -105,7 +99,7 @@ Via MUSIC, this tool should then be useful for anybody using any
 neuronal simulator which supports the common interface.
 
 
-\section{Concepts}
+\subsection{Terminology}
 
 \begin{description}
 \item[application] We use the term \emph{application} to denote a
@@ -118,9 +112,9 @@ neuronal simulator which supports the common interface.
   and mapping onto different processors.  Ports are either
 \verb|input_ports| or \verb|output_ports|.
 
-\item[channel] During the setup phase, MUSIC connects pairs of ports
-  together to form \emph{channels}.  During the phase, data is
-  transferred over the channel from the producer of the data to the
+\item[connection] During the setup phase, MUSIC connects pairs of ports
+  together to form \emph{connections}.  During the phase, data is
+  transferred over the connection from the producer of the data to the
   consumer.
 
 \item[ticks] During the runtime phase, all processes in each
@@ -130,14 +124,33 @@ neuronal simulator which supports the common interface.
 \end{description}
 
 
+\subsection{Using MUSIC}
 
 
-\chapter{Running a MUSIC simulation}
+\subsection{Comparison to existing software}
+
+To better understand the purpose and peculiarities of MUSIC, we will
+now review some related software.
+
+
+\chapter{Execution model}
+
+\subsection{Concepts}
+
+\subsection{Spatial distribution of data}
+
+\subsection{Timing considerations}
+
+\subsection{Responsibilities of an application using MUSIC}
+
+\chapter{Application Program Interface}
+
+\section{Phases of execution}
 
 A multi-simulation, i.e. a set of interconnected parallel
 applications, is executed in a few distinct phases:
 \begin{enumerate}
-\item \emph{Launching} is the phase where all the applications are
+\item \emph{Launch} is the phase where all the applications are
   started on the processors.  This has to be done before MPI is
   initialized and therefore has to be handled separately for different
   MPI implementations.
@@ -149,12 +162,24 @@ applications, is executed in a few distinct phases:
   applications are kept in order.
 \end{enumerate}
 
+As can be seen from section \ref{sec:responsibilities}, a MUSIC job
+has three phases of execution:
+\begin{enumerate}
+  \item \textbf{Launch} is concerned with distributing and launching
+    the application set within the set of MPI processes allocated to
+    the MUSIC job.  The launch phase begins when mpirun launches the
+    MUSIC binary and ends when the setup object constructor returns.
+  \item \textbf{Setup} is concerned with the creation of ports and
+    setting of parameters.  The setup phase begins when the setup
+    object has been created and ends when the runtime object
+    constructor returns.
+  \item \textbf{Runtime} is the phase where simulation data is passed
+    around between participating applications.  The runtime phase
+    begins when the runtime object has been created and ends when the
+    runtime method \verb|finalize| is called.
+\end{enumerate}
 
-
-
-\chapter{Application Program Interface}
-
-\section{Launching}
+\section{Launch}
 
 We will have to provide tools for starting the simulators.  This
 procedure will also take care of initializing communication between
@@ -191,9 +216,10 @@ inter-application communication.
 
 \begin{metatext}
   \paragraph{Consideration:} Check if there are any advantages of having one
-  separate communicator for each communication channel.
+  separate communicator for each connection.
 \end{metatext}
 
+\subsection{The MUSIC configuration file}
 
 \section{Setup}
 
@@ -277,28 +303,11 @@ produce the next value before the receiver can enter the intermediate
 time interval.  This needs careful scheduling of the transmissions to
 avoid dead-lock situations.
 
-\section{Specification file syntax}
+\chapter{A complete example}
 
-\newcommand{\nt}[1]{$<$#1$>$}
+\chapter{Adapting existing software to MUSIC}
 
-\begin{tabular}{lcl}
-\nt{simulation spec}   & ::= & \{ \nt{application block} \} \\
-\nt{application block} & ::= & \nt{newline} '[' \nt{application id} ']' \{ \nt{declaration}
-\} \\
-\nt{application id}    & ::= & \nt{symbol} \\
-\nt{declaration}       & ::= & \nt{variable def} $|$ \nt{connection} \\
-\nt{variable def}      & ::= & \nt{variable} '=' \nt{value} \\
-\nt{variable}	       & ::= & \nt{symbol} \\
-\nt{value} 	       & ::= & \nt{integer} $|$ \nt{float} $|$ \nt{string} \\
-\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{size} ] \\
-\nt{port id}	       & ::= & \nt{application id} '.' \nt{port} $|$
-\nt{port} \\
-\nt{port}	       & ::= & \nt{symbol} \\
-\nt{direction}	       & ::= & $->$ $|$ $<-$ \\
-\nt{size}	       & ::= & '[' \nt{integer} ']' \\
-\end{tabular}
-
-\chapter{Implementation notes}
+\chapter{Notes}
 
 \section{Data structures}
 
@@ -349,8 +358,8 @@ A connector does \emph{not} support re-computation of spike time
 stamps, i.e., it does not provide axonal delays.  Instead, it is
 recommended that the receiver takes care of such delays.
 
-A connected pair of an output connector and an input connector is a
-\emph{connector pair}, which essentially constitutes a MUSIC channel.
+A connected pair of an output connector and an input connector
+constitutes a MUSIC \emph{connection}.
 
 \subsection{Data maps}
 
@@ -393,25 +402,6 @@ During simulation, the application should repeatedly call
 \verb|runtime::tick ()|.  This is typically done at each simulation
 time step.
 
-\subsection{Phases of execution}
-
-As can be seen from section \ref{sec:responsibilities}, a MUSIC job
-has three phases of execution:
-\begin{enumerate}
-  \item \textbf{Launch} is concerned with distributing and launching
-    the application set within the set of MPI processes allocated to
-    the MUSIC job.  The launch phase begins when mpirun launches the
-    MUSIC binary and ends when the setup object constructor returns.
-  \item \textbf{Setup} is concerned with the creation of ports and
-    setting of parameters.  The setup phase begins when the setup
-    object has been created and ends when the runtime object
-    constructor returns.
-  \item \textbf{Runtime} is the phase where simulation data is passed
-    around between participating applications.  The runtime phase
-    begins when the runtime object has been created and ends when the
-    runtime method \verb|finalize| is called.
-\end{enumerate}
-
 \section{Timing considerations}
 
 During a MUSIC simulation data is communicated between two connectors
@@ -445,10 +435,10 @@ Minimal latency
 
 The order of calls to \verb|MPI::Send| and \verb|MPI::Receive| within
 output and input connectors can be important.  Consider two
-applications connected by two connector pairs A and B.  If application
-1 sends on output connectors A and B in sequence, within the same
-tick, while application 2 receives on the corresponding input
-connectors in reverse order (B, A) there will be a dead-lock.
+connections between the same pair of applications.  If application 1
+sends on output connectors A and B in sequence, within the same tick,
+while application 2 receives on the corresponding input connectors in
+reverse order (B, A) there will be a dead-lock.
 
 Such dead-lock:s are avoided by imposing a fixed pairwise
 communication schedule.  The setup phase creates and sorts output and
@@ -464,6 +454,31 @@ the user must initialize all data associated to output ports through
 datamap:s.  During \verb|setup::done ()|, this data is transferred to
 all input ports.  This is so that data can subsequently be correctly
 interpolated.
+
+\appendix
+
+\chapter{C interface}
+
+\chapter{Specification file syntax}
+
+\newcommand{\nt}[1]{$<$#1$>$}
+
+\begin{tabular}{lcl}
+\nt{simulation spec}   & ::= & \{ \nt{application block} \} \\
+\nt{application block} & ::= & \nt{newline} '[' \nt{application id} ']' \{ \nt{declaration}
+\} \\
+\nt{application id}    & ::= & \nt{symbol} \\
+\nt{declaration}       & ::= & \nt{variable def} $|$ \nt{connection} \\
+\nt{variable def}      & ::= & \nt{variable} '=' \nt{value} \\
+\nt{variable}	       & ::= & \nt{symbol} \\
+\nt{value} 	       & ::= & \nt{integer} $|$ \nt{float} $|$ \nt{string} \\
+\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{size} ] \\
+\nt{port id}	       & ::= & \nt{application id} '.' \nt{port} $|$
+\nt{port} \\
+\nt{port}	       & ::= & \nt{symbol} \\
+\nt{direction}	       & ::= & $->$ $|$ $<-$ \\
+\nt{size}	       & ::= & '[' \nt{integer} ']' \\
+\end{tabular}
 
 \end{document}
 

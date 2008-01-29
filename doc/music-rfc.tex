@@ -125,7 +125,7 @@ neuronal simulator which supports the common interface.
 \verb|input_ports| or \verb|output_ports|.
 
 \item[connection] During the setup phase, MUSIC connects pairs of ports
-  together to form \emph{connections}.  During the phase, data is
+  together to form \emph{connections}.  During the runtime phase, data is
   transferred over the connection from the producer of the data to the
   consumer.
 
@@ -170,6 +170,26 @@ input connectors know the rank
 
 \subsection{Timing considerations}
 \responsible{Örjan}
+
+Different applications may use different time steps and it is the
+responsibility of MUSIC to ensure that data is delivered at the
+appropriate time.  In order to minimize handshaking, both parts of a
+connection pair locally calculate when the actual data transfer over
+MPI takes place.  To ensure that these calculations produce
+predictable results, simulation time is represented using integers
+with a global micro-timestep common for all applications.
+
+Simulation time is a state variable local for each application and
+MUSIC does not enforce unnecessary synchronization between these local
+clocks.  Thus, an application producing data may be running ahead of
+another application which consumes the same data.  MUSIC internally
+builds a schedule which ensures that data arrives at the appropriate
+local time in the receiving application.  Scheduling becomes more
+complex when data is not only transferred in a feed-forward manner,
+i.e. the connection graph contains loops.  In this case MUSIC has to
+rely on the existence of sufficient delays in the simulated model,
+typically corresponding to axonal delays.
+
 
 \subsection{Responsibilities of an application using MUSIC}
 
@@ -531,4 +551,7 @@ interpolated.
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
+%%% eval: (flyspell-mode 1)
+%%% eval: (ispell-change-dictionary "american")
+%%% eval: (flyspell-buffer)
 %%% End: 

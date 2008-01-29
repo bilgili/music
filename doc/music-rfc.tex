@@ -26,10 +26,16 @@
 {}
 
 
-% Use the head environment around method code examples
+% Use the code environment around method code examples
 \newenvironment{code}%
 {\texttt}%
 {}
+
+
+% Use the responsible command to indicate which author is responsible
+% for the present section
+\newcommand{\responsible}[1]%
+{{\color{red}[#1 is responsible for this section]}}
 
 
 \pagestyle{fancy}
@@ -63,25 +69,19 @@
 
 \section{Scope}
 
-MUSIC is a standard for large scale simulators to exchange data at
-run-time.  The standard is designed specifically for interconnecting
-neuronal simulators, either with each-other or with other tools.
+MUSIC is a standard for run-time exchange of data between parallel
+applications in a cluster environment.  The standard is designed
+specifically for interconnecting large scale neuronal network
+simulators, either with each-other or with other tools.
 
-\subsubsection{PyNN}
-
-\subsubsection{Neurospaces}
-
-\subsubsection{Neosim}
-
-
-\subsection{Portability}
+\section{Portability}
 
 The interface and support software should be written to support most
 high-end hardware that is used and will be used for large scale
 neuronal modelling in the foreseeable future.
 
 
-\subsubsection{Based on MPI}
+\subsection{Based on MPI}
 
 Most, if not all, current efforts in large scale neuronal simulations
 are based in the MPI standard.  MUSIC will use MPI to run the
@@ -92,13 +92,13 @@ MPI encapsulates software optimizations for specific hardware.  By
 basing the interface on MPI, we can benefit from such optimizations.
 
 
-\subsubsection{Possible to run on BG/L}
+\subsection{Possible to run on BG/L}
 
 BG/L nodes do not support multiple parallel tasks.  It's e.g. not
 possible to start both Neuron and Genesis on the same node.
 
 
-\subsection{Easy to use and to adapt existing software}
+\section{Easy to use and to adapt existing software}
 
 It must be possible to adapt existing simulators so that they can
 participate in a multi-simulation without too much effort.  We rely in
@@ -111,7 +111,7 @@ Via MUSIC, this tool should then be useful for anybody using any
 neuronal simulator which supports the common interface.
 
 
-\subsection{Terminology}
+\section{Terminology}
 
 \begin{description}
 \item[application] We use the term \emph{application} to denote a
@@ -136,22 +136,40 @@ neuronal simulator which supports the common interface.
 \end{description}
 
 
-\subsection{Using MUSIC}
+\section{Using MUSIC}
 
 
-\subsection{Comparison to existing software}
+\section{Comparison to existing software}
 
 To better understand the purpose and peculiarities of MUSIC, we will
 now review some related software.
+
+\subsubsection{PyNN}
+
+\subsubsection{Neurospaces}
+
+\subsubsection{Neosim}
 
 
 \chapter{Execution model}
 
 \subsection{Concepts}
 
+The \verb|index_map| maps indices local to the MPI process to global
+indices within the distributed data array.  That is, the
+\verb|index_map| tells which parts of a distributed data array are
+handled by the local process and how the data elements are locally
+ordered.
+
 \subsection{Spatial distribution of data}
+\responsible{Mikael}
+
+Consider a connection between two ports.  Both the output and input
+connectors can have arbitrary ordering of data.  How do output and
+input connectors know the rank
 
 \subsection{Timing considerations}
+\responsible{Örjan}
 
 \subsection{Responsibilities of an application using MUSIC}
 

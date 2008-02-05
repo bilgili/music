@@ -67,6 +67,8 @@
 
 \chapter{Introduction}
 
+\responsible{Örjan}
+
 \section{Scope}
 
 MUSIC is a standard for run-time exchange of data between parallel
@@ -153,7 +155,7 @@ now review some related software.
 
 \chapter{Execution model}
 
-\subsection{Concepts}
+\section{Concepts}
 
 The \verb|index_map| maps indices local to the MPI process to global
 indices within the distributed data array.  That is, the
@@ -161,14 +163,14 @@ indices within the distributed data array.  That is, the
 handled by the local process and how the data elements are locally
 ordered.
 
-\subsection{Spatial distribution of data}
+\section{Spatial distribution of data}
 \responsible{Mikael}
 
 Consider a connection between two ports.  Both the output and input
 connectors can have arbitrary ordering of data.  How do output and
 input connectors know the rank
 
-\subsection{Timing considerations}
+\section{Timing considerations}
 \responsible{Örjan}
 
 Different applications may use different time steps and it is the
@@ -191,7 +193,7 @@ rely on the existence of sufficient delays in the simulated model,
 typically corresponding to axonal delays.
 
 
-\subsection{Responsibilities of an application using MUSIC}
+\section{Responsibilities of an application using MUSIC}
 
 \chapter{Application Program Interface}
 
@@ -208,7 +210,7 @@ applications, is executed in a few distinct phases:
   what ports they are interested in, the time step they will use, and
   where data will be present (where in memory and/or on what processor).
 \item \emph{Runtime} is the phase then simulation data are actually
-  tranferred.  Via the tick calls the simulated time of the
+  transferred.  Via the tick calls the simulated time of the
   applications are kept in order.
 \end{enumerate}
 

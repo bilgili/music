@@ -4,6 +4,7 @@
 \usepackage{fancyhdr}
 \usepackage{color}
 \usepackage{graphicx}
+\usepackage{makeidx}
 
 %%%%% Formatting %%%%%
 
@@ -39,7 +40,7 @@
 
 
 \pagestyle{fancy}
-
+\makeindex
 
 %%%%% Actual content starts here %%%%%
 \begin{document}
@@ -76,81 +77,111 @@ applications in a cluster environment.  The standard is designed
 specifically for interconnecting large scale neuronal network
 simulators, either with each-other or with other tools.
 
-\section{Portability}
 
-The interface and support software should be written to support most
-high-end hardware that is used and will be used for large scale
-neuronal modelling in the foreseeable future.
+\section{Design Goals}
 
+\subsection{Portability}
 
-\subsection{Based on MPI}
+The MUSIC library and support software have been designed to run
+smoothly on state-of-the-art high-performance hardware.  For maximal
+portability, the software is written in C++, which is the
+defacto-standard for current high-end hardware.  MUSIC also provides a
+pure C-interface, making it possible for applications written i C or
+FORTRAN to participate in a MUSIC multi-simulation.
 
 Most, if not all, current efforts in large scale neuronal simulations
-are based in the MPI standard.  MUSIC will use MPI to run the
-different simulators, and must allow each simulator to use MPI
-internally without interfering with each other.
+are based in the MPI\index{MPI} standard.  MUSIC is built on top of
+MPI, and uses it to run the different simulators.  MPI encapsulates
+software optimizations for specific hardware.  By basing the interface
+on MPI, we can benefit from such optimizations.  In addition, it
+provides means to allow each simulator to use MPI internally without
+interfering with the others.
 
-MPI encapsulates software optimizations for specific hardware.  By
-basing the interface on MPI, we can benefit from such optimizations.
+During the development of MUSIC we have used two reference platforms:
+Intel-based multi-core workstations and the IBM
+BlueGene/L\index{BlueGene/L}\index{IBM BlueGene} supercomputer.  These
+platforms can be considered as two extremes, where the multi-core
+machine represents a small parallel environment while the BlueGene/L
+represents a large scale parallel supercomputer with special
+requirements.  In particular, the compute nodes on the BlueGene/L do
+not support multiple threads or processes.
 
 
-\subsection{Possible to run on BG/L}
+\subsection{Simplicity}
 
-BG/L nodes do not support multiple parallel tasks.  It's e.g. not
-possible to start both Neuron and Genesis on the same node.
+For MUSIC to be useful, it must be possible to adapt existing
+simulators so that they can participate in a multi-simulation without
+too much effort.  We rely in the simulator developers to make these
+adaptations.  An important design goal has therefore been to adapt the
+design to the typical structure of current simulators.  It should be
+possible to add usage of the MUSIC library without invasive
+restructuring of the existing simulator.
+
+The requirements on an application using MUSIC is primarily that it,
+during the setup phase, declares what data should be exported and
+imported, and that it repeatedly calls a function at regular intervals
+during the simulation to allow MUSIC to make the actual data transfer.
 
 
-\section{Easy to use and to adapt existing software}
+\subsection{Independence}
 
-It must be possible to adapt existing simulators so that they can
-participate in a multi-simulation without too much effort.  We rely in
-the simulator developers to make these adaptations.
+The MUSIC interface ensures that each individual application does not
+need special adaptation to specific properties of other applications.
+The application only needs to adhere to the specification of the MUSIC
+interface in order to communicate with other applications performing
+complementary tasks.  This makes the development of MUSIC-aware
+software independent of what other applications it will communicate
+with.
 
-It should also be simple to write new applications to facilitate the
-development of general purpose tools.  For example, a researcher can
-develop a tool for calculating synthetic EEG from simulation data.
-Via MUSIC, this tool should then be useful for anybody using any
-neuronal simulator which supports the common interface.
+We hope that this will facilitate the development of general purpose
+tools.  For example, a researcher can develop a tool for calculating
+synthetic EEG from simulation data.  Via MUSIC, this tool should then
+be useful for anybody using any neuronal simulator which supports the
+common MUSIC interface.
 
 
 \section{Terminology}
 
 \begin{description}
-\item[application] We use the term \emph{application} to denote a
-  simulator or other program interfaced to MUSIC.  Each application is
-  a parallel program, normally running on several processors.
+\item[application] We use the term
+  \emph{application}\index{application} to denote a simulator or other
+  program interfaced to MUSIC.  Each application is a parallel
+  program, normally running on several processors.
 
-\item[port] Each application declares its ability to
-  produce and consume data by publishing \emph{ports}.  Ports are
+\item[port] Each application declares its ability to produce and
+  consume data by publishing \emph{ports}\index{port}.  Ports are
   named by the application along with information about the datatype
   and mapping onto different processors.  Ports are either
-\verb|input_ports| or \verb|output_ports|.
+  \verb|input_ports|\index{input port} or
+  \verb|output_ports|\index{output port}.
 
-\item[connection] During the setup phase, MUSIC connects pairs of ports
-  together to form \emph{connections}.  During the runtime phase, data is
-  transferred over the connection from the producer of the data to the
-  consumer.
+\item[connection] During the setup phase, MUSIC connects pairs of
+  ports together to form \emph{connections}\index{connection}.  During
+  the runtime phase, data is transferred over the connection from the
+  producer of the data to the consumer.
 
 \item[ticks] During the runtime phase, all processes in each
-  application must make a \emph{tick} call at regular intervals in
-  simulated time.  At these tick points, MUSIC is allowed to use MPI
-  to transfer the data between processors.
+  application must make a \emph{tick}\index{tick} call at regular
+  intervals in simulated time.  At these tick points, MUSIC is allowed
+  to use MPI to transfer the data between processors.
 \end{description}
 
 
 \section{Using MUSIC}
 
 
-\section{Comparison to existing software}
+\section{Relation to Existing Software}
 
-To better understand the purpose and peculiarities of MUSIC, we will
-now review some related software.
+MUSIC is not the only software project aiming to support the
+inter-operability between neural simulators.  In this section we will
+briefly describe some related projects and specifically focus on how
+they relate to MUSIC.
 
-\subsubsection{PyNN}
+\paragraph{PyNN}\index{PyNN}
 
-\subsubsection{Neurospaces}
+\paragraph{Neurospaces}\index{Neurospaces}
 
-\subsubsection{Neosim}
+\paragraph{Neosim}\index{Neusim}
 
 
 \chapter{Execution model}
@@ -547,6 +578,8 @@ interpolated.
 \nt{direction}	       & ::= & $->$ $|$ $<-$ \\
 \nt{size}	       & ::= & '[' \nt{integer} ']' \\
 \end{tabular}
+
+\printindex
 
 \end{document}
 

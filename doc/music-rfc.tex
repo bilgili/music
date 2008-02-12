@@ -30,7 +30,7 @@
 
 % Use the code environment around method code examples
 \lstnewenvironment{code}%
-{}%
+{\noindent Example:}%
 {}
 
 
@@ -308,7 +308,7 @@ through which the application can retrieve configuration information,
 get a communicator, and setup ports.
 
 \begin{head}
-  setup::setup (int\& argc, char**\& argv)
+  setup::setup (int& argc, char**& argv)
 \end{head}
 \begin{tabular}{ll}
   argc & reference to the \verb|argc| argument of \verb|main| \\
@@ -317,7 +317,7 @@ get a communicator, and setup ports.
 
 This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \verb|argc| and \verb|argv| that are
-provided by the arguments to \verb|main|:
+provided by the arguments to \verb|main|.
 
 \begin{code}
 int main (int argc, char *argv[])
@@ -331,52 +331,98 @@ int main (int argc, char *argv[])
 
 \subsection{Communicators}
 
-During a multi-simulation, each application is assigned its' own
-intra-communicator which it is supposed to use in place of
-\verb|MPI::COMM_WORLD|.  This communicator is retrieved from the setup
-object through a call to the \verb|communicator| method.
+During a multi-simulation, launched using the \verb|music| utility
+command, the music library will create a unique intra-communicator
+over the group of processes assigned to the application.  This
+communicator is retrieved from the setup object through a call to the
+\verb|communicator| method.
 
 \begin{head}
-    MPI::Intracomm communicator ();
+  MPI::Intracomm setup::communicator ()
 \end{head}
 \begin{tabular}{ll}
   \emph{return value} & the application communicator \\
+\end{tabular}
+
+The application is supposed to use the communicator returned by
+\verb|communicator| in place of \verb|MPI::COMM_WORLD|.  This
+communicator can be used as any ordinary MPI communicator.
+
+\begin{code}
+/* communicator with global scope */
+extern MPI_Comm comm;
+
+...
+{
+  ...
+  comm = setup->communicator ();
+  int rank = comm.Get_rank ();
+  ...
+}
+\end{code}
+
+\subsection{Port creation}
+
+Ports are named sources (output ports) or sinks (input ports) of data
+flows.  Output and input ports are distinct classes.  Ports are
+further subdivided into distinct classes depending on whether they
+handle continuous or event data.
+
+Ports have two stages in life: the \emph{empty} stage and the
+\emph{mapped} stage.  A port is empty when created.  The MUSIC
+configuration file specifies connections between ports.  It is
+possible to ask an empty port if it is connected, if it has a
+specified size and what size it has if this size is specified.  A port
+becomes mapped when its method \verb|map| is called with a datamap.
+
+\begin{head}
+    cont_output_port* setup::publish_output (string identifier)
+
+    cont_input_port* setup::publish_input (string identifier)
+
+    event_output_port* setup::publish_output (string identifier)
+
+    event_input_port* setup::publish_input (string identifier)
+\end{head}
+\begin{tabular}{ll}
+  identifier          & port name \\
+  \emph{return value} & an empty port \\
 \end{tabular}
 
 \begin{code}
   /* Add example here */
 \end{code}
 
-\subsection{Port creation}
+\subsection{Port API}
 
-Ports have two stages in life: the \emph{empty} stage and the
-\emph{mapped} stage.  A port is empty when created.  The MUSIC
-configuration file specifies connections between ports.  It is
-possible to ask an empty port if it is connected, if it has a
-specified size and what size it has if this size is specified.
-
-A port becomes mapped when its method \verb|map| is called with a
-datamap.
+\subsubsection{Port connectivity}
 
 \begin{head}
-    cont\_input\_port* publish\_input (string identifier, cont\_data* map);
-
-    cont\_output\_port* publish\_output (string identifier, cont\_data* map);
-
-    event\_input\_port* publish\_input (string identifier, event\_data* map);
-
-    event\_output\_port* publish\_output (string identifier, event\_data* map);
+  bool port::is_connected ()
 \end{head}
 
 \begin{code}
   /* Add example here */
 \end{code}
 
-\subsection{Using ports}
+\subsubsection{Port size}
+
+\subsubsection{Mapping a port}
 
 \begin{head}
-\verb|port::is_connected ()|
+    void cont_output_port::map (cont_data* map)
+
+    void cont_input_port::map (cont_data* map, int max_latency)
+
+    void event_output_port::map (event_data* map)
+
+    void event_input_port::map (event_data* map, int max_latency)
 \end{head}
+\begin{tabular}{ll}
+  map         & the data map associated with the port \\
+  max\_latency & maximum latency for incoming data (glocal clock ticks)
+  \\
+\end{tabular}
 
 \begin{code}
   /* Add example here */
@@ -385,11 +431,11 @@ datamap.
 \subsection{Configuration variables}
 
 \begin{head}
-    bool config (string var, string* result);
+    bool config (string var, string* result)
 
-    bool config (string var, int* result);
+    bool config (string var, int* result)
 
-    bool config (string var, double* result);
+    bool config (string var, double* result)
 \end{head}
 
 \begin{code}

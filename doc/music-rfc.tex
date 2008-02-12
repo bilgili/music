@@ -412,15 +412,15 @@ becomes mapped when its method \verb|map| is called with a datamap.
 \begin{head}
     void cont_output_port::map (cont_data* map)
 
-    void cont_input_port::map (cont_data* map, int max_latency)
+    void cont_input_port::map (cont_data* map, double max_latency)
 
     void event_output_port::map (event_data* map)
 
-    void event_input_port::map (event_data* map, int max_latency)
+    void event_input_port::map (event_data* map, double max_latency)
 \end{head}
 \begin{tabular}{ll}
   map         & the data map associated with the port \\
-  max\_latency & maximum latency for incoming data (glocal clock ticks)
+  max\_latency & maximum latency for incoming data (s)
   \\
 \end{tabular}
 

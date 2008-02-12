@@ -301,13 +301,19 @@ simulator is running.
 
 \subsection{The setup constructor}
 
-The setup constructor creates the setup object through which
-Each application will have to call an initialization routine in the API
-which in turn initializes MPI.
+Each application initializes the MUSIC library through a call to the
+setup constructor.  This constructor, in turn, calls MPI::Init to
+initialize MPI.  The setup constructor creates the setup object
+through which the application can retrieve configuration information,
+get a communicator, and setup ports.
 
 \begin{head}
   setup::setup (int\& argc, char**\& argv)
 \end{head}
+\begin{tabular}{ll}
+  argc & reference to the \verb|argc| argument of \verb|main| \\
+  argv & reference to the \verb|argv| argument of \verb|main| \\
+\end{tabular}
 
 This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \verb|argc| and \verb|argv| that are
@@ -325,20 +331,17 @@ int main (int argc, char *argv[])
 
 \subsection{Communicators}
 
-One communicator for each application, given to the application from
-the API.
-
-We should probably use the global communicator for all
-inter-application communication.
-
-\begin{metatext}
-  \paragraph{Consideration:} Check if there are any advantages of having one
-  separate communicator for each connection.
-\end{metatext}
+During a multi-simulation, each application is assigned its' own
+intra-communicator which it is supposed to use in place of
+\verb|MPI::COMM_WORLD|.  This communicator is retrieved from the setup
+object through a call to the \verb|communicator| method.
 
 \begin{head}
     MPI::Intracomm communicator ();
 \end{head}
+\begin{tabular}{ll}
+  \emph{return value} & the application communicator \\
+\end{tabular}
 
 \begin{code}
   /* Add example here */

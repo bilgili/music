@@ -4,6 +4,7 @@
 \usepackage{fancyhdr}
 \usepackage{color}
 \usepackage{graphicx}
+\usepackage{listings}
 \usepackage{makeidx}
 
 %%%%% Formatting %%%%%
@@ -22,14 +23,14 @@
 
 
 % Use the head environment around method heads
-\newenvironment{head}%
-{\texttt}%
+\lstnewenvironment{head}%
+{\lstset{frame=lines}}%
 {}
 
 
 % Use the code environment around method code examples
-\newenvironment{code}%
-{\texttt}%
+\lstnewenvironment{code}%
+{}%
 {}
 
 
@@ -50,6 +51,8 @@
 
 %%%%% Actual content starts here %%%%%
 \begin{document}
+
+\lstset{language=C++}
 
 \title{MUSIC --- Multi-Simulation Coordinator\\
   Provisional Specification}
@@ -335,6 +338,7 @@ inter-application communication.
 \end{head}
 
 \begin{code}
+  /* Add example here */
 \end{code}
 
 \subsection{Port creation}
@@ -359,6 +363,7 @@ datamap.
 \end{head}
 
 \begin{code}
+  /* Add example here */
 \end{code}
 
 \subsection{Using ports}
@@ -368,6 +373,7 @@ datamap.
 \end{head}
 
 \begin{code}
+  /* Add example here */
 \end{code}
 
 \subsection{Configuration variables}
@@ -381,6 +387,7 @@ datamap.
 \end{head}
 
 \begin{code}
+  /* Add example here */
 \end{code}
 
 \section{Runtime}

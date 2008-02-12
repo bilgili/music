@@ -39,6 +39,12 @@
 {{\color{red}[#1 is responsible for this section]}}
 
 
+% Use the irresponsible command to indicate which author is generally
+% irresponsible
+\newcommand{\irresponsible}[1]%
+{{\color{red}[#1 is an irresponsible author]}}
+
+
 \pagestyle{fancy}
 \makeindex
 
@@ -186,6 +192,40 @@ they relate to MUSIC.
 
 \chapter{Execution model}
 
+\section{Phases of execution}
+
+A multi-simulation, i.e. a set of interconnected parallel
+applications, is executed in a few distinct phases:
+\begin{enumerate}
+\item \emph{Launch} is the phase where all the applications are
+  started on the processors.  This has to be done before MPI is
+  initialized and therefore has to be handled separately for different
+  MPI implementations.
+\item \emph{Setup} is the phase when all applications must publish
+  what ports they are interested in, the time step they will use, and
+  where data will be present (where in memory and/or on what processor).
+\item \emph{Runtime} is the phase then simulation data are actually
+  transferred.  Via the tick calls the simulated time of the
+  applications are kept in order.
+\end{enumerate}
+
+As can be seen from section \ref{sec:responsibilities}, a MUSIC job
+has three phases of execution:
+\begin{enumerate}
+  \item \textbf{Launch} is concerned with distributing and launching
+    the application set within the set of MPI processes allocated to
+    the MUSIC job.  The launch phase begins when mpirun launches the
+    MUSIC binary and ends when the setup object constructor returns.
+  \item \textbf{Setup} is concerned with the creation of ports and
+    setting of parameters.  The setup phase begins when the setup
+    object has been created and ends when the runtime object
+    constructor returns.
+  \item \textbf{Runtime} is the phase where simulation data is passed
+    around between participating applications.  The runtime phase
+    begins when the runtime object has been created and ends when the
+    runtime method \verb|finalize| is called.
+\end{enumerate}
+
 \section{Concepts}
 
 The \verb|index_map| maps indices local to the MPI process to global
@@ -226,41 +266,9 @@ typically corresponding to axonal delays.
 
 \section{Responsibilities of an application using MUSIC}
 
-\chapter{Application Program Interface}
+\chapter{Using MUSIC}
 
-\section{Phases of execution}
-
-A multi-simulation, i.e. a set of interconnected parallel
-applications, is executed in a few distinct phases:
-\begin{enumerate}
-\item \emph{Launch} is the phase where all the applications are
-  started on the processors.  This has to be done before MPI is
-  initialized and therefore has to be handled separately for different
-  MPI implementations.
-\item \emph{Setup} is the phase when all applications must publish
-  what ports they are interested in, the time step they will use, and
-  where data will be present (where in memory and/or on what processor).
-\item \emph{Runtime} is the phase then simulation data are actually
-  transferred.  Via the tick calls the simulated time of the
-  applications are kept in order.
-\end{enumerate}
-
-As can be seen from section \ref{sec:responsibilities}, a MUSIC job
-has three phases of execution:
-\begin{enumerate}
-  \item \textbf{Launch} is concerned with distributing and launching
-    the application set within the set of MPI processes allocated to
-    the MUSIC job.  The launch phase begins when mpirun launches the
-    MUSIC binary and ends when the setup object constructor returns.
-  \item \textbf{Setup} is concerned with the creation of ports and
-    setting of parameters.  The setup phase begins when the setup
-    object has been created and ends when the runtime object
-    constructor returns.
-  \item \textbf{Runtime} is the phase where simulation data is passed
-    around between participating applications.  The runtime phase
-    begins when the runtime object has been created and ends when the
-    runtime method \verb|finalize| is called.
-\end{enumerate}
+\subsection{The MUSIC configuration file}
 
 \section{Launch}
 
@@ -279,6 +287,11 @@ simulator is running.
   start the real applications.  We should be able to write our interface
   so that it works in both situations.
 \end{metatext}
+
+\chapter{Application Program Interface}
+
+\section{Setup}
+\responsible{Mikael}
 
 \subsection{The setup constructor}
 
@@ -317,21 +330,58 @@ inter-application communication.
   separate communicator for each connection.
 \end{metatext}
 
-\subsection{The MUSIC configuration file}
+\begin{head}
+    MPI::Intracomm communicator ();
+\end{head}
 
-\section{Setup}
-\responsible{Mikael}
+\begin{code}
+\end{code}
 
-\paragraph{Idea:} initialization call returns a \emph{setup object}
-which has methods for binding and other types of setup specification
-operations.  The setup phase ends via a setup-done call which consumes
-the setup object (to prevent further setup operations), and returns a
-run-time object.  The run-time object contains the API for
-synchronization (tick) and data transfer operations.
+\subsection{Port creation}
 
-Both sender and receiver should be able to choose what variables to
-transfer.
+Ports have two stages in life: the \emph{empty} stage and the
+\emph{mapped} stage.  A port is empty when created.  The MUSIC
+configuration file specifies connections between ports.  It is
+possible to ask an empty port if it is connected, if it has a
+specified size and what size it has if this size is specified.
 
+A port becomes mapped when its method \verb|map| is called with a
+datamap.
+
+\begin{head}
+    cont\_input\_port* publish\_input (string identifier, cont\_data* map);
+
+    cont\_output\_port* publish\_output (string identifier, cont\_data* map);
+
+    event\_input\_port* publish\_input (string identifier, event\_data* map);
+
+    event\_output\_port* publish\_output (string identifier, event\_data* map);
+\end{head}
+
+\begin{code}
+\end{code}
+
+\subsection{Using ports}
+
+\begin{head}
+\verb|port::is_connected ()|
+\end{head}
+
+\begin{code}
+\end{code}
+
+\subsection{Configuration variables}
+
+\begin{head}
+    bool config (string var, string* result);
+
+    bool config (string var, int* result);
+
+    bool config (string var, double* result);
+\end{head}
+
+\begin{code}
+\end{code}
 
 \section{Runtime}
 
@@ -432,17 +482,6 @@ avoid dead-lock situations.
 \end{description}
 
 \subsection{Ports}
-
-Ports have two stages in life: the \emph{empty} stage and the
-\emph{mapped} stage.  A port is empty when created.  The MUSIC
-configuration file specifies connections between ports.  It is
-possible to ask an empty port if it is connected, if it has a
-specified size and what size it has if this size is specified.
-
-\verb|port::is_connected ()|
-
-A port becomes mapped when its method \verb|map| is called with a
-datamap.
 
 \subsection{Connectors}
 

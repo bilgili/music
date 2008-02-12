@@ -99,12 +99,12 @@ pure C-interface, making it possible for applications written i C or
 FORTRAN to participate in a MUSIC multi-simulation.
 
 Most, if not all, current efforts in large scale neuronal simulations
-are based in the MPI\index{MPI} standard.  MUSIC is built on top of
+are based on the MPI\index{MPI} standard.  MUSIC is built on top of
 MPI, and uses it to run the different simulators.  MPI encapsulates
-software optimizations for specific hardware.  By basing the interface
-on MPI, we can benefit from such optimizations.  In addition, it
-provides means to allow each simulator to use MPI internally without
-interfering with the others.
+software optimizations for specific hardware, and by basing the
+interface on MPI we can benefit from such optimizations.  In
+addition, MUSIC provides means to allow each simulator to use MPI
+internally without interfering with the others.
 
 During the development of MUSIC we have used two reference platforms:
 Intel-based multi-core workstations and the IBM
@@ -120,7 +120,7 @@ not support multiple threads or processes.
 
 For MUSIC to be useful, it must be possible to adapt existing
 simulators so that they can participate in a multi-simulation without
-too much effort.  We rely in the simulator developers to make these
+too much effort.  We rely on the simulator developers to make these
 adaptations.  An important design goal has therefore been to adapt the
 design to the typical structure of current simulators.  It should be
 possible to add usage of the MUSIC library without invasive
@@ -169,14 +169,17 @@ common MUSIC interface.
   the runtime phase, data is transferred over the connection from the
   producer of the data to the consumer.
 
+\item[map] Map\index{map} is a data structure used to keep track of
+  the layout of data within an application.  Data to be transferred
+  over a connection can be regarded as a large array distributed over
+  multiple processors.  The map contains information about which
+  processor has each element of data, and where the element is stored.
+
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular
   intervals in simulated time.  At these tick points, MUSIC is allowed
   to use MPI to transfer the data between processors.
 \end{description}
-
-
-\section{Using MUSIC}
 
 
 \section{Relation to Existing Software}

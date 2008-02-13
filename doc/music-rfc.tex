@@ -24,8 +24,14 @@
 
 % Use the head environment around method heads
 \lstnewenvironment{head}[1]%
-{\lstset{frame=lines,emph={#1},emphstyle=\color{blue}\textbf}}%
+{\lstset{frame=topline,emph={#1},emphstyle=\color{blue}\textbf}}%
 {}
+
+
+% Use the parameters environment after heads
+\newenvironment{parameters}%
+{\begin{tabular}{@{\hspace{2em}}lp{0.6\textwidth}}}%
+{\end{tabular}\par\vspace{1mm}\par\hrule\par\vspace{5mm}}
 
 
 % Use the code environment around method code examples
@@ -197,8 +203,8 @@ common MUSIC interface.
   consume data by publishing \emph{ports}\index{port}.  Ports are
   named by the application along with information about the datatype
   and mapping onto different processors.  Ports are either
-  \verb|input_ports|\index{input port} or
-  \verb|output_ports|\index{output port}.
+  \lstinline|input_ports|\index{input port} or
+  \lstinline|output_ports|\index{output port}.
 
 \item[connection] During the setup phase, MUSIC connects pairs of
   ports together to form \emph{connections}\index{connection}.  During
@@ -265,14 +271,14 @@ has three phases of execution:
   \item \textbf{Runtime} is the phase where simulation data is passed
     around between participating applications.  The runtime phase
     begins when the runtime object has been created and ends when the
-    runtime method \verb|finalize| is called.
+    runtime method \lstinline|finalize| is called.
 \end{enumerate}
 
 \section{Concepts}
 
-The \verb|index_map| maps indices local to the MPI process to global
+The \lstinline|index_map| maps indices local to the MPI process to global
 indices within the distributed data array.  That is, the
-\verb|index_map| tells which parts of a distributed data array are
+\lstinline|index_map| tells which parts of a distributed data array are
 handled by the local process and how the data elements are locally
 ordered.
 
@@ -346,14 +352,16 @@ get a communicator, and setup ports.
 \begin{head}{setup}
   setup::setup (int& argc, char**& argv)
 \end{head}
-\begin{tabular}{ll}
-  argc & reference to the \verb|argc| argument of \verb|main| \\
-  argv & reference to the \verb|argv| argument of \verb|main| \\
-\end{tabular}
+\begin{parameters}
+  \lstinline|argc| &%
+  reference to the \lstinline|argc| argument of \lstinline|main| \\
+  \lstinline|argv| &%
+  reference to the \lstinline|argv| argument of \lstinline|main| \\
+\end{parameters}
 
 This constructor must be called at most once; subsequent calls are
-erroneous.  It accepts the \verb|argc| and \verb|argv| that are
-provided by the arguments to \verb|main|.
+erroneous.  It accepts the \lstinline|argc| and \lstinline|argv| that are
+provided by the arguments to \lstinline|main|.
 
 \begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
@@ -367,21 +375,21 @@ int main (int argc, char *argv[])
 
 \subsection{Communicators}
 
-During a multi-simulation, launched using the \verb|music| utility
+During a multi-simulation, launched using the \lstinline|music| utility
 command, the music library will create a unique intra-communicator
 over the group of processes assigned to the application.  This
 communicator is retrieved from the setup object through a call to the
-\verb|communicator| method.
+\lstinline|communicator| method.
 
 \begin{head}{communicator}
   MPI::Intracomm setup::communicator ()
 \end{head}
-\begin{tabular}{ll}
+\begin{parameters}
   \emph{return value} & the application communicator \\
-\end{tabular}
+\end{parameters}
 
 The application is supposed to use the communicator returned by
-\verb|communicator| in place of \verb|MPI::COMM_WORLD|.  This
+\lstinline|communicator| in place of \lstinline|MPI::COMM_WORLD|.  This
 communicator can be used as any ordinary MPI communicator.
 
 \begin{code}{Accessing the application-wide communicator}
@@ -409,21 +417,21 @@ Ports have two stages in life: the \emph{empty} stage and the
 configuration file specifies connections between ports.  It is
 possible to ask an empty port if it is connected, if it has a
 specified size and what size it has if this size is specified.  A port
-becomes mapped when its method \verb|map| is called with a datamap.
+becomes mapped when its method \lstinline|map| is called with a datamap.
 
 \begin{head}{publish_output,publish_input}
-    cont_output_port* setup::publish_output (string identifier)
+  cont_output_port* setup::publish_output (string identifier)
 
-    cont_input_port* setup::publish_input (string identifier)
+  cont_input_port* setup::publish_input (string identifier)
 
-    event_output_port* setup::publish_output (string identifier)
+  event_output_port* setup::publish_output (string identifier)
 
-    event_input_port* setup::publish_input (string identifier)
+  event_input_port* setup::publish_input (string identifier)
 \end{head}
-\begin{tabular}{ll}
-  identifier          & port name \\
+\begin{parameters}
+  \lstinline|identifier| & port name \\
   \emph{return value} & an empty port \\
-\end{tabular}
+\end{parameters}
 
 \begin{code}{Creating ports}
   /* Add example here */
@@ -436,6 +444,9 @@ becomes mapped when its method \verb|map| is called with a datamap.
 \begin{head}{is_connected}
   bool port::is_connected ()
 \end{head}
+\begin{parameters}
+  \emph{return value} & \\
+\end{parameters}
 
 \begin{code}{Querying if a port is connected}
   /* Add example here */
@@ -446,19 +457,19 @@ becomes mapped when its method \verb|map| is called with a datamap.
 \subsubsection{Mapping a port}
 
 \begin{head}{map}
-    void cont_output_port::map (cont_data* map)
+  void cont_output_port::map (cont_data* map)
 
-    void cont_input_port::map (cont_data* map, double max_latency)
+  void cont_input_port::map (cont_data* map, double max_latency)
 
-    void event_output_port::map (event_data* map)
+  void event_output_port::map (event_data* map)
 
-    void event_input_port::map (event_data* map, double max_latency)
+  void event_input_port::map (event_data* map, double max_latency)
 \end{head}
-\begin{tabular}{ll}
-  map         & the data map associated with the port \\
-  max\_latency & maximum latency for incoming data (s)
+\begin{parameters}
+  \lstinline|map| & the data map associated with the port \\
+  \lstinline|max_latency| & maximum latency for incoming data (s)
   \\
-\end{tabular}
+\end{parameters}
 
 \begin{code}{Mapping ports to internal data}
   /* Add example here */
@@ -467,12 +478,17 @@ becomes mapped when its method \verb|map| is called with a datamap.
 \subsection{Configuration variables}
 
 \begin{head}{config}
-    bool config (string var, string* result)
+  bool config (string var, string* result)
 
-    bool config (string var, int* result)
+  bool config (string var, int* result)
 
-    bool config (string var, double* result)
+  bool config (string var, double* result)
 \end{head}
+\begin{parameters}
+  \lstinline|var| & \\
+  \lstinline|result| & \\
+  \emph{return value} & \\
+\end{parameters}
 
 \begin{code}{Querying configuration variables}
   /* Add example here */
@@ -502,13 +518,13 @@ applications can use different tick-intervals.
     \begin{minipage}{0.45\textwidth}
       \includegraphics[width=\textwidth]{figures/ticklogic}
       \caption{Transfer of data when sender has a shorter
-        tick interval then the receiver}
+        tick interval than the receiver}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
       \includegraphics[width=\textwidth]{figures/ticklogic2}
       \caption{Transfer of data when sender has a longer
-        tick interval then the receiver}
+        tick interval than the receiver}
     \end{minipage}
   \end{center}
 \end{figure}
@@ -558,16 +574,16 @@ avoid dead-lock situations.
 \begin{description}
   \item[setup] Used to ask for configuration information and create
     ports.
-  \item[runtime] Used during simulation.  Provides the \verb|tick ()|
+  \item[runtime] Used during simulation.  Provides the \lstinline|tick ()|
     method.
-  \item[port] A \verb|port| is the interface used to send or receive
+  \item[port] A \lstinline|port| is the interface used to send or receive
     data from other applications.  It can be distributed over many MPI
-    processes.  A port contains a \verb|datamap|.  There are
-    \verb|output_port|s and \verb|input_port|s.
+    processes.  A port contains a \lstinline|datamap|.  There are
+    \lstinline|output_port|s and \lstinline|input_port|s.
   \item[connector] An internal datastructure which represents the
     sending or receiving end of a connection between two ports.  An
-    \verb|output_port| can have multiple connectors while an
-    \verb|input_port| can have only one.
+    \lstinline|output_port| can have multiple connectors while an
+    \lstinline|input_port| can have only one.
   \item[data\_map] Defines the data to be communicated through the
     port.  A data\_map consists of a pointer to the memory location
     containing the data (for continuous-valued data) and an
@@ -598,16 +614,16 @@ constitutes a MUSIC \emph{connection}.
 
 \subsection{Index maps}
 
-\verb|linear_map| can be implemented in terms of
-\verb|permutation_map| which is the most general form of index map.
+\lstinline|linear_map| can be implemented in terms of
+\lstinline|permutation_map| which is the most general form of index map.
 
 \section{The MUSIC application}
 
 \subsection{Responsibilities visavi the MUSIC library}
 \label{sec:responsibilities}
 
-An application creates a \verb|setup| object.  \verb|argc| and
-\verb|argv| are passed by reference to the \verb|setup| constructor
+An application creates a \lstinline|setup| object.  \lstinline|argc| and
+\lstinline|argv| are passed by reference to the \lstinline|setup| constructor
 which may modify these variables.  The setup constructor calls
 MPI:Init for the application.
 
@@ -624,22 +640,22 @@ There should be no need to link an application differently when it is
 used together with other applications in a MUSIC setting compared to
 when it is used in a stand-alone setting.  In order to support
 ``standard'' operation for the application,
-\verb|setup::communicator ()|, therefore, will return MPI::COMM\_WORLD
-if the job is started directly with \verb|mpirun| instead of with the
+\lstinline|setup::communicator ()|, therefore, will return MPI::COMM\_WORLD
+if the job is started directly with \lstinline|mpirun| instead of with the
 MUSIC launcher.
 
-Calling \verb|setup::done ()| will implicitly call the \verb|runtime|
+Calling \lstinline|setup::done ()| will implicitly call the \lstinline|runtime|
 object constructor.
 
 During simulation, the application should repeatedly call
-\verb|runtime::tick ()|.  This is typically done at each simulation
+\lstinline|runtime::tick ()|.  This is typically done at each simulation
 time step.
 
 \section{Timing considerations}
 
 During a MUSIC simulation data is communicated between two connectors
 by pairwise blocking communication.  Both sends and receives occur
-within a \verb|tick ()| call.
+within a \lstinline|tick ()| call.
 
 \subsection{Global clock}
 
@@ -666,7 +682,7 @@ Minimal latency
 
 \subsection{Communication schedule}
 
-The order of calls to \verb|MPI::Send| and \verb|MPI::Receive| within
+The order of calls to \lstinline|MPI::Send| and \lstinline|MPI::Receive| within
 output and input connectors can be important.  Consider two
 connections between the same pair of applications.  If application 1
 sends on output connectors A and B in sequence, within the same tick,
@@ -676,15 +692,15 @@ reverse order (B, A) there will be a dead-lock.
 Such dead-lock:s are avoided by imposing a fixed pairwise
 communication schedule.  The setup phase creates and sorts output and
 input connectors into a vector according to this schedule.  This
-vector is passed to the runtime object.  At each \verb|tick ()|, the
+vector is passed to the runtime object.  At each \lstinline|tick ()|, the
 runtime object iterates through the vector, giving each connector an
 opportunity to communicate.
 
 \subsection{Initialization}
 
-Before calling \verb|setup::done ()| at the end of the setup phase,
+Before calling \lstinline|setup::done ()| at the end of the setup phase,
 the user must initialize all data associated to output ports through
-datamap:s.  During \verb|setup::done ()|, this data is transferred to
+datamap:s.  During \lstinline|setup::done ()|, this data is transferred to
 all input ports.  This is so that data can subsequently be correctly
 interpolated.
 

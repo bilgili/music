@@ -416,25 +416,25 @@ Ports have two stages in life: the \emph{empty} stage and the
 \emph{mapped} stage.  A port is empty when created.  The MUSIC
 configuration file specifies connections between ports.  It is
 possible to ask an empty port if it is connected, if it has a
-specified size and what size it has if this size is specified.  A port
+specified width and what width it has if this width is specified.  A port
 becomes mapped when its method \lstinline|map| is called with a datamap.
 
 \begin{head}{publish_output,publish_input}
-  cont_output_port* setup::publish_output (string identifier)
+  cont_output_port* setup::publish_cont_output (string identifier)
 
-  cont_input_port* setup::publish_input (string identifier)
+  cont_input_port* setup::publish_cont_input (string identifier)
 
-  event_output_port* setup::publish_output (string identifier)
+  event_output_port* setup::publish_event_output (string identifier)
 
-  event_input_port* setup::publish_input (string identifier)
+  event_input_port* setup::publish_event_input (string identifier)
 \end{head}
 \begin{parameters}
   \lstinline|identifier| & port name \\
   \emph{return value} & an empty port \\
 \end{parameters}
 
-\begin{code}{Creating ports}
-  /* Add example here */
+\begin{code}{Creating an empty port}
+  cont_output_port* out = setup->publish_cont_output ("out");
 \end{code}
 
 \subsection{Port API}
@@ -445,25 +445,45 @@ becomes mapped when its method \lstinline|map| is called with a datamap.
   bool port::is_connected ()
 \end{head}
 \begin{parameters}
-  \emph{return value} & \\
+  \emph{return value} & \lstinline|true| only if connected\\
 \end{parameters}
 
-\begin{code}{Querying if a port is connected}
-  /* Add example here */
+\begin{code}{Optional handling of ports}
+  cont_output_port* out = setup->publish_cont_output ("out");
+  /* map port only if anyone is listening */
+  if (out->is_connected ())
+    /* map port */
 \end{code}
 
-\subsubsection{Port size}
+\subsubsection{Port width}
+
+\begin{head}{has_width}
+  bool port::has_width ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & \lstinline|true| only if port width has been
+                         specified \\
+\end{parameters}
+
+\begin{head}{width}
+  int port::width ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & port width \\
+\end{parameters}
+
+See also example \ref{adaptivewidth} below.
 
 \subsubsection{Mapping a port}
 
 \begin{head}{map}
-  void cont_output_port::map (cont_data* map)
+    void cont_output_port::map (cont_data* dmap)
 
-  void cont_input_port::map (cont_data* map, double max_latency)
+    void cont_input_port::map (cont_data* dmap, double max_latency)
 
-  void event_output_port::map (event_data* map)
+    void event_output_port::map (event_data* dmap)
 
-  void event_input_port::map (event_data* map, double max_latency)
+    void event_input_port::map (event_data* dmap, double max_latency)
 \end{head}
 \begin{parameters}
   \lstinline|map| & the data map associated with the port \\
@@ -472,7 +492,33 @@ becomes mapped when its method \lstinline|map| is called with a datamap.
 \end{parameters}
 
 \begin{code}{Mapping ports to internal data}
-  /* Add example here */
+  {
+    ...
+    /* Publishing a port of adaptive width */
+    double* data_buffer;
+    MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
+    if (!in->has_width ())
+      /* report error */
+    else
+      {
+        
+      }
+  }
+\end{code}
+
+\begin{code}{Mapping ports to internal data\label{adaptivewidth}}
+  {
+    ...
+    /* Publishing a port of adaptive width */
+    double* data_buffer;
+    MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
+    if (!in->has_width ())
+      /* report error */
+    else
+      {
+        
+      }
+  }
 \end{code}
 
 \subsection{Configuration variables}
@@ -721,12 +767,12 @@ interpolated.
 \nt{variable def}      & ::= & \nt{variable} '=' \nt{value} \\
 \nt{variable}	       & ::= & \nt{symbol} \\
 \nt{value} 	       & ::= & \nt{integer} $|$ \nt{float} $|$ \nt{string} \\
-\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{size} ] \\
+\nt{connection}	       & ::= & \nt{port id} \nt{direction} \nt{port id} [ \nt{width} ] \\
 \nt{port id}	       & ::= & \nt{application id} '.' \nt{port} $|$
 \nt{port} \\
 \nt{port}	       & ::= & \nt{symbol} \\
 \nt{direction}	       & ::= & $->$ $|$ $<-$ \\
-\nt{size}	       & ::= & '[' \nt{integer} ']' \\
+\nt{width}	       & ::= & '[' \nt{integer} ']' \\
 \end{tabular}
 
 \printindex

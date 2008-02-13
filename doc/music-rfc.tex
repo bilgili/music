@@ -86,6 +86,36 @@ applications in a cluster environment.  The standard is designed
 specifically for interconnecting large scale neuronal network
 simulators, either with each-other or with other tools.
 
+A typical usage case is illustrated in figure~\ref{fig:multisim},
+where three applications ($A$, $B$, and $C$) are executing in parallel
+while exchanging data via MUSIC.  We will refer to this as a
+\emph{multi-simulation}, since the participating applications are
+typically neuronal simulators, or tools to support such simulators.
+In this example, application $A$ produces runtime data which is then
+used by $B$ and $C$.  In addition, $B$ and $C$ mutually send data to
+each other.  The data sent between applications can be either event
+based, such as neuronal spikes, or graded continuous values, for
+example membrane voltages.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{figures/multisim}
+    \caption[Typical multi-simulation]{\label{fig:multisim}
+      Illustration of a typical multi-simulation using MUSIC.  Three
+      applications, $A$, $B$, and $C$, are exchanging data during
+      runtime.
+    }
+  \end{center}
+\end{figure}
+
+The primary objective of MUSIC is to support multi-simulations where
+each participating application itself is a parallel simulator with the
+capacity to produce and/or consume massive amounts of data.  The fact
+that data is spread out over a number of processors makes it
+non-trivial to coordinate the transfer of data so that it reaches the
+right destination at the right time.  The task for MUSIC is to relieve
+the applications from handling this complexity.
+
 
 \section{Design Goals}
 
@@ -156,6 +186,11 @@ common MUSIC interface.
   \emph{application}\index{application} to denote a simulator or other
   program interfaced to MUSIC.  Each application is a parallel
   program, normally running on several processors.
+
+\item[multi-simulation] We use the term
+  \emph{multi-simulation}\index{multi-simulation} to refer to the
+  whole parallel execution of multiple applications coordinated by
+  MUSIC.
 
 \item[port] Each application declares its ability to produce and
   consume data by publishing \emph{ports}\index{port}.  Ports are

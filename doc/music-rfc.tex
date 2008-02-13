@@ -290,7 +290,6 @@ connectors can have arbitrary ordering of data.  How do output and
 input connectors know the rank
 
 \section{Timing considerations}
-\responsible{Örjan}
 
 Different applications may use different time steps and it is the
 responsibility of MUSIC to ensure that data is delivered at the
@@ -312,29 +311,47 @@ rely on the existence of sufficient delays in the simulated model,
 typically corresponding to axonal delays.
 
 
-\section{Responsibilities of an application using MUSIC}
+\section{Application Responsibilities}
 
-\chapter{Using MUSIC}
+\begin{itemize}
+\item Call setup
+\item Create ports
+\item Map ports to data or callback functions
+\item Inform MUSIC about the communication interval
+\item Call tick at regular intervals
+\end{itemize}
 
-\subsection{The MUSIC configuration file}
 
-\section{Launch}
+\chapter{Starting a Multi-Simulation}
 
-We will have to provide tools for starting the simulators.  This
-procedure will also take care of initializing communication between
-processes.  Since most simulators will use parallel processing also
-internally, it is necessary for the simulator to rely in the interface
-for some of its own initialization too.  The tools should therefore be
-useful for running simulators even in situations when only one
-simulator is running.
+\section{Overview}
 
-\begin{metatext}
-  MPI-2 comes with a program mpiexec which is capable of starting
-  multiple applications directly.  In MPI-1 one can achieve the same
-  result by starting a small "launcher" program which uses execve to
-  start the real applications.  We should be able to write our interface
-  so that it works in both situations.
-\end{metatext}
+Parallel programs based on MPI are normally started by running a
+special program called \texttt{mpirun} (for MPI-1) or \texttt{mpiexec}
+(for MPI-2).  To start multiple applications and enable them to
+communicate with each other, MUSIC utilizes a special launcher program
+called \texttt{music}\index{music} which, in turn, starts the
+different applications.  Information about which applications should
+be started, and the communication pattern between them is described in
+a common \emph{configuration file}\index{configuration file}.
+
+
+\section{The Configuration File}
+
+The main purpose of the configuration file is to control what
+applications to start, and to connect output ports to input ports.
+The configuration file specifies the number of processors allocated to
+each application.
+
+Arbitrary named parameters may also be included in the configuration
+file and these parameters can be accessed from the applications.  This
+will typically be the way names of script files and other information
+is passed to the applications.  In particular, the normal command line
+arguments can be set this way.
+
+Optionally, the width of the connections between application can be
+specified.
+
 
 \chapter{Application Program Interface}
 

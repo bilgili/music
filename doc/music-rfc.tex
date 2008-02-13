@@ -439,7 +439,16 @@ becomes mapped when its method \lstinline|map| is called with a datamap.
 
 \subsection{Port API}
 
+It is possible to ask an empty port if it is connected, if it has a
+specified width and what width it has if this width is specified.  A
+port becomes mapped when its method \lstinline|map| is called with a
+datamap.
+
 \subsubsection{Port connectivity}
+
+The method \lstinline|is_connected| is used to check if the user has
+specified a connection of this port to another port in the
+configuration file.
 
 \begin{head}{is_connected}
   bool port::is_connected ()
@@ -448,11 +457,18 @@ becomes mapped when its method \lstinline|map| is called with a datamap.
   \emph{return value} & \lstinline|true| only if connected\\
 \end{parameters}
 
+This method is typically used in cases where the use of some of the
+ports of the application is optional.  In such a case, it is not
+sensible to allocate any application resources to support the data
+flow in question.  One example is if one wants to support tapping
+membrane potentials from a certain population of cells, but don't want
+to waste resources if no one is listening.
+
 \begin{code}{Optional handling of ports}
-  cont_output_port* out = setup->publish_cont_output ("out");
+  cont_output_port* out = setup->publish_cont_output ("Vm");
   /* map port only if anyone is listening */
   if (out->is_connected ())
-    /* map port */
+    /* allocate application resources and map port */
 \end{code}
 
 \subsubsection{Port width}

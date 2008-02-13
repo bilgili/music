@@ -23,16 +23,17 @@
 
 
 % Use the head environment around method heads
-\lstnewenvironment{head}%
-{\lstset{frame=lines}}%
+\lstnewenvironment{head}[1]%
+{\lstset{frame=lines,emph={#1},emphstyle=\color{blue}\textbf}}%
 {}
 
 
 % Use the code environment around method code examples
-\lstnewenvironment{code}%
-{\noindent Example:}%
+\lstnewenvironment{code}[1]%
+{\lstset{frame=single,caption={#1}}}%
 {}
 
+\renewcommand{\lstlistingname}{Example}
 
 % Use the responsible command to indicate which author is responsible
 % for the present section
@@ -342,7 +343,7 @@ initialize MPI.  The setup constructor creates the setup object
 through which the application can retrieve configuration information,
 get a communicator, and setup ports.
 
-\begin{head}
+\begin{head}{setup}
   setup::setup (int& argc, char**& argv)
 \end{head}
 \begin{tabular}{ll}
@@ -354,7 +355,7 @@ This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \verb|argc| and \verb|argv| that are
 provided by the arguments to \verb|main|.
 
-\begin{code}
+\begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
 {
   MUSIC::setup* setup = new MUSIC::setup (argc, argv);
@@ -372,7 +373,7 @@ over the group of processes assigned to the application.  This
 communicator is retrieved from the setup object through a call to the
 \verb|communicator| method.
 
-\begin{head}
+\begin{head}{communicator}
   MPI::Intracomm setup::communicator ()
 \end{head}
 \begin{tabular}{ll}
@@ -383,7 +384,7 @@ The application is supposed to use the communicator returned by
 \verb|communicator| in place of \verb|MPI::COMM_WORLD|.  This
 communicator can be used as any ordinary MPI communicator.
 
-\begin{code}
+\begin{code}{Accessing the application-wide communicator}
 /* communicator with global scope */
 extern MPI_Comm comm;
 
@@ -410,7 +411,7 @@ possible to ask an empty port if it is connected, if it has a
 specified size and what size it has if this size is specified.  A port
 becomes mapped when its method \verb|map| is called with a datamap.
 
-\begin{head}
+\begin{head}{publish_output,publish_input}
     cont_output_port* setup::publish_output (string identifier)
 
     cont_input_port* setup::publish_input (string identifier)
@@ -424,7 +425,7 @@ becomes mapped when its method \verb|map| is called with a datamap.
   \emph{return value} & an empty port \\
 \end{tabular}
 
-\begin{code}
+\begin{code}{Creating ports}
   /* Add example here */
 \end{code}
 
@@ -432,11 +433,11 @@ becomes mapped when its method \verb|map| is called with a datamap.
 
 \subsubsection{Port connectivity}
 
-\begin{head}
+\begin{head}{is_connected}
   bool port::is_connected ()
 \end{head}
 
-\begin{code}
+\begin{code}{Querying if a port is connected}
   /* Add example here */
 \end{code}
 
@@ -444,7 +445,7 @@ becomes mapped when its method \verb|map| is called with a datamap.
 
 \subsubsection{Mapping a port}
 
-\begin{head}
+\begin{head}{map}
     void cont_output_port::map (cont_data* map)
 
     void cont_input_port::map (cont_data* map, double max_latency)
@@ -459,13 +460,13 @@ becomes mapped when its method \verb|map| is called with a datamap.
   \\
 \end{tabular}
 
-\begin{code}
+\begin{code}{Mapping ports to internal data}
   /* Add example here */
 \end{code}
 
 \subsection{Configuration variables}
 
-\begin{head}
+\begin{head}{config}
     bool config (string var, string* result)
 
     bool config (string var, int* result)
@@ -473,7 +474,7 @@ becomes mapped when its method \verb|map| is called with a datamap.
     bool config (string var, double* result)
 \end{head}
 
-\begin{code}
+\begin{code}{Querying configuration variables}
   /* Add example here */
 \end{code}
 

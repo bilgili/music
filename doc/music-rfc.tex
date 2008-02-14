@@ -233,10 +233,32 @@ they relate to MUSIC.
 
 \paragraph{PyNN}\index{PyNN}
 
+PyNN is a Python package for simulator-independent specification of
+neuronal network models.  It consists of a low-level procedural API
+and a high-level object-oriented API.  Neuronal network models
+described using these API:s can be simulated on simulators supporting
+API, such as Neuron and NEST.
+
+PyNN can be extended to support multi-simulations using the MUSIC
+library.  Such extensions would control the interaction between the
+simulator and the MUSIC library and would, for example, support
+publishing of named ports.
+
+\begin{metatext}
+  För mycket would här!
+\end{metatext}
+
+It is possible, in principle, to write Python code to directly handle
+communication between applications in a cluster, but such a solution
+would be very inefficient compared to using MUSIC, and would, in the
+end, have to address the same problems which MUSIC provides a solution
+to.
+
 \paragraph{Neurospaces}\index{Neurospaces}
 
-\paragraph{Neosim}\index{Neusim}
+\paragraph{Neosim}\index{Neosim}
 
+\paragraph{MOOSE}\index{MOOSE}
 
 \chapter{Execution model}
 

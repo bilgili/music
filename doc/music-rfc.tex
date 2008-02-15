@@ -82,9 +82,9 @@
 
 \tableofcontents
 
-\chapter{Introduction}
+\listoffigures
 
-\responsible{Örjan}
+\chapter{Introduction}
 
 \section{Scope}
 
@@ -267,29 +267,30 @@ to.
 A multi-simulation, i.e. a set of interconnected parallel
 applications, is executed in three distinct phases:
 \begin{description}
-\item[\textbf{Launch}] is the phase where all the applications are
-  started on the processors.  During this phase, MUSIC is responsible
-  for distributing and launching the application binaries on the set
-  of MPI processes allocated to the MUSIC job.  This has to be done
-  before MPI is initialized and therefore has to be handled separately
-  for different MPI implementations.
+\item[\textbf{Launch}]\index{launch phase} is the phase where all the
+  applications are started on the processors.  During this phase,
+  MUSIC is responsible for distributing and launching the application
+  binaries on the set of MPI processes allocated to the MUSIC job.
+  This has to be done before MPI is initialized and therefore has to
+  be handled separately for different MPI implementations.
 
   Technically, the launch phase begins when \texttt{mpirun} launches
   the MUSIC binary and ends when the setup object constructor returns.
 
-\item[\textbf{Setup}] is the phase when all applications must publish
-  what ports they are prepared to handle, the time step they will use,
-  and where data will be present (where in memory and/or on what
-  processor).  During the setup phase, the applications can read
-  configuration parameters communicated via the common configuration
-  file.
+\item[\textbf{Setup}]\index{setup phase} is the phase when all
+  applications must publish what ports they are prepared to handle,
+  the time step they will use, and where data will be present (where
+  in memory and/or on what processor).  During the setup phase, the
+  applications can read configuration parameters communicated via the
+  common configuration file.
 
   The setup phase begins when the setup object has been created and
   ends when the runtime object constructor returns.
 
-\item[\textbf{Runtime}] is the phase then simulation data is actually
-  transferred between applications.  Via the \texttt{tick} calls the
-  simulated time of the applications are kept in order.
+\item[\textbf{Runtime}]\index{runtime phase} is the phase then
+  simulation data is actually transferred between applications.  Via
+  the \texttt{tick} calls the simulated time of the applications are
+  kept in order.
 
   The runtime phase begins when the runtime object has been created
   and ends when the runtime object is destroyed.
@@ -334,18 +335,69 @@ appropriate time.  In order to minimize handshaking, both parts of a
 connection pair locally calculate when the actual data transfer over
 MPI takes place.  To ensure that these calculations produce
 predictable results, simulation time is represented using integers
-with a global micro-timestep common for all applications.
+with a global micro-timestep\index{micro-timestep} common for all
+applications.
 
-Simulation time is a state variable local for each application and
-MUSIC does not enforce unnecessary synchronization between these local
-clocks.  Thus, an application producing data may be running ahead of
-another application which consumes the same data.  MUSIC internally
-builds a schedule which ensures that data arrives at the appropriate
-local time in the receiving application.  Scheduling becomes more
-complex when data is not only transferred in a feed-forward manner,
-i.e. the connection graph contains loops.  In this case MUSIC has to
-rely on the existence of sufficient delays in the simulated model,
-typically corresponding to axonal delays.
+Simulation time\index{simulation time} is local for each application
+and MUSIC does not enforce unnecessary synchronization between these
+local clocks.  Thus, an application producing data may be running
+ahead of another application which consumes the same data.  MUSIC
+internally builds a schedule which ensures that data arrives at the
+appropriate local time in the receiving application.  Scheduling
+becomes more complex when data is not only transferred in a
+feed-forward manner, i.e. the connection graph contains loops.  In
+this case MUSIC has to rely on the existence of sufficient delays in
+the simulated model, typically corresponding to axonal
+delays\index{axonal delay}.
+
+\begin{figure}
+  \begin{center}
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic}
+      \caption[Timing of data transfer, slowdown]{\label{fig:timingshorter}
+        Transfer of data when sender has a shorter
+        tick interval than the receiver}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/ticklogic2}
+      \caption[Timing of data transfer, speedup]{\label{fig:timinglonger}
+        Transfer of data when sender has a longer
+        tick interval than the receiver}
+    \end{minipage}
+  \end{center}
+\end{figure}
+
+Figures~\ref{fig:timingshorter} and \ref{fig:timinglonger} illustrate
+how MUSIC handles time when transferring continuous data over a connection.
+In figure~\ref{fig:timingshorter}, the sender application uses a
+shorter interval between the tick calls than the receiver.  The sender
+side uses values sampled at the tick points to calculate a value
+corresponding to the point in time when the receiver makes its tick
+call.
+
+The dark middle are (labelled ``MPI'') is where the actual data
+transfer takes place.  MUSIC makes use of the fact that the receiving
+application can run with its simulation clock set independently of the
+sender.  The arrows going ``backwards in time'' in this area reflect
+the fact that the receivers clock is lagging.  This makes it possible
+for data to arrive in time despite the fact that it was available
+later than when it was arriving.
+
+Figure~\ref{fig:timinglonger} illustrates what happens when the
+receiver is calling tick faster then the sender.  The sender will then
+have to buffer up multiple values to be transferred at a suitable tick
+call, and the receiver will portion these values out at the
+appropriate ticks.
+
+The strategy of having the receiver application running with a delayed
+local clock only works when the connection graph forms a directed
+acyclic graph (DAG).  When loops occur it is necessary to allow for
+data arriving late, at least somewhere along each loop.  MUSIC handles
+this via \emph{acceptable latency}\index{acceptable
+  latency}\index{latency} which is a property of each input port.  The
+receiving application declares how late data may arrive, thus giving
+MUSIC room for resolving the scheduling problem.
 
 
 \section{Application Responsibilities}
@@ -628,22 +680,6 @@ applications can use different tick-intervals.
 
 
 \subsection{Aliasing}
-
-\begin{figure}
-  \begin{center}
-    \begin{minipage}{0.45\textwidth}
-      \includegraphics[width=\textwidth]{figures/ticklogic}
-      \caption{Transfer of data when sender has a shorter
-        tick interval than the receiver}
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.45\textwidth}
-      \includegraphics[width=\textwidth]{figures/ticklogic2}
-      \caption{Transfer of data when sender has a longer
-        tick interval than the receiver}
-    \end{minipage}
-  \end{center}
-\end{figure}
 
 The interface should take care of spatial and temporal aliasing, that
 is, to interpolate in space and time when the space and time steps of

@@ -260,41 +260,56 @@ to.
 
 \paragraph{MOOSE}\index{MOOSE}
 
-\chapter{Execution model}
+\chapter{Execution Model}
 
-\section{Phases of execution}
+\section{Phases of Execution}
 
 A multi-simulation, i.e. a set of interconnected parallel
-applications, is executed in a few distinct phases:
-\begin{enumerate}
-\item \emph{Launch} is the phase where all the applications are
-  started on the processors.  This has to be done before MPI is
-  initialized and therefore has to be handled separately for different
-  MPI implementations.
-\item \emph{Setup} is the phase when all applications must publish
-  what ports they are interested in, the time step they will use, and
-  where data will be present (where in memory and/or on what processor).
-\item \emph{Runtime} is the phase then simulation data are actually
-  transferred.  Via the tick calls the simulated time of the
-  applications are kept in order.
-\end{enumerate}
+applications, is executed in three distinct phases:
+\begin{description}
+\item[\textbf{Launch}] is the phase where all the applications are
+  started on the processors.  During this phase, MUSIC is responsible
+  for distributing and launching the application binaries on the set
+  of MPI processes allocated to the MUSIC job.  This has to be done
+  before MPI is initialized and therefore has to be handled separately
+  for different MPI implementations.
 
-As can be seen from section \ref{sec:responsibilities}, a MUSIC job
-has three phases of execution:
-\begin{enumerate}
-  \item \textbf{Launch} is concerned with distributing and launching
-    the application set within the set of MPI processes allocated to
-    the MUSIC job.  The launch phase begins when mpirun launches the
-    MUSIC binary and ends when the setup object constructor returns.
-  \item \textbf{Setup} is concerned with the creation of ports and
-    setting of parameters.  The setup phase begins when the setup
-    object has been created and ends when the runtime object
-    constructor returns.
-  \item \textbf{Runtime} is the phase where simulation data is passed
-    around between participating applications.  The runtime phase
-    begins when the runtime object has been created and ends when the
-    runtime method \lstinline|finalize| is called.
-\end{enumerate}
+  Technically, the launch phase begins when \texttt{mpirun} launches
+  the MUSIC binary and ends when the setup object constructor returns.
+
+\item[\textbf{Setup}] is the phase when all applications must publish
+  what ports they are prepared to handle, the time step they will use,
+  and where data will be present (where in memory and/or on what
+  processor).  During the setup phase, the applications can read
+  configuration parameters communicated via the common configuration
+  file.
+
+  The setup phase begins when the setup object has been created and
+  ends when the runtime object constructor returns.
+
+\item[\textbf{Runtime}] is the phase then simulation data is actually
+  transferred between applications.  Via the \texttt{tick} calls the
+  simulated time of the applications are kept in order.
+
+  The runtime phase begins when the runtime object has been created
+  and ends when the runtime object is destroyed.
+\end{description}
+
+From the application programmers point of view, these phases are
+clearly separated through the use of the two main components of the
+MUSIC interface: the \emph{setup} and the \emph{runtime} object.  The
+launch phase is not visible for the application since it handles the
+situation before the application starts.
+
+When the application initializes MUSIC at the beginning of execution
+it receives a specific \emph{setup object}.  This object gives access
+to the functionality relevant during the setup phase via its methods.
+When done with the setup, the application program makes the transition
+to the runtime phase by calling a method in the setup object which
+destroys the setup object and returns a \emph{runtime object}.  This
+runtime object provides methods relevant during the runtime phase of
+execution.
+
 
 \section{Concepts}
 
@@ -304,14 +319,14 @@ indices within the distributed data array.  That is, the
 handled by the local process and how the data elements are locally
 ordered.
 
-\section{Spatial distribution of data}
+\section{Spatial Distribution of Data}
 \responsible{Mikael}
 
 Consider a connection between two ports.  Both the output and input
 connectors can have arbitrary ordering of data.  How do output and
 input connectors know the rank
 
-\section{Timing considerations}
+\section{Timing Considerations}
 
 Different applications may use different time steps and it is the
 responsibility of MUSIC to ensure that data is delivered at the
@@ -664,13 +679,13 @@ produce the next value before the receiver can enter the intermediate
 time interval.  This needs careful scheduling of the transmissions to
 avoid dead-lock situations.
 
-\chapter{A complete example}
+\chapter{A Complete Example}
 
-\chapter{Adapting existing software to MUSIC}
+\chapter{Adapting Existing Software}
 
 \chapter{Notes}
 
-\section{Data structures}
+\section{Data Structures}
 
 \begin{description}
   \item[setup] Used to ask for configuration information and create
@@ -752,7 +767,7 @@ During simulation, the application should repeatedly call
 \lstinline|runtime::tick ()|.  This is typically done at each simulation
 time step.
 
-\section{Timing considerations}
+\section{Timing Considerations}
 
 During a MUSIC simulation data is communicated between two connectors
 by pairwise blocking communication.  Both sends and receives occur

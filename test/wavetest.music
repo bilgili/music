@@ -1,0 +1,6 @@
+[1]
+  waveproducer
+  np=3
+[2]
+  waveconsumer
+  np=4

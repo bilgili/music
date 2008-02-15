@@ -327,6 +327,18 @@ Consider a connection between two ports.  Both the output and input
 connectors can have arbitrary ordering of data.  How do output and
 input connectors know the rank
 
+Refer to figure~\ref{fig:datamapping}.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{figures/datamapping}
+    \caption[Mapping of data]{\label{fig:datamapping}
+      Data transfer over a connection from an application running on
+      four processors to an application running on three other.
+    }
+  \end{center}
+\end{figure}
+
 \section{Timing Considerations}
 
 Different applications may use different time steps and it is the
@@ -718,18 +730,26 @@ avoid dead-lock situations.
 \chapter{A Complete Example}
 
 This chapter shows a minimal but still complete example.  It consists
-of two applications, \texttt{wavegenerator} and \texttt{waveconsumer},
+of two applications, \texttt{waveproducer} and \texttt{waveconsumer},
 and a configuration file used to launch and connect them.
+
+
+\section{Configuration File}
+
+The configuration file starts the waveproducer application on three
+processors and waveconsumer on four.
+
+\lstinputlisting[language=Clean,frame=single]{../test/wavetest.music}
+
 
 \section{Data Generating Application}
 
 \lstinputlisting{../test/wavegenerator.cc}
 
+
 \section{Data Consuming Application}
 
 \lstinputlisting{../test/waveconsumer.cc}
-
-\section{Configuration File}
 
 
 \chapter{Adapting Existing Software}

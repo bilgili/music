@@ -340,7 +340,8 @@ Refer to figure~\ref{fig:datamapping}.
 \end{figure}
 
 \section{Timing Considerations}
-
+\label{sec:timing}
+  
 Different applications may use different time steps and it is the
 responsibility of MUSIC to ensure that data is delivered at the
 appropriate time.  In order to minimize handshaking, both parts of a
@@ -530,13 +531,6 @@ flows.  Output and input ports are distinct classes.  Ports are
 further subdivided into distinct classes depending on whether they
 handle continuous or event data.
 
-Ports have two stages in life: the \emph{empty} stage and the
-\emph{mapped} stage.  A port is empty when created.  The MUSIC
-configuration file specifies connections between ports.  It is
-possible to ask an empty port if it is connected, if it has a
-specified width and what width it has if this width is specified.  A port
-becomes mapped when its method \lstinline|map| is called with a datamap.
-
 \begin{head}{publish_output,publish_input}
   cont_output_port* setup::publish_cont_output (string identifier)
 
@@ -551,16 +545,23 @@ becomes mapped when its method \lstinline|map| is called with a datamap.
   \emph{return value} & an empty port \\
 \end{parameters}
 
+Ports have two stages in life: the \emph{empty} stage and the
+\emph{mapped} stage.  A port is empty when created.  The MUSIC
+configuration file specifies connections between ports.  It is
+possible to ask an empty port if it is connected, if it has a
+specified width and what width it has if this width is specified.  A port
+becomes mapped when its method \lstinline|map| is called with a datamap.
+
 \begin{code}{Creating an empty port}
-  cont_output_port* out = setup->publish_cont_output ("out");
+cont_output_port* out = setup->publish_cont_output ("out");
 \end{code}
 
-\subsection{Port API}
+\subsection{Port methods}
 
-It is possible to ask an empty port if it is connected, if it has a
-specified width and what width it has if this width is specified.  A
-port becomes mapped when its method \lstinline|map| is called with a
-datamap.
+The port API includes methods to ask a port if it is connected, if it
+has a specified width and what width it has if this width is
+specified.  A port becomes mapped when its method \lstinline|map| is
+called with a datamap.
 
 \subsubsection{Port connectivity}
 
@@ -578,18 +579,26 @@ configuration file.
 This method is typically used in cases where the use of some of the
 ports of the application is optional.  In such a case, it is not
 sensible to allocate any application resources to support the data
-flow in question.  One example is if one wants to support tapping
+flow in question.  One example is if one wants to support output of
 membrane potentials from a certain population of cells, but don't want
 to waste resources if no one is listening.
 
 \begin{code}{Optional handling of ports}
-  cont_output_port* out = setup->publish_cont_output ("Vm");
-  /* map port only if anyone is listening */
-  if (out->is_connected ())
-    /* allocate application resources and map port */
+cont_output_port* out = setup->publish_cont_output ("Vm");
+/* map port only if anyone is listening */
+if (out->is_connected ())
+  /* allocate application resources and map port */
 \end{code}
 
 \subsubsection{Port width}
+\label{sec:width}
+
+The width of a port, that is the number of data elements transferred
+in parallel from a cont port or the largest possible id of an event
+port $+ 1$, can be specified in the configuration file. This should be
+thought of as a request for a given width.  Applications can use the
+method \lstinline|has_width| to determine if a width has been
+specified and retrieve the width using \lstinline|width|.
 
 \begin{head}{has_width}
   bool port::has_width ()
@@ -599,6 +608,7 @@ to waste resources if no one is listening.
                          specified \\
 \end{parameters}
 
+
 \begin{head}{width}
   int port::width ()
 \end{head}
@@ -606,54 +616,88 @@ to waste resources if no one is listening.
   \emph{return value} & port width \\
 \end{parameters}
 
-See also example \ref{adaptivewidth} below.
+Applications can use the above methods to adapt their port size.  See
+example \ref{code:adaptivewidth}.
 
 \subsubsection{Mapping a port}
 
 \begin{head}{map}
-    void cont_output_port::map (cont_data* dmap)
+  void cont_output_port::map (cont_data* dmap)
 
-    void cont_input_port::map (cont_data* dmap, double max_latency)
+  void cont_input_port::map (cont_data* dmap)
 
-    void event_output_port::map (event_data* dmap)
+  void event_output_port::map (event_data* dmap)
 
-    void event_input_port::map (event_data* dmap, double max_latency)
+  void event_input_port::map (event_data* dmap, double acc_latency)
 \end{head}
 \begin{parameters}
   \lstinline|map| & the data map associated with the port \\
-  \lstinline|max_latency| & maximum latency for incoming data (s)
+  \lstinline|acc_latency| & acceptable latency for incoming data (s)
   \\
 \end{parameters}
 
+The data map holds information about how data elements are distributed
+in memory.  See section \ref{sec:datamap} below.
+
+Some spiking neural network models include axonal delays.  The MUSIC
+framework assumes that handling and delivery of delayed spikes occurs
+on the receiver side.  In such a case, the receiver may allow MUSIC to
+deliver a spike event later than its time stamp according to local
+time.  The maximal acceptable latency is specified through the
+\lstinline|acc_latency| argument.
+  
+\begin{rationale}
+The current RFC only specifies acceptable latency for event input
+ports only.  As discussed in section \ref{sec:timing} this allows for
+applications to be connected in loops with regard to spiking
+communication, while no loops are allowed with regard to continuous
+data.
+\end{rationale}
+
 \begin{code}{Mapping ports to internal data}
-  {
-    ...
-    /* Publishing a port of adaptive width */
-    double* data_buffer;
-    MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
-    if (!in->has_width ())
-      /* report error */
-    else
-      {
-        
-      }
-  }
+{
+  ...
+  int size = comm.Get_size ();
+  int rank = comm.Get_rank ();
+  /* for clarity we assume that n_elements is a multiple of size */
+  int n_local = n_elements / size;
+  double* data_buffer = new double[n_local];
+  MUSIC::cont_input_port* out = setup->publish_cont_output ("out");
+  array_data dmap (data_buffer, MPI::DOUBLE, n_rank * n_local, n_local);
+  out->map (&dmap);
+  ...
+}
 \end{code}
 
-\begin{code}{Mapping ports to internal data\label{adaptivewidth}}
-  {
-    ...
-    /* Publishing a port of adaptive width */
-    double* data_buffer;
-    MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
-    if (!in->has_width ())
-      /* report error */
-    else
-      {
-        
-      }
-  }
+Some applications, for example those who provide some kind of more
+generic processing, like a visualization application, may want to be
+able to accept input of any width.  This can be achieved using the
+methods described in section \ref{sec:width}:
+
+\begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
+{
+  ...
+  /* Publishing a port of adaptive width */
+  double* data_buffer;
+  MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
+  if (!in->has_width ())
+    /* report error */
+  else
+    {
+      /* for clarity we assume that n_elements is a multiple of size */
+      int size = in->width ();
+      int n_local = n_elements / size;
+      /* example continues as above */
+      ...
+      
+    }
+}
 \end{code}
+
+\subsection{Data maps}
+\label{sec:datamap}
+
+\subsection{Index maps}
 
 \subsection{Configuration variables}
 
@@ -744,7 +788,7 @@ processors and waveconsumer on four.
 
 \section{Data Generating Application}
 
-\lstinputlisting{../test/wavegenerator.cc}
+\lstinputlisting{../test/waveproducer.cc}
 
 
 \section{Data Consuming Application}
@@ -809,10 +853,10 @@ constitutes a MUSIC \emph{connection}.
 \subsection{Responsibilities visavi the MUSIC library}
 \label{sec:responsibilities}
 
-An application creates a \lstinline|setup| object.  \lstinline|argc| and
-\lstinline|argv| are passed by reference to the \lstinline|setup| constructor
-which may modify these variables.  The setup constructor calls
-MPI:Init for the application.
+An application creates a \lstinline|setup| object.  \lstinline|argc|
+and \lstinline|argv| are passed by reference to the \lstinline|setup|
+constructor which may modify these variables.  The setup constructor
+calls MPI:Init for the application.
 
 \begin{rationale}
   The idea here is to replace the call to MPI:Init with a call to the
@@ -827,12 +871,12 @@ There should be no need to link an application differently when it is
 used together with other applications in a MUSIC setting compared to
 when it is used in a stand-alone setting.  In order to support
 ``standard'' operation for the application,
-\lstinline|setup::communicator ()|, therefore, will return MPI::COMM\_WORLD
-if the job is started directly with \lstinline|mpirun| instead of with the
-MUSIC launcher.
+\lstinline|setup::communicator ()|, therefore, will return
+MPI::COMM\_WORLD if the job is started directly with
+\lstinline|mpirun| instead of with the MUSIC launcher.
 
-Calling \lstinline|setup::done ()| will implicitly call the \lstinline|runtime|
-object constructor.
+Calling \lstinline|setup::done ()| will implicitly call the
+\lstinline|runtime| object constructor.
 
 During simulation, the application should repeatedly call
 \lstinline|runtime::tick ()|.  This is typically done at each simulation

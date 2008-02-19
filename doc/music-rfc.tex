@@ -216,6 +216,9 @@ common MUSIC interface.
   over a connection can be regarded as a large array distributed over
   multiple processors.  The map contains information about which
   processor has each element of data, and where the element is stored.
+  \begin{metatext}
+    Mikael: What is this?  Should it be documented in the RFC?
+  \end{metatext}
 
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular
@@ -661,9 +664,9 @@ data.
   int rank = comm.Get_rank ();
   /* for clarity we assume that n_elements is a multiple of size */
   int n_local = n_elements / size;
-  double* data_buffer = new double[n_local];
+  double* state_vars = new double[n_local];
   MUSIC::cont_input_port* out = setup->publish_cont_output ("out");
-  array_data dmap (data_buffer, MPI::DOUBLE, n_rank * n_local, n_local);
+  array_data dmap (state_vars, MPI::DOUBLE, n_rank * n_local, n_local);
   out->map (&dmap);
   ...
 }
@@ -678,14 +681,14 @@ methods described in section \ref{sec:width}:
 {
   ...
   /* Publishing a port of adaptive width */
-  double* data_buffer;
+  double* state_vars;
   MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
   if (!in->has_width ())
     /* report error */
   else
     {
-      /* for clarity we assume that n_elements is a multiple of size */
       int size = in->width ();
+      /* for clarity we assume that n_elements is a multiple of size */
       int n_local = n_elements / size;
       /* example continues as above */
       ...
@@ -694,10 +697,57 @@ methods described in section \ref{sec:width}:
 }
 \end{code}
 
+\subsubsection{Event insertion}
+
+\begin{head}{insert_event}
+  void event_output_port::insert_event (double t, int id)
+\end{head}
+
+\subsection{Index maps}
+
+An index map is a mapping from local data element indices to
+global. An index map instance thus holds information of which global
+indices belong to the local MPI process and of their order with regard
+to local index.  The most general form is the
+\lstinline|permutation_index| which allows for an arbitrary mapping.
+
+\begin{head}{permutation_index}
+  permutation_index::permutation_index (int* indices, int size)
+\end{head}
+\begin{parameters}
+  \lstinline|indices| & vector of global indices \\
+  \lstinline|size| & number of global indices \\
+\end{parameters}
+
+\begin{head}{linear_index}
+  linear_index::linear_index (int baseindex, int size)
+\end{head}
+\begin{parameters}
+  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|size| & number of contiguous global indices \\
+\end{parameters}
+
+When a cont output port is mapped it becomes associated with a set of
+state variables (or other data) in the memory of the sender.  When the
+receiver calls \lstindent|runtime::tick ()|, an estimate of the values
+of these variables are stored in a set of variables associated with an
+input port on the receiver side.  Similarly, an event output port is
+mapped to a set of event id:s.
+
+While the number of variables or id:s on the receiver side is always
+the same as on the sender side, the data can be distributed in
+different ways between MPI processes on the sender side compared to
+the receiver side.  In fact, sender and receiver may consist of
+different numbers of processes.
+
+Index maps are used in each MPI process to tell MUSIC how data is
+distributed and ordered by enumerating the global indices represented
+by the process in local order.
+
 \subsection{Data maps}
 \label{sec:datamap}
 
-\subsection{Index maps}
+
 
 \subsection{Configuration variables}
 

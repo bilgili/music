@@ -424,13 +424,37 @@ MUSIC room for resolving the scheduling problem.
 
 \section{Application Responsibilities}
 
-\begin{itemize}
-\item Call setup
-\item Create ports
-\item Map ports to data or callback functions
-\item Inform MUSIC about the communication interval
-\item Call tick at regular intervals
-\end{itemize}
+One goal of MUSIC has been to limit the responsibilities imposed on
+each application.  Here we present a step-by-step list of what an
+application must do in order to participate in a multi-simulation.
+
+\begin{enumerate}
+\item \textbf{Initiate MUSIC}
+
+  This is done by calling the \lstinline!setup! function.
+\item \textbf{Create ports}
+
+  Data to be imported and exported is identified by creating named
+  ports.
+\item \textbf{Map ports}
+
+  MUSIC is informed about where the actual data is located.
+  This includes information about which processor owns each data
+  element.  For continuous data it also includes information about
+  where in memory it is stored, while for event data it defines what
+  functions to use to send and receive the events.
+\item \textbf{Initiate the runtime phase}
+
+  At this stage, MUSIC can build the plan for communication between
+  different processes.
+\item \textbf{Advance simulation time}
+
+  The application must call \lstinline!tick ()! at regular intervals
+  to give MUSIC the opportunity to transfer data.
+\item \textbf{Finalize MUSIC}
+
+  By deleting the runtime object, all MUSIC communication is terminated.
+\end{enumerate}
 
 
 \chapter{Starting a Multi-Simulation}

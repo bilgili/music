@@ -1,6 +1,9 @@
-[1]
-  waveproducer
+stoptime=1.0
+[producer]
+  binary=waveproducer
+  args=210
   np=3
-[2]
-  waveconsumer
+[consumer]
+  binary=waveconsumer
   np=4
+  producer.wavedata -> wavedata[210]

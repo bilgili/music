@@ -1,19 +1,20 @@
 #include <mpi.h>
+#include <cmath>
 #include <music.hh>
-#include <fstream>
-#include <sstream>
 
-#define TIMESTEP 0.0005
+#define TIMESTEP 0.001
 
 MPI_Comm comm;
 double* data;
 
 int
-main (int args, char* argv[])
+main (int argc, char* argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (nargs, argv);
+  int width = atoi (argv[1]); // command line arg gives width
 
-  MUSIC::port* wavedata = setup->publish_cont_input ("wavedata");
+  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  
+  MUSIC::port* wavedata = setup->publish_cont_output ("wavedata");
 
   comm = setup->communicator ();
   int n_processes = comm.Get_size (); // how many processes are there?
@@ -21,17 +22,14 @@ main (int args, char* argv[])
   // For clarity, assume that width is a multiple of n_processes
   int n_local_vars = width / n_processes;
   data = new double[n_local_vars];
-  ostringstream filename;
-  filename << arg[1] << rank << ".out";
-  ofstream file (filename.str ().data ());
     
-  // Declare where in memory to put data
+  // Declare what data we have to export
   MUSIC::array_data dmap (data,
 			  MPI::DOUBLE,
 			  rank * n_local_vars,
 			  n_local_vars);
   wavedata->map (&dmap);
-
+  
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
@@ -40,13 +38,20 @@ main (int args, char* argv[])
   double time = runtime->time ();
   while (time < stoptime)
     {
-      // Retrieve data from other program
-      runtime->tick (time);
+      if (rank == 0)
+	{
+	  // Generate original data on master node
+	  int i;
 
-      // Dump to file
-      for (int i = 0; i < n_local_vars; ++i)
-	file << data[i];
-      file << std::endl;
+	  for (i = 0; i < n_local_vars; ++i)
+	    data[i] = sin (2 * M_PI * time * i);
+	}
+
+      // Broadcast these data out to all nodes
+      comm.Bcast (data, n_local_vars, MPI::DOUBLE, 0);
+
+      // Make data available for other programs
+      runtime->tick ();
 
       time = runtime->time ();
     }

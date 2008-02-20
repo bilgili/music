@@ -6,15 +6,16 @@
 \usepackage{graphicx}
 \usepackage{listings}
 \usepackage{makeidx}
+\usepackage{comment}
 
 %%%%% Formatting %%%%%
 
 % Use the metatext environment around text that should not appear in
 % the final document
-\newenvironment{metatext}%
-{\color{blue}}%
-{}
-
+%\newenvironment{metatext}%
+%{\color{blue}}%
+%{}
+\excludecomment{metatext}
 
 % Use the rationale environment around arguments for design decisions
 \newenvironment{rationale}%
@@ -216,9 +217,9 @@ common MUSIC interface.
   over a connection can be regarded as a large array distributed over
   multiple processors.  The map contains information about which
   processor has each element of data, and where the element is stored.
-  \begin{metatext}
+%  \begin{metatext}
     Mikael: What is this?  Should it be documented in the RFC?
-  \end{metatext}
+%  \end{metatext}
 
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular
@@ -314,8 +315,12 @@ destroys the setup object and returns a \emph{runtime object}.  This
 runtime object provides methods relevant during the runtime phase of
 execution.
 
+\section{Spatial Distribution of Data}
+\responsible{Mikael}
 
-\section{Concepts}
+Consider a connection between two ports.  Both the output and input
+connectors can have arbitrary ordering of data.  How do output and
+input connectors know the rank
 
 The \lstinline|index_map| maps indices local to the MPI process to global
 indices within the distributed data array.  That is, the
@@ -323,12 +328,6 @@ indices within the distributed data array.  That is, the
 handled by the local process and how the data elements are locally
 ordered.
 
-\section{Spatial Distribution of Data}
-\responsible{Mikael}
-
-Consider a connection between two ports.  Both the output and input
-connectors can have arbitrary ordering of data.  How do output and
-input connectors know the rank
 
 Refer to figure~\ref{fig:datamapping}.
 
@@ -482,7 +481,7 @@ Each application initializes the MUSIC library through a call to the
 setup constructor.  This constructor, in turn, calls MPI::Init to
 initialize MPI.  The setup constructor creates the setup object
 through which the application can retrieve configuration information,
-get a communicator, and setup ports.
+get an application wide communicator, and setup ports.
 
 \begin{head}{setup}
   setup::setup (int& argc, char**& argv)
@@ -510,22 +509,22 @@ int main (int argc, char *argv[])
 
 \subsection{Communicators}
 
-During a multi-simulation, launched using the \lstinline|music| utility
-command, the music library will create a unique intra-communicator
-over the group of processes assigned to the application.  This
-communicator is retrieved from the setup object through a call to the
-\lstinline|communicator| method.
+During a multi-simulation, launched using the \lstinline|music|
+utility command, the music library will create a unique
+intra-communicator over the group of processes assigned to the
+application.  This application wide communicator is retrieved from the
+setup object through a call to the \lstinline|communicator| method.
 
 \begin{head}{communicator}
   MPI::Intracomm setup::communicator ()
 \end{head}
 \begin{parameters}
-  \emph{return value} & the application communicator \\
+  \emph{return value} & the application wide communicator \\
 \end{parameters}
 
-The application is supposed to use the communicator returned by
-\lstinline|communicator| in place of \lstinline|MPI::COMM_WORLD|.  This
-communicator can be used as any ordinary MPI communicator.
+The application is supposed to use the application wide communicator
+in place of \lstinline|MPI::COMM_WORLD|.  This communicator can be
+used as any ordinary MPI communicator.
 
 \begin{code}{Accessing the application-wide communicator}
 /* communicator with global scope */
@@ -564,9 +563,9 @@ handle continuous or event data.
 Ports have two stages in life: the \emph{empty} stage and the
 \emph{mapped} stage.  A port is empty when created.  The MUSIC
 configuration file specifies connections between ports.  It is
-possible to ask an empty port if it is connected, if it has a
-specified width and what width it has if this width is specified.  A port
-becomes mapped when its method \lstinline|map| is called with a datamap.
+possible to ask an empty port if it is connected, if it has a width
+specified and, if so, what width it has.  A port becomes mapped when
+its method \lstinline|map| is called with a \lstindent|data_map|.
 
 \begin{code}{Creating an empty port}
 cont_output_port* out = setup->publish_cont_output ("out");
@@ -637,30 +636,46 @@ example \ref{code:adaptivewidth}.
 
 \subsubsection{Mapping a port}
 
+A port is given information about what data to communicate by mapping
+it.  For cont ports, this information is captured by a data map:
+
 \begin{head}{map}
   void cont_output_port::map (cont_data* dmap)
 
   void cont_input_port::map (cont_data* dmap)
-
-  void event_output_port::map (event_data* dmap)
-
-  void event_input_port::map (event_data* dmap, double acc_latency)
 \end{head}
 \begin{parameters}
-  \lstinline|map| & the data map associated with the port \\
-  \lstinline|acc_latency| & acceptable latency for incoming data (s)
-  \\
+  \lstinline|dmap| & the data map associated with the port \\
 \end{parameters}
 
 The data map holds information about how data elements are distributed
 in memory.  See section \ref{sec:datamap} below.
+
+\begin{head}{map}
+  class event_handler {
+  public:
+    virtual void operator () (double t, int id) = 0;
+  };
+  
+  void event_output_port::map (index_map* indices)
+
+  void event_input_port::map (index_map* indices,
+                              event_handler* insert_event,
+                              double acc_latency)
+\end{head}
+\begin{parameters}
+  \lstinline|indices| & the index map associated with the port \\
+  \lstinline|insert_event| & a user-defined event handler \\
+  \lstinline|accept_latency| & acceptable latency for incoming data (s)
+  \\
+\end{parameters}
 
 Some spiking neural network models include axonal delays.  The MUSIC
 framework assumes that handling and delivery of delayed spikes occurs
 on the receiver side.  In such a case, the receiver may allow MUSIC to
 deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
-\lstinline|acc_latency| argument.
+\lstinline|accept_latency| argument.
   
 \begin{rationale}
 The current RFC only specifies acceptable latency for event input
@@ -710,11 +725,18 @@ methods described in section \ref{sec:width}:
 }
 \end{code}
 
-\subsubsection{Event insertion}
+\subsubsection{Sending events}
+
+An event is registered for transmission by calling the method
+\lstinline|insert_event|.
 
 \begin{head}{insert_event}
   void event_output_port::insert_event (double t, int id)
 \end{head}
+
+MUSIC guarantees that this event will be delivered through a call to
+the user-specified \lstinline|event_handler| on the receiver side no
+later that the acceptable latency relative to receiver local time.
 
 \subsection{Index maps}
 
@@ -833,11 +855,11 @@ into the correct type this causes an error condition.
 
 \section{Runtime}
 
-\subsection{tick ()}
+\subsection{The \lstinline|tick ()|}
 
-Called in the local simulation loop of each application.
-The interface may, or may not, exchange data with other applications
-at the tick call.
+Called in the local simulation loop of each application.  The
+interface may, or may not, exchange data with other applications at
+the tick call.
 
 \begin{head}{tick}
   void runtime::tick ()
@@ -853,43 +875,25 @@ applications can use different tick-intervals.
 
 \subsection{Simulation time}
 
+The method \lstinline|time ()| returns local time in seconds.
 
+\begin{head}{time}
+  double runtime::time ()
+\end{head}
+\begin{parameters}
+  \emph{return value} & local time (s) \\
+\end{parameters}
 
-\subsection{Aliasing}
+\lstinline|time ()| returns the local time of next \lstinline|tick ()|
+call.  Time starts at 0 s.  While it is possible, and recommended, to
+let MUSIC keep track of time for the application, this is not
+required.
 
-The interface should take care of spatial and temporal aliasing, that
-is, to interpolate in space and time when the space and time steps of
-two applications do not match.
+\subsection{Finalization}
 
-To minimize communication, we always want to do the conversion on the
-side which has the most dense data.
-
-\paragraph{Motivation:} The application or model should not have to be
-adapted to the steps used in other applications.
-
-
-\subsubsection{Filters on sender side}
-
-When the receiver of a data-flow has a longer tick-interval than the
-receiver, then filters can be engaged to compress, smoothen, average,
-or otherwise aggregate the data before transmission.
-
-\begin{rationale}
-  Filtering is needed on the sender side.  If we connect an existing
-  simulation with a receiver with longer time step, we don't want to
-  rewrite the simulation code to perform filtering.  Thus, the
-  interface must support filtering.
-\end{rationale}
-
-
-\subsubsection{Interpolation on receiver side}
-
-Needed when sender is slower than receiver.
-
-Note that to make it possible to do interpolation, the sender has to
-produce the next value before the receiver can enter the intermediate
-time interval.  This needs careful scheduling of the transmissions to
-avoid dead-lock situations.
+\begin{head}{finalize}
+  void runtime::finalize ()
+\end{head}
 
 \chapter{A Complete Example}
 
@@ -916,8 +920,11 @@ processors and waveconsumer on four.
 \lstinputlisting{../test/waveconsumer.cc}
 
 
+\begin{metatext}
 \chapter{Adapting Existing Software}
+\end{metatext}
 
+\begin{metatext}
 \chapter{Notes}
 
 \section{Data Structures}
@@ -1054,10 +1061,12 @@ the user must initialize all data associated to output ports through
 datamap:s.  During \lstinline|setup::done ()|, this data is transferred to
 all input ports.  This is so that data can subsequently be correctly
 interpolated.
+\end{metatext}
 
 \appendix
 
 \chapter{C interface}
+This appendix will contain a description of the C API to MUSIC.
 
 \chapter{Specification file syntax}
 \label{sec:specsyntax}

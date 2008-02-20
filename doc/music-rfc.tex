@@ -219,14 +219,12 @@ common MUSIC interface.
   the runtime phase, data is transferred over the connection from the
   producer of the data to the consumer.
 
-\item[map] Map\index{map} is a data structure used to keep track of
-  the layout of data within an application.  Data to be transferred
-  over a connection can be regarded as a large array distributed over
-  multiple processors.  The map contains information about which
-  processor has each element of data, and where the element is stored.
-%  \begin{metatext}
-    Mikael: What is this?  Should it be documented in the RFC?
-%  \end{metatext}
+\item[map] Map\index{map} denotes the information on where data
+  actually resides within the application.  This is typically stored
+  internally in the port data structure.  Data to be transferred over
+  a connection can be regarded as a large array distributed over
+  multiple processors, and the map can tell on what processor each
+  data element resides and how is should be accessed.
 
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular

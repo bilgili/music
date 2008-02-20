@@ -53,6 +53,8 @@
 \newcommand{\irresponsible}[1]%
 {{\color{red}[#1 is an irresponsible author]}}
 
+\fancyhead{}
+\fancyhead[L]{\slshape\leftmark}
 
 \pagestyle{fancy}
 \makeindex
@@ -62,8 +64,8 @@
 
 \lstset{language=C++}
 
-\title{MUSIC --- Multi-Simulation Coordinator\\
-  Provisional Specification}
+\title{MUSIC --- Multi-Simulation Coordinator\\[2ex]
+  Request For Comments\\}
 
 \author{Örjan Ekeberg and Mikael Djurfeldt}
 
@@ -86,6 +88,11 @@
 \listoffigures
 
 \chapter{Introduction}
+
+This document constitutes a preliminary specification for the
+multi-simulation coordinator MUSIC.  The main purpose of the current
+document is to make it possible for potential users of MUSIC to
+comment on the design before the full implementation is finalized.
 
 \section{Scope}
 
@@ -565,7 +572,7 @@ Ports have two stages in life: the \emph{empty} stage and the
 configuration file specifies connections between ports.  It is
 possible to ask an empty port if it is connected, if it has a width
 specified and, if so, what width it has.  A port becomes mapped when
-its method \lstinline|map| is called with a \lstindent|data_map|.
+its method \lstinline|map| is called with a \lstinline|data_map|.
 
 \begin{code}{Creating an empty port}
 cont_output_port* out = setup->publish_cont_output ("out");

@@ -394,11 +394,11 @@ Figures~\ref{fig:timingshorter} and \ref{fig:timinglonger} illustrate
 how MUSIC handles time when transferring continuous data over a connection.
 In figure~\ref{fig:timingshorter}, the sender application uses a
 shorter interval between the tick calls than the receiver.  The sender
-side uses values sampled at the tick points to calculate a value
+side uses values sampled at the tick points to interpolate a value
 corresponding to the point in time when the receiver makes its tick
 call.
 
-The dark middle are (labelled ``MPI'') is where the actual data
+The dark middle area (labelled ``MPI'') is where the actual data
 transfer takes place.  MUSIC makes use of the fact that the receiving
 application can run with its simulation clock set independently of the
 sender.  The arrows going ``backwards in time'' in this area reflect
@@ -414,12 +414,13 @@ appropriate ticks.
 
 The strategy of having the receiver application running with a delayed
 local clock only works when the connection graph forms a directed
-acyclic graph (DAG).  When loops occur it is necessary to allow for
-data arriving late, at least somewhere along each loop.  MUSIC handles
-this via \emph{acceptable latency}\index{acceptable
-  latency}\index{latency} which is a property of each input port.  The
-receiving application declares how late data may arrive, thus giving
-MUSIC room for resolving the scheduling problem.
+acyclic graph (DAG)\index{DAG}\index{acyclic graph}\index{loops}.
+When loops occur it is necessary to allow for data arriving late, at
+least somewhere along each loop.  MUSIC handles this via
+\emph{acceptable latency}\index{acceptable latency}\index{latency}
+which is a property of each input port.  The receiving application
+declares how late data may arrive, thus giving MUSIC room for
+resolving the scheduling problem.
 
 
 \section{Application Responsibilities}
@@ -429,14 +430,14 @@ each application.  Here we present a step-by-step list of what an
 application must do in order to participate in a multi-simulation.
 
 \begin{enumerate}
-\item \textbf{Initiate MUSIC}
+\item \textbf{Initiate MUSIC}\index{initiate MUSIC}
 
   This is done by calling the \lstinline!setup! function.
 \item \textbf{Create ports}
 
   Data to be imported and exported is identified by creating named
   ports.
-\item \textbf{Map ports}
+\item \textbf{Map ports}\index{map ports}
 
   MUSIC is informed about where the actual data is located.
   This includes information about which processor owns each data
@@ -447,11 +448,12 @@ application must do in order to participate in a multi-simulation.
 
   At this stage, MUSIC can build the plan for communication between
   different processes.
-\item \textbf{Advance simulation time}
+\item \textbf{Advance simulation time}\index{tick}\index{advance time}
+  \index{time}
 
   The application must call \lstinline!tick ()! at regular intervals
   to give MUSIC the opportunity to transfer data.
-\item \textbf{Finalize MUSIC}
+\item \textbf{Finalize MUSIC}\index{finalize}\index{terminate}
 
   By deleting the runtime object, all MUSIC communication is terminated.
 \end{enumerate}
@@ -462,13 +464,14 @@ application must do in order to participate in a multi-simulation.
 \section{Overview}
 
 Parallel programs based on MPI are normally started by running a
-special program called \texttt{mpirun} (for MPI-1) or \texttt{mpiexec}
-(for MPI-2).  To start multiple applications and enable them to
-communicate with each other, MUSIC utilizes a special launcher program
-called \texttt{music}\index{music} which, in turn, starts the
-different applications.  Information about which applications should
-be started, and the communication pattern between them is described in
-a common \emph{configuration file}\index{configuration file}.
+special program called \texttt{mpirun}\index{mpirun} (for MPI-1) or
+\texttt{mpiexec}\index{mpiexec} (for MPI-2).  To start multiple
+applications and enable them to communicate with each other, MUSIC
+utilizes a special launcher program called \texttt{music}\index{music}
+which, in turn, starts the different applications.  Information about
+which applications should be started, and the communication pattern
+between them is described in a common \emph{configuration
+  file}\index{configuration file}.
 
 
 \section{The Configuration File}
@@ -509,10 +512,11 @@ who is responsible for the deallocation of the object afterwards.
 \subsection{The setup constructor}
 
 Each application initializes the MUSIC library through a call to the
-setup constructor.  This constructor, in turn, calls MPI::Init to
-initialize MPI.  The setup constructor creates the setup object
-through which the application can retrieve configuration information,
-get an application wide communicator, and setup ports.
+setup constructor\index{setup}.  This constructor, in turn, calls
+MPI::Init\index{MPI::Init}\index{init} to initialize
+MPI\index{initialize MPI}.  The setup constructor creates the setup
+object through which the application can retrieve configuration
+information, get an application wide communicator, and setup ports.
 
 \begin{head}{setup}
   setup::setup (int& argc, char**& argv)
@@ -544,7 +548,8 @@ During a multi-simulation, launched using the \lstinline|music|
 utility command, the music library will create a unique
 intra-communicator over the group of processes assigned to the
 application.  This application wide communicator is retrieved from the
-setup object through a call to the \lstinline|communicator| method.
+setup object through a call to the
+\lstinline|communicator| method.\index{communicator}
 
 \begin{head}{communicator}
   MPI::Intracomm setup::communicator ()
@@ -554,8 +559,9 @@ setup object through a call to the \lstinline|communicator| method.
 \end{parameters}
 
 The application is supposed to use the application wide communicator
-in place of \lstinline|MPI::COMM_WORLD|.  This communicator can be
-used as any ordinary MPI communicator.
+in place of
+\lstinline|MPI::COMM_WORLD|\index{MPI::COMM\_WORLD}\index{COMM\_WORLD}.
+This communicator can be used as any ordinary MPI communicator.
 
 \begin{code}{Accessing the application-wide communicator}
 /* communicator with global scope */
@@ -572,11 +578,12 @@ extern MPI_Comm comm;
 
 \subsection{Port creation}
 
-Ports are named sources (output ports) or sinks (input ports) of data
-flows.  Output and input ports are distinct classes.  Ports are
-further subdivided into distinct classes depending on whether they
-handle continuous or event data.
+Ports\index{ports} are named sources (output ports) or sinks (input
+ports) of data flows.  Output and input ports are distinct classes.
+Ports are further subdivided into distinct classes depending on
+whether they handle continuous or event data.
 
+\index{publish\_output}\index{publish\_input}
 \begin{head}{publish_output,publish_input}
   cont_output_port* setup::publish_cont_output (string identifier)
 
@@ -615,6 +622,7 @@ The method \lstinline|is_connected| is used to check if the user has
 specified a connection of this port to another port in the
 configuration file.
 
+\index{is\_connected}\index{connected port}
 \begin{head}{is_connected}
   bool port::is_connected ()
 \end{head}
@@ -639,13 +647,15 @@ if (out->is_connected ())
 \subsubsection{Port width}
 \label{sec:width}
 
-The width of a port, that is the number of data elements transferred
-in parallel from a cont port or the largest possible id of an event
-port $+ 1$, can be specified in the configuration file. This should be
-thought of as a request for a given width.  Applications can use the
-method \lstinline|has_width| to determine if a width has been
-specified and retrieve the width using \lstinline|width|.
+The width of a port\index{port width}, that is the number of data
+elements transferred in parallel from a cont port or the largest
+possible id of an event port $+ 1$, can be specified in the
+configuration file. This should be thought of as a request for a given
+width.  Applications can use the method \lstinline|has_width| to
+determine if a width has been specified and retrieve the width using
+\lstinline|width|.
 
+\index{has\_width}
 \begin{head}{has_width}
   bool port::has_width ()
 \end{head}
@@ -654,7 +664,7 @@ specified and retrieve the width using \lstinline|width|.
                          specified \\
 \end{parameters}
 
-
+\index{width}
 \begin{head}{width}
   int port::width ()
 \end{head}
@@ -670,6 +680,7 @@ example \ref{code:adaptivewidth}.
 A port is given information about what data to communicate by mapping
 it.  For cont ports, this information is captured by a data map:
 
+\index{map}\index{mapping ports}
 \begin{head}{map}
   void cont_output_port::map (cont_data* dmap)
 
@@ -761,6 +772,7 @@ methods described in section \ref{sec:width}:
 An event is registered for transmission by calling the method
 \lstinline|insert_event|.
 
+\index{insert\_event}
 \begin{head}{insert_event}
   void event_output_port::insert_event (double t, int id)
 \end{head}
@@ -770,6 +782,7 @@ the user-specified \lstinline|event_handler| on the receiver side no
 later that the acceptable latency relative to receiver local time.
 
 \subsection{Index maps}
+\index{index maps}
 
 An index map is a mapping from local data element indices to
 global. An index map instance thus holds information of which global
@@ -777,6 +790,7 @@ indices belong to the local MPI process and of their order with regard
 to local index.  The most general form is the
 \lstinline|permutation_index| which allows for an arbitrary mapping.
 
+\index{permutation\_index}
 \begin{head}{permutation_index}
   permutation_index::permutation_index (int* indices, int size)
 \end{head}
@@ -785,6 +799,7 @@ to local index.  The most general form is the
   \lstinline|size| & number of global indices \\
 \end{parameters}
 
+\index{linear\_index}
 \begin{head}{linear_index}
   linear_index::linear_index (int baseindex, int size)
 \end{head}
@@ -812,6 +827,7 @@ by the process in local order.
 
 \subsection{Data maps}
 \label{sec:datamap}
+\index{data maps}
 
 A data map encapsulates how a port accesses its data.  While an index
 map is a mapping between two kinds of indices, the data map also
@@ -819,6 +835,7 @@ contains information about where in memory data resides, how it is
 structured, and, the type of the data elements.  One type of data map
 is the array data map, which describes arrays of data elements.
 
+\index{array\_data}
 \begin{head}{array_data}
   array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
 \end{head}
@@ -846,10 +863,12 @@ array data map constructor which also creates an index map:
 See example \ref{code:mapping}.
 
 \subsection{Configuration variables}
+\index{configuration variables}
 
 The values of all variables defined in the configuration file can be
 queried using the method \lstinline|config|.
 
+\index{config}
 \begin{head}{config}
   bool config (string var, string* result)
 
@@ -887,6 +906,7 @@ into the correct type this causes an error condition.
 \section{Runtime}
 
 \subsection{The \lstinline|tick ()|}
+\index{tick}
 
 Called in the local simulation loop of each application.  The
 interface may, or may not, exchange data with other applications at
@@ -905,9 +925,11 @@ used in the application.  The interface must handle that different
 applications can use different tick-intervals.
 
 \subsection{Simulation time}
+\index{simulation time}
 
 The method \lstinline|time ()| returns local time in seconds.
 
+\index{time}
 \begin{head}{time}
   double runtime::time ()
 \end{head}
@@ -922,6 +944,7 @@ required.
 
 \subsection{Finalization}
 
+\index{finalize}
 \begin{head}{finalize}
   void runtime::finalize ()
 \end{head}

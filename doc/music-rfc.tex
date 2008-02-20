@@ -454,14 +454,27 @@ will typically be the way names of script files and other information
 is passed to the applications.  In particular, the normal command line
 arguments can be set this way.
 
-Optionally, the width of the connections between application can be
+Optionally, the width of the connections between applications can be
 specified.
 
+\begin{code}{}
+\end{code}
 
 \chapter{Application Program Interface}
+\responsible{Mikael}
+
+\section{Conventions}
+
+This chapter describes the API to the MUSIC library.  The API is
+object oriented and all communication with the library is performed
+via instance methods of different classes of objects.  The most common
+way of passing objects as arguments in MUSIC is via pointers.  The
+only exception is the setup constructor.  The conventions are then
+that it is the caller who should make sure that the object exists in
+memory during the entire execution of the method, and it is the caller
+who is responsible for the deallocation of the object afterwards.
 
 \section{Setup}
-\responsible{Mikael}
 
 \subsection{The setup constructor}
 
@@ -619,7 +632,7 @@ specified and retrieve the width using \lstinline|width|.
   \emph{return value} & port width \\
 \end{parameters}
 
-Applications can use the above methods to adapt their port size.  See
+Applications can use the above methods to adapt their port width.  See
 example \ref{code:adaptivewidth}.
 
 \subsubsection{Mapping a port}
@@ -657,7 +670,7 @@ communication, while no loops are allowed with regard to continuous
 data.
 \end{rationale}
 
-\begin{code}{Mapping ports to internal data}
+\begin{code}{Mapping ports to internal data\label{code:mapping}}
 {
   ...
   int size = comm.Get_size ();
@@ -666,7 +679,7 @@ data.
   int n_local = n_elements / size;
   double* state_vars = new double[n_local];
   MUSIC::cont_input_port* out = setup->publish_cont_output ("out");
-  array_data dmap (state_vars, MPI::DOUBLE, n_rank * n_local, n_local);
+  array_data dmap (state_vars, MPI::DOUBLE, rank * n_local, n_local);
   out->map (&dmap);
   ...
 }
@@ -729,7 +742,7 @@ to local index.  The most general form is the
 
 When a cont output port is mapped it becomes associated with a set of
 state variables (or other data) in the memory of the sender.  When the
-receiver calls \lstindent|runtime::tick ()|, an estimate of the values
+receiver calls \lstinline|runtime::tick ()|, an estimate of the values
 of these variables are stored in a set of variables associated with an
 input port on the receiver side.  Similarly, an event output port is
 mapped to a set of event id:s.
@@ -747,9 +760,42 @@ by the process in local order.
 \subsection{Data maps}
 \label{sec:datamap}
 
+A data map encapsulates how a port accesses its data.  While an index
+map is a mapping between two kinds of indices, the data map also
+contains information about where in memory data resides, how it is
+structured, and, the type of the data elements.  One type of data map
+is the array data map, which describes arrays of data elements.
 
+\begin{head}{array_data}
+  array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
+\end{head}
+\begin{parameters}
+  \lstinline|buffer| & data memory location \\
+  \lstinline|type|   & data type \\
+  \lstinline|map|    & index map \\
+\end{parameters}
+
+Since array data is common, MUSIC provides a convenient form of the
+array data map constructor which also creates an index map:
+
+\begin{head}{array_data}
+  array_data::array_data (void* buffer,
+                          MPI_Datatype type,
+                          int  baseindex,
+                          int size)
+\end{head}
+\begin{parameters}
+  \lstinline|buffer| & data memory location \\
+  \lstinline|baseindex| global index of first local element  &  \\
+  \lstinline|size| number of contiguous global indices  &  \\
+\end{parameters}
+
+See example \ref{code:mapping}.
 
 \subsection{Configuration variables}
+
+The values of all variables defined in the configuration file can be
+queried using the method \lstinline|config|.
 
 \begin{head}{config}
   bool config (string var, string* result)
@@ -759,14 +805,31 @@ by the process in local order.
   bool config (string var, double* result)
 \end{head}
 \begin{parameters}
-  \lstinline|var| & \\
-  \lstinline|result| & \\
-  \emph{return value} & \\
+  \lstinline|var| & variable name \\
+  \lstinline|result| & pointer to location where result should go \\
+  \emph{return value} & true if value of correct type was found \\
 \end{parameters}
 
+Querying after a value of type \lstinline|int| or \lstinline|double|
+expects a value of the correct type, if defined in the configuration
+file.  If the variable is defined, but its value can't be translated
+into the correct type this causes an error condition.
+
 \begin{code}{Querying configuration variables}
-  /* Add example here */
+  /* retrieving the parameter gKCa from configuration file */
+  double gKCa;
+  if (!config ("gKCa", &gKCa))
+    gKCa = 29.5e-9; // default value
 \end{code}
+
+\subsection{End of setup---creating the runtime object}
+
+\begin{head}{done}
+  runtime* setup::done (double h)
+\end{head}
+\begin{parameters}
+  \lstinline|h| & simulated time elapsed between each \lstinline|tick ()| (s) \\
+\end{parameters}
 
 \section{Runtime}
 
@@ -776,6 +839,10 @@ Called in the local simulation loop of each application.
 The interface may, or may not, exchange data with other applications
 at the tick call.
 
+\begin{head}{tick}
+  void runtime::tick ()
+\end{head}
+
 The application must ensure that exported data values are valid when
 tick() is called.  It must also expect that imported values may change.
 
@@ -783,6 +850,9 @@ The tick() should be called at regular intervals in simulation time.
 The application chooses the interval, normally based on the time step
 used in the application.  The interface must handle that different
 applications can use different tick-intervals.
+
+\subsection{Simulation time}
+
 
 
 \subsection{Aliasing}
@@ -990,6 +1060,7 @@ interpolated.
 \chapter{C interface}
 
 \chapter{Specification file syntax}
+\label{sec:specsyntax}
 
 \newcommand{\nt}[1]{$<$#1$>$}
 

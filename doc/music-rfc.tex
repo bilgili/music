@@ -104,13 +104,13 @@ simulators, either with each-other or with other tools.
 A typical usage case is illustrated in figure~\ref{fig:multisim},
 where three applications ($A$, $B$, and $C$) are executing in parallel
 while exchanging data via MUSIC.  We will refer to this as a
-\emph{multi-simulation}, since the participating applications are
-typically neuronal simulators, or tools to support such simulators.
-In this example, application $A$ produces runtime data which is then
-used by $B$ and $C$.  In addition, $B$ and $C$ mutually send data to
-each other.  The data sent between applications can be either event
-based, such as neuronal spikes, or graded continuous values, for
-example membrane voltages.
+\emph{multi-simulation}, since the participating applications
+typically are neuronal simulators, or tools to support such
+simulators.  In this example, application $A$ produces runtime data
+which is then used by $B$ and $C$.  In addition, $B$ and $C$ mutually
+send data to each other.  The data sent between applications can be
+either event based, such as neuronal spikes, or graded continuous
+values, for example membrane voltages.
 
 \begin{figure}
   \begin{center}
@@ -125,11 +125,14 @@ example membrane voltages.
 
 The primary objective of MUSIC is to support multi-simulations where
 each participating application itself is a parallel simulator with the
-capacity to produce and/or consume massive amounts of data.  The fact
-that data is spread out over a number of processors makes it
-non-trivial to coordinate the transfer of data so that it reaches the
-right destination at the right time.  The task for MUSIC is to relieve
-the applications from handling this complexity.
+capacity to produce and/or consume massive amounts of data.  This
+promotes \emph{inter-operability} by allowing models written for
+different simulators to be simulated together in a larger system.  It
+also enables \emph{re-usability} of models or tools by providing a
+standard interface.  The fact that data is spread out over a number of
+processors makes it non-trivial to coordinate the transfer of data so
+that it reaches the right destination at the right time.  The task for
+MUSIC is to relieve the applications from handling this complexity.
 
 
 \section{Design Goals}
@@ -139,7 +142,7 @@ the applications from handling this complexity.
 The MUSIC library and support software have been designed to run
 smoothly on state-of-the-art high-performance hardware.  For maximal
 portability, the software is written in C++, which is the
-defacto-standard for current high-end hardware.  MUSIC also provides a
+de facto standard for current high-end hardware.  MUSIC also provides a
 pure C-interface, making it possible for applications written i C or
 FORTRAN to participate in a MUSIC multi-simulation.
 
@@ -219,12 +222,13 @@ common MUSIC interface.
   the runtime phase, data is transferred over the connection from the
   producer of the data to the consumer.
 
-\item[map] Map\index{map} denotes the information on where data
-  actually resides within the application.  This is typically stored
-  internally in the port data structure.  Data to be transferred over
-  a connection can be regarded as a large array distributed over
-  multiple processors, and the map can tell on what processor each
-  data element resides and how is should be accessed.
+\item[data map] A data map\index{data map} denotes the information on
+  where data actually resides within the application.  This is
+  typically stored internally in the port data structure.  Data to be
+  transferred over a connection can be regarded as a large array
+  distributed over multiple processors, and the data map can tell on
+  what processor each data element resides and how it should be
+  accessed.
 
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular
@@ -243,31 +247,42 @@ they relate to MUSIC.
 \paragraph{PyNN}\index{PyNN}
 
 PyNN is a Python package for simulator-independent specification of
-neuronal network models.  It consists of a low-level procedural API
-and a high-level object-oriented API.  Neuronal network models
-described using these API:s can be simulated on simulators supporting
-API, such as Neuron and NEST.
+neuronal network models.  It provides a low-level procedural API and a
+high-level object-oriented API.  Neuronal network models which are
+specified using these API:s can be simulated on simulators supporting
+PyNN, such as Neuron and NEST.
 
-PyNN can be extended to support multi-simulations using the MUSIC
-library.  Such extensions would control the interaction between the
-simulator and the MUSIC library and would, for example, support
-publishing of named ports.
-
-\begin{metatext}
-  För mycket would här!
-\end{metatext}
+PyNN could be extended to support multi-simulations using the MUSIC
+library.  Such an extension would provides means for controlling the
+interaction between the simulator and the MUSIC library and would, for
+example, support publishing of named ports.
 
 It is possible, in principle, to write Python code to directly handle
 communication between applications in a cluster, but such a solution
-would be very inefficient compared to using MUSIC, and would, in the
-end, have to address the same problems which MUSIC provides a solution
-to.
+would be inefficient compared to using MUSIC, and might, in the end,
+have to address the same problems which MUSIC provides a solution to.
 
 \paragraph{Neurospaces}\index{Neurospaces}
 
+The Neurospaces project promotes inter-operability and re-usability
+through the development of independent software components, some of
+which, together, will provide one of two alternative cores of the
+Genesis 3 simulator.  One of the components, the Neurospaces Model
+Container abstracts model description from the solver.  Another
+component, the Discrete Event System can handle distribution and
+queuing of spikes.  Components adhere to the CBI simulator
+architecture.
+
+It is possible to develop a MUSIC adapter consistent with the CBI
+simulator architecture.  This would allow the Neurospaces framework,
+and Genesis 3, to interface to independently running applications in a
+cluster environemnt.
+
+\begin{metatext}
 \paragraph{Neosim}\index{Neosim}
 
 \paragraph{MOOSE}\index{MOOSE}
+\end{metatext}
 
 \chapter{Execution Model}
 
@@ -299,7 +314,7 @@ applications, is executed in three distinct phases:
 
 \item[\textbf{Runtime}]\index{runtime phase} is the phase then
   simulation data is actually transferred between applications.  Via
-  the \texttt{tick} calls the simulated time of the applications are
+  the \texttt{tick} calls the simulated time of the applications is
   kept in order.
 
   The runtime phase begins when the runtime object has been created
@@ -322,27 +337,53 @@ runtime object provides methods relevant during the runtime phase of
 execution.
 
 \section{Spatial Distribution of Data}
-\responsible{Mikael}
 
-Consider a connection between two ports.  Both the output and input
-connectors can have arbitrary ordering of data.  How do output and
-input connectors know the rank
+Communication between applications is handled by ports.  Ports are
+named sources (output ports) or sinks (input ports) of data flows.
+The data to be communicated between the sender application and the
+receiver may be differently organized in process memory, the
+applications may run on different numbers of processes, and, the data
+may be differently distributed among the sender processes and the
+receiver processes, as is shown in Figure~\ref{fig:datamapping}.  How
+does MUSIC know which data to send where?
 
-The \lstinline|index_map| maps indices local to the MPI process to global
-indices within the distributed data array.  That is, the
-\lstinline|index_map| tells which parts of a distributed data array are
-handled by the local process and how the data elements are locally
-ordered.
+In MUSIC, there are two views of the data to be communicated over a
+connection.  Data elements are enumerated differently according to
+these views.  MUSIC uses \emph{global indices}\index{global index} to
+enumerate the entire set of data to be sent over the connection while
+\emph{local indices}\index{local index} enumerate the subset of data
+which is stored in the memory of a particular MPI process.  Data does
+not need to be ordered in the same way according to the two views.
+For example, local data stored in an array may be associated with an
+arbitrary subset of global indices in an arbitrary order.
 
+The MUSIC library is informed about the relationship between global
+and local indices during the setup phase.  Two abstractions are used
+to carry this information:
 
-Refer to figure~\ref{fig:datamapping}.
+The \lstinline|index_map| maps indices local to global indices.  That
+is, the \lstinline|index_map| tells which parts of a distributed data
+array are handled by the local process and how the data elements are
+locally ordered.
+
+The \lstinline|data_map| encapsulates how a port accesses its data.
+The \lstinline|data_map| contains an \lstinline|index_map|.  While an
+index map is a mapping between two kinds of indices, the data map also
+contains information about where in memory data resides, how it is
+structured, and, the type of the data elements.
+
+During setup every process of the application individually provides
+the port with a data_map (or an index_map in the case of event ports).
 
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.7\textwidth]{figures/datamapping}
     \caption[Mapping of data]{\label{fig:datamapping}
-      Data transfer over a connection from an application running on
-      four processors to an application running on three other.
+      Data transfer over a connection from an application running in
+      four processes to an application running in three other.  The
+      light gray areas in the sender and receiver represents the MUSIC
+      port.  Dashed lines divide the application into distinct
+      processes.
     }
   \end{center}
 \end{figure}
@@ -603,7 +644,8 @@ Ports have two stages in life: the \emph{empty} stage and the
 configuration file specifies connections between ports.  It is
 possible to ask an empty port if it is connected, if it has a width
 specified and, if so, what width it has.  A port becomes mapped when
-its method \lstinline|map| is called with a \lstinline|data_map|.
+its method \lstinline|map| is called with a \lstinline|data_map| (or
+\lstinline|index_map| in the case of event ports).
 
 \begin{code}{Creating an empty port}
 cont_output_port* out = setup->publish_cont_output ("out");
@@ -614,7 +656,7 @@ cont_output_port* out = setup->publish_cont_output ("out");
 The port API includes methods to ask a port if it is connected, if it
 has a specified width and what width it has if this width is
 specified.  A port becomes mapped when its method \lstinline|map| is
-called with a datamap.
+called with a data map.
 
 \subsubsection{Port connectivity}
 
@@ -677,8 +719,12 @@ example \ref{code:adaptivewidth}.
 
 \subsubsection{Mapping a port}
 
-A port is given information about what data to communicate by mapping
-it.  For cont ports, this information is captured by a data map:
+A port is informed about what data exists locally and how to access it
+by mapping it.
+
+Cont ports transfer data from or to memory during \lstinline|tick ()|
+calls and need to know the layout of data in memory.  This information
+is captured by a data map:
 
 \index{map}\index{mapping ports}
 \begin{head}{map}
@@ -690,8 +736,13 @@ it.  For cont ports, this information is captured by a data map:
   \lstinline|dmap| & the data map associated with the port \\
 \end{parameters}
 
-The data map holds information about how data elements are distributed
-in memory.  See section \ref{sec:datamap} below.
+See section \ref{sec:datamap} below.
+
+Since event ports don't access data the same way as cont ports, they
+do not require a full \lstinline|data_map|.  Events are communicated
+to the application through an \emph{event handler}\index{event
+handler}.  The event handler is called by MUSIC when the application
+calls \lstinline|tick|.  It is called once for every spike delivered.
 
 \begin{head}{map}
   class event_handler {
@@ -769,7 +820,7 @@ methods described in section \ref{sec:width}:
 
 \subsubsection{Sending events}
 
-An event is registered for transmission by calling the method
+The sender registers an event for transmission by calling the method
 \lstinline|insert_event|.
 
 \index{insert\_event}

@@ -522,17 +522,51 @@ applications to start, and to connect output ports to input ports.
 The configuration file specifies the number of processors allocated to
 each application.
 
-Arbitrary named parameters may also be included in the configuration
-file and these parameters can be accessed from the applications.  This
-will typically be the way names of script files and other information
-is passed to the applications.  In particular, the normal command line
-arguments can be set this way.
+The configuration file consists of a sequence of blocks, each starting
+with a non-indented bracket:
 
+\begin{quote}
+  [\emph{application\_label}]
+\end{quote}
+
+\noindent Each block consists of a sequence of configuration variable
+definitions applying to one application.  The application label is
+used to refer to ports of the application.  A variable definition
+takes the form of an assignment:
+
+\begin{quote}
+  \emph{varname} = \emph{value}
+\end{quote}
+
+The following variable names have special meaning to MUSIC:
+\begin{description}
+  \item[binary] Pathname to application binary
+  \item[args] Command line given to the binary
+  \item[np] The number of MPI processes to allocate for the application
+  \item[timebase] The length of a MUSIC micro-step, that is, the
+    resolution of MUSIC:s internal clocks).  (Default value is 1 ns.)
+\end{description}
+Arbitrarily named parameters may also be included in the configuration
+file and these parameters can be accessed from the applications.
+
+A connection between a sender and receiver port is specified using the
+following syntax:
+\begin{quote}
+  \emph{application\_label.port\_name} \lstinline|->| \emph{application\_label.port\_name}
+\end{quote}
+\noindent.  The direction of the arrow (\lstinline|->|, \lstinline|<-|) indicates the
+direction of data transport.
 Optionally, the width of the connections between applications can be
-specified.
-
+specified:
+\begin{quote}
+  \emph{application\_label.port\_name} \lstinline|->|
+  \emph{application\_label.port\_name} [\emph{width}]
+\end{quote}
+The application label can be omitted if it refers to the application
+being specified by the surrounding block.
 An example of a simple configuration file can be seen in
-section~\ref{sec:conffile}.
+section~\ref{sec:conffile}.  Appendix~\ref{sec:specsyntax} specifies
+the formal syntax of configuration files.
 
 
 \chapter{Application Program Interface}

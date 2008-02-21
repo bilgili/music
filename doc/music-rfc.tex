@@ -373,7 +373,8 @@ contains information about where in memory data resides, how it is
 structured, and, the type of the data elements.
 
 During setup every process of the application individually provides
-the port with a data_map (or an index_map in the case of event ports).
+the port with a \lstinline|data_map| (or an \lstinline|index_map| in
+the case of event ports).
 
 \begin{figure}
   \begin{center}
@@ -535,7 +536,6 @@ section~\ref{sec:conffile}.
 
 
 \chapter{Application Program Interface}
-\responsible{Mikael}
 
 \section{Conventions}
 
@@ -573,6 +573,7 @@ This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \lstinline|argc| and \lstinline|argv| that are
 provided by the arguments to \lstinline|main|.
 
+\pagebreak
 \begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
 {
@@ -617,6 +618,7 @@ extern MPI_Comm comm;
 }
 \end{code}
 
+\pagebreak
 \subsection{Port creation}
 
 Ports\index{ports} are named sources (output ports) or sinks (input
@@ -648,7 +650,8 @@ its method \lstinline|map| is called with a \lstinline|data_map| (or
 \lstinline|index_map| in the case of event ports).
 
 \begin{code}{Creating an empty port}
-cont_output_port* out = setup->publish_cont_output ("out");
+cont_output_port* out =
+   setup->publish_cont_output ("out");
 \end{code}
 
 \subsection{Port methods}
@@ -679,8 +682,10 @@ flow in question.  One example is if one wants to support output of
 membrane potentials from a certain population of cells, but don't want
 to waste resources if no one is listening.
 
+\pagebreak
 \begin{code}{Optional handling of ports}
-cont_output_port* out = setup->publish_cont_output ("Vm");
+cont_output_port* out =
+   setup->publish_cont_output ("Vm");
 /* map port only if anyone is listening */
 if (out->is_connected ())
   /* allocate application resources and map port */
@@ -744,6 +749,7 @@ to the application through an \emph{event handler}\index{event
 handler}.  The event handler is called by MUSIC when the application
 calls \lstinline|tick|.  It is called once for every spike delivered.
 
+\pagebreak
 \begin{head}{map}
   class event_handler {
   public:
@@ -783,11 +789,14 @@ data.
   ...
   int size = comm.Get_size ();
   int rank = comm.Get_rank ();
-  /* for clarity we assume that n_elements is a multiple of size */
+  /* for clarity we assume that n_elements
+     is a multiple of size */
   int n_local = n_elements / size;
   double* state_vars = new double[n_local];
-  MUSIC::cont_input_port* out = setup->publish_cont_output ("out");
-  array_data dmap (state_vars, MPI::DOUBLE, rank * n_local, n_local);
+  MUSIC::cont_input_port* out =
+     setup->publish_cont_output ("out");
+  array_data dmap (state_vars, MPI::DOUBLE,
+                   rank * n_local, n_local);
   out->map (&dmap);
   ...
 }
@@ -798,18 +807,21 @@ generic processing, like a visualization application, may want to be
 able to accept input of any width.  This can be achieved using the
 methods described in section \ref{sec:width}:
 
+\pagebreak
 \begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
 {
   ...
   /* Publishing a port of adaptive width */
   double* state_vars;
-  MUSIC::cont_input_port* in = setup->publish_cont_input ("in");
+  MUSIC::cont_input_port* in =
+     setup->publish_cont_input ("in");
   if (!in->has_width ())
     /* report error */
   else
     {
       int size = in->width ();
-      /* for clarity we assume that n_elements is a multiple of size */
+      /* for clarity we assume that n_elements
+         is a multiple of size */
       int n_local = n_elements / size;
       /* example continues as above */
       ...
@@ -917,6 +929,7 @@ array data map constructor which also creates an index map:
 
 See example \ref{code:mapping}.
 
+\pagebreak
 \subsection{Configuration variables}
 \index{configuration variables}
 
@@ -943,7 +956,8 @@ file.  If the variable is defined, but its value can't be translated
 into the correct type this causes an error condition.
 
 \begin{code}{Querying configuration variables}
-/* retrieving the parameter gKCa from configuration file */
+/* Retrieving the parameter gKCa
+   from configuration file */
 double gKCa;
 if (!config ("gKCa", &gKCa))
   gKCa = 29.5e-9; // default value
@@ -981,6 +995,7 @@ The application chooses the interval, normally based on the time step
 used in the application.  The interface must handle that different
 applications can use different tick-intervals.
 
+\pagebreak
 \subsection{Simulation time}
 \index{simulation time}
 

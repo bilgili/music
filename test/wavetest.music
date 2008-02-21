@@ -2,9 +2,9 @@ stoptime=1.0
 [producer]
   binary=waveproducer
   args=210
-  np=3
+  np=4
 [consumer]
   binary=waveconsumer
   args=dumpfile
-  np=4
+  np=3
   producer.wavedata -> wavedata[210]

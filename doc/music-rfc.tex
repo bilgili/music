@@ -287,11 +287,12 @@ applications, is executed in three distinct phases:
   the MUSIC binary and ends when the setup object constructor returns.
 
 \item[\textbf{Setup}]\index{setup phase} is the phase when all
-  applications must publish what ports they are prepared to handle,
-  the time step they will use, and where data will be present (where
-  in memory and/or on what processor).  During the setup phase, the
-  applications can read configuration parameters communicated via the
-  common configuration file.
+  applications can publish what ports they are prepared to handle
+  along with the time step they will use and where data will be
+  present (where in memory and/or on what processor).  During the
+  setup phase, the applications can read configuration parameters
+  communicated via the common configuration file.  At the end of the
+  setup phase, MUSIC will establish all connections.
 
   The setup phase begins when the setup object has been created and
   ends when the runtime object constructor returns.
@@ -488,8 +489,9 @@ arguments can be set this way.
 Optionally, the width of the connections between applications can be
 specified.
 
-\begin{code}{}
-\end{code}
+An example of a simple configuration file can be seen in
+section~\ref{sec:conffile}.
+
 
 \chapter{Application Program Interface}
 \responsible{Mikael}
@@ -583,16 +585,16 @@ whether they handle continuous or event data.
 
 \index{publish\_output}\index{publish\_input}
 \begin{head}{publish_output,publish_input}
-  cont_output_port* setup::publish_cont_output (string identifier)
+  cont_output_port* setup::publish_cont_output (string id)
 
-  cont_input_port* setup::publish_cont_input (string identifier)
+  cont_input_port* setup::publish_cont_input (string id)
 
-  event_output_port* setup::publish_event_output (string identifier)
+  event_output_port* setup::publish_event_output (string id)
 
-  event_input_port* setup::publish_event_input (string identifier)
+  event_input_port* setup::publish_event_input (string id)
 \end{head}
 \begin{parameters}
-  \lstinline|identifier| & port name \\
+  \lstinline|id| & port name \\
   \emph{return value} & an empty port \\
 \end{parameters}
 
@@ -774,6 +776,8 @@ An event is registered for transmission by calling the method
 \begin{head}{insert_event}
   void event_output_port::insert_event (double t, int id)
 \end{head}
+\begin{parameters}
+\end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
 the user-specified \lstinline|event_handler| on the receiver side no
@@ -790,7 +794,8 @@ to local index.  The most general form is the
 
 \index{permutation\_index}
 \begin{head}{permutation_index}
-  permutation_index::permutation_index (int* indices, int size)
+  permutation_index::permutation_index (int* indices,
+                                        int size)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & vector of global indices \\
@@ -835,7 +840,8 @@ is the array data map, which describes arrays of data elements.
 
 \index{array\_data}
 \begin{head}{array_data}
-  array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
+  array_data::array_data (void* buffer, MPI_Datatype type,
+                          index_map* map)
 \end{head}
 \begin{parameters}
   \lstinline|buffer| & data memory location \\
@@ -853,9 +859,9 @@ array data map constructor which also creates an index map:
                           int size)
 \end{head}
 \begin{parameters}
-  \lstinline|buffer| & data memory location \\
-  \lstinline|baseindex| global index of first local element  &  \\
-  \lstinline|size| number of contiguous global indices  &  \\
+  \lstinline|buffer|    & data memory location \\
+  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|size|      & number of contiguous global indices \\
 \end{parameters}
 
 See example \ref{code:mapping}.
@@ -875,8 +881,8 @@ queried using the method \lstinline|config|.
   bool config (string var, double* result)
 \end{head}
 \begin{parameters}
-  \lstinline|var| & variable name \\
-  \lstinline|result| & pointer to location where result should go \\
+  \lstinline|var|     & variable name \\
+  \lstinline|result|  & pointer to location where result should go \\
   \emph{return value} & true if value of correct type was found \\
 \end{parameters}
 
@@ -886,10 +892,10 @@ file.  If the variable is defined, but its value can't be translated
 into the correct type this causes an error condition.
 
 \begin{code}{Querying configuration variables}
-  /* retrieving the parameter gKCa from configuration file */
-  double gKCa;
-  if (!config ("gKCa", &gKCa))
-    gKCa = 29.5e-9; // default value
+/* retrieving the parameter gKCa from configuration file */
+double gKCa;
+if (!config ("gKCa", &gKCa))
+  gKCa = 29.5e-9; // default value
 \end{code}
 
 \subsection{End of setup---creating the runtime object}
@@ -913,6 +919,8 @@ the tick call.
 \begin{head}{tick}
   void runtime::tick ()
 \end{head}
+\begin{parameters}
+\end{parameters}
 
 The application must ensure that exported data values are valid when
 tick() is called.  It must also expect that imported values may change.
@@ -946,6 +954,8 @@ required.
 \begin{head}{finalize}
   void runtime::finalize ()
 \end{head}
+\begin{parameters}
+\end{parameters}
 
 \chapter{A Complete Example}
 
@@ -955,6 +965,7 @@ and a configuration file used to launch and connect them.
 
 
 \section{Configuration File}
+\label{sec:conffile}
 
 The configuration file starts the waveproducer application on three
 processors and waveconsumer on four.
@@ -1118,7 +1129,10 @@ interpolated.
 \appendix
 
 \chapter{C interface}
-This appendix will contain a description of the C API to MUSIC.
+
+In the final MUSIC specification, this appendix will contain a
+description of the C API to MUSIC.
+
 
 \chapter{Specification file syntax}
 \label{sec:specsyntax}

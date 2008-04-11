@@ -534,6 +534,15 @@ which applications should be started, and the communication pattern
 between them is described in a common \emph{configuration
   file}\index{configuration file}.
 
+\begin{rationale}
+  The reason for not controlling configuration via the MUSIC API is
+  that individual applications should remain ignorant about the
+  structure of the full multi-simulation.  Thus, the API provides
+  methods for asking about the parts of the configuration relevant for
+  that application, i.e. the ports, but does not expose the complete
+  communication graph.
+\end{rationale}
+
 
 \section{The Configuration File}
 
@@ -591,6 +600,22 @@ An example of a simple configuration file can be seen in
 section~\ref{sec:conffile}.  Appendix~\ref{sec:specsyntax} specifies
 the formal syntax of configuration files.
 
+\begin{rationale}
+  Information from the configuration file needs to be available both
+  in order to launch the application binaries and during the setup
+  phase.  Since launching must be done prior to MPI initialization, it
+  is not possible to distribute configuration information via MPI
+  itself.  In the reference implementation of MUSIC, environment
+  variables are used to distribute this information to the
+  applications.
+
+  This information transfer is hidden within MUSIC, so a different
+  implementation of MUSIC may use another technique.  In particular,
+  if the applications are launched from a scripting program, such as
+  PyNN\index{PyNN}, that program must also take care of transferring
+  the relevant configuration information to the applications.
+\end{rationale}
+
 
 \chapter{Application Program Interface}
 
@@ -637,7 +662,6 @@ This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \lstinline|argc| and \lstinline|argv| that are
 provided by the arguments to \lstinline|main|.
 
-\pagebreak
 \begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
 {
@@ -647,6 +671,13 @@ int main (int argc, char *argv[])
   /* rest of program */
 }
 \end{code}
+
+\begin{rationale}
+  The idea behind creating a specific setup object is to ensure that
+  the application does not accidentally call functions relevant only
+  for the setup phase at other times.
+\end{rationale}
+
 
 \subsection{Communicators}
 
@@ -682,7 +713,16 @@ extern MPI_Comm comm;
 }
 \end{code}
 
-\pagebreak
+\begin{rationale}
+  An alternative to provide the \lstinline|communicator| function
+  would have been to redefine \lstinline|MPI::COMM_WORLD|.  This would
+  ensure that an application does not accidentally use the global
+  communicator.  However, it may not always be possible to dynamically
+  redefine this variable in all MPI implementations, so for the sake
+  of portability, we have chosen a more straightforward technique.
+\end{rationale}
+
+
 \subsection{Port creation}
 
 Ports\index{ports} are named sources (output ports) or sinks (input
@@ -746,7 +786,6 @@ flow in question.  One example is if one wants to support output of
 membrane potentials from a certain population of cells, but don't want
 to waste resources if no one is listening.
 
-\pagebreak
 \begin{code}{Optional handling of ports}
 cont_output_port* out =
    setup->publish_cont_output ("Vm");
@@ -783,8 +822,16 @@ determine if a width has been specified and retrieve the width using
   \emph{return value} & port width \\
 \end{parameters}
 
-Applications can use the above methods to adapt their port width.  See
-example \ref{code:adaptivewidth}.
+\begin{rationale}
+  Applications can use the above methods to adapt their port width.  A
+  typical usage would be a general purpose post-processing tool which
+  receives information from an ongoing simulation.  Such a tool can
+  publish a number of optional import ports and then use
+  \lstinline|is_connected| and \lstinline|width| to adapt its internal
+  processing depending on what kind of data source it is actually
+  connected to.  See example \ref{code:adaptivewidth}.
+\end{rationale}
+
 
 \subsubsection{Mapping a port}
 
@@ -813,7 +860,6 @@ to the application through an \emph{event handler}\index{event
 handler}.  The event handler is called by MUSIC when the application
 calls \lstinline|tick|.  It is called once for every spike delivered.
 
-\pagebreak
 \begin{head}{map}
   class event_handler {
   public:
@@ -871,7 +917,6 @@ generic processing, like a visualization application, may want to be
 able to accept input of any width.  This can be achieved using the
 methods described in section \ref{sec:width}:
 
-\pagebreak
 \begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
 {
   ...
@@ -993,7 +1038,7 @@ array data map constructor which also creates an index map:
 
 See example \ref{code:mapping}.
 
-\pagebreak
+
 \subsection{Configuration variables}
 \index{configuration variables}
 
@@ -1047,6 +1092,18 @@ The runtime object constructor destroys the setup object.
   ...
 \end{code}
 
+\begin{rationale}
+  The step size is given as a real number (in seconds) since this
+  makes most sense from the applications point of view.  Internally,
+  this number is converted to an integer (using the time micro step
+  timebase).  This is made to ensure that all processes use exactly
+  the same numbers even when the multi-simulation is running on mixed
+  architectures.  Both sides of a connection must agree on at what
+  ticks data is transferred over the MPI connector to minimize the
+  need for handshaking during the runtime phase.
+\end{rationale}
+
+
 \subsection{The \lstinline|tick ()|}
 \index{tick}
 
@@ -1068,7 +1125,17 @@ The application chooses the interval, normally based on the time step
 used in the application.  The interface must handle that different
 applications can use different tick-intervals.
 
-\pagebreak
+\begin{rationale}
+  The idea behind the \lstinline|tick| call is to hide the complexity
+  of data buffering and MPI transfer from the application.  For
+  efficient data transfer, MUSIC will try to buffer data both at the
+  sending and receiving port in order to send data in large chunks.
+  Internally, MUSIC will use a pre-computed schedule to keep track of
+  at what ticks the actual data transfer should take place and when
+  data is instead buffered for later transfer.
+\end{rationale}
+
+
 \subsection{Simulation time}
 \index{simulation time}
 
@@ -1086,6 +1153,18 @@ The method \lstinline|time ()| returns local time in seconds.
 call.  Time starts at 0 s.  While it is possible, and recommended, to
 let MUSIC keep track of time for the application, this is not
 required.
+
+\begin{rationale}
+  To schedule data transfers, MUSIC needs to keep track of the
+  simulation time of all applications via its internal integer
+  representation.  If the application independently manages its own
+  clock, typically by incrementing a floating point variable, there is
+  a risk for drift between the two time representations.  The
+  \lstinline|time| function makes it possible for the application to
+  keep its clock in perfect synchronization with time in the other
+  applications.
+\end{rationale}
+
 
 \subsection{Finalization}
 \index{finalize}

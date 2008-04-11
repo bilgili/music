@@ -148,11 +148,9 @@ FORTRAN to participate in a MUSIC multi-simulation.
 
 Most, if not all, current efforts in large scale neuronal simulations
 are based on the MPI\index{MPI} standard.  MUSIC is built on top of
-MPI, and uses it to run the different simulators.  MPI encapsulates
-software optimizations for specific hardware, and by basing the
-interface on MPI we can benefit from such optimizations.  In
-addition, MUSIC provides means to allow each simulator to use MPI
-internally without interfering with the others.
+MPI, and uses it to run the different simulators.  MUSIC provides
+means to allow each simulator to use MPI internally without
+interfering with the others.
 
 During the development of MUSIC we have used two reference platforms:
 Intel-based multi-core workstations and the IBM
@@ -197,6 +195,25 @@ be useful for anybody using any neuronal simulator which supports the
 common MUSIC interface.
 
 
+\subsection{Performance}
+
+The MUSIC API has been designed to allow for highly efficient data
+transport.  MUSIC is designed for cases where data flows of very high
+bandwidth and low latency within the cluster.  One means of ensuring
+the best use of the hardware while maintaining portability is to use
+the facilities of MPI for communication.  MPI encapsulates software
+optimizations for specific hardware, and by basing the interface on
+MPI we can benefit from such optimizations.
+
+
+\subsection{Extensibility}
+
+Where possible, MUSIC allows for extensions by the application
+programmer.  Some classes in the MUSIC API (such as the index and data
+maps) can be subclassed in order to provide facilities not available
+directly in the API.
+
+
 \section{Terminology}
 
 \begin{description}
@@ -220,7 +237,10 @@ common MUSIC interface.
 \item[connection] During the setup phase, MUSIC connects pairs of
   ports together to form \emph{connections}\index{connection}.  During
   the runtime phase, data is transferred over the connection from the
-  producer of the data to the consumer.
+  producer of the data to the consumer.  While an
+  \lstinline|input_port| can have only one connection, an
+  \lstinline|output_port| can be connected to multiple
+  \lstinline|input_ports|.
 
 \item[data map] A data map\index{data map} denotes the information on
   where data actually resides within the application.  This is
@@ -331,10 +351,10 @@ When the application initializes MUSIC at the beginning of execution
 it receives a specific \emph{setup object}.  This object gives access
 to the functionality relevant during the setup phase via its methods.
 When done with the setup, the application program makes the transition
-to the runtime phase by calling a method in the setup object which
-destroys the setup object and returns a \emph{runtime object}.  This
-runtime object provides methods relevant during the runtime phase of
-execution.
+to the runtime phase by passing the setup object as an argument to the
+\emph{runtime object} constructor which destroys the setup object.
+The runtime object provides methods relevant during the runtime phase
+of execution.
 
 \section{Spatial Distribution of Data}
 
@@ -549,13 +569,16 @@ The following variable names have special meaning to MUSIC:
 Arbitrarily named parameters may also be included in the configuration
 file and these parameters can be accessed from the applications.
 
-A connection between a sender and receiver port is specified using the
+A connection between a output and input port is specified using the
 following syntax:
 \begin{quote}
   \emph{application\_label.port\_name} \lstinline|->| \emph{application\_label.port\_name}
 \end{quote}
 \noindent.  The direction of the arrow (\lstinline|->|, \lstinline|<-|) indicates the
-direction of data transport.
+direction of data transport.  An output port can be connected to
+multiple input ports while an input port can be connected to, at most,
+one output port.
+
 Optionally, the width of the connections between applications can be
 specified:
 \begin{quote}
@@ -585,6 +608,9 @@ who is responsible for the deallocation of the object afterwards.
 \section{Error handling}
 \responsible{Mikael}
 
+MUSIC follows the style of error handling in the MPI standard, which
+is described in sections ... in [the MPI 1.2 report] and in sections
+... of [the MPI 2.0 report].
 
 \section{Setup}
 
@@ -1001,16 +1027,25 @@ if (!config ("gKCa", &gKCa))
   gKCa = 29.5e-9; // default value
 \end{code}
 
-\subsection{End of setup---creating the runtime object}
+\section{Runtime}
 
-\begin{head}{done}
-  runtime* setup::done (double h)
+\subsection{The runtime constructor}
+
+\begin{head}{runtime}
+  runtime::runtime (setup* s, double h)
 \end{head}
 \begin{parameters}
+  \lstinline|s| & pointer to the setup object \\
   \lstinline|h| & simulated time elapsed between each \lstinline|tick ()| (s) \\
 \end{parameters}
 
-\section{Runtime}
+The runtime object constructor destroys the setup object.
+
+\begin{code}{runtime}
+  ...
+  MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+  ...
+\end{code}
 
 \subsection{The \lstinline|tick ()|}
 \index{tick}
@@ -1053,13 +1088,17 @@ let MUSIC keep track of time for the application, this is not
 required.
 
 \subsection{Finalization}
-
 \index{finalize}
-\begin{head}{finalize}
-  void runtime::finalize ()
-\end{head}
-\begin{parameters}
-\end{parameters}
+
+An application supporting MUSIC should replace its call to
+MPI::Finalize with the destruction of the MUSIC runtime object.
+
+\begin{code}{}
+  ...
+  MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+  ...
+  delete runtime;
+\end{code}
 
 \chapter{A Complete Example}
 
@@ -1169,8 +1208,8 @@ when it is used in a stand-alone setting.  In order to support
 MPI::COMM\_WORLD if the job is started directly with
 \lstinline|mpirun| instead of with the MUSIC launcher.
 
-Calling \lstinline|setup::done ()| will implicitly call the
-\lstinline|runtime| object constructor.
+Creating the runtime object will implicitly call the \lstinline|setup|
+object destructor.
 
 During simulation, the application should repeatedly call
 \lstinline|runtime::tick ()|.  This is typically done at each simulation
@@ -1223,11 +1262,11 @@ opportunity to communicate.
 
 \subsection{Initialization}
 
-Before calling \lstinline|setup::done ()| at the end of the setup phase,
-the user must initialize all data associated to output ports through
-datamap:s.  During \lstinline|setup::done ()|, this data is transferred to
-all input ports.  This is so that data can subsequently be correctly
-interpolated.
+Before creating the runtime object at the end of the setup phase, the
+user must initialize all data associated to output ports through
+datamap:s.  During the call to the runtime object constructor, this
+data is transferred to all input ports.  This is so that data can
+subsequently be correctly interpolated.
 \end{metatext}
 
 \appendix

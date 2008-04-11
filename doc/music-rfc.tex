@@ -838,27 +838,37 @@ determine if a width has been specified and retrieve the width using
 A port is informed about what data exists locally and how to access it
 by mapping it.
 
-Cont ports transfer data from or to memory during \lstinline|tick ()|
-calls and need to know the layout of data in memory.  This information
-is captured by a data map:
-
 \index{map}\index{mapping ports}
 \begin{head}{map}
   void cont_output_port::map (cont_data* dmap)
 
+  void cont_output_port::map (cont_data* dmap, int max_buffered)
+
   void cont_input_port::map (cont_data* dmap)
+
+  void cont_input_port::map (cont_data* dmap, int max_buffered)
 \end{head}
 \begin{parameters}
   \lstinline|dmap| & the data map associated with the port \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
-See section \ref{sec:datamap} below.
+Cont ports transfer data from or to memory during \lstinline|tick ()|
+calls and need to know the layout of data in memory.  This information
+is captured by the data map argument \lstinline|dmap|. See section
+\ref{sec:datamap} below.
 
-Since event ports don't access data the same way as cont ports, they
-do not require a full \lstinline|data_map|.  Events are communicated
-to the application through an \emph{event handler}\index{event
-handler}.  The event handler is called by MUSIC when the application
-calls \lstinline|tick|.  It is called once for every spike delivered.
+Buffering data in output and input ports gives more efficient
+communication since data can be sent fewer times in larger packets.
+By default MUSIC buffers some reasonable amount of data.  In certain
+situations it is necessary to be careful about memory usage.  Using
+the optional argument \lstinline|max_buffered| the application can
+give MUSIC a bound on how much data to buffer.  MUSIC decides how much
+data to buffer based on the lowest max_buffered parameter given when
+mapping each of a set of connected ports and on latency considerations
+when applications are connected in loops.  A max_buffered value of N
+ticks means: don't buffer more data than is sufficient for
+communicating at every Nth tick.
 
 \begin{head}{map}
   class event_handler {
@@ -868,16 +878,30 @@ calls \lstinline|tick|.  It is called once for every spike delivered.
   
   void event_output_port::map (index_map* indices)
 
+  void event_output_port::map (index_map* indices,
+                               int max_buffered)
+
   void event_input_port::map (index_map* indices,
                               event_handler* insert_event,
                               double acc_latency)
+
+  void event_input_port::map (index_map* indices,
+                              event_handler* insert_event,
+                              double acc_latency,
+                              int max_buffered)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & the index map associated with the port \\
   \lstinline|insert_event| & a user-defined event handler \\
-  \lstinline|accept_latency| & acceptable latency for incoming data (s)
-  \\
+  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
+
+Since event ports don't access data the same way as cont ports, they
+do not require a full \lstinline|data_map|.  Events are communicated
+to the application through an \emph{event handler}\index{event
+handler}.  The event handler is called by MUSIC when the application
+calls \lstinline|tick|.  It is called once for every spike delivered.
 
 Some spiking neural network models include axonal delays.  The MUSIC
 framework assumes that handling and delivery of delayed spikes occurs
@@ -885,6 +909,10 @@ on the receiver side.  In such a case, the receiver may allow MUSIC to
 deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
 \lstinline|accept_latency| argument.
+
+The \lstinline|max_buffered| argument has a similar meaning as for
+event ports above but the actual amount of data buffered is, in this
+case, not deterministic since it is dependent on spike rate.
   
 \begin{rationale}
 The current RFC only specifies acceptable latency for event input

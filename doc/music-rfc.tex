@@ -409,6 +409,19 @@ the case of event ports).
   \end{center}
 \end{figure}
 
+\begin{rationale}
+  While connections are often used to handle the transfer of spikes
+  from one group of neurons to another, they should not be regarded as
+  an implementation of synaptic projections\index{projections}.
+  Connections will only handle a direct one-to-one transport from one
+  application to another.  Re-mapping to actual receiving neurons,
+  e.g. to implement an all-to-all projection, must be handled by one
+  of the applications.  Thus, it may be better to regard the ports as
+  \emph{proxy-objects}\index{proxy objects}, providing indirect access
+  to neurons simulated by the other application.
+\end{rationale}
+
+
 \section{Timing Considerations}
 \label{sec:timing}
   
@@ -1124,11 +1137,30 @@ The runtime object constructor destroys the setup object.
   The step size is given as a real number (in seconds) since this
   makes most sense from the applications point of view.  Internally,
   this number is converted to an integer (using the time micro step
-  timebase).  This is made to ensure that all processes use exactly
+  time base).  This is made to ensure that all processes use exactly
   the same numbers even when the multi-simulation is running on mixed
   architectures.  Both sides of a connection must agree on at what
   ticks data is transferred over the MPI connector to minimize the
   need for handshaking during the runtime phase.
+\end{rationale}
+
+\begin{rationale}
+  In order to create a deterministic schedule for buffering and data
+  transfer, we require that \lstinline|tick| is called at fixed
+  intervals in simulated time.  We realize that some applications may
+  use a variable time step\index{variable time step} for their
+  numerical integrations, which may then make it harder to execute
+  these tick calls at the right time.  However, allowing variable tick
+  steps would have made it impossible to use a pre-computed
+  deterministic schedule and enforced repeated handshaking throughout
+  the runtime phase, resulting in a substantial performance
+  degradation.
+
+  Note that the tick step does not need to be equal to the internally
+  used integration step\index{integration step}.  We believe that most
+  large scale parallel simulators already have some means for fixed
+  interval operations, e.g. to handle logging to files or graphics,
+  which may be utilized also for the tick calls.
 \end{rationale}
 
 

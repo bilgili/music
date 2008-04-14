@@ -19,8 +19,8 @@
 
 % Use the rationale environment around arguments for design decisions
 \newenvironment{rationale}%
-{\par\paragraph{Rationale:}}%
-{\par}
+{\par\begin{quote}\textbf{Rationale:}}%
+{\par\end{quote}}
 
 
 % Use the head environment around method heads
@@ -1277,32 +1277,73 @@ processors and waveconsumer on four.
 \lstinputlisting{../test/waveconsumer.cc}
 
 
-\chapter{Adapting Existing Software}
+\chapter{Adapting Existing Applications}
 
-\section{Initiate MUSIC}\index{initiate MUSIC}
+In this chapter we will highlight the steps necessary to adapt an
+existing neural simulator to MUSIC.  We will assume that the simulator
+is already using MPI to simulate large networks of interconnected
+neurons.
+
+The two main tasks that need to be handled are: firstly, to create and
+map ports for data to be imported and exported, and, secondly, to
+ensure that the \lstinline|tick| function is called at regular
+intervals.
+
+
+\section{Creating and Mapping of Ports}
+
+The application needs to inform MUSIC about what data to import and
+export, and where this data resides.  A simulator will typically use
+some sort of script files where the user specifies the model and other
+aspects of the simulation.  If possible, it is desirable to extend
+these scripts such that the user can also specify what model variables
+to communicate, and what names to use as identifiers.
+
+Assuming that we have introduced such constructs into the scripting
+language, we must decide on a suitable point in the initialization
+process where ports should be created and mapped.  Since continuous
+data is read from, or written to, arrays in memory, the program must
+have allocated its runtime data structures in order to perform the
+mapping.
+
+Communication of spikes will use event ports, where functions are used
+to send and receive spikes.  Sending of spikes is relatively
+straightforward, since the only thing needed is to add a call where
+spikes are normally detected in the program.  Receiving spikes
+requires more administration, since the spikes can be received earlier
+than when they should reach their destination compartment.  It is
+therefore necessary to save incoming spikes in some sort of sorted
+buffer (typically a priority queue).
+
+In addition, MUSIC will always present the spikes as they appear in
+the sending group of neurons.  In most situations, the receiving
+application will want to implement a remapping to the target
+compartments.  One spike may thus end up at multiple postsynaptic
+compartments, spread out over the processors of the receiving
+application.
+
+In some situations it may be desirable for the receiving application
+to avoid the remapping.  The application can the utilize the different
+forms of mappings available in MUSIC to create a general permutation
+so that MUSIC will send the spikes directly to the processor where it
+should be handled.
+
+
+\section{Advancing Simulation Time}
+
+
+\section{Initialization and Finalization}
+
+\subsection{Initiate MUSIC}\index{initiate MUSIC}
 
   This is done by calling the \lstinline!setup! function.
-\section{Create ports}
 
-  Data to be imported and exported is identified by creating named
-  ports.
-\section{Map ports}\index{map ports}
-
-  MUSIC is informed about where the actual data is located.
-  This includes information about which processor owns each data
-  element.  For continuous data it also includes information about
-  where in memory it is stored, while for event data it defines what
-  functions to use to send and receive the events.
-\section{Initiate the runtime phase}
+\subsection{Initiate the runtime phase}
 
   At this stage, MUSIC can build the plan for communication between
   different processes.
-\section{Advance simulation time}\index{tick}\index{advance time}
-  \index{time}
 
-  The application must call \lstinline!tick ()! at regular intervals
-  to give MUSIC the opportunity to transfer data.
-\section{Finalize MUSIC}\index{finalize}\index{terminate}
+\subsection{Finalize MUSIC}\index{finalize}\index{terminate}
 
   By deleting the runtime object, all MUSIC communication is terminated.
 

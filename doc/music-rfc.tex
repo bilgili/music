@@ -644,11 +644,12 @@ memory during the entire execution of the method, and it is the caller
 who is responsible for the deallocation of the object afterwards.
 
 \section{Error handling}
-\responsible{Mikael}
+\irresponsible{Mikael}
 
 MUSIC follows the style of error handling in the MPI standard, which
-is described in sections ... in [the MPI 1.2 report] and in sections
-... of [the MPI 2.0 report].
+is described in sections 7.2 and 7.3 in the MPI 1.2
+report\cite{mpi1.2} and in section 2.8 of the MPI 2.0
+report\cite{mpi2.0}.
 
 \section{Setup}
 
@@ -774,7 +775,7 @@ cont_output_port* out =
 \subsection{Port methods}
 
 The port API includes methods to ask a port if it is connected, if it
-has a specified width and what width it has if this width is
+has a width specified and what width it has if this width is
 specified.  A port becomes mapped when its method \lstinline|map| is
 called with a data map.
 
@@ -853,17 +854,19 @@ by mapping it.
 
 \index{map}\index{mapping ports}
 \begin{head}{map}
-  void cont_output_port::map (cont_data* dmap)
-
   void cont_output_port::map (cont_data* dmap, int max_buffered)
 
-  void cont_input_port::map (cont_data* dmap)
-
-  void cont_input_port::map (cont_data* dmap, int max_buffered)
+  void cont_input_port::map (cont_data* dmap,
+                             double delay,
+                             int max_buffered,
+                             bool interpolate)
 \end{head}
 \begin{parameters}
   \lstinline|dmap| & the data map associated with the port \\
-  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+  \lstinline|delay| & delay of data arrival in simulation time (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks)
+  \\
+  \lstinline|interpolate| & enable interpolation (boolean) \\
 \end{parameters}
 
 Cont ports transfer data from or to memory during \lstinline|tick ()|
@@ -871,17 +874,32 @@ calls and need to know the layout of data in memory.  This information
 is captured by the data map argument \lstinline|dmap|. See section
 \ref{sec:datamap} below.
 
+The optional argument \lstinline|delay| informs MUSIC of when,
+according to simulation time, to sample data on the sender side.  If
+enabled, linear interpolation is used to obtain an approximation of
+the state at this time.  The default delay is 0.  Delayed continuous
+data may be used in connectionist networks when modeling brain
+pathways.  A delay is \emph{required} at some point when communicating
+continuous data in a loop.
+
 Buffering data in output and input ports gives more efficient
 communication since data can be sent fewer times in larger packets.
 By default MUSIC buffers some reasonable amount of data.  In certain
 situations it is necessary to be careful about memory usage.  Using
 the optional argument \lstinline|max_buffered| the application can
 give MUSIC a bound on how much data to buffer.  MUSIC decides how much
-data to buffer based on the lowest max_buffered parameter given when
-mapping each of a set of connected ports and on latency considerations
-when applications are connected in loops.  A max_buffered value of N
-ticks means: don't buffer more data than is sufficient for
-communicating at every Nth tick.
+data to buffer based on the lowest \lstinline|max_buffered| parameter
+given when mapping each of a set of connected ports and on latency
+considerations when applications are connected in loops.  A
+\lstinline|max_buffered| value of N ticks means: don't buffer more
+data than is sufficient for communicating at every Nth tick.
+
+When the optional argument \lstinline|interpolate| is
+\lstinline|true|, MUSIC uses linear interpolation to determine the
+values delivered on the receiver side.  This is the default behavior.
+By passing \lstinline|false| this interpolation can be switched off in
+which case MUSIC selects the sample on the sender side which is
+closest according to simulation time.
 
 \begin{head}{map}
   class event_handler {
@@ -889,14 +907,8 @@ communicating at every Nth tick.
     virtual void operator () (double t, int id) = 0;
   };
   
-  void event_output_port::map (index_map* indices)
-
   void event_output_port::map (index_map* indices,
                                int max_buffered)
-
-  void event_input_port::map (index_map* indices,
-                              event_handler* insert_event,
-                              double acc_latency)
 
   void event_input_port::map (index_map* indices,
                               event_handler* insert_event,
@@ -1265,9 +1277,35 @@ processors and waveconsumer on four.
 \lstinputlisting{../test/waveconsumer.cc}
 
 
-\begin{metatext}
 \chapter{Adapting Existing Software}
-\end{metatext}
+
+\section{Initiate MUSIC}\index{initiate MUSIC}
+
+  This is done by calling the \lstinline!setup! function.
+\section{Create ports}
+
+  Data to be imported and exported is identified by creating named
+  ports.
+\section{Map ports}\index{map ports}
+
+  MUSIC is informed about where the actual data is located.
+  This includes information about which processor owns each data
+  element.  For continuous data it also includes information about
+  where in memory it is stored, while for event data it defines what
+  functions to use to send and receive the events.
+\section{Initiate the runtime phase}
+
+  At this stage, MUSIC can build the plan for communication between
+  different processes.
+\section{Advance simulation time}\index{tick}\index{advance time}
+  \index{time}
+
+  The application must call \lstinline!tick ()! at regular intervals
+  to give MUSIC the opportunity to transfer data.
+\section{Finalize MUSIC}\index{finalize}\index{terminate}
+
+  By deleting the runtime object, all MUSIC communication is terminated.
+
 
 \begin{metatext}
 \chapter{Notes}

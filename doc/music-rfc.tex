@@ -935,13 +935,13 @@ deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
 \lstinline|accept_latency| argument.
 
-The \lstinline|max_buffered| argument has a similar meaning as for
-event ports above but the actual amount of data buffered is, in this
-case, not deterministic since it is dependent on spike rate.
+The optional argument \lstinline|max_buffered| has a similar meaning
+as for event ports above but the actual amount of data buffered is, in
+this case, not deterministic since it is dependent on spike rate.
   
 \begin{rationale}
 The current RFC only specifies acceptable latency for event input
-ports only.  As discussed in section \ref{sec:timing} this allows for
+ports.  As discussed in section \ref{sec:timing} this allows for
 applications to be connected in loops with regard to spiking
 communication, while no loops are allowed with regard to continuous
 data.

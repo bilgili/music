@@ -230,9 +230,9 @@ directly in the API.
 \item[port] Each application declares its ability to produce and
   consume data by publishing \emph{ports}\index{port}.  Ports are
   named by the application along with information about the datatype
-  and mapping onto different processors.  Ports are either
-  \lstinline|input_ports|\index{input port} or
-  \lstinline|output_ports|\index{output port}.
+  (continuous data, spike events, messages) and mapping onto different
+  processors.  Ports are either \lstinline|input_ports|\index{input
+    port} or \lstinline|output_ports|\index{output port}.
 
 \item[connection] During the setup phase, MUSIC connects pairs of
   ports together to form \emph{connections}\index{connection}.  During
@@ -357,6 +357,7 @@ The runtime object provides methods relevant during the runtime phase
 of execution.
 
 \section{Spatial Distribution of Data}
+\label{sec:spatialdist}
 
 Communication between applications is handled by ports.  Ports are
 named sources (output ports) or sinks (input ports) of data flows.
@@ -495,6 +496,34 @@ least somewhere along each loop.  MUSIC handles this via
 which is a property of each input port.  The receiving application
 declares how late data may arrive, thus giving MUSIC room for
 resolving the scheduling problem.
+
+
+\section{Message Ports}\index{message port}
+
+In addition to the port types which handle continuous and spike event
+data, there are \emph{message ports}.  These allow for arbitrary
+messages of, for example, control information being sent between
+applications.  A multi-simulation may, for example, be controlled by a
+script running in a Python process on one of the cluster nodes.  The
+script may use a message port to alter a parameter, or to turn on a
+stimulus, in an application at a certain point in time.
+
+Similar to how \lstinline|index_maps| determine the communication
+pattern between the sets of processes on each side of a pair of ports
+(section \ref{sec:spatialdist}), the communication pattern for message
+ports is determined by \lstinline|tag_sets|.  A \lstinline|tag_set| is
+a set of identifiers given to the port during setup.  Different
+processes within the application may provide different tag sets to the
+same port.  Messages sent from processes that has provided the
+identifier A in the tag set of the message output port are
+communicated to all processes on the receiver side which have the
+identifier A in the tag set of the message input port.
+
+To achieve independence between MUSIC applications, it is recommended
+that the only messages being sent are text strings with the syntax of
+the interpreter language of the receiving application, and that these
+text strings originate from a user-specified configuration file read
+by the sending application.
 
 
 \section{Application Responsibilities}
@@ -753,6 +782,10 @@ whether they handle continuous or event data.
   event_output_port* setup::publish_event_output (string id)
 
   event_input_port* setup::publish_event_input (string id)
+
+  message_output_port* setup::publish_message_output (string id)
+
+  message_input_port* setup::publish_message_input (string id)
 \end{head}
 \begin{parameters}
   \lstinline|id| & port name \\
@@ -814,10 +847,10 @@ if (out->is_connected ())
 The width of a port\index{port width}, that is the number of data
 elements transferred in parallel from a cont port or the largest
 possible id of an event port $+ 1$, can be specified in the
-configuration file. This should be thought of as a request for a given
-width.  Applications can use the method \lstinline|has_width| to
+configuration file.  This should be thought of as a request for a
+given width.  Applications can use the method \lstinline|has_width| to
 determine if a width has been specified and retrieve the width using
-\lstinline|width|.
+\lstinline|width|.  Message ports do not have width.
 
 \index{has\_width}
 \begin{head}{has_width}
@@ -939,12 +972,38 @@ The optional argument \lstinline|max_buffered| has a similar meaning
 as for event ports above but the actual amount of data buffered is, in
 this case, not deterministic since it is dependent on spike rate.
   
+\begin{head}{map}
+  class message {
+   public:
+    message (double t);
+    double t ();
+  };
+
+  class message_handler {
+  public:
+    virtual void operator () (message* msg, int size) = 0;
+  };
+  
+  void message_output_port::map (int max_buffered)
+                               
+  void message_input_port::map (message_handler* insert_message,
+                                double acc_latency,
+                                int max_buffered)
+\end{head}
+\begin{parameters}
+  \lstinline|insert_message| & a user-defined message handler \\
+  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+\end{parameters}
+
+Message ports
+
 \begin{rationale}
-The current RFC only specifies acceptable latency for event input
-ports.  As discussed in section \ref{sec:timing} this allows for
-applications to be connected in loops with regard to spiking
-communication, while no loops are allowed with regard to continuous
-data.
+  The current RFC only specifies acceptable latency for event and
+  message input ports.  As discussed in section \ref{sec:timing} this
+  allows for applications to be connected in loops with regard to
+  spiking communication, while no loops are allowed with regard to
+  continuous data.
 \end{rationale}
 
 \begin{code}{Mapping ports to internal data\label{code:mapping}}
@@ -958,8 +1017,8 @@ data.
   double* state_vars = new double[n_local];
   MUSIC::cont_input_port* out =
      setup->publish_cont_output ("out");
-  array_data dmap (state_vars, MPI::DOUBLE,
-                   rank * n_local, n_local);
+  MUSIC::array_data dmap (state_vars, MPI::DOUBLE,
+                          rank * n_local, n_local);
   out->map (&dmap);
   ...
 }
@@ -1090,6 +1149,12 @@ array data map constructor which also creates an index map:
 \end{parameters}
 
 See example \ref{code:mapping}.
+
+
+\subsection{Tag maps}
+\label{sec:tagmap}
+\index{tag maps}
+
 
 
 \subsection{Configuration variables}

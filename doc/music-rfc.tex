@@ -689,7 +689,7 @@ MUSIC uses its own error handler which has the same behavior as
 
 Each application initializes the MUSIC library through a call to the
 setup constructor\index{setup}.  This constructor, in turn, calls
-MPI::Init\index{MPI::Init}\index{init} to initialize
+\lstinline|MPI::Init|\index{MPI::Init}\index{init} to initialize
 MPI\index{initialize MPI}.  The setup constructor creates the setup
 object through which the application can retrieve configuration
 information, get an application wide communicator, and setup ports.
@@ -707,6 +707,7 @@ information, get an application wide communicator, and setup ports.
 This constructor must be called at most once; subsequent calls are
 erroneous.  It accepts the \lstinline|argc| and \lstinline|argv| that are
 provided by the arguments to \lstinline|main|.
+\index{argc}\index{argv}
 
 \begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
@@ -727,12 +728,12 @@ int main (int argc, char *argv[])
 
 \subsection{Communicators}
 
-During a multi-simulation, launched using the \lstinline|music|
-utility command, the music library will create a unique
-intra-communicator over the group of processes assigned to the
-application.  This application wide communicator is retrieved from the
-setup object through a call to the
-\lstinline|communicator| method.\index{communicator}
+During a multi-simulation the music library will create a unique
+intra-communicator over the group of processes assigned to each
+application.  This application wide communicator takes the role of the
+global communicator \lstinline|MPI::COMM_WORLD| and is retrieved from
+the setup object through a call to the \lstinline|communicator|
+method.\index{communicator}
 
 \begin{head}{communicator}
   MPI::Intracomm setup::communicator ()
@@ -744,8 +745,8 @@ setup object through a call to the
 The application is supposed to use the application wide communicator
 in place of
 \lstinline|MPI::COMM_WORLD|\index{MPI::COMM\_WORLD}\index{COMM\_WORLD}.
-This communicator can be used as any ordinary MPI communicator.
 
+\index{rank}\index{Get\_rank}
 \begin{code}{Accessing the application-wide communicator}
 /* communicator with global scope */
 extern MPI_Comm comm;
@@ -777,17 +778,17 @@ Ports are further subdivided into distinct classes depending on
 whether they handle continuous or event data.
 
 \index{publish\_output}\index{publish\_input}
-\begin{head}{publish_cont_output,publish_cont_input}
+\begin{head}{publish_cont_output,publish_cont_input,
+            ,publish_event_output,publish_event_input,
+            ,publish_message_output,publish_message_input}
   cont_output_port* setup::publish_cont_output (string id)
 
   cont_input_port* setup::publish_cont_input (string id)
-\end{head}
-\begin{head}{publish_event_output,publish_event_input}
+
   event_output_port* setup::publish_event_output (string id)
 
   event_input_port* setup::publish_event_input (string id)
-\end{head}
-\begin{head}{publish_message_output,publish_message_input}
+
   message_output_port* setup::publish_message_output (string id)
 
   message_input_port* setup::publish_message_input (string id)
@@ -802,8 +803,7 @@ Ports have two stages in life: the \emph{unmapped} stage and the
 configuration file specifies connections between ports.  It is
 possible to ask an unmapped port if it is connected, if it has a width
 specified and, if so, what width it has.  A port becomes mapped when
-its method \lstinline|map| is called with a \lstinline|data_map| (or
-\lstinline|index_map| in the case of event ports).
+its method \lstinline|map| is called.
 
 \begin{code}{Creating an unmapped port}
 cont_output_port* out =
@@ -814,8 +814,7 @@ cont_output_port* out =
 
 The port API includes methods to ask a port if it is connected, if it
 has a width specified and what width it has if this width is
-specified.  A port becomes mapped when its method \lstinline|map| is
-called with a data map.
+specified.
 
 \subsubsection{Port connectivity}
 
@@ -905,7 +904,7 @@ methods described in section \ref{sec:width}:
       /* for clarity we assume that n_elements
          is a multiple of size */
       int n_local = n_elements / size;
-      /* example continues as above */
+      /* example continues as in next example */
       ...
       
     }
@@ -945,7 +944,7 @@ section \ref{sec:datamap} below.
 The optional argument \lstinline|delay| informs MUSIC of when,
 according to simulation time, to sample data on the sender side.  If
 enabled, linear interpolation is used to obtain an approximation of
-the state at this time.  The default delay is 0.  Delayed continuous
+the state at this time.  The default delay is zero.  Delayed continuous
 data may be used in connectionist networks when modeling brain
 pathways.  A delay is \emph{required} at some point when communicating
 continuous data in a loop.
@@ -959,8 +958,8 @@ give MUSIC a bound on how much data to buffer.  MUSIC decides how much
 data to buffer based on the lowest \lstinline|max_buffered| parameter
 given when mapping each of a set of connected ports and on latency
 considerations when applications are connected in loops.  A
-\lstinline|max_buffered| value of N ticks means: don't buffer more
-data than is sufficient for communicating at every Nth tick.
+\lstinline|max_buffered| value of \(N\) ticks means: don't buffer more
+data than is sufficient for communicating at every \(N\)\,th tick.
 
 When the optional argument \lstinline|interpolate| is
 \lstinline|true|, MUSIC uses linear interpolation to determine the
@@ -1021,11 +1020,12 @@ framework assumes that handling and delivery of delayed spikes occurs
 on the receiver side.  In such a case, the receiver may allow MUSIC to
 deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
-\lstinline|acc_latency| argument.
+\lstinline|acc_latency|\index{acc\_latency} argument.
 
-The optional argument \lstinline|max_buffered| has a similar meaning
-as for event ports above but the actual amount of data buffered is, in
-this case, not deterministic since it is dependent on spike rate.
+The optional argument \lstinline|max_buffered|\index{max\_buffered}
+has a similar meaning as for event ports above but the actual amount
+of data buffered is, in this case, not deterministic since it is
+dependent on spike rate.
 
 \subsubsection{Sending events}
 \index{sending events}
@@ -1206,8 +1206,9 @@ See example \ref{code:mapping}.
   \lstinline|map|    & index map \\
 \end{parameters}
 
-Since array data is common, MUSIC provides a convenient form of the
-array data map constructor which also creates an index map:
+Since data organized in arrays is common, MUSIC provides a convenience
+form of the array data map constructor which also creates an index
+map:
 
 \begin{head}{array_data}
   array_data::array_data (void* buffer,
@@ -1230,19 +1231,19 @@ queried using the method \lstinline|config|.
 
 \index{config}
 \begin{head}{config}
-  bool config (string var, string* result)
+  bool config (string name, string* result)
 
-  bool config (string var, int* result)
+  bool config (string name, int* result)
 
-  bool config (string var, double* result)
+  bool config (string name, double* result)
 \end{head}
 \begin{parameters}
-  \lstinline|var|     & variable name \\
+  \lstinline|name|     & variable name \\
   \lstinline|result|  & pointer to location where result should go \\
   \emph{return value} & true if value of correct type was found \\
 \end{parameters}
 
-Querying after a value of type \lstinline|int| or \lstinline|double|
+Querying for a value of type \lstinline|int| or \lstinline|double|
 expects a value of the correct type, if defined in the configuration
 file.  If the variable is defined, but its value can't be translated
 into the correct type this causes an error condition.
@@ -1267,7 +1268,9 @@ if (!config ("gKCa", &gKCa))
   \lstinline|h| & simulated time elapsed between each tick (s) \\
 \end{parameters}
 
-The runtime object constructor destroys the setup object.
+Creation of the runtime object marks the transition from the setup to
+the runtime phase.  The runtime object constructor destroys the setup
+object, effectively making it impossible to create new ports.
 
 \begin{code}{runtime}
   ...
@@ -1309,24 +1312,25 @@ The runtime object constructor destroys the setup object.
 \subsection{The tick}
 \index{tick}
 
-Called in the local simulation loop of each application.  The
-interface may, or may not, exchange data with other applications at
-the tick call.
-
 \begin{head}{tick}
   void runtime::tick ()
 \end{head}
 \begin{parameters}
 \end{parameters}
 
-The application must ensure that exported data values are valid when
-\lstinline|tick| is called.  It must also expect that imported values
-may change.
+The tick function must be called at regular intervals in simulation
+time.  The application chooses the interval as a parameter to the
+\lstinline|runtime| constructor, normally based on the time step used
+in the application.  The \lstinline|tick| function is typically called
+in the main simulation loop of each application.  Different
+applications may use different tick-intervals and MUSIC will ensure
+that time is incremented consistently throughout the multi-simulation.
 
-The tick method should be called at regular intervals in simulation
-time.  The application chooses the interval, normally based on the
-time step used in the application.  The interface must handle that
-different applications can use different tick-intervals.
+The interface may, or may not, exchange data with other applications
+at the tick call.  The application must ensure that exported data
+values are valid when \lstinline|tick| is called.  It must also expect
+that imported values may change and that event and message handlers
+are called.
 
 \begin{rationale}
   The idea behind the \lstinline|tick| call is to hide the complexity
@@ -1335,7 +1339,7 @@ different applications can use different tick-intervals.
   sending and receiving port in order to send data in large chunks.
   Internally, MUSIC will use a pre-computed schedule to keep track of
   at what ticks the actual data transfer should take place and when
-  data is instead buffered for later transfer.
+  data should instead be buffered for later transfer.
 \end{rationale}
 
 

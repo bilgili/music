@@ -544,7 +544,7 @@ application must do in order to participate in a multi-simulation.
 \item \textbf{Advance simulation time}\index{tick}\index{advance time}
   \index{time}
 
-  The application must call \lstinline!tick ()! at regular intervals
+  The application must call \lstinline!tick! at regular intervals
   to give MUSIC the opportunity to transfer data.
 \item \textbf{Finalize MUSIC}\index{finalize}\index{terminate}
 
@@ -777,38 +777,40 @@ Ports are further subdivided into distinct classes depending on
 whether they handle continuous or event data.
 
 \index{publish\_output}\index{publish\_input}
-\begin{head}{publish_output,publish_input}
+\begin{head}{publish_cont_output,publish_cont_input}
   cont_output_port* setup::publish_cont_output (string id)
 
   cont_input_port* setup::publish_cont_input (string id)
-
+\end{head}
+\begin{head}{publish_event_output,publish_event_input}
   event_output_port* setup::publish_event_output (string id)
 
   event_input_port* setup::publish_event_input (string id)
-
+\end{head}
+\begin{head}{publish_message_output,publish_message_input}
   message_output_port* setup::publish_message_output (string id)
 
   message_input_port* setup::publish_message_input (string id)
 \end{head}
 \begin{parameters}
   \lstinline|id| & port name \\
-  \emph{return value} & an empty port \\
+  \emph{return value} & an unmapped port \\
 \end{parameters}
 
-Ports have two stages in life: the \emph{empty} stage and the
-\emph{mapped} stage.  A port is empty when created.  The MUSIC
+Ports have two stages in life: the \emph{unmapped} stage and the
+\emph{mapped} stage.  A port is unmapped when created.  The MUSIC
 configuration file specifies connections between ports.  It is
-possible to ask an empty port if it is connected, if it has a width
+possible to ask an unmapped port if it is connected, if it has a width
 specified and, if so, what width it has.  A port becomes mapped when
 its method \lstinline|map| is called with a \lstinline|data_map| (or
 \lstinline|index_map| in the case of event ports).
 
-\begin{code}{Creating an empty port}
+\begin{code}{Creating an unmapped port}
 cont_output_port* out =
    setup->publish_cont_output ("out");
 \end{code}
 
-\subsection{Port methods}
+\subsection{General port methods}
 
 The port API includes methods to ask a port if it is connected, if it
 has a width specified and what width it has if this width is
@@ -883,14 +885,49 @@ determine if a width has been specified and retrieve the width using
 \end{rationale}
 
 
-\subsubsection{Mapping a port}
+Some applications, for example those who provide some kind of more
+generic processing, like a visualization application, may want to be
+able to accept input of any width.  This can be achieved using the
+methods described in section \ref{sec:width}:
+
+\begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
+{
+  ...
+  /* Publishing a port of adaptive width */
+  double* state_vars;
+  MUSIC::cont_input_port* in =
+     setup->publish_cont_input ("in");
+  if (!in->has_width ())
+    /* report error */
+  else
+    {
+      int size = in->width ();
+      /* for clarity we assume that n_elements
+         is a multiple of size */
+      int n_local = n_elements / size;
+      /* example continues as above */
+      ...
+      
+    }
+}
+\end{code}
+
+
+\subsection{Mapping cont ports}
+\index{cont ports}
 
 A port is informed about what data exists locally and how to access it
-by mapping it.
+by mapping it.  Cont ports transfer data from or to memory during
+\lstinline|tick| calls and need to know the layout of data in
+memory.  This information is captured by the data map argument
+\lstinline|dmap|.  The \lstinline|cont_data| type is described in
+section \ref{sec:datamap} below.
 
-\index{map}\index{mapping ports}
+
+\index{map}\index{mapping cont ports}
 \begin{head}{map}
-  void cont_output_port::map (cont_data* dmap, int max_buffered)
+  void cont_output_port::map (cont_data* dmap,
+                              int max_buffered)
 
   void cont_input_port::map (cont_data* dmap,
                              double delay,
@@ -904,11 +941,6 @@ by mapping it.
   \\
   \lstinline|interpolate| & enable interpolation (boolean) \\
 \end{parameters}
-
-Cont ports transfer data from or to memory during \lstinline|tick ()|
-calls and need to know the layout of data in memory.  This information
-is captured by the data map argument \lstinline|dmap|. See section
-\ref{sec:datamap} below.
 
 The optional argument \lstinline|delay| informs MUSIC of when,
 according to simulation time, to sample data on the sender side.  If
@@ -937,33 +969,43 @@ By passing \lstinline|false| this interpolation can be switched off in
 which case MUSIC selects the sample on the sender side which is
 closest according to simulation time.
 
-\begin{head}{event_handler,operator}
-  class event_handler {
-  public:
-    virtual void operator () (double t, int id) = 0;
-  };
-\end{head}
-\begin{parameters}
-  \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the receiver local index \\
-\end{parameters}
 
-Event handlers are called by event input ports to deliver events.  The
-application is supposed to customize \lstinline|event_handler| by
-subclassing it.
 
+\begin{code}{Mapping ports to internal data\label{code:mapping}}
+{
+  ...
+  int size = comm.Get_size ();
+  int rank = comm.Get_rank ();
+  /* for clarity we assume that n_elements
+     is a multiple of size */
+  int n_local = n_elements / size;
+  double* state_vars = new double[n_local];
+  MUSIC::cont_input_port* out =
+     setup->publish_cont_output ("out");
+  MUSIC::array_data dmap (state_vars, MPI::DOUBLE,
+                          rank * n_local, n_local);
+  out->map (&dmap);
+  ...
+}
+\end{code}
+
+
+\subsection{Mapping event ports}
+\index{event ports}
+
+\index{map}\index{mapping event ports}
 \begin{head}{map}
   void event_output_port::map (index_map* indices,
                                int max_buffered)
 
   void event_input_port::map (index_map* indices,
-                              event_handler* insert_event,
+                              event_handler* handle_event,
                               double acc_latency,
                               int max_buffered)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & the index map associated with the port \\
-  \lstinline|insert_event| & a user-defined event handler \\
+  \lstinline|handle_event| & a user-defined event handler \\
   \lstinline|acc_latency| & acceptable latency for incoming data (s) \\
   \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
@@ -984,7 +1026,101 @@ time.  The maximal acceptable latency is specified through the
 The optional argument \lstinline|max_buffered| has a similar meaning
 as for event ports above but the actual amount of data buffered is, in
 this case, not deterministic since it is dependent on spike rate.
-  
+
+\subsubsection{Sending events}
+\index{sending events}
+
+The sender registers an event for transmission by calling the method
+\lstinline|insert_event|.
+
+\index{insert\_event}
+\begin{head}{insert_event}
+  void event_output_port::insert_event (double t, int id)
+\end{head}
+\begin{parameters}
+  \lstinline|t| & trigger time of the event (s) \\
+  \lstinline|id| & the sender local index \\
+\end{parameters}
+
+MUSIC guarantees that this event will be delivered through a call to
+the user-specified \lstinline|event_handler| on the receiver side no
+later that the acceptable latency relative to receiver local time.
+The time \lstinline|t| must be between the simulation time of the last
+tick and that of the next.
+
+
+\subsubsection{Receiving events}
+\index{receiving events}
+
+\index{event\_handler}
+\begin{head}{event_handler,operator}
+  class event_handler {
+  public:
+    virtual void operator () (double t, int id) = 0;
+  };
+\end{head}
+\begin{parameters}
+  \lstinline|t| & trigger time of the event (s) \\
+  \lstinline|id| & the receiver local index \\
+\end{parameters}
+
+Event handlers are called by event input ports to deliver events.  The
+application is supposed to customize \lstinline|event_handler| by
+subclassing it.
+
+
+\subsection{Mapping message ports}
+\index{message ports}
+
+Message handlers are called by message input ports to deliver
+messages.  The application is supposed to customize
+\lstinline|message| and \lstinline|message_handler| by subclassing.
+It is recommended that messages are text strings with the syntax of
+the interpreter language of the receiving application, and that these
+text strings originate from a user-specified configuration file read
+by the sending application.
+
+\index{map}\index{mapping message ports}
+\begin{head}{map}
+  void message_output_port::map (int max_buffered)
+
+  void message_input_port::map (message_handler* handle_message,
+                                double acc_latency,
+                                int max_buffered)
+\end{head}
+\begin{parameters}
+  \lstinline|handle_message| & a user-defined message handler \\
+  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+\end{parameters}
+
+Message ports behave similarly to event ports in that events are sent
+and delivered using similar mechanisms, but while events are routed
+between processes based on event id, messages are routed to all
+processes on the receiver side which have provided a
+\lstinline|message_handler| to \lstinline|map|.  All arguments to
+\lstinline|map| for message ports are optional.
+
+\subsubsection{Sending messages}
+
+The sender registers a message for transmission by calling the method
+\lstinline|insert_message|.
+
+\index{insert\_message}
+\begin{head}{insert_message}
+  void message_output_port::insert_message (message* msg, size_t size)
+\end{head}
+\begin{parameters}
+  \lstinline|msg| & pointer to message subclass instance \\
+  \lstinline|size| & size of message instance in bytes \\
+\end{parameters}
+
+MUSIC will deliver this message through a call to the user-specified
+\lstinline|message_handler| on the receiver side.
+
+
+\subsubsection{Receiving messages}
+
 \begin{head}{message_handler,operator}
   class message {
    public:
@@ -1001,105 +1137,7 @@ this case, not deterministic since it is dependent on spike rate.
   \lstinline|msg| & pointer to message subclass instance \\
   \lstinline|size| & size of message instance in bytes \\
 \end{parameters}
-  
-Message handlers are called by message input ports to deliver
-messages.  The application is supposed to customize
-\lstinline|message| and \lstinline|message_handler| by subclassing.
-It is recommended that messages are text strings with the syntax of
-the interpreter language of the receiving application, and that these
-text strings originate from a user-specified configuration file read
-by the sending application.
 
-\begin{head}{map}
-  void message_output_port::map (int max_buffered)
-
-  void message_input_port::map (message_handler* insert_message,
-                                double acc_latency,
-                                int max_buffered)
-\end{head}
-\begin{parameters}
-  \lstinline|insert_message| & a user-defined message handler \\
-  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
-  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
-\end{parameters}
-
-Message ports behave similarly to event ports in that events are sent
-and delivered using similar mechanisms, but while events are routed
-between processes based on event id, messages are routed to all
-processes on the receiver side which have provided a
-\lstinline|message_handler| to \lstinline|map|.  All arguments to
-\lstinline|map| for message ports are optional.
-
-\begin{rationale}
-  The current RFC only specifies acceptable latency for event and
-  message input ports.  As discussed in section \ref{sec:timing} this
-  allows for applications to be connected in loops with regard to
-  spiking communication, while no loops are allowed with regard to
-  continuous data.
-\end{rationale}
-
-\begin{code}{Mapping ports to internal data\label{code:mapping}}
-{
-  ...
-  int size = comm.Get_size ();
-  int rank = comm.Get_rank ();
-  /* for clarity we assume that n_elements
-     is a multiple of size */
-  int n_local = n_elements / size;
-  double* state_vars = new double[n_local];
-  MUSIC::cont_input_port* out =
-     setup->publish_cont_output ("out");
-  MUSIC::array_data dmap (state_vars, MPI::DOUBLE,
-                          rank * n_local, n_local);
-  out->map (&dmap);
-  ...
-}
-\end{code}
-
-Some applications, for example those who provide some kind of more
-generic processing, like a visualization application, may want to be
-able to accept input of any width.  This can be achieved using the
-methods described in section \ref{sec:width}:
-
-\begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
-{
-  ...
-  /* Publishing a port of adaptive width */
-  double* state_vars;
-  MUSIC::cont_input_port* in =
-     setup->publish_cont_input ("in");
-  if (!in->has_width ())
-    /* report error */
-  else
-    {
-      int size = in->width ();
-      /* for clarity we assume that n_elements
-         is a multiple of size */
-      int n_local = n_elements / size;
-      /* example continues as above */
-      ...
-      
-    }
-}
-\end{code}
-
-\subsubsection{Sending events}
-
-The sender registers an event for transmission by calling the method
-\lstinline|insert_event|.
-
-\index{insert\_event}
-\begin{head}{insert_event}
-  void event_output_port::insert_event (double t, int id)
-\end{head}
-\begin{parameters}
-  t & trigger time of the event (s) \\
-  id & the sender local index \\
-\end{parameters}
-
-MUSIC guarantees that this event will be delivered through a call to
-the user-specified \lstinline|event_handler| on the receiver side no
-later that the acceptable latency relative to receiver local time.
 
 \subsection{Index maps}
 \index{index maps}
@@ -1131,7 +1169,7 @@ to local index.  The most general form is the
 
 When a cont output port is mapped it becomes associated with a set of
 state variables (or other data) in the memory of the sender.  When the
-receiver calls \lstinline|runtime::tick ()|, an estimate of the values
+receiver calls \lstinline|runtime::tick|, an estimate of the values
 of these variables are stored in a set of variables associated with an
 input port on the receiver side.  Similarly, an event output port is
 mapped to a set of event id:s.
@@ -1155,6 +1193,7 @@ map is a mapping between two kinds of indices, the data map also
 contains information about where in memory data resides, how it is
 structured, and, the type of the data elements.  One type of data map
 is the array data map, which describes arrays of data elements.
+See example \ref{code:mapping}.
 
 \index{array\_data}
 \begin{head}{array_data}
@@ -1181,14 +1220,6 @@ array data map constructor which also creates an index map:
   \lstinline|baseindex| & global index of first local element \\
   \lstinline|size|      & number of contiguous global indices \\
 \end{parameters}
-
-See example \ref{code:mapping}.
-
-
-\subsection{Tag sets}
-\label{sec:tagset}
-\index{tag sets}
-
 
 
 \subsection{Configuration variables}
@@ -1233,7 +1264,7 @@ if (!config ("gKCa", &gKCa))
 \end{head}
 \begin{parameters}
   \lstinline|s| & pointer to the setup object \\
-  \lstinline|h| & simulated time elapsed between each \lstinline|tick ()| (s) \\
+  \lstinline|h| & simulated time elapsed between each tick (s) \\
 \end{parameters}
 
 The runtime object constructor destroys the setup object.
@@ -1275,7 +1306,7 @@ The runtime object constructor destroys the setup object.
 \end{rationale}
 
 
-\subsection{The \lstinline|tick ()|}
+\subsection{The tick}
 \index{tick}
 
 Called in the local simulation loop of each application.  The
@@ -1289,12 +1320,13 @@ the tick call.
 \end{parameters}
 
 The application must ensure that exported data values are valid when
-tick() is called.  It must also expect that imported values may change.
+\lstinline|tick| is called.  It must also expect that imported values
+may change.
 
-The tick() should be called at regular intervals in simulation time.
-The application chooses the interval, normally based on the time step
-used in the application.  The interface must handle that different
-applications can use different tick-intervals.
+The tick method should be called at regular intervals in simulation
+time.  The application chooses the interval, normally based on the
+time step used in the application.  The interface must handle that
+different applications can use different tick-intervals.
 
 \begin{rationale}
   The idea behind the \lstinline|tick| call is to hide the complexity
@@ -1310,7 +1342,7 @@ applications can use different tick-intervals.
 \subsection{Simulation time}
 \index{simulation time}
 
-The method \lstinline|time ()| returns local time in seconds.
+The method \lstinline|time| returns local time in seconds.
 
 \index{time}
 \begin{head}{time}
@@ -1320,8 +1352,8 @@ The method \lstinline|time ()| returns local time in seconds.
   \emph{return value} & local time (s) \\
 \end{parameters}
 
-\lstinline|time ()| returns the local time of next \lstinline|tick ()|
-call.  Time starts at 0 s.  While it is possible, and recommended, to
+\lstinline|time| returns the local time of last \lstinline|tick|
+call.  Time starts at 0\,s.  While it is possible, and recommended, to
 let MUSIC keep track of time for the application, this is not
 required.
 
@@ -1518,13 +1550,13 @@ The destructor method will internally call \lstinline|MPI:Finalize|.
 
 \appendix
 
-\chapter{C interface}
+\chapter{C Interface}
 
 In the final MUSIC specification, this appendix will contain a
 description of the C API to MUSIC.
 
 
-\chapter{Specification file syntax}
+\chapter{Specification File Syntax}
 \label{sec:specsyntax}
 
 \newcommand{\nt}[1]{$<$#1$>$}

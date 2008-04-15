@@ -671,7 +671,20 @@ who is responsible for the deallocation of the object afterwards.
 MUSIC follows the style of error handling in the MPI standard, which
 is described in sections 7.2 and 7.3 in the MPI 1.2
 report\cite{mpi1.2} and in section 2.8 of the MPI 2.0
-report\cite{mpi2.0}.
+report\cite{mpi2.0}.  This means that a MUSIC implementation may
+choose not to handle some errors that occur during MUSIC calls.  Each
+error handled by MUSIC generates a MUSIC exception.  MUSIC attempts to
+fall back on the error handling mechanisms of MPI.  A MUSIC exception
+thus results in a call to the MPI error handler.  MUSIC installs
+suitable error codes, classes and strings so that the MPI error
+handler is able to generate suitable error messages.  The default
+error handler of MPI is MPI_ERRORS_ARE_FATAL which means that any
+error handled by MUSIC will result in the program being aborted.
+
+Using the error handling of MPI requires features only described in
+the MPI 2.0 report.  For MPI implementations which lack this support,
+MUSIC uses its own error handler which has the same behavior as
+MPI_ERRORS_ARE_FATAL.
 
 \section{Setup}
 

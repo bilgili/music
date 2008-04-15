@@ -505,19 +505,12 @@ data, there are \emph{message ports}.  These allow for arbitrary
 messages of, for example, control information being sent between
 applications.  A multi-simulation may, for example, be controlled by a
 script running in a Python process on one of the cluster nodes.  The
-script may use a message port to alter a parameter, or to turn on a
-stimulus, in an application at a certain point in time.
+script may use a message port to alter a parameter or to turn on a
+stimulus in an application at a certain point in time.
 
-Similar to how \lstinline|index_maps| determine the communication
-pattern between the sets of processes on each side of a pair of ports
-(section \ref{sec:spatialdist}), the communication pattern for message
-ports is determined by \lstinline|tag_sets|.  A \lstinline|tag_set| is
-a set of identifiers given to the port during setup.  Different
-processes within the application may provide different tag sets to the
-same port.  Messages sent from processes that has provided the
-identifier A in the tag set of the message output port are
-communicated to all processes on the receiver side which have the
-identifier A in the tag set of the message input port.
+Messages sent from any process on the sender side are routed to all
+processes on the receiver side which have announced there willingness
+to receive messages.
 
 To achieve independence between MUSIC applications, it is recommended
 that the only messages being sent are text strings with the syntax of
@@ -934,12 +927,22 @@ By passing \lstinline|false| this interpolation can be switched off in
 which case MUSIC selects the sample on the sender side which is
 closest according to simulation time.
 
-\begin{head}{map}
+\begin{head}{event_handler,operator}
   class event_handler {
   public:
     virtual void operator () (double t, int id) = 0;
   };
-  
+\end{head}
+\begin{parameters}
+  \lstinline|t| & trigger time of the event (s) \\
+  \lstinline|id| & the receiver local index \\
+\end{parameters}
+
+Event handlers are called by event input ports to deliver events.  The
+application is supposed to customize \lstinline|event_handler| by
+subclassing it.
+
+\begin{head}{map}
   void event_output_port::map (index_map* indices,
                                int max_buffered)
 
@@ -951,7 +954,7 @@ closest according to simulation time.
 \begin{parameters}
   \lstinline|indices| & the index map associated with the port \\
   \lstinline|insert_event| & a user-defined event handler \\
-  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
+  \lstinline|acc_latency| & acceptable latency for incoming data (s) \\
   \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
@@ -972,7 +975,7 @@ The optional argument \lstinline|max_buffered| has a similar meaning
 as for event ports above but the actual amount of data buffered is, in
 this case, not deterministic since it is dependent on spike rate.
   
-\begin{head}{map}
+\begin{head}{message_handler,operator}
   class message {
    public:
     message (double t);
@@ -981,11 +984,25 @@ this case, not deterministic since it is dependent on spike rate.
 
   class message_handler {
   public:
-    virtual void operator () (message* msg, int size) = 0;
+    virtual void operator () (message* msg, size_t size) = 0;
   };
+\end{head}
+\begin{parameters}
+  \lstinline|msg| & pointer to message subclass instance \\
+  \lstinline|size| & size of message instance in bytes \\
+\end{parameters}
   
+Message handlers are called by message input ports to deliver
+messages.  The application is supposed to customize
+\lstinline|message| and \lstinline|message_handler| by subclassing.
+It is recommended that messages are text strings with the syntax of
+the interpreter language of the receiving application, and that these
+text strings originate from a user-specified configuration file read
+by the sending application.
+
+\begin{head}{map}
   void message_output_port::map (int max_buffered)
-                               
+
   void message_input_port::map (message_handler* insert_message,
                                 double acc_latency,
                                 int max_buffered)
@@ -996,7 +1013,12 @@ this case, not deterministic since it is dependent on spike rate.
   \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
-Message ports
+Message ports behave similarly to event ports in that events are sent
+and delivered using similar mechanisms, but while events are routed
+between processes based on event id, messages are routed to all
+processes on the receiver side which have provided a
+\lstinline|message_handler| to \lstinline|map|.  All arguments to
+\lstinline|map| for message ports are optional.
 
 \begin{rationale}
   The current RFC only specifies acceptable latency for event and
@@ -1061,6 +1083,8 @@ The sender registers an event for transmission by calling the method
   void event_output_port::insert_event (double t, int id)
 \end{head}
 \begin{parameters}
+  t & trigger time of the event (s) \\
+  id & the sender local index \\
 \end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
@@ -1151,9 +1175,9 @@ array data map constructor which also creates an index map:
 See example \ref{code:mapping}.
 
 
-\subsection{Tag maps}
-\label{sec:tagmap}
-\index{tag maps}
+\subsection{Tag sets}
+\label{sec:tagset}
+\index{tag sets}
 
 
 
@@ -1456,145 +1480,6 @@ The application should also replace its call to
 \lstinline|MPI:Finalize| by the destruction of the runtime object.
 The destructor method will internally call \lstinline|MPI:Finalize|.
 
-
-\begin{metatext}
-\chapter{Notes}
-
-\section{Data Structures}
-
-\begin{description}
-  \item[setup] Used to ask for configuration information and create
-    ports.
-  \item[runtime] Used during simulation.  Provides the \lstinline|tick ()|
-    method.
-  \item[port] A \lstinline|port| is the interface used to send or receive
-    data from other applications.  It can be distributed over many MPI
-    processes.  A port contains a \lstinline|datamap|.  There are
-    \lstinline|output_port|s and \lstinline|input_port|s.
-  \item[connector] An internal datastructure which represents the
-    sending or receiving end of a connection between two ports.  An
-    \lstinline|output_port| can have multiple connectors while an
-    \lstinline|input_port| can have only one.
-  \item[data\_map] Defines the data to be communicated through the
-    port.  A data\_map consists of a pointer to the memory location
-    containing the data (for continuous-valued data) and an
-    index\_map.
-  \item[index\_map] Defines which global indices are handled in the
-    local MPI process and how they are organized in memory.
-\end{description}
-
-\subsection{Ports}
-
-\subsection{Connectors}
-
-A connector has at least the following components:
-\begin{itemize}
-  \item an inter-communicator
-  \item a buffer for continuous data
-  \item a remap strategy
-\end{itemize}
-
-A connector does \emph{not} support re-computation of spike time
-stamps, i.e., it does not provide axonal delays.  Instead, it is
-recommended that the receiver takes care of such delays.
-
-A connected pair of an output connector and an input connector
-constitutes a MUSIC \emph{connection}.
-
-\subsection{Data maps}
-
-\subsection{Index maps}
-
-\lstinline|linear_map| can be implemented in terms of
-\lstinline|permutation_map| which is the most general form of index map.
-
-\section{The MUSIC application}
-
-\subsection{Responsibilities visavi the MUSIC library}
-\label{sec:responsibilities}
-
-An application creates a \lstinline|setup| object.  \lstinline|argc|
-and \lstinline|argv| are passed by reference to the \lstinline|setup|
-constructor which may modify these variables.  The setup constructor
-calls MPI:Init for the application.
-
-\begin{rationale}
-  The idea here is to replace the call to MPI:Init with a call to the
-  setup constructor.  This way, it is not possible to forget to call
-  an extra initialization routine.
-\end{rationale}
-
-The setup object is then used to query about configuration
-information, to get the local communicator, and to create ports.
-
-There should be no need to link an application differently when it is
-used together with other applications in a MUSIC setting compared to
-when it is used in a stand-alone setting.  In order to support
-``standard'' operation for the application,
-\lstinline|setup::communicator ()|, therefore, will return
-MPI::COMM\_WORLD if the job is started directly with
-\lstinline|mpirun| instead of with the MUSIC launcher.
-
-Creating the runtime object will implicitly call the \lstinline|setup|
-object destructor.
-
-During simulation, the application should repeatedly call
-\lstinline|runtime::tick ()|.  This is typically done at each simulation
-time step.
-
-\section{Timing Considerations}
-
-During a MUSIC simulation data is communicated between two connectors
-by pairwise blocking communication.  Both sends and receives occur
-within a \lstinline|tick ()| call.
-
-\subsection{Global clock}
-
-Connector pairs do not necessarily communicate at every tick.  It is
-therefore important that both sender and receiver know when to
-communicate.  In order to determine this deterministically MUSIC uses
-an internal global integer clock.  Application specific tick intervals
-are translated to an integral number of global clock time steps using
-the MUSIC \emph{timebase}.  The timebase can be specified in the
-configuration file using the variable name ``timebase''.  The default
-value is 1 ns.
-
-The reference implementation uses a 64-bit integer to represent the
-global clock.
-
-\begin{rationale}
-  \emph{Discuss indeterminacy of floating-point arithmetic, in particular
-    with regard to re-ordering of arithmetic operations by the compiler.}
-\end{rationale}
-
-\subsection{Time zone difference}
-
-Minimal latency
-
-\subsection{Communication schedule}
-
-The order of calls to \lstinline|MPI::Send| and \lstinline|MPI::Receive| within
-output and input connectors can be important.  Consider two
-connections between the same pair of applications.  If application 1
-sends on output connectors A and B in sequence, within the same tick,
-while application 2 receives on the corresponding input connectors in
-reverse order (B, A) there will be a dead-lock.
-
-Such dead-lock:s are avoided by imposing a fixed pairwise
-communication schedule.  The setup phase creates and sorts output and
-input connectors into a vector according to this schedule.  This
-vector is passed to the runtime object.  At each \lstinline|tick ()|, the
-runtime object iterates through the vector, giving each connector an
-opportunity to communicate.
-
-\subsection{Initialization}
-
-Before creating the runtime object at the end of the setup phase, the
-user must initialize all data associated to output ports through
-datamap:s.  During the call to the runtime object constructor, this
-data is transferred to all input ports.  This is so that data can
-subsequently be correctly interpolated.
-\end{metatext}
 
 \appendix
 

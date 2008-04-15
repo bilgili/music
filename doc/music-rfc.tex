@@ -477,10 +477,10 @@ for data to arrive in time despite the fact that it was available
 later than when it was arriving.
 
 Figure~\ref{fig:timinglonger} illustrates what happens when the
-receiver is calling tick faster then the sender.  The sender will then
-have to buffer up multiple values to be transferred at a suitable tick
-call, and the receiver will portion these values out at the
-appropriate ticks.
+receiver of continuous data is calling tick faster then the sender.
+The sender will then buffer up values from the preceding and current
+ticks and transfer this at a suitable tick call.  The receiver will
+portion these values out by interpolating at the appropriate ticks.
 
 The strategy of having the receiver application running with a delayed
 local clock only works when the connection graph forms a directed

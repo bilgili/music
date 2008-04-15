@@ -48,11 +48,6 @@
 {{\color{red}[#1 is responsible for this section]}}
 
 
-% Use the irresponsible command to indicate which author is generally
-% irresponsible
-\newcommand{\irresponsible}[1]%
-{{\color{red}[#1 is an irresponsible author]}}
-
 \fancyhead{}
 \fancyhead[L]{\slshape\leftmark}
 
@@ -493,9 +488,11 @@ acyclic graph (DAG)\index{DAG}\index{acyclic graph}\index{loops}.
 When loops occur it is necessary to allow for data arriving late, at
 least somewhere along each loop.  MUSIC handles this via
 \emph{acceptable latency}\index{acceptable latency}\index{latency}
-which is a property of each input port.  The receiving application
+which is a property of event input ports.  The receiving application
 declares how late data may arrive, thus giving MUSIC room for
-resolving the scheduling problem.
+resolving the scheduling problem.  In the case of continuous data, the
+application specifies a \emph{delay}\index{delay} which fulfills the
+same purpose.
 
 
 \section{Message Ports}\index{message port}
@@ -666,7 +663,6 @@ memory during the entire execution of the method, and it is the caller
 who is responsible for the deallocation of the object afterwards.
 
 \section{Error handling}
-\irresponsible{Mikael}
 
 MUSIC follows the style of error handling in the MPI standard, which
 is described in sections 7.2 and 7.3 in the MPI 1.2
@@ -678,13 +674,14 @@ fall back on the error handling mechanisms of MPI.  A MUSIC exception
 thus results in a call to the MPI error handler.  MUSIC installs
 suitable error codes, classes and strings so that the MPI error
 handler is able to generate suitable error messages.  The default
-error handler of MPI is MPI_ERRORS_ARE_FATAL which means that any
-error handled by MUSIC will result in the program being aborted.
+error handler of MPI is \lstinline|MPI_ERRORS_ARE_FATAL| which means
+that any error handled by MUSIC will result in the program being
+aborted.
 
 Using the error handling of MPI requires features only described in
 the MPI 2.0 report.  For MPI implementations which lack this support,
 MUSIC uses its own error handler which has the same behavior as
-MPI_ERRORS_ARE_FATAL.
+\lstinline|MPI_ERRORS_ARE_FATAL|.
 
 \section{Setup}
 
@@ -982,7 +979,7 @@ framework assumes that handling and delivery of delayed spikes occurs
 on the receiver side.  In such a case, the receiver may allow MUSIC to
 deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
-\lstinline|accept_latency| argument.
+\lstinline|acc_latency| argument.
 
 The optional argument \lstinline|max_buffered| has a similar meaning
 as for event ports above but the actual amount of data buffered is, in
@@ -1459,6 +1456,24 @@ figure~\ref{fig:remapping2}
 
 \section{Advancing Simulation Time}
 
+The application must call the \lstinline|tick| function repeatedly
+throughout the simulation.  The application will have to ensure that
+these calls are made at regular intervals, as specified to the runtime
+constructor.  Note that this refers to \emph{simulated time}; there is
+no need to consider how long computation time (``wall clock time'') is
+used between tick calls.
+
+If the application makes use of variable time steps internally, it may
+be necessary to use some sort of checkpoints at fixed intervals where
+tick can be called.  It is not necessary to call tick at every
+integration step, but the calls should not be too infrequent.
+
+The tick calls are the only times during runtime when MUSIC will use
+MPI.  MUSIC will then use its own communicators, not to interfere with
+the MPI operations of the application.  Still, we recommend that the
+application does not intersperse the tick calls with ongoing MPI
+operations.
+
 
 \section{Initialization and Finalization}
 
@@ -1471,13 +1486,20 @@ constructor calls \lstinline|MPI:Init| for the application.
 The setup object is used to query about configuration information, to
 get the local communicator, and to create ports.
 
+The application will have to replace all uses of the global
+communicator \lstinline|MPI::COMM_WORLD| with the communicator
+supplied by MUSIC.  The global communicator will be global over all
+applications and it is necessary to limit the MPI operations to be
+local within the application.
+
 There should be no need to link an application differently when it is
 used together with other applications in a MUSIC setting compared to
 when it is used in a stand-alone setting.  In order to support
 ``standard'' operation for the application,
 \lstinline|setup::communicator ()|, therefore, will return
-MPI::COMM\_WORLD if the job is started directly with
+\lstinline|MPI::COMM_WORLD| if the job is started directly with
 \lstinline|mpirun| instead of with the MUSIC launcher.
+
 
 
 \subsection{Initiate the runtime phase}

@@ -873,7 +873,7 @@ determine if a width has been specified and retrieve the width using
   Applications can use the above methods to adapt their port width.  A
   typical usage would be a general purpose post-processing tool which
   receives information from an ongoing simulation.  Such a tool can
-  publish a number of optional import ports and then use
+  publish a number of optional input ports and then use
   \lstinline|is_connected| and \lstinline|width| to adapt its internal
   processing depending on what kind of data source it is actually
   connected to.  See example \ref{code:adaptivewidth}.
@@ -1380,18 +1380,44 @@ than when they should reach their destination compartment.  It is
 therefore necessary to save incoming spikes in some sort of sorted
 buffer (typically a priority queue).
 
+\begin{figure}
+  \begin{center}
+    \begin{minipage}[t]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/remapping}
+      \caption[Processing of incoming data]{\label{fig:remapping1}
+        The sender application presents the data to the output port in
+        the same order as it is stored internally.  The receiving
+        application will see the transferred data in the same order
+        and will explicitly have to implement a proper reordering to
+        implement a typical synaptic projection.
+      }
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{figures/remapping2}
+      \caption[Remapping of data within MUSIC]{\label{fig:remapping2}
+        If there is a one-to-one correspondence between sending and
+        receiving neurons, the receiving application can specify an
+        appropriate index map to instruct MUSIC to send the data
+        directly to the right destination.
+      }
+    \end{minipage}
+  \end{center}
+\end{figure}
+
 In addition, MUSIC will always present the spikes as they appear in
 the sending group of neurons.  In most situations, the receiving
 application will want to implement a remapping to the target
-compartments.  One spike may thus end up at multiple postsynaptic
-compartments, spread out over the processors of the receiving
-application.
+compartments, as illustrated in figureref{fig:remapping1}.  One spike
+may thus end up at multiple postsynaptic compartments, spread out over
+the processors of the receiving application.
 
 In some situations it may be desirable for the receiving application
 to avoid the remapping.  The application can the utilize the different
 forms of mappings available in MUSIC to create a general permutation
 so that MUSIC will send the spikes directly to the processor where it
-should be handled.
+should be handled.  This situation is illustrated in
+figure~\ref{fig:remapping2}
 
 
 \section{Advancing Simulation Time}
@@ -1401,16 +1427,34 @@ should be handled.
 
 \subsection{Initiate MUSIC}\index{initiate MUSIC}
 
-  This is done by calling the \lstinline!setup! function.
+The idea here is to replace the call to \lstinline|MPI:Init| with a
+call to the \lstinline|MUSIC:setup| constructor.  The setup
+constructor calls \lstinline|MPI:Init| for the application.
+
+The setup object is used to query about configuration information, to
+get the local communicator, and to create ports.
+
+There should be no need to link an application differently when it is
+used together with other applications in a MUSIC setting compared to
+when it is used in a stand-alone setting.  In order to support
+``standard'' operation for the application,
+\lstinline|setup::communicator ()|, therefore, will return
+MPI::COMM\_WORLD if the job is started directly with
+\lstinline|mpirun| instead of with the MUSIC launcher.
+
 
 \subsection{Initiate the runtime phase}
 
-  At this stage, MUSIC can build the plan for communication between
-  different processes.
+Creating the runtime object will implicitly call the \lstinline|setup|
+object destructor to ensure that the application will no longer be
+able to change the communication pattern.  At this stage, MUSIC can
+build the plan for communication between different processes.
 
 \subsection{Finalize MUSIC}\index{finalize}\index{terminate}
 
-  By deleting the runtime object, all MUSIC communication is terminated.
+The application should also replace its call to
+\lstinline|MPI:Finalize| by the destruction of the runtime object.
+The destructor method will internally call \lstinline|MPI:Finalize|.
 
 
 \begin{metatext}

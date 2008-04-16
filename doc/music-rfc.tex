@@ -1552,7 +1552,7 @@ used between tick calls.
 If the application makes use of variable time steps internally, it may
 be necessary to use some sort of checkpoints at fixed intervals where
 tick can be called.  It is not necessary to call tick at every
-integration step, but the calls should not be too infrequent.
+integration time step, but the calls should not be too infrequent.
 
 The tick calls are the only times during runtime when MUSIC will use
 MPI.  MUSIC will then use its own communicators, not to interfere with
@@ -1572,8 +1572,8 @@ constructor calls \lstinline|MPI:Init| for the application.
 The application will have to replace all uses of the global
 communicator \lstinline|MPI::COMM_WORLD| with the communicator
 supplied by MUSIC.  The global communicator will be global over all
-applications and it is necessary to limit the MPI operations to be
-local within the application.
+applications and it is necessary to limit the MPI operations to the
+group of MPI processes belonging to the application.
 
 There should be no need to link an application differently when it is
 used together with other applications in a MUSIC setting compared to

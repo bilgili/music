@@ -51,7 +51,7 @@ main (int args, char* argv[])
       time = runtime->time ();
     }
 
-  runtime->finalize ();
+  delete runtime;
 
   return 0;
 }

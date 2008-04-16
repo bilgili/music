@@ -1332,7 +1332,12 @@ if (!config ("gKCa", &gKCa))
 
 Creation of the runtime object marks the transition from the setup to
 the runtime phase.  The runtime object constructor destroys the setup
-object, effectively making it impossible to create new ports.
+object, effectively making it impossible to create new ports.  All
+data structures which have been associated with ports during mapping
+must be initialized to some suitable start value at the time of the
+call to the runtime constructor.  These values are used during early
+data transfers of data sampled at negative values of simulation time
+and, thus, not available.
 
 \begin{code}{runtime}
   ...

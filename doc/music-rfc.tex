@@ -703,12 +703,13 @@ the formal syntax of configuration files.
 
 This chapter describes the API to the MUSIC library.  The API is
 object oriented and all communication with the library is performed
-via instance methods of different classes of objects.  The most common
+via instance methods of different classes of objects.  Appendix
+\ref{app:cint} presents an alternative C interface.  The most common
 way of passing objects as arguments in MUSIC is via pointers.  The
-only exception is the setup constructor.  The conventions are then
-that it is the caller who should make sure that the object exists in
-memory during the entire execution of the method, and it is the caller
-who is responsible for the deallocation of the object afterwards.
+only exception is the setup constructor.  The convention is that the
+caller should make sure that objects exist in memory during the entire
+execution of the method, and is also responsible for the deallocation
+of objects afterwards.
 
 \section{Error handling}
 
@@ -1630,6 +1631,7 @@ The destructor method will internally call \lstinline|MPI:Finalize|.
 \appendix
 
 \chapter{C Interface}
+\label{app:cint}
 
 Most elements of the C interface can be constructed from their C++
 counterparts using a few translation rules:

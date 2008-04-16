@@ -1126,11 +1126,11 @@ subclassing it.
 
 Message handlers are called by message input ports to deliver
 messages.  The application is supposed to customize
-\lstinline|message| and \lstinline|message_handler| by subclassing.
-It is recommended that messages are text strings with the syntax of
-the interpreter language of the receiving application, and that these
-text strings originate from a user-specified configuration file read
-by the sending application.
+\lstinline|message_handler| by subclassing.  It is recommended that
+messages are text strings with the syntax of the interpreter language
+of the receiving application, and that these text strings originate
+from a user-specified configuration file read by the sending
+application.
 
 \index{map}\index{mapping message ports}
 \begin{head}{map}
@@ -1160,35 +1160,44 @@ The sender registers a message for transmission by calling the method
 
 \index{insert\_message}
 \begin{head}{insert_message}
-  void message_output_port::insert_message (message* msg, size_t size)
+  void message_output_port::insert_message (double t, void* msg, size_t size)
 \end{head}
 \begin{parameters}
-  \lstinline|msg| & pointer to message subclass instance \\
-  \lstinline|size| & size of message instance in bytes \\
+  \lstinline|t| & time stamp (s) \\
+  \lstinline|msg| & pointer to message \\
+  \lstinline|size| & size of message in bytes \\
 \end{parameters}
 
 MUSIC will deliver this message through a call to the user-specified
-\lstinline|message_handler| on the receiver side.
+\lstinline|message_handler| on the receiver side no later than
+\lstinline|acc_latency| with regard to the time stamp.
+
+\begin{code}{Sending a message}
+{
+  ...
+  char msg[] = "string to send";
+  port->insert_message (runtime->time (), msg, sizeof (msg));
+  ...
+}
+\end{code}
 
 
 \subsubsection{Receiving messages}
 
 \begin{head}{message_handler,operator}
-  class message {
-   public:
-    message (double t);
-    double t ();
-  };
-
   class message_handler {
   public:
-    virtual void operator () (message* msg, size_t size) = 0;
+    virtual void operator () (double t, void* msg, size_t size) = 0;
   };
 \end{head}
 \begin{parameters}
+  \lstinline|t| & time stamp supplied by sender (s) \\
   \lstinline|msg| & pointer to message subclass instance \\
   \lstinline|size| & size of message instance in bytes \\
 \end{parameters}
+
+The message given to the \lstinline|message_handler| is deallocated by
+the MUSIC library.
 
 
 \subsection{Index maps}
@@ -1613,6 +1622,7 @@ The destructor method will internally call \lstinline|MPI:Finalize|.
 
 In the final MUSIC specification, this appendix will contain a
 description of the C API to MUSIC.
+
 
 
 \chapter{Specification File Syntax}

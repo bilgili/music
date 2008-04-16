@@ -1,5 +1,7 @@
 \documentclass[a4paper]{report}
 
+\usepackage[numbers]{natbib}
+\citestyle{newapa}
 \usepackage[utf8]{inputenc}
 \usepackage{fancyhdr}
 \usepackage{color}
@@ -96,7 +98,7 @@ applications in a cluster environment.  The standard is designed
 specifically for interconnecting large scale neuronal network
 simulators, either with each-other or with other tools.
 
-A typical usage case is illustrated in figure~\ref{fig:multisim},
+A typical usage example is illustrated in figure~\ref{fig:multisim},
 where three applications ($A$, $B$, and $C$) are executing in parallel
 while exchanging data via MUSIC.  We will refer to this as a
 \emph{multi-simulation}, since the participating applications
@@ -192,13 +194,12 @@ common MUSIC interface.
 
 \subsection{Performance}
 
-The MUSIC API has been designed to allow for highly efficient data
-transport.  MUSIC is designed for cases where data flows of very high
+The MUSIC API has been designed to allow for data transport of high
 bandwidth and low latency within the cluster.  One means of ensuring
 the best use of the hardware while maintaining portability is to use
 the facilities of MPI for communication.  MPI encapsulates software
-optimizations for specific hardware, and by basing the interface on
-MPI we can benefit from such optimizations.
+optimizations for specific hardware. By basing the interface on MPI we
+can benefit from such optimizations.
 
 
 \subsection{Extensibility}
@@ -224,10 +225,11 @@ directly in the API.
 
 \item[port] Each application declares its ability to produce and
   consume data by publishing \emph{ports}\index{port}.  Ports are
-  named by the application along with information about the datatype
-  (continuous data, spike events, messages) and mapping onto different
-  processors.  Ports are either \lstinline|input_ports|\index{input
-    port} or \lstinline|output_ports|\index{output port}.
+  named by the application and provided with information about the
+  datatype (continuous data, spike events, messages) and mapping onto
+  different processors.  Ports are either
+  \lstinline|input_ports|\index{input port} or
+  \lstinline|output_ports|\index{output port}.
 
 \item[connection] During the setup phase, MUSIC connects pairs of
   ports together to form \emph{connections}\index{connection}.  During
@@ -241,20 +243,20 @@ directly in the API.
   where data actually resides within the application.  This is
   typically stored internally in the port data structure.  Data to be
   transferred over a connection can be regarded as a large array
-  distributed over multiple processors, and the data map can tell on
+  distributed over multiple processors. The data map tells on
   what processor each data element resides and how it should be
   accessed.
 
 \item[ticks] During the runtime phase, all processes in each
   application must make a \emph{tick}\index{tick} call at regular
   intervals in simulated time.  At these tick points, MUSIC is allowed
-  to use MPI to transfer the data between processors.
+  to use MPI to transfer data between processors.
 \end{description}
 
 
 \section{Relation to Existing Software}
 
-MUSIC is not the only software project aiming to support the
+MUSIC is not the only software project aiming to support
 inter-operability between neural simulators.  In this section we will
 briefly describe some related projects and specifically focus on how
 they relate to MUSIC.
@@ -310,26 +312,31 @@ applications, is executed in three distinct phases:
   applications are started on the processors.  During this phase,
   MUSIC is responsible for distributing and launching the application
   binaries on the set of MPI processes allocated to the MUSIC job.
-  This has to be done before MPI is initialized and therefore has to
-  be handled separately for different MPI implementations.
+  Since MPI can be initialized first when the applications have been
+  launched, most of this work needs to be performed outside of MPI.
+  In particular, the tasks of accessing the command line argument of
+  the MUSIC launch utility and of determining the ranks of processes
+  before MPI initialization therefore has to be handled separately for
+  different MPI implementations.
 
   Technically, the launch phase begins when \texttt{mpirun} launches
-  the MUSIC binary and ends when the setup object constructor returns.
+  the MUSIC binary and ends when the setup object constructor
+  returns.  (See further description below.)
 
 \item[\textbf{Setup}]\index{setup phase} is the phase when all
   applications can publish what ports they are prepared to handle
   along with the time step they will use and where data will be
   present (where in memory and/or on what processor).  During the
-  setup phase, the applications can read configuration parameters
+  setup phase, applications can read configuration parameters
   communicated via the common configuration file.  At the end of the
   setup phase, MUSIC will establish all connections.
 
   The setup phase begins when the setup object has been created and
   ends when the runtime object constructor returns.
 
-\item[\textbf{Runtime}]\index{runtime phase} is the phase then
+\item[\textbf{Runtime}]\index{runtime phase} is the phase when
   simulation data is actually transferred between applications.  Via
-  the \texttt{tick} calls the simulated time of the applications is
+  \texttt{tick} calls the simulated time of applications is
   kept in order.
 
   The runtime phase begins when the runtime object has been created
@@ -337,7 +344,7 @@ applications, is executed in three distinct phases:
 \end{description}
 
 From the application programmers point of view, these phases are
-clearly separated through the use of the two main components of the
+clearly separated through the use of two main components of the
 MUSIC interface: the \emph{setup} and the \emph{runtime} object.  The
 launch phase is not visible for the application since it handles the
 situation before the application starts.
@@ -665,8 +672,8 @@ who is responsible for the deallocation of the object afterwards.
 \section{Error handling}
 
 MUSIC follows the style of error handling in the MPI standard, which
-is described in sections 7.2 and 7.3 in the MPI 1.2
-report\cite{mpi1.2} and in section 2.8 of the MPI 2.0
+is described in sections 7.2 and 7.3 in the MPI 1.1
+report\cite{mpi1.1} and in section 2.8 of the MPI 2.0
 report\cite{mpi2.0}.  This means that a MUSIC implementation may
 choose not to handle some errors that occur during MUSIC calls.  Each
 error handled by MUSIC generates a MUSIC exception.  MUSIC attempts to
@@ -1551,6 +1558,8 @@ The application should also replace its call to
 \lstinline|MPI:Finalize| by the destruction of the runtime object.
 The destructor method will internally call \lstinline|MPI:Finalize|.
 
+\bibliographystyle{unsrtnat}
+\bibliography{music-rfc}
 
 \appendix
 

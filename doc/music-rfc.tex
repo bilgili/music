@@ -489,9 +489,6 @@ The sender will then buffer up values from the preceding and current
 ticks and transfer this at a suitable tick call.  The receiver will
 portion these values out by interpolating at the appropriate ticks.
 
-Figure~\ref{fig:timeline} illustrates the timing relation between
-sender and receiver along a real time axis (wallclock time).
-
 The strategy of having the receiver application running with a delayed
 local clock only works when the connection graph forms a directed
 acyclic graph (DAG)\index{DAG}\index{acyclic graph}\index{loops}.
@@ -503,6 +500,15 @@ declares how late, according to simulation time, data may arrive, thus
 giving MUSIC room for resolving the scheduling problem.  In the case
 of continuous data, the application specifies a
 \emph{delay}\index{delay} which fulfills the same purpose.
+
+In figures \ref{fig:timingshorter} and \ref{fig:timinglonger}, the
+sending application must be running ahead of the receiver in order to
+maintain the illusion that communication is instantaneous.
+Figure~\ref{fig:timeline} illustrates the timing relation between
+sender and receiver along a real time axis (wallclock time) when the
+receiver accepts a delay of incoming data.  This allows the receiver
+(B) to run ahead of the sender (A), thus creating the slack necessary
+to make schedules for communication loops.
 
 \begin{figure}
   \begin{center}

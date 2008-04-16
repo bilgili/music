@@ -35,7 +35,7 @@ main (int args, char* argv[])
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = setup->done (TIMESTEP);
+  MUSIC::runtime* runtime = MUSIC::runtime (setup, TIMESTEP);
 
   double time = runtime->time ();
   while (time < stoptime)

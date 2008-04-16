@@ -717,7 +717,7 @@ MUSIC follows the style of error handling in the MPI standard, which
 is described in sections 7.2 and 7.3 in the MPI 1.1
 report\cite{mpi1.1} and in section 2.8 of the MPI 2.0
 report\cite{mpi2.0}.  A particular implementation of the MUSIC library
-does not guarantee that it handles all kinds of errors that may occur
+does not guarantee that it handles all kinds of error that may occur
 during MUSIC calls.  Each error handled by MUSIC generates a MUSIC
 exception.  MUSIC attempts to fall back on the error handling
 mechanisms of MPI.  A MUSIC exception thus results in a call to the
@@ -906,7 +906,7 @@ if (out->is_connected ())
 
 The width of a port\index{port width}, that is the number of data
 elements transferred in parallel from a cont port or the largest
-possible id of an event port $+ 1$, can be specified in the
+possible id of an event port $+$ 1, can be specified in the
 configuration file.  This should be thought of as a request for a
 given width.  Applications can use the method \lstinline|has_width| to
 determine if a width has been specified and retrieve the width using
@@ -943,7 +943,7 @@ determine if a width has been specified and retrieve the width using
 Some applications, for example those who provide some kind of more
 generic processing, like a visualization application, may want to be
 able to accept input of any width.  This can be achieved using the
-methods described in section \ref{sec:width}:
+methods described in this section:
 
 \begin{code}{Publishing port of adaptive width\label{code:adaptivewidth}}
 {

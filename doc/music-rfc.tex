@@ -160,6 +160,7 @@ not support multiple threads or processes.
 
 
 \subsection{Simplicity}
+\label{sec:simplicity}
 
 For MUSIC to be useful, it must be possible to adapt existing
 simulators so that they can participate in a multi-simulation without
@@ -363,8 +364,8 @@ of execution.
 
 Communication between applications is handled by ports.  Ports are
 named sources (output ports) or sinks (input ports) of data flows.
-The data to be communicated between the sender application and the
-receiver may be differently organized in process memory, the
+The data to be communicated may be differently organized in process
+memory on the receiver side compared to the sender side.  The
 applications may run on different numbers of processes, and, the data
 may be differently distributed among the sender processes and the
 receiver processes, as is shown in Figure~\ref{fig:datamapping}.  How
@@ -381,10 +382,10 @@ For example, local data stored in an array may be associated with an
 arbitrary subset of global indices in an arbitrary order.
 
 The MUSIC library is informed about the relationship between global
-and local indices during the setup phase.  Two abstractions are used
-to carry this information:
+and local indices and how data is stored in memory during the setup
+phase.  Two abstractions are used to carry this information:
 
-The \lstinline|index_map| maps indices local to global indices.  That
+The \lstinline|index_map| maps local indices to global indices.  That
 is, the \lstinline|index_map| tells which parts of a distributed data
 array are handled by the local process and how the data elements are
 locally ordered.
@@ -393,7 +394,8 @@ The \lstinline|data_map| encapsulates how a port accesses its data.
 The \lstinline|data_map| contains an \lstinline|index_map|.  While an
 index map is a mapping between two kinds of indices, the data map also
 contains information about where in memory data resides, how it is
-structured, and, the type of the data elements.
+structured, and, the type of the data elements.  The type is used for
+marshalling when running on a heterogeneous cluster.
 
 During setup every process of the application individually provides
 the port with a \lstinline|data_map| (or an \lstinline|index_map| in
@@ -402,13 +404,11 @@ the case of event ports).
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.7\textwidth]{figures/datamapping}
-    \caption[Mapping of data]{\label{fig:datamapping}
-      Data transfer over a connection from an application running in
-      four processes to an application running in three other.  The
-      light gray areas in the sender and receiver represents the MUSIC
-      port.  Dashed lines divide the application into distinct
-      processes.
-    }
+    \caption[Mapping of data]{\label{fig:datamapping} Data transfer
+      over a connection from an application running in four processes
+      to an application running in three processes.  The light gray
+      areas in the sender and receiver represents the MUSIC port.
+      Dashed lines divide the application into distinct processes.  }
   \end{center}
 \end{figure}
 
@@ -433,9 +433,9 @@ responsibility of MUSIC to ensure that data is delivered at the
 appropriate time.  In order to minimize handshaking, both parts of a
 connection pair locally calculate when the actual data transfer over
 MPI takes place.  To ensure that these calculations produce
-predictable results, simulation time is represented using integers
-with a global micro-timestep\index{micro-timestep} common for all
-applications.
+predictable results, simulation time is internally represented using
+integers with a global micro-timestep\index{micro-timestep} common for
+all applications.
 
 Simulation time\index{simulation time} is local for each application
 and MUSIC does not enforce unnecessary synchronization between these
@@ -444,9 +444,9 @@ ahead of another application which consumes the same data.  MUSIC
 internally builds a schedule which ensures that data arrives at the
 appropriate local time in the receiving application.  Scheduling
 becomes more complex when data is not only transferred in a
-feed-forward manner, i.e. the connection graph contains loops.  In
-this case MUSIC has to rely on the existence of sufficient delays in
-the simulated model, typically corresponding to axonal
+feed-forward manner, i.e. when the connection graph contains loops.
+In this case MUSIC has to rely on the existence of sufficient delays
+in the simulated model, typically corresponding to axonal
 delays\index{axonal delay}.
 
 \begin{figure}
@@ -481,7 +481,7 @@ application can run with its simulation clock set independently of the
 sender.  The arrows going ``backwards in time'' in this area reflect
 the fact that the receivers clock is lagging.  This makes it possible
 for data to arrive in time despite the fact that it was available
-later than when it was arriving.
+later than when it was arriving according to simulation time.
 
 Figure~\ref{fig:timinglonger} illustrates what happens when the
 receiver of continuous data is calling tick faster then the sender.
@@ -499,10 +499,10 @@ When loops occur it is necessary to allow for data arriving late, at
 least somewhere along each loop.  MUSIC handles this via
 \emph{acceptable latency}\index{acceptable latency}\index{latency}
 which is a property of event input ports.  The receiving application
-declares how late data may arrive, thus giving MUSIC room for
-resolving the scheduling problem.  In the case of continuous data, the
-application specifies a \emph{delay}\index{delay} which fulfills the
-same purpose.
+declares how late, according to simulation time, data may arrive, thus
+giving MUSIC room for resolving the scheduling problem.  In the case
+of continuous data, the application specifies a
+\emph{delay}\index{delay} which fulfills the same purpose.
 
 \begin{figure}
   \begin{center}
@@ -527,29 +527,33 @@ same purpose.
 \section{Message Ports}\index{message port}
 
 In addition to the port types which handle continuous and spike event
-data, there are \emph{message ports}.  These allow for arbitrary
-messages of, for example, control information being sent between
-applications.  A multi-simulation may, for example, be controlled by a
-script running in a Python process on one of the cluster nodes.  The
-script may use a message port to alter a parameter or to turn on a
-stimulus in an application at a certain point in time.
+data, MUSIC provides \emph{message ports}.  Message ports allow for
+transmission of arbitrary messages of, for example, control
+information between applications.  A multi-simulation may, for
+example, be controlled by a script running in a Python process on one
+of the cluster nodes.  The script may use a message port to alter a
+parameter or turn on a stimulus in an application at a certain point
+in time.
 
-Messages sent from any process on the sender side are routed to all
-processes on the receiver side which have announced there willingness
-to receive messages.
+Messages sent from any process on the sender side of the connection
+are routed to all processes on the receiver side which have announced
+there willingness to receive messages.  Contrary to ports for
+continuous data, any marshalling is the responsibility of the sender
+and receiver application.
 
 To achieve independence between MUSIC applications, it is recommended
-that the only messages being sent are text strings with the syntax of
-the interpreter language of the receiving application, and that these
-text strings originate from a user-specified configuration file read
-by the sending application.
+that messages are text strings with the syntax of the interpreter
+language of the receiving application, and that these text strings
+originate from a user-specified configuration file read by the sending
+application.
 
 
 \section{Application Responsibilities}
 
 One goal of MUSIC has been to limit the responsibilities imposed on
-each application.  Here we present a step-by-step list of what an
-application must do in order to participate in a multi-simulation.
+each application (c.f. section \ref{sec:simplicity}).  Here we present
+a step-by-step list of what an application must do in order to
+participate in a multi-simulation.
 
 \begin{enumerate}
 \item \textbf{Initiate MUSIC}\index{initiate MUSIC}
@@ -561,11 +565,11 @@ application must do in order to participate in a multi-simulation.
   ports.
 \item \textbf{Map ports}\index{map ports}
 
-  MUSIC is informed about where the actual data is located.
-  This includes information about which processor owns each data
-  element.  For continuous data it also includes information about
-  where in memory it is stored, while for event data it defines what
-  functions to use to send and receive the events.
+  MUSIC is informed about where the actual data is located.  This
+  includes information about which processor owns each data element.
+  For continuous data it also includes information about where in
+  memory it is stored, while for event data it specifies how to
+  receive events.
 \item \textbf{Initiate the runtime phase}
 
   At this stage, MUSIC can build the plan for communication between
@@ -600,7 +604,7 @@ between them is described in a common \emph{configuration
   that individual applications should remain ignorant about the
   structure of the full multi-simulation.  Thus, the API provides
   methods for asking about the parts of the configuration relevant for
-  that application, i.e. the ports, but does not expose the complete
+  that application, i.e. its ports, but does not expose the complete
   communication graph.
 \end{rationale}
 
@@ -609,7 +613,7 @@ between them is described in a common \emph{configuration
 
 The main purpose of the configuration file is to control what
 applications to start, and to connect output ports to input ports.
-The configuration file specifies the number of processors allocated to
+The configuration file specifies the number of MPI processes allocated to
 each application.
 
 The configuration file consists of a sequence of blocks, each starting
@@ -634,12 +638,21 @@ The following variable names have special meaning to MUSIC:
   \item[args] Command line given to the binary
   \item[np] The number of MPI processes to allocate for the application
   \item[timebase] The length of a MUSIC micro-step, that is, the
-    resolution of MUSIC:s internal clocks).  (Default value is 1 ns.)
+    resolution of {MUSIC}:s internal clocks).  (Default value is 1
+    ns.)
 \end{description}
+\begin{rationale}
+  The possibility to specify the MUSIC timebase is provided since the
+  timebase is a compromise between resolution and maximal simulation
+  time.  With 64-bit clocks, a timebase of 1 ns gives a maximal
+  simulation time of 585 years which should be sufficient for most
+  applications.
+\end{rationale}
+
 Arbitrarily named parameters may also be included in the configuration
 file and these parameters can be accessed from the applications.
 
-A connection between a output and input port is specified using the
+A connection between an output and input port is specified using the
 following syntax:
 \begin{quote}
   \emph{application\_label.port\_name} \lstinline|->| \emph{application\_label.port\_name}
@@ -696,21 +709,28 @@ who is responsible for the deallocation of the object afterwards.
 MUSIC follows the style of error handling in the MPI standard, which
 is described in sections 7.2 and 7.3 in the MPI 1.1
 report\cite{mpi1.1} and in section 2.8 of the MPI 2.0
-report\cite{mpi2.0}.  This means that a MUSIC implementation may
-choose not to handle some errors that occur during MUSIC calls.  Each
-error handled by MUSIC generates a MUSIC exception.  MUSIC attempts to
-fall back on the error handling mechanisms of MPI.  A MUSIC exception
-thus results in a call to the MPI error handler.  MUSIC installs
-suitable error codes, classes and strings so that the MPI error
-handler is able to generate suitable error messages.  The default
-error handler of MPI is \lstinline|MPI_ERRORS_ARE_FATAL| which means
-that any error handled by MUSIC will result in the program being
-aborted.
+report\cite{mpi2.0}.  A particular implementation of the MUSIC library
+does not guarantee that it handles all kinds of errors that may occur
+during MUSIC calls.  Each error handled by MUSIC generates a MUSIC
+exception.  MUSIC attempts to fall back on the error handling
+mechanisms of MPI.  A MUSIC exception thus results in a call to the
+MPI error handler.  MUSIC installs suitable error codes, classes and
+strings so that the MPI error handler is able to generate suitable
+error messages.  The default error handler of MPI is
+\lstinline|MPI_ERRORS_ARE_FATAL| which means that any error handled by
+MUSIC will result in the program being aborted.
 
 Using the error handling of MPI requires features only described in
 the MPI 2.0 report.  For MPI implementations which lack this support,
 MUSIC uses its own error handler which has the same behavior as
 \lstinline|MPI_ERRORS_ARE_FATAL|.
+
+\begin{rationale}
+  The rationale for adhering to the error handling strategy of MPI is
+  that the application is already adapted to this strategy and should
+  not need to adapt to a different error handling strategy when being
+  converted to use MUSIC.
+\end{rationale}
 
 \section{Setup}
 
@@ -946,10 +966,13 @@ methods described in section \ref{sec:width}:
 
 A port is informed about what data exists locally and how to access it
 by mapping it.  Cont ports transfer data from or to memory during
-\lstinline|tick| calls and need to know the layout of data in
-memory.  This information is captured by the data map argument
-\lstinline|dmap|.  The \lstinline|cont_data| type is described in
-section \ref{sec:datamap} below.
+\lstinline|tick| calls and need to know the layout of data in memory.
+In addition, the marshalling (conversion between different bit level
+representations) performed on heterogeneous clusters requires
+information about the data type being transferred.  This information
+is captured by the data map argument \lstinline|dmap|.  The
+\lstinline|cont_data| type is described in section \ref{sec:datamap}
+below.
 
 
 \index{map}\index{mapping cont ports}
@@ -1247,6 +1270,7 @@ map:
 \end{head}
 \begin{parameters}
   \lstinline|buffer|    & data memory location \\
+  \lstinline|type|	& data type \\
   \lstinline|baseindex| & global index of first local element \\
   \lstinline|size|      & number of contiguous global indices \\
 \end{parameters}

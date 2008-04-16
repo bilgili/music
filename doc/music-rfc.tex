@@ -489,6 +489,9 @@ The sender will then buffer up values from the preceding and current
 ticks and transfer this at a suitable tick call.  The receiver will
 portion these values out by interpolating at the appropriate ticks.
 
+Figure~\ref{fig:timeline} illustrates the timing relation between
+sender and receiver along a real time axis (wallclock time).
+
 The strategy of having the receiver application running with a delayed
 local clock only works when the connection graph forms a directed
 acyclic graph (DAG)\index{DAG}\index{acyclic graph}\index{loops}.
@@ -500,6 +503,25 @@ declares how late data may arrive, thus giving MUSIC room for
 resolving the scheduling problem.  In the case of continuous data, the
 application specifies a \emph{delay}\index{delay} which fulfills the
 same purpose.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{figures/timeline}
+    \caption[Timing of ticks]{\label{fig:timeline}
+      This figure illustrates how MUSIC can allow one application (A)
+      to execute ahead of another (B) when transferring continuous
+      data.  The receiver (B) has specified a delay on the input port
+      which means that the value to be delivered at each tick (gray
+      areas) corresponds to a simulated time in A (blue arrows) which
+      has already happened.
+
+      Note that the tick times when MUSIC actually transfers data will
+      be aligned on the real time axis, since blocking communication
+      is used.  In practice, one of the applications will have to wait
+      for the other to reach the same point in its execution.
+    }
+  \end{center}
+\end{figure}
 
 
 \section{Message Ports}\index{message port}

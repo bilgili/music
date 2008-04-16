@@ -95,3 +95,27 @@ MUSIC_Array_data *MUSIC_Create_linear_array_data (void *buffer,
 
 void MUSIC_Destroy_array_data (MUSIC_Array_data *array_data);
 
+/* Configuration variables */
+
+/* Result is terminated by \0 unless longer than maxlen - 1 */
+
+int MUSIC_Config (MUSIC_Setup *setup,
+		  char *name,
+		  char *result,
+		  size_t maxlen);
+
+int MUSIC_Config (MUSIC_Setup *setup, char *name, int *result);
+
+int MUSIC_Config (MUSIC_Setup *setup, char *name, double *result);
+
+/* Runtime */
+
+MUSIC_Runtime *MUSIC_Create_runtime (MUSIC_Setup *setup, double h);
+
+void MUSIC_Tick (MUSIC_Runtime *runtime);
+
+double MUSIC_Time (MUSIC_Runtime *runtime);
+
+/* Finalization */
+
+void MUSIC_Destroy_runtime (MUSIC_Runtime *runtime);

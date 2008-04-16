@@ -118,6 +118,6 @@ void MUSIC_tick (MUSIC_runtime *runtime);
 
 double MUSIC_time (MUSIC_runtime *runtime);
 
-/* finalization */
+/* Finalization */
 
 void MUSIC_destroy_runtime (MUSIC_runtime *runtime);

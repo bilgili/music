@@ -24,11 +24,13 @@ void MUSIC_destroy_message_input (MUSIC_message_input_port* port);
 
 /* General port methods */
 
-/* xxx = ( cont | event | message ) ( output | input ) */
+/* xxx = cont | event
+   ddd = output | input */
 
-int MUSIC_xxx_port_is_connected (xxx_port *port);
-int MUSIC_xxx_port_has_width (xxx_port *port);
-int MUSIC_xxx_port_width (xxx_port *port);
+int MUSIC_xxx_ddd_port_is_connected (xxx_ddd_port *port);
+int MUSIC_message_ddd_port_is_connected (message_ddd_port *port);
+int MUSIC_xxx_ddd_port_has_width (xxx_ddd_port *port);
+int MUSIC_xxx_ddd_port_width (xxx_ddd_port *port);
 
 /* Mapping */
 

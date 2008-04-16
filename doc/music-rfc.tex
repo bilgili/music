@@ -1486,13 +1486,14 @@ model variables to communicate, and what names to use for ports.
 Assuming that we have introduced such constructs into the scripting
 language, we must decide on a suitable point in the initialization
 process where ports should be created and mapped.  Since continuous
-data is read from, or written to, arrays in memory, the program must
-have allocated its runtime data structures in order to perform the
-mapping.
+data is read from, or written to, application memory space, the
+program must have allocated its runtime data structures in order to
+perform the mapping.
 
-Communication of spikes will use event ports, where functions are used
-to send and receive spikes.  Sending of spikes is relatively
-straightforward, since the only thing needed is to add a call where
+Communication of spikes will use event ports. Function calls are used
+to send and receive individual spike events.  Sending of spikes is
+relatively straightforward, since the only thing needed is to add a
+call to the method \lstinline|insert_event| at the location where
 spikes are normally detected in the program.  Receiving spikes
 requires more administration, since the spikes can be received earlier
 than when they should reach their destination compartment.  It is

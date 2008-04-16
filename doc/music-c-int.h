@@ -50,7 +50,7 @@ void MUSIC_event_output_port_map (MUSIC_event_output_port *port,
 				  MUSIC_index_map *indices,
 				  int max_buffered);
 
-typedef void MUSIC_event_hahndler (double t, int id);
+typedef void MUSIC_event_handler (double t, int id);
 
 void MUSIC_event_input_port_map (MUSIC_event_input_port *port,
 				 MUSIC_index_map *indices,
@@ -61,7 +61,7 @@ void MUSIC_event_input_port_map (MUSIC_event_input_port *port,
 void MUSIC_message_output_port_map (MUSIC_message_output_port *port,
 				    int max_buffered);
 
-typedef void MUSIC_event_hahndler (double t, void *msg, size_t size);
+typedef void MUSIC_message_handler (double t, void *msg, size_t size);
 
 void MUSIC_message_input_port_map (MUSIC_message_handler *handle_message,
 				   double acc_latency,

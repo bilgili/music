@@ -1631,10 +1631,24 @@ The destructor method will internally call \lstinline|MPI:Finalize|.
 
 \chapter{C Interface}
 
-In the final MUSIC specification, this appendix will contain a
-description of the C API to MUSIC.
+Most elements of the C interface can be constructed from their C++
+counterparts using a few translation rules:
 
+\begin{enumerate}
+\item All identifiers have the prefix \lstinline|MUSIC_|.
+\item Constructors translate to \lstinline|create_| followed by the
+  class name.
+\item Destructors translate to \lstinline|destroy_| followed by the
+  class name.
+\item Methods translate to class name followed by method name.
+\item References translate to pointers.
+\item Strings translate to \lstinline|char*|.
+\end{enumerate}
 
+Entries which do not strictly follow these rules are preceeded with an
+extra comment in the following listing.
+
+\lstinputlisting{music-c-int.h}
 
 \chapter{Specification File Syntax}
 \label{sec:specsyntax}

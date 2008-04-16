@@ -800,7 +800,11 @@ method.\index{communicator}
 
 The application is supposed to use the application wide communicator
 in place of
-\lstinline|MPI::COMM_WORLD|\index{MPI::COMM\_WORLD}\index{COMM\_WORLD}.
+\lstinline|MPI::COMM_WORLD|\index{MPI::COMM\_WORLD}\index{COMM\_WORLD}. If
+the application binary has been launched using \lstinline|mpirun|
+instead of the \lstinline|music| utility, \lstinline|communicator ()|
+will return \lstinline|MPI::COMM_WORLD| as the application wide
+communicator.
 
 \index{rank}\index{Get\_rank}
 \begin{code}{Accessing the application-wide communicator}

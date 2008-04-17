@@ -481,7 +481,8 @@ application can run with its simulation clock set independently of the
 sender.  The arrows going ``backwards in time'' in this area reflect
 the fact that the receivers clock is lagging.  This makes it possible
 for data to arrive in time despite the fact that it was available
-later than when it was arriving according to simulation time.
+later (e.g. at tick \(s_2\)) than when it was arriving (at \(r_1\)),
+when talking about simulated time.
 
 Figure~\ref{fig:timinglonger} illustrates what happens when the
 receiver of continuous data is calling tick faster then the sender.

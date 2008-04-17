@@ -136,11 +136,11 @@ MUSIC is to relieve the applications from handling this complexity.
 
 \subsection{Portability}
 
-The MUSIC library and support software have been designed to run
+The MUSIC library and utilities have been designed to run
 smoothly on state-of-the-art high-performance hardware.  For maximal
-portability, the software is written in C++, which is the
-de facto standard for current high-end hardware.  MUSIC also provides a
-pure C-interface, making it possible for applications written i C or
+portability, the software is written in C++, which is the de facto
+standard for current high-end hardware.  MUSIC also provides a
+C-interface, making it possible for applications written in C or
 FORTRAN to participate in a MUSIC multi-simulation.
 
 Most, if not all, current efforts in large scale neuronal simulations
@@ -149,12 +149,12 @@ MPI, and uses it to run the different simulators.  MUSIC provides
 means to allow each simulator to use MPI internally without
 interfering with the others.
 
-During the development of MUSIC we have used two reference platforms:
-Intel-based multi-core workstations and the IBM
+MUSIC has been developed using two reference platforms: Intel-based
+multi-core workstations and the IBM
 BlueGene/L\index{BlueGene/L}\index{IBM BlueGene} supercomputer.  These
 platforms can be considered as two extremes, where the multi-core
 machine represents a small parallel environment while the BlueGene/L
-represents a large scale parallel supercomputer with special
+represents a large scale massively parallel supercomputer with special
 requirements.  In particular, the compute nodes on the BlueGene/L do
 not support multiple threads or processes.
 
@@ -167,13 +167,13 @@ simulators so that they can participate in a multi-simulation without
 too much effort.  We rely on the simulator developers to make these
 adaptations.  An important design goal has therefore been to adapt the
 design to the typical structure of current simulators.  It should be
-possible to add usage of the MUSIC library without invasive
-restructuring of the existing simulator.
+possible to add MUSIC library support without invasive restructuring
+of the existing code.
 
-The requirements on an application using MUSIC is primarily that it,
-during the setup phase, declares what data should be exported and
-imported, and that it repeatedly calls a function at regular intervals
-during the simulation to allow MUSIC to make the actual data transfer.
+The primary requirements on an application using MUSIC is that it
+declares what data should be exported and imported and that it
+repeatedly calls a function at regular intervals during the simulation
+to allow MUSIC to make the actual data transfer.
 
 
 \subsection{Independence}
@@ -239,7 +239,7 @@ directly in the API.
   \lstinline|input_port| can have only one connection, an
   \lstinline|output_port| can be connected to multiple
   \lstinline|input_ports|.
-
+\pagebreak
 \item[data map] A data map\index{data map} denotes the information on
   where data actually resides within the application.  This is
   typically stored internally in the port data structure.  Data to be
@@ -541,6 +541,7 @@ of the cluster nodes.  The script may use a message port to alter a
 parameter or turn on a stimulus in an application at a certain point
 in time.
 
+\pagebreak
 Messages sent from any process on the sender side of the connection
 are routed to all processes on the receiver side which have announced
 there willingness to receive messages.  Contrary to ports for
@@ -638,6 +639,7 @@ takes the form of an assignment:
   \emph{varname} = \emph{value}
 \end{quote}
 
+\pagebreak
 The following variable names have special meaning to MUSIC:
 \begin{description}
   \item[binary] Pathname to application binary
@@ -806,6 +808,7 @@ instead of the \lstinline|music| utility, \lstinline|communicator ()|
 will return \lstinline|MPI::COMM_WORLD| as the application wide
 communicator.
 
+\pagebreak
 \index{rank}\index{Get\_rank}
 \begin{code}{Accessing the application-wide communicator}
 /* communicator with global scope */
@@ -841,23 +844,30 @@ whether they handle continuous data, event data or messages.
 \begin{head}{publish_cont_output,publish_cont_input,
             ,publish_event_output,publish_event_input,
             ,publish_message_output,publish_message_input}
-  cont_output_port* setup::publish_cont_output (string id)
+  cont_output_port*
+  setup::publish_cont_output (string id)
 
-  cont_input_port* setup::publish_cont_input (string id)
+  cont_input_port*
+  setup::publish_cont_input (string id)
 
-  event_output_port* setup::publish_event_output (string id)
+  event_output_port*
+  setup::publish_event_output (string id)
 
-  event_input_port* setup::publish_event_input (string id)
+  event_input_port*
+  setup::publish_event_input (string id)
 
-  message_output_port* setup::publish_message_output (string id)
+  message_output_port*
+  setup::publish_message_output (string id)
 
-  message_input_port* setup::publish_message_input (string id)
+  message_input_port*
+  setup::publish_message_input (string id)
 \end{head}
 \begin{parameters}
   \lstinline|id| & port name \\
   \emph{return value} & an unmapped port \\
 \end{parameters}
 
+\pagebreak
 Ports have two stages in life: the \emph{unmapped} stage and the
 \emph{mapped} stage.  A port is unmapped when created.  The MUSIC
 configuration file specifies connections between ports.  It is
@@ -915,6 +925,7 @@ given width.  Applications can use the method \lstinline|has_width| to
 determine if a width has been specified and retrieve it using
 \lstinline|width|.  Message ports do not have width.
 
+\pagebreak
 \index{has\_width}
 \begin{head}{has_width}
   bool port::has_width ()
@@ -979,7 +990,6 @@ is captured by the data map argument \lstinline|dmap|.  The
 \lstinline|data_map| type is described in section \ref{sec:datamap}
 below.
 
-
 \index{map}\index{mapping cont ports}
 \begin{head}{map}
   void cont_output_port::map (data_map* dmap,
@@ -1026,7 +1036,7 @@ which case MUSIC selects the sample on the sender side which is
 closest according to simulation time.
 
 
-
+\clearpage
 \begin{code}{Mapping ports to internal data\label{code:mapping}}
 {
   ...
@@ -1084,10 +1094,11 @@ has a similar meaning as for cont ports above but the actual amount
 of data buffered is, in this case, not deterministic since it is
 dependent on spike rate.
 
+\pagebreak
 \subsubsection{Sending events}
 \index{sending events}
 
-The sender registers an event for transmission by calling the method
+The sender registers events for transmission by calling the method
 \lstinline|insert_event|.
 
 \index{insert\_event}
@@ -1140,20 +1151,21 @@ processes on the receiver side which have provided a
 \begin{head}{map}
   void message_output_port::map (int max_buffered)
 
-  void message_input_port::map (message_handler* handle_message,
+  void message_input_port::map (message_handler* handler,
                                 double acc_latency,
                                 int max_buffered)
 \end{head}
 \begin{parameters}
-  \lstinline|handle_message| & a user-defined message handler \\
+  \lstinline|handler| & a user-defined message handler \\
   \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
   \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
 
+\pagebreak
 \subsubsection{Sending messages}
 
-The sender registers a message for transmission by calling the method
+The sender registers a message for transmission by calling the method\\
 \lstinline|insert_message|.
 
 \index{insert\_message}
@@ -1168,15 +1180,15 @@ The sender registers a message for transmission by calling the method
   \lstinline|size| & size of message in bytes \\
 \end{parameters}
 
-MUSIC will deliver this message through a call to the user-specified
+MUSIC will deliver this message through a call to the user-specified \\
 \lstinline|message_handler| on the receiver side no later than
 \lstinline|acc_latency| with regard to the time stamp.
 
 \begin{code}{Sending a message}
 {
   ...
-  char msg[] = "string to send";
-  port->insert_message (runtime->time (), msg, sizeof (msg));
+  char m[] = "string to send";
+  port->insert_message (runtime->time (), m, sizeof (m));
   ...
 }
 \end{code}
@@ -1283,6 +1295,7 @@ Since data organized in arrays is common, MUSIC provides a convenience
 form of the array data map constructor which also creates a linear
 index map:
 
+\pagebreak
 \begin{head}{array_data}
   array_data::array_data (void* buffer,
                           MPI_Datatype type,
@@ -1352,9 +1365,9 @@ data transfers of data sampled at negative values of simulation time
 and, thus, not available.
 
 \begin{code}{runtime}
-  ...
-  MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
-  ...
+...
+MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+...
 \end{code}
 
 \begin{rationale}
@@ -1459,10 +1472,10 @@ An application supporting MUSIC should replace its call to
 MPI::Finalize with the destruction of the MUSIC runtime object.
 
 \begin{code}{}
-  ...
-  MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
-  ...
-  delete runtime;
+...
+MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+...
+delete runtime;
 \end{code}
 
 \chapter{Adapting Existing Applications}

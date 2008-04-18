@@ -268,10 +268,10 @@ PyNN is a Python package for simulator-independent specification of
 neuronal network models.  It provides a low-level procedural API and a
 high-level object-oriented API.  Neuronal network models which are
 specified using these API:s can be simulated on simulators supporting
-PyNN, such as Neuron and NEST.
+PyNN, such as Neuron\index{Neuron} and NEST\index{NEST}.
 
 PyNN could be extended to support multi-simulations using the MUSIC
-library.  Such an extension would provides means for controlling the
+library.  Such an extension would provide means for controlling the
 interaction between the simulator and the MUSIC library and would, for
 example, support publishing of named ports.
 
@@ -294,7 +294,7 @@ architecture.
 It is possible to develop a MUSIC adapter consistent with the CBI
 simulator architecture.  This would allow the Neurospaces framework,
 and Genesis 3, to interface to independently running applications in a
-cluster environemnt.
+cluster environment.
 
 \begin{metatext}
 \paragraph{Neosim}\index{Neosim}
@@ -601,11 +601,11 @@ Parallel programs based on MPI are normally started by running a
 special program called \texttt{mpirun}\index{mpirun} (for MPI-1) or
 \texttt{mpiexec}\index{mpiexec} (for MPI-2).  To start multiple
 applications and enable them to communicate with each other, MUSIC
-utilizes a special launcher program called \texttt{music}\index{music}
-which, in turn, starts the different applications.  Information about
-which applications should be started, and the communication pattern
-between them is described in a common \emph{configuration
-  file}\index{configuration file}.
+utilizes a special launcher program called \texttt{music}\index{music
+  (launcher)} which, in turn, starts the different applications.
+Information about which applications should be started, and the
+communication pattern between them is described in a common
+\emph{configuration file}\index{configuration file}.
 
 \begin{rationale}
   The reason for not controlling configuration via the MUSIC API is
@@ -666,7 +666,7 @@ following syntax:
 \begin{quote}
   \emph{application\_label.port\_name} \lstinline|->| \emph{application\_label.port\_name}
 \end{quote}
-\noindent.  The direction of the arrow (\lstinline|->|, \lstinline|<-|) indicates the
+\noindent  The direction of the arrow (\lstinline|->|, \lstinline|<-|) indicates the
 direction of data transport.  An output port can be connected to
 multiple input ports while an input port can be connected to, at most,
 one output port.
@@ -720,7 +720,7 @@ responsible for the deallocation of objects afterwards.
 MUSIC attempts to fall back on the error handling mechanisms of MPI.
 A MUSIC exception thus results in a call to the MPI error handler.
 A particular implementation of the MUSIC library does not guarantee
-that it handles all kinds of error that may occur during MUSIC calls.
+that it handles all kinds of errors that may occur during MUSIC calls.
 Each error handled by MUSIC generates an exception, and MUSIC installs
 suitable error codes, classes and strings so that the MPI error
 handler is able to generate suitable error messages.
@@ -1165,6 +1165,7 @@ processes on the receiver side which have provided a
 
 \pagebreak
 \subsubsection{Sending messages}
+\index{sending messages}
 
 The sender registers a message for transmission by calling the method\\
 \lstinline|insert_message|.
@@ -1196,6 +1197,7 @@ MUSIC will deliver this message through a call to the user-specified \\
 
 
 \subsubsection{Receiving messages}
+\index{receiving messages}
 
 \begin{head}{message_handler,operator}
   class message_handler {
@@ -1377,8 +1379,8 @@ MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
   this number is converted to an integer (using the time micro step
   time base).  This is made to ensure that all processes use exactly
   the same numbers even when the multi-simulation is running on mixed
-  architectures.  Both sides of a connection must agree on at what
-  ticks data is transferred over the MPI connector to minimize the
+  architectures.  Both sides of a connection must agree on when data
+  is transferred over the MPI connector to minimize the
   need for handshaking during the runtime phase.
 \end{rationale}
 
@@ -1564,7 +1566,7 @@ The application must call the \lstinline|tick| function repeatedly
 throughout the simulation.  The application will have to ensure that
 these calls are made at regular intervals, as specified to the runtime
 constructor.  Note that this refers to \emph{simulated time}; there is
-no need to consider how long computation time (``wall clock time'') is
+no need to consider how much computation time (``wall clock time'') is
 used between tick calls.
 
 If the application makes use of variable time steps internally, it may

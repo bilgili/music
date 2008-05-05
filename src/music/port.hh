@@ -19,6 +19,7 @@
 #ifndef MUSIC_PORT_HH
 
 #include "music/event_data.hh"
+#include "music/message_data.hh"
 
 namespace MUSIC {
 
@@ -55,6 +56,19 @@ namespace MUSIC {
   class event_input_port : public event_port, public input_port {
   public:
     event_input_port (event_data* map);
+  };
+
+  class message_port : public port {
+  };
+
+  class message_output_port : public message_port, public output_port {
+  public:
+    message_output_port (message_data* map);
+  };
+
+  class message_input_port : public message_port, public input_port {
+  public:
+    message_input_port (message_data* map);
   };
 
 }

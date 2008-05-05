@@ -2,7 +2,7 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-lib_LTLIBRARIES = libmusic.la
+lib_LTLIBRARIES = libmusic.la libmusic-c.la
 
 libmusic_la_SOURCES = \
 	runtime.cc music/runtime.hh \
@@ -20,6 +20,14 @@ libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
 libmusic_la_LDFLAGS = -version-info 0:0 -export-dynamic
 libmusic_ladir = $(includedir)
+
+libmusic_c_la_SOURCES = \
+	music-c.cc music-c.c music-c.h
+
+libmusic_c_la_HEADERS = music-c.h
+libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
+libmusic_c_la_LDFLAGS = -version-info 0:0 -export-dynamic
+libmusic_c_ladir = $(includedir)
 
 musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/runtime.hh music/setup.hh \

@@ -3,6 +3,12 @@
 
 
 namespace MUSIC {
+
+  runtime (setup* s, double h)
+    : local_time (h)
+  {
+  }
+
   
   MPI::Intracomm
   runtime::communicator ()

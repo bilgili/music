@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,40 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_RUNTIME_HH
+#ifndef MUSIC_MESSAGE_DATA_HH
 
-#include <mpi.h>
-#include <vector>
-
-#include "music/setup.hh"
-#include "music/port.hh"
-#include "music/clock.hh"
-#include "music/connector.hh"
+#include "music/message.hh"
+#include "music/data_map.hh"
+#include "music/index_map.hh"
 
 namespace MUSIC {
 
-  class runtime {
-  private:
-    MPI::Intracomm myCommunicator;
-    clock local_time;
-    std::vector<input_port>* input_ports;
-    std::vector<output_port>* output_ports;
-    std::vector<connector*>* schedule;
-  
+  class message_data : public data_map {
   public:
-    runtime (setup* s, double h);
-    
-    MPI::Intracomm
-    communicator ();
-
-    void
-    finalize ();
-
-    void
-    tick (double time);
+    message_data (message_handler* handler, index_map* map);
+    message_data (int base_index, int size);
   };
 
 }
 
-#define MUSIC_RUNTIME_HH
+#define MUSIC_MESSAGE_DATA_HH
 #endif

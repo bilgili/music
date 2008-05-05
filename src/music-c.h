@@ -26,7 +26,9 @@ MUSIC_setup *MUSIC_create_setup (int *argc, char ***argv);
 
 /* Communicators */
 
+#ifndef BUILDING_MUSIC_LIBRARY
 MPI_Intracomm MUSIC_setup_communicator (MUSIC_setup *setup);
+#endif
 
 /* Ports */
 
@@ -37,12 +39,12 @@ typedef struct MUSIC_event_input_port MUSIC_event_input_port;
 typedef struct MUSIC_message_output_port MUSIC_message_output_port;
 typedef struct MUSIC_message_input_port MUSIC_message_input_port;
 
-MUSIC_cont_output_port *MUSIC_publish_cont_output (char *id);
-MUSIC_cont_input_port *MUSIC_publish_cont_input (char *id);
-MUSIC_event_output_port *MUSIC_publish_event_output (char *id);
-MUSIC_event_input_port *MUSIC_publish_event_input (char *id);
-MUSIC_message_output_port *MUSIC_publish_message_output (char *id);
-MUSIC_message_input_port *MUSIC_publish_message_input (char *id);
+MUSIC_cont_output_port *MUSIC_publish_cont_output (MUSIC_setup *setup, char *id);
+MUSIC_cont_input_port *MUSIC_publish_cont_input (MUSIC_setup *setup, char *id);
+MUSIC_event_output_port *MUSIC_publish_event_output (MUSIC_setup *setup, char *id);
+MUSIC_event_input_port *MUSIC_publish_event_input (MUSIC_setup *setup, char *id);
+MUSIC_message_output_port *MUSIC_publish_message_output (MUSIC_setup *setup, char *id);
+MUSIC_message_input_port *MUSIC_publish_message_input (MUSIC_setup *setup, char *id);
 
 void MUSIC_destroy_cont_output (MUSIC_cont_output_port* port);
 void MUSIC_destroy_cont_input (MUSIC_cont_input_port* port);
@@ -53,22 +55,35 @@ void MUSIC_destroy_message_input (MUSIC_message_input_port* port);
 
 /* General port methods */
 
-int MUSIC_cont_output_port_is_connected (cont_output_port *port);
-int MUSIC_cont_input_port_is_connected (cont_input_port *port);
-int MUSIC_event_output_port_is_connected (event_output_port *port);
-int MUSIC_event_input_port_is_connected (event_input_port *port);
-int MUSIC_message_output_port_is_connected (message_output_port *port);
-int MUSIC_message_input_port_is_connected (message_input_port *port);
-int MUSIC_cont_output_port_has_width (cont_output_port *port);
-int MUSIC_cont_input_port_has_width (cont_input_port *port);
-int MUSIC_event_output_port_has_width (event_output_port *port);
-int MUSIC_event_input_port_has_width (event_input_port *port);
-int MUSIC_cont_output_port_width (cont_output_port *port);
-int MUSIC_cont_input_port_width (cont_input_port *port);
-int MUSIC_event_output_port_width (event_output_port *port);
-int MUSIC_event_input_port_width (event_input_port *port);
+int MUSIC_cont_output_port_is_connected (MUSIC_cont_output_port *port);
+int MUSIC_cont_input_port_is_connected (MUSIC_cont_input_port *port);
+int MUSIC_event_output_port_is_connected (MUSIC_event_output_port *port);
+int MUSIC_event_input_port_is_connected (MUSIC_event_input_port *port);
+int MUSIC_message_output_port_is_connected (MUSIC_message_output_port *port);
+int MUSIC_message_input_port_is_connected (MUSIC_message_input_port *port);
+int MUSIC_cont_output_port_has_width (MUSIC_cont_output_port *port);
+int MUSIC_cont_input_port_has_width (MUSIC_cont_input_port *port);
+int MUSIC_event_output_port_has_width (MUSIC_event_output_port *port);
+int MUSIC_event_input_port_has_width (MUSIC_event_input_port *port);
+int MUSIC_cont_output_port_width (MUSIC_cont_output_port *port);
+int MUSIC_cont_input_port_width (MUSIC_cont_input_port *port);
+int MUSIC_event_output_port_width (MUSIC_event_output_port *port);
+int MUSIC_event_input_port_width (MUSIC_event_input_port *port);
 
 /* Mapping */
+
+/* Data maps */
+
+typedef struct MUSIC_data_map MUSIC_data_map;
+typedef struct MUSIC_cont_data MUSIC_cont_data;
+typedef struct MUSIC_array_data MUSIC_array_data;
+
+/* Index maps */
+
+typedef struct MUSIC_index_map MUSIC_index_map;
+typedef struct MUSIC_permutation_index MUSIC_permutation_index;
+typedef struct MUSIC_linear_index MUSIC_linear_index;
+
 
 /* No arguments are optional. */
 
@@ -105,23 +120,15 @@ void MUSIC_message_input_port_map (MUSIC_message_handler *handle_message,
 
 /* Index maps */
 
-typedef struct MUSIC_permutation_index MUSIC_permutation_index;
-
 MUSIC_permutation_index *MUSIC_create_permutation_index (int *indices,
 							 int size);
 
 void MUSIC_destroy_permutation_index (MUSIC_permutation_index *index);
 
-typedef struct MUSIC_linear_index MUSIC_linear_index;
-
 MUSIC_linear_index *MUSIC_create_linear_index (int base_index,
 					       int size);
 
 void MUSIC_destroy_linear_index (MUSIC_linear_index *index);
-
-/* Data maps */
-
-typedef struct MUSIC_array_data MUSIC_array_data;
 
 /* Exception: The map argument can take any type of index map. */
 
@@ -145,14 +152,14 @@ void MUSIC_destroy_array_data (MUSIC_array_data *array_data);
    Extra maxlen argument prevents buffer overflow.
    Result is terminated by \0 unless longer than maxlen - 1 */
 
-int MUSIC_config (MUSIC_setup *setup,
-		  char *name,
-		  char *result,
-		  size_t maxlen);
+int MUSIC_config_string (MUSIC_setup *setup,
+			 char *name,
+			 char *result,
+			 size_t maxlen);
 
-int MUSIC_config (MUSIC_setup *setup, char *name, int *result);
+int MUSIC_config_int (MUSIC_setup *setup, char *name, int *result);
 
-int MUSIC_config (MUSIC_setup *setup, char *name, double *result);
+int MUSIC_config_double (MUSIC_setup *setup, char *name, double *result);
 
 /* Runtime */
 

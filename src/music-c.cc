@@ -20,60 +20,59 @@
 
 extern "C" {
 
-#include "music.c.h"
+#include "music-c.h"
 
 /* Setup */
 
 MUSIC_setup *
 MUSIC_create_setup (int *argc, char ***argv)
 {
-  return (MUSIC_setup *) new setup (*argc, *argv);
-}
-
-
-/* Communicators */
-
-MPI_Intracomm
-MUSIC_setup_communicator (MUSIC_setup *setup)
-{
+  return (MUSIC_setup *) new MUSIC::setup (*argc, *argv);
 }
 
 
 /* Port creation */
 
 MUSIC_cont_output_port *
-MUSIC_publish_cont_output (char *id)
+MUSIC_publish_cont_output (MUSIC_setup *setup, char *id)
 {
+  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
+  return (MUSIC_cont_output_port *) cc_setup->publish_cont_output (id);
 }
 
 
 MUSIC_cont_input_port *
-MUSIC_publish_cont_input (char *id)
+MUSIC_publish_cont_input (MUSIC_setup *setup, char *id)
 {
+  return (MUSIC_cont_input_port *) setup.publish_cont_input(id);
 }
 
 
 MUSIC_event_output_port *
-MUSIC_publish_event_output (char *id)
+MUSIC_publish_event_output (MUSIC_setup *setup, char *id)
 {
+  return (MUSIC_event_output_port *) setup.publish_event_output(id);
 }
 
 
 MUSIC_event_input_port *
-MUSIC_publish_event_input (char *id)
+MUSIC_publish_event_input (MUSIC_setup *setup, char *id)
 {
+  return (MUSIC_event_input_port *) setup.publish_event_input(id);
 }
 
 
 MUSIC_message_output_port *
-MUSIC_publish_message_output (char *id)
+MUSIC_publish_message_output (MUSIC_setup *setup, char *id)
 {
+  return (MUSIC_message_output_port *) setup.publish_message_output(id);
 }
 
 
 MUSIC_message_input_port *
-MUSIC_publish_message_input (char *id)
+MUSIC_publish_message_input (MUSIC_setup *setup, char *id)
 {
+  return (MUSIC_message_input_port *) setup.publish_message_input(id);
 }
 
 

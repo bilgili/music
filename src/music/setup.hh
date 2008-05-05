@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include <music/runtime.hh>
+#include <music/port.hh>
 
 #include <music/index_map.hh>
 #include <music/linear_index.hh>
@@ -53,15 +53,17 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
-    cont_input_port* publish_input (string identifier, cont_data* map);
+    cont_input_port* publish_cont_input (string identifier);
 
-    cont_output_port* publish_output (string identifier, cont_data* map);
+    cont_output_port* publish_cont_output (string identifier);
 
-    event_input_port* publish_input (string identifier, event_data* map);
+    event_input_port* publish_event_input (string identifier);
 
-    event_output_port* publish_output (string identifier, event_data* map);
+    event_output_port* publish_event_output (string identifier);
 
-    runtime* done ();
+    message_input_port* publish_message_input (string identifier);
+
+    message_output_port* publish_message_output (string identifier);
   };
   
 }

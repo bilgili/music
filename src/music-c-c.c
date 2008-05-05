@@ -1,5 +1,7 @@
 #include <mpi.h>
 
+#include "music-c.h"
+
 /* Communicators */
 
 MPI_Comm

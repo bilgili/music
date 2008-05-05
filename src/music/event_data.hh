@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 INCF
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,19 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_SPIKE_DATA_HH
+#ifndef MUSIC_EVENT_DATA_HH
 
+#include "music/event.hh"
 #include "music/data_map.hh"
+#include "music/index_map.hh"
 
 namespace MUSIC {
 
-  class spike_data : public data_map {
+  class event_data : public data_map {
   public:
-    spike_data (index_map* map);
-    spike_data (int base_index, int size);
+    event_data (event_handler* handler, index_map* map);
+    event_data (int base_index, int size);
   };
 
 }
 
-#define MUSIC_SPIKE_DATA_HH
+#define MUSIC_EVENT_DATA_HH
 #endif

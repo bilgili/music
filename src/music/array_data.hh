@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 INCF
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,14 +18,17 @@
 
 #ifndef MUSIC_ARRAY_DATA_HH
 
+#include <mpi.h>
+
 #include "music/data_map.hh"
+#include "music/index_map.hh"
 
 namespace MUSIC {
 
   class array_data : public data_map {
   public:
-    array_data (MPI_Datatype type, void* buffer, index_map* map);
-    array_data (MPI_Datatype type, void* buffer, int base_index, int size);
+    array_data (void* buffer, MPI_Datatype type, index_map* map);
+    array_data (void* buffer, MPI_Datatype type, int base_index, int size);
   };
 
 }

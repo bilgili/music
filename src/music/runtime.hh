@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,8 +28,10 @@ namespace MUSIC {
   class runtime {
   private:
     MPI::Intracomm myCommunicator;
+    clock local_time;
     std::vector<input_port>* input_ports;
     std::vector<output_port>* output_ports;
+    std::vector<connector*>* schedule;
   
   public:
     runtime (MPI::Intracomm c) : myCommunicator (c) { }

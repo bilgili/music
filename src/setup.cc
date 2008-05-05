@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,20 +75,40 @@ namespace MUSIC {
 
   
   bool
-  is_port (string identifier)
+  setup::is_port (string identifier)
   {
   }
 
   
   int
-  port_size (string identifier)
+  setup::port_size (string identifier)
   {
   }
 
   
-  void
-  setup::publish (data_map* map, std::string identifier)
+  cont_input_port*
+  setup::publish_input (std::string identifier, cont_data* map)
   {
+  }
+
+
+  cont_output_port*
+  setup::publish_output (std::string identifier, cont_data* map)
+  {
+  }
+
+
+  event_input_port*
+  setup::publish_input (std::string identifier, event_data* map)
+  {
+    return new event_input_port (map);
+  }
+
+
+  event_output_port*
+  setup::publish_output (std::string identifier, event_data* map)
+  {
+    return new event_output_port (map);
   }
 
 

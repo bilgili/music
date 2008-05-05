@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 INCF
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,15 +18,43 @@
 
 #ifndef MUSIC_PORT_HH
 
+#include "music/event_data.hh"
+
 namespace MUSIC {
 
   class port {
+  public:
+    virtual bool is_connected ();
+    virtual int size ();
+    virtual void map (data_map* m);
   };
 
   class output_port : public port {
   };
 
   class input_port : public port {
+  };
+
+  class cont_port : public port {
+  };
+
+  class cont_output_port : public cont_port, public output_port {
+  };
+  
+  class cont_input_port : public cont_port, public input_port {
+  };
+  
+  class event_port : public port {
+  };
+
+  class event_output_port : public event_port, public output_port {
+  public:
+    event_output_port (event_data* map);
+  };
+
+  class event_input_port : public event_port, public input_port {
+  public:
+    event_input_port (event_data* map);
   };
 
 }

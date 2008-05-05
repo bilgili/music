@@ -1,3 +1,11 @@
+2008-02-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (waveproducer_SOURCES, waveproducer_CXXFLAGS,
+	waveproducer_LDADD): Renamed from wavegenerator_SOURCES,
+	wavegenerator_CXXFLAGS, wavegenerator_LDADD.
+
+	* waveproducer.cc: Renamed from wavegenerator.cc
+
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (bin_PROGRAMS): Added launchtest.

@@ -1,3 +1,10 @@
+2007-11-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_SOURCES): Added music/spike_data.hh,
+	spike_data.cc.
+
+	* spike_data.cc: New file.
+
 2007-11-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/spike_data.hh: New file.

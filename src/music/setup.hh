@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,14 +21,16 @@
 #include <mpi.h>
 
 #include <string>
+#include <vector>
 
 #include <music/runtime.hh>
 
 #include <music/index_map.hh>
 #include <music/linear_index.hh>
-#include <music/data_map.hh>
-#include <music/array_data.hh>
+#include <music/cont_data.hh>
+#include <music/event_data.hh>
 #include <music/configuration.hh>
+#include <music/connector.hh>
 
 using std::string;
 
@@ -38,6 +40,7 @@ namespace MUSIC {
   private:
     configuration* _config;
     MPI::Intracomm my_communicator;
+    std::vector<connector*>* schedule;
 
   public:
     setup (int& argc, char**& argv);
@@ -50,13 +53,13 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
-    bool is_port (string identifier);
+    cont_input_port* publish_input (string identifier, cont_data* map);
 
-    int port_size (string identifier);
+    cont_output_port* publish_output (string identifier, cont_data* map);
 
-    input_port* publish_input (string identifier, data_map* map);
+    event_input_port* publish_input (string identifier, event_data* map);
 
-    output_port* publish_output (string identifier, data_map* map);
+    event_output_port* publish_output (string identifier, event_data* map);
 
     runtime* done ();
   };

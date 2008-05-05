@@ -271,6 +271,30 @@ main (int argc, char **argv)
   projection* ii = icells->project (icells);
   projection* ie = icells->project (ecells);
 
+  // Create ports
+  int n_ports = 0;
+  while (true)
+    {
+      std::ostrstream portname;
+      portname << "ein" << n_ports;
+      if (is_port (portname.str ()))
+	{
+	  split->create_spike_input (portname.str (), ecells->pop_id (), 0, N);
+	  std::ostrstream portname;
+	  portname << "iin" << n_ports;
+	  if (is_port (portname.sr ()))
+	    split->create_spike_input (portname.str (), icells->pop_id (), 0, N);
+	  ++n_ports;
+	}
+      else
+	break;
+    }
+  if (n_ports > 0)
+    {
+      split->create_spike_output ("eout", ecells->pop_id (), CONTRIB, ecells->na_id ());
+      split->create_spike_output ("iout", icells->pop_id (), CONTRIB, icells->na_id ());
+    }
+  
   // Noiseinjection
   noise* enoise = new noise (split, ecells);
   noise* inoise = new noise (split, icells);

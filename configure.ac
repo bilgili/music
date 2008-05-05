@@ -43,7 +43,7 @@ else
       changequote([, ])
       ;;
     openmpi)
-      MPI_CXXFLAGS=""    
+      MPI_CXXFLAGS="`mpicxx -showme:compile`"
       ;;
     bgl)
       MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
@@ -55,6 +55,31 @@ Could not determine proper value for MPI_CXXFLAGS.  Please see README.])
       ;;
   esac
   echo "$MPI_CXXFLAGS"
+fi
+
+AC_MSG_CHECKING(MPI_CFLAGS)
+if test "$MPI_CFLAGS" != ""; then
+  echo "$MPI_CFLAGS"
+else
+  case "$SYSGUESS" in
+    mpich)
+      changequote(<, >)
+      MPI_CFLAGS="`$MPI_C -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
+      changequote([, ])
+      ;;
+    openmpi)
+      MPI_CFLAGS="`mpicc -showme:compile`"
+      ;;
+    bgl)
+      MPI_CFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+      enable_shared=no
+      ;;
+    *)
+      AC_MSG_ERROR([
+Could not determine proper value for MPI_CFLAGS.  Please see README.])
+      ;;
+  esac
+  echo "$MPI_CFLAGS"
 fi
 
 AC_MSG_CHECKING(MPI_LDFLAGS)
@@ -103,7 +128,7 @@ CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
 CC="$save_CC"
 
-AC_SUBST([MPI_CXXFLAGS MPI_LDFLAGS])
+AC_SUBST([MPI_CXXFLAGS MPI_CFLAGS MPI_LDFLAGS])
 
 AC_CONFIG_FILES([
   Makefile

@@ -46,7 +46,10 @@ namespace MUSIC {
     finalize ();
 
     void
-    tick (double time);
+    tick ();
+
+    double
+    time ();
   };
 
 }

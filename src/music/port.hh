@@ -26,17 +26,18 @@ namespace MUSIC {
   class port {
   public:
     virtual bool is_connected ();
-    virtual int size ();
+    virtual bool has_width ();
+    virtual int width ();
     virtual void map (data_map* m);
   };
 
-  class output_port : public port {
+  class output_port : virtual public port {
   };
 
-  class input_port : public port {
+  class input_port : virtual public port {
   };
 
-  class cont_port : public port {
+  class cont_port : virtual public port {
   };
 
   class cont_output_port : public cont_port, public output_port {
@@ -45,7 +46,7 @@ namespace MUSIC {
   class cont_input_port : public cont_port, public input_port {
   };
   
-  class event_port : public port {
+  class event_port : virtual public port {
   };
 
   class event_output_port : public event_port, public output_port {
@@ -58,7 +59,7 @@ namespace MUSIC {
     event_input_port (event_data* map);
   };
 
-  class message_port : public port {
+  class message_port : virtual public port {
   };
 
   class message_output_port : public message_port, public output_port {

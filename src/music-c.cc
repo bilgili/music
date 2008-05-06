@@ -36,8 +36,8 @@ MUSIC_create_setup (int *argc, char ***argv)
 MPI_Comm
 MUSIC_setup_communicator_glue (MUSIC_setup *setup)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MPI_Comm) cc_setup->communicator ();
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MPI_Comm) cxx_setup->communicator ();
 }
 
 
@@ -46,84 +46,90 @@ MUSIC_setup_communicator_glue (MUSIC_setup *setup)
 MUSIC_cont_output_port *
 MUSIC_publish_cont_output (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_cont_output_port *) cc_setup->publish_cont_output (id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_cont_output_port *) cxx_setup->publish_cont_output (id);
 }
 
 
 MUSIC_cont_input_port *
 MUSIC_publish_cont_input (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_cont_input_port *) cc_setup->publish_cont_input(id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_cont_input_port *) cxx_setup->publish_cont_input(id);
 }
 
 
 MUSIC_event_output_port *
 MUSIC_publish_event_output (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_event_output_port *) cc_setup->publish_event_output(id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_event_output_port *) cxx_setup->publish_event_output(id);
 }
 
 
 MUSIC_event_input_port *
 MUSIC_publish_event_input (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_event_input_port *) cc_setup->publish_event_input(id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_event_input_port *) cxx_setup->publish_event_input(id);
 }
 
 
 MUSIC_message_output_port *
 MUSIC_publish_message_output (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_message_output_port *) cc_setup->publish_message_output(id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_message_output_port *) cxx_setup->publish_message_output(id);
 }
 
 
 MUSIC_message_input_port *
 MUSIC_publish_message_input (MUSIC_setup *setup, char *id)
 {
-  MUSIC::setup* cc_setup = (MUSIC::setup *) setup;
-  return (MUSIC_message_input_port *) cc_setup->publish_message_input(id);
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_message_input_port *) cxx_setup->publish_message_input(id);
 }
 
 
 void
 MUSIC_destroy_cont_output (MUSIC_cont_output_port* port)
 {
+  delete (MUSIC::cont_output_port *) port;
 }
 
 
 void
 MUSIC_destroy_cont_input (MUSIC_cont_input_port* port)
 {
+  delete (MUSIC::cont_input_port *) port;
 }
 
 
 void
 MUSIC_destroy_event_output (MUSIC_event_output_port* port)
 {
+  delete (MUSIC::event_output_port *) port;
 }
 
 
 void
 MUSIC_destroy_event_input (MUSIC_event_input_port* port)
 {
+  delete (MUSIC::event_input_port *) port;
 }
 
 
 void
 MUSIC_destroy_message_output (MUSIC_message_output_port* port)
 {
+  delete (MUSIC::message_output_port *) port;
 }
 
 
 void
 MUSIC_destroy_message_input (MUSIC_message_input_port* port)
 {
+  delete (MUSIC::message_input_port *) port;
 }
 
 
@@ -132,84 +138,112 @@ MUSIC_destroy_message_input (MUSIC_message_input_port* port)
 int
 MUSIC_cont_output_port_is_connected (MUSIC_cont_output_port *port)
 {
+  MUSIC::cont_output_port* cxx_port = (MUSIC::cont_output_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_cont_input_port_is_connected (MUSIC_cont_input_port *port)
 {
+  MUSIC::cont_input_port* cxx_port = (MUSIC::cont_input_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_event_output_port_is_connected (MUSIC_event_output_port *port)
 {
+  MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_event_input_port_is_connected (MUSIC_event_input_port *port)
 {
+  MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_message_output_port_is_connected (MUSIC_message_output_port *port)
 {
+  MUSIC::message_output_port* cxx_port = (MUSIC::message_output_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_message_input_port_is_connected (MUSIC_message_input_port *port)
 {
+  MUSIC::message_input_port* cxx_port = (MUSIC::message_input_port *) port;
+  return cxx_port->is_connected ();
 }
 
 
 int
 MUSIC_cont_output_port_has_width (MUSIC_cont_output_port *port)
 {
+  MUSIC::cont_output_port* cxx_port = (MUSIC::cont_output_port *) port;
+  return cxx_port->has_width ();
 }
 
 
 int
 MUSIC_cont_input_port_has_width (MUSIC_cont_input_port *port)
 {
+  MUSIC::cont_input_port* cxx_port = (MUSIC::cont_input_port *) port;
+  return cxx_port->has_width ();
 }
 
 
 int
 MUSIC_event_output_port_has_width (MUSIC_event_output_port *port)
 {
+  MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
+  return cxx_port->has_width ();
 }
 
 
 int
 MUSIC_event_input_port_has_width (MUSIC_event_input_port *port)
 {
+  MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
+  return cxx_port->has_width ();
 }
 
 
 int
 MUSIC_cont_output_port_width (MUSIC_cont_output_port *port)
 {
+  MUSIC::cont_output_port* cxx_port = (MUSIC::cont_output_port *) port;
+  return cxx_port->width ();
 }
 
 
 int
 MUSIC_cont_input_port_width (MUSIC_cont_input_port *port)
 {
+  MUSIC::cont_input_port* cxx_port = (MUSIC::cont_input_port *) port;
+  return cxx_port->width ();
 }
 
 
 int
 MUSIC_event_output_port_width (MUSIC_event_output_port *port)
 {
+  MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
+  return cxx_port->width ();
 }
 
 
 int
 MUSIC_event_input_port_width (MUSIC_event_input_port *port)
 {
+  MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
+  return cxx_port->width ();
 }
 
 
@@ -222,6 +256,9 @@ MUSIC_cont_output_port_map (MUSIC_cont_output_port *port,
 			    MUSIC_cont_data *dmap,
 			    int max_buffered)
 {
+  MUSIC::cont_output_port* cxx_port = (MUSIC::cont_output_port *) port;
+  MUSIC::cont_data* cxx_dmap = (MUSIC::cont_data *) dmap;
+  cxx_port->map (cxx_dmap, max_buffered);
 }
 
 
@@ -232,6 +269,9 @@ MUSIC_cont_input_port_map (MUSIC_cont_input_port *port,
 			   int max_buffered,
 			   int interpolate)
 {
+  MUSIC::cont_input_port* cxx_port = (MUSIC::cont_input_port *) port;
+  MUSIC::cont_data* cxx_dmap = (MUSIC::cont_data *) dmap;
+  cxx_port->map (cxx_dmap, max_buffered, interpolate);
 }
 
 
@@ -240,6 +280,9 @@ MUSIC_event_output_port_map (MUSIC_event_output_port *port,
 			     MUSIC_index_map *indices,
 			     int max_buffered)
 {
+  MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
+  MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
+  cxx_port->map (cxx_indices, max_buffered);
 }
 
 
@@ -252,6 +295,10 @@ MUSIC_event_input_port_map (MUSIC_event_input_port *port,
 			    double acc_latency,
 			    int max_buffered)
 {
+  MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
+  MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
+  MUSIC::event_handler* cxx_handle_event = (MUSIC::event_handler *) handle_event;
+  cxx_port->map (cxx_indices, cxx_handle_event, acc_latency, max_buffered);
 }
 
 
@@ -259,16 +306,22 @@ void
 MUSIC_message_output_port_map (MUSIC_message_output_port *port,
 			       int max_buffered)
 {
+  MUSIC::message_output_port* cxx_port = (MUSIC::message_output_port *) port;
+  cxx_port->map (max_buffered);
 }
 
 
 typedef void MUSIC_message_handler (double t, void *msg, size_t size);
 
 void
-MUSIC_message_input_port_map (MUSIC_message_handler *handle_message,
+MUSIC_message_input_port_map (MUSIC_message_input_port *port,
+			      MUSIC_message_handler *handle_message,
 			      double acc_latency,
 			      int max_buffered)
 {
+  MUSIC::message_input_port* cxx_port = (MUSIC::message_input_port *) port;
+  MUSIC::message_handler* cxx_handle_message = (MUSIC::message_handler *) handle_message;
+  cxx_port->map (cxx_handle_message, acc_latency, max_buffered);
 }
 
 
@@ -342,18 +395,24 @@ MUSIC_config_string (MUSIC_setup *setup,
 		     char *result,
 		     size_t maxlen)
 {
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return cxx_setup->config (string(name), result); BROKEN
 }
 
 
 int
 MUSIC_config_int (MUSIC_setup *setup, char *name, int *result)
 {
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return cxx_setup->config (string(name), result);
 }
 
 
 int
 MUSIC_config_double (MUSIC_setup *setup, char *name, double *result)
 {
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return cxx_setup->config (string(name), result);
 }
 
 
@@ -362,18 +421,24 @@ MUSIC_config_double (MUSIC_setup *setup, char *name, double *result)
 MUSIC_runtime *
 MUSIC_create_runtime (MUSIC_setup *setup, double h)
 {
+  MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
+  return (MUSIC_runtime *) new MUSIC::runtime (cxx_setup, h);
 }
 
 
 void
 MUSIC_tick (MUSIC_runtime *runtime)
 {
+  MUSIC::runtime* cxx_runtime = (MUSIC::runtime *) runtime;
+  cxx_runtime->tick ();
 }
 
 
 double
 MUSIC_time (MUSIC_runtime *runtime)
 {
+  MUSIC::runtime* cxx_runtime = (MUSIC::runtime *) runtime;
+  return cxx_runtime->time ();
 }
 
 
@@ -382,6 +447,8 @@ MUSIC_time (MUSIC_runtime *runtime)
 void
 MUSIC_destroy_runtime (MUSIC_runtime *runtime)
 {
+  MUSIC::runtime* cxx_runtime = (MUSIC::runtime *) runtime;
+  delete cxx_runtime;
 }
 
 }

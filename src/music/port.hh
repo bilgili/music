@@ -46,7 +46,7 @@ namespace MUSIC {
   
   class cont_input_port : public cont_port, public input_port {
   public:
-    void map (data_map* dmap, double delay, int max_buffered, bool interpolate);
+    void map (data_map* dmap, double delay = 0.0, int max_buffered, bool interpolate = true);
   };
   
   class event_hahndler {
@@ -59,15 +59,15 @@ namespace MUSIC {
 
   class event_output_port : public event_port, public output_port {
   public:
-    map (index_map* indices, int max_buffered);
+    void map (index_map* indices, int max_buffered);
   };
 
   class event_input_port : public event_port, public input_port {
   public:
-    map (index_map* indices,
-	 evemt_handler* handle_event,
-	 double acc_latency,
-	 int max_buffered);
+    void map (index_map* indices,
+	      evemt_handler* handle_event,
+	      double acc_latency = 0.0,
+	      int max_buffered);
   };
 
 
@@ -81,12 +81,12 @@ namespace MUSIC {
 
   class message_output_port : public message_port, public output_port {
   public:
-    map (int max_buffered);
+    void map (int max_buffered);
   };
 
   class message_input_port : public message_port, public input_port {
   public:
-    map (message_handler* hahndler, double acc_latency, int max_buffered);
+    void map (message_handler* handler, double acc_latency = 0.0, int max_buffered);
   };
 
 }

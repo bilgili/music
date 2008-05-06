@@ -28,7 +28,6 @@ namespace MUSIC {
     virtual bool is_connected ();
     virtual bool has_width ();
     virtual int width ();
-    virtual void map (data_map* m);
   };
 
   class output_port : virtual public port {
@@ -41,9 +40,18 @@ namespace MUSIC {
   };
 
   class cont_output_port : public cont_port, public output_port {
+  public:
+    void map (data_map* dmap, int max_buffered);
   };
   
   class cont_input_port : public cont_port, public input_port {
+  public:
+    void map (data_map* dmap, double delay, int max_buffered, bool interpolate);
+  };
+  
+  class event_hahndler {
+  public:
+    virtual void operator () (double t, int id) = 0;
   };
   
   class event_port : virtual public port {
@@ -51,25 +59,34 @@ namespace MUSIC {
 
   class event_output_port : public event_port, public output_port {
   public:
-    event_output_port (event_data* map);
+    map (index_map* indices, int max_buffered);
   };
 
   class event_input_port : public event_port, public input_port {
   public:
-    event_input_port (event_data* map);
+    map (index_map* indices,
+	 evemt_handler* handle_event,
+	 double acc_latency,
+	 int max_buffered);
   };
 
+
+  class message_handler {
+  public:
+    virtual void operator () (double t, void* msg, size_t size) = 0;
+  };
+  
   class message_port : virtual public port {
   };
 
   class message_output_port : public message_port, public output_port {
   public:
-    message_output_port (message_data* map);
+    map (int max_buffered);
   };
 
   class message_input_port : public message_port, public input_port {
   public:
-    message_input_port (message_data* map);
+    map (message_handler* hahndler, double acc_latency, int max_buffered);
   };
 
 }

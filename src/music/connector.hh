@@ -25,18 +25,24 @@ namespace MUSIC {
   class subconnector {
   };
   
-  class output_subconnector {
+  class output_subconnector : public subconnector {
   public:
     void send ();
   };
   
-  class input_subconnector {
+  class input_subconnector : public subconnector {
   };
   
-  class cont_output_subconnector {
+  class cont_output_subconnector : public output_subconnector {
   };
   
-  class cont_input_subconnector {
+  class cont_input_subconnector : public input_subconnector {
+  };
+  
+  class event_output_subconnector : public output_subconnector {
+  };
+  
+  class event_input_subconnector : public input_subconnector {
   };
   
   class connector {
@@ -81,6 +87,16 @@ namespace MUSIC {
   };
   
   class fast_cont_input_connector : public cont_input_connector {
+  public:
+    void tick ();
+  };
+  
+  class event_output_connector : public output_connector {
+  public:
+    void tick ();
+  };
+  
+  class event_input_connector : public input_connector {
   public:
     void tick ();
   };

@@ -74,18 +74,6 @@ namespace MUSIC {
   }
 
   
-  bool
-  setup::is_port (string identifier)
-  {
-  }
-
-  
-  int
-  setup::port_size (string identifier)
-  {
-  }
-
-  
   cont_input_port*
   setup::publish_input (std::string identifier, cont_data* map)
   {

@@ -124,5 +124,13 @@ namespace MUSIC {
 
 
   void
+  event_output_connector::tick ()
+  {
+  }
+
   
+  void
+  event_input_connector::tick ()
+  {
+  }
 }

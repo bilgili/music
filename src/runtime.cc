@@ -4,7 +4,7 @@
 
 namespace MUSIC {
 
-  runtime (setup* s, double h)
+  runtime::runtime (setup* s, double h)
     : local_time (h)
   {
   }
@@ -31,7 +31,7 @@ namespace MUSIC {
     // Loop through the schedule of connectors
     std::vector<connector*>::iterator c;
     for (c = schedule->begin (); c != schedule->end (); ++c)
-      c->tick ();
+      (*c)->tick ();
     
     local_time.tick ();
   }

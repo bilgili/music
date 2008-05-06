@@ -333,12 +333,14 @@ MUSIC_permutation_index *
 MUSIC_create_permutation_index (int *indices,
 				int size)
 {
+  return (MUSIC_permutation_index *) new MUSIC::permutation_index (indices, size);
 }
 
 
 void
 MUSIC_destroy_permutation_index (MUSIC_permutation_index *index)
 {
+  delete (MUSIC::permutation_index *) index;
 }
 
 
@@ -346,12 +348,14 @@ MUSIC_linear_index *
 MUSIC_create_linear_index (int base_index,
 			   int size)
 {
+  return (MUSIC_linear_index *) new MUSIC::linear_index (base_index, size);
 }
 
 
 void
 MUSIC_destroy_linear_index (MUSIC_linear_index *index)
 {
+  delete (MUSIC::linear_index *) index;
 }
 
 
@@ -364,6 +368,8 @@ MUSIC_create_array_data (void *buffer,
 			 MPI_Datatype type,
 			 void *map)
 {
+  MUSIC::data_map* cxx_map = (MUSIC::data_map *) map;
+  return (MUSIC_array_data *) new MUSIC::array_data (buffer, type, cxx_map);
 }
 
 
@@ -382,6 +388,7 @@ MUSIC_create_linear_array_data (void *buffer,
 void
 MUSIC_destroy_array_data (MUSIC_array_data *array_data)
 {
+  delete (MUSIC::array_data *) array_data;
 }
 
 
@@ -400,7 +407,7 @@ MUSIC_config_string (MUSIC_setup *setup,
   MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
   std::string cxx_result;
   int res = cxx_setup->config (string (name), &cxx_result);
-  strncpy(result, cxx_result.data (), maxlen);
+  strncpy(result, cxx_result.c_str (), maxlen);
   return res;
 }
 

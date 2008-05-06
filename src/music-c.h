@@ -114,7 +114,8 @@ void MUSIC_message_output_port_map (MUSIC_message_output_port *port,
 
 typedef void MUSIC_message_handler (double t, void *msg, size_t size);
 
-void MUSIC_message_input_port_map (MUSIC_message_handler *handle_message,
+void MUSIC_message_input_port_map (MUSIC_message_input_port *port,
+				   MUSIC_message_handler *handle_message,
 				   double acc_latency,
 				   int max_buffered);
 

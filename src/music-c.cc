@@ -271,7 +271,7 @@ MUSIC_cont_input_port_map (MUSIC_cont_input_port *port,
 {
   MUSIC::cont_input_port* cxx_port = (MUSIC::cont_input_port *) port;
   MUSIC::cont_data* cxx_dmap = (MUSIC::cont_data *) dmap;
-  cxx_port->map (cxx_dmap, max_buffered, interpolate);
+  cxx_port->map (cxx_dmap, delay, max_buffered, interpolate);
 }
 
 
@@ -396,7 +396,10 @@ MUSIC_config_string (MUSIC_setup *setup,
 		     size_t maxlen)
 {
   MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
-  return cxx_setup->config (string(name), result); BROKEN
+  std::stringbuffer cxx_result (maxlen);
+  int res = cxx_setup->config (string(name), cxx_result);
+  strncpy(cxx_result, result, maxlen);
+  return res;
 }
 
 

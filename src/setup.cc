@@ -75,35 +75,31 @@ namespace MUSIC {
 
   
   cont_input_port*
-  setup::publish_input (std::string identifier, cont_data* map)
+  setup::publish_cont_input (std::string identifier)
   {
+    return new cont_input_port ();
   }
 
 
   cont_output_port*
-  setup::publish_output (std::string identifier, cont_data* map)
+  setup::publish_cont_output (std::string identifier)
   {
+    return new cont_output_port ();
   }
 
 
   event_input_port*
-  setup::publish_input (std::string identifier, event_data* map)
+  setup::publish_event_input (std::string identifier)
   {
-    return new event_input_port (map);
+    return new event_input_port ();
   }
 
 
   event_output_port*
-  setup::publish_output (std::string identifier, event_data* map)
+  setup::publish_event_output (std::string identifier)
   {
-    return new event_output_port (map);
+    return new event_output_port ();
   }
 
-
-  runtime*
-  setup::done ()
-  {
-    return new runtime (my_communicator);
-  }
 
 }

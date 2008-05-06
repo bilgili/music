@@ -18,6 +18,8 @@
 
 #include "music.hh"
 
+#include <string>
+
 extern "C" {
 
 #include "music-c.h"
@@ -396,9 +398,9 @@ MUSIC_config_string (MUSIC_setup *setup,
 		     size_t maxlen)
 {
   MUSIC::setup* cxx_setup = (MUSIC::setup *) setup;
-  std::stringbuffer cxx_result (maxlen);
-  int res = cxx_setup->config (string(name), cxx_result);
-  strncpy(cxx_result, result, maxlen);
+  std::string cxx_result;
+  int res = cxx_setup->config (string (name), &cxx_result);
+  strncpy(result, cxx_result.data (), maxlen);
   return res;
 }
 

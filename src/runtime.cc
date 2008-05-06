@@ -26,7 +26,7 @@ namespace MUSIC {
 
 
   void
-  runtime::tick (double time)
+  runtime::tick ()
   {
     // Loop through the schedule of connectors
     std::vector<connector*>::iterator c;

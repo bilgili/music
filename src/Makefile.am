@@ -11,7 +11,6 @@ libmusic_la_SOURCES = \
 	linear_index.cc music/linear_index.hh \
 	music/index_map.hh music/data_map.hh \
 	array_data.cc music/array_data.hh \
-	event_data.cc music/event_data.hh \
 	configuration.cc music/configuration.hh \
 	parse.cc music/parse.hh \
 	port.cc music/port.hh

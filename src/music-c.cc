@@ -368,7 +368,7 @@ MUSIC_create_array_data (void *buffer,
 			 MPI_Datatype type,
 			 void *map)
 {
-  MUSIC::data_map* cxx_map = (MUSIC::data_map *) map;
+  MUSIC::index_map* cxx_map = (MUSIC::index_map *) map;
   return (MUSIC_array_data *) new MUSIC::array_data (buffer, type, cxx_map);
 }
 

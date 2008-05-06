@@ -1,8 +1,6 @@
-#ifndef MUSIC_HH
-
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/runtime.hh"
+#include <mpi.h>
 #include "music/setup.hh"
-#include "music/permutation_index.hh"
-#include "music/array_data.hh"
+#include "music/runtime.hh"
 
-#define MUSIC_HH
-#endif /* MUSIC_HH */
+namespace MUSIC {
+  
+  permutation_index::permutation_index (int* indices, int size)
+  {
+  }
+
+}

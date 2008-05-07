@@ -41,6 +41,8 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/configuration.hh music/error.hh \
 		       music/port.hh music/clock.hh music/connector.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
-		       music/FIBO.hh
+		       music/FIBO.hh \
+		       music/event_data.hh music/message_data.hh \
+		       music/cont_data.hh music/event.hh music/message.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

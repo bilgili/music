@@ -22,6 +22,9 @@ namespace MUSIC {
 
   class synchronizer {
   public:
+    bool sample ();
+    bool mark ();
+    bool communicate ();
   };
 
 }

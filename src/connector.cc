@@ -20,13 +20,72 @@
 
 namespace MUSIC {
 
+  subconnector::subconnector ()
+  {
+  }
+
+
+  output_subconnector::output_subconnector ()
+  {
+  }
+
+  
+  void
+  output_subconnector::send ()
+  {
+  }
+
+  
+  int
+  output_subconnector::start_idx ()
+  {
+    return 0;
+  }
+
+  
+  int
+  output_subconnector::end_idx ()
+  {
+    return 0;
+  }
+
+
+  void
+  cont_connector::swap_buffers (cont_data_t*& b1, cont_data_t*& b2)
+  {
+    cont_data_t* tmp;
+    tmp = b1;
+    b1 = b2;
+    b2 = tmp;
+  }
+  
+
+  void
+  cont_output_subconnector::mark ()
+  {
+  }
+  
+
+  void
+  cont_input_connector::receive ()
+  {
+  }
+
+  
+    void
+  fast_cont_output_connector::interpolate_to (int start, int end, cont_data_t* data)
+  {
+  }
+  
+  
   void
   fast_cont_output_connector::interpolate_to_buffers ()
   {
-    std::vector<subconnector*>::iterator subcon = subconnectors.begin ();
-    for (; subcon != subconnectors.end (); ++subcon)
+    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+    for (; i != subconnectors.end (); ++i)
       {
-	cont_data_t& data = subcon->buffer.insert ();
+	output_subconnector* subcon = (output_subconnector*) *i;
+	cont_data_t* data = (cont_data_t*) subcon->buffer.insert ();
 	interpolate_to (subcon->start_idx (), subcon->end_idx (), data);
       }
   }
@@ -35,27 +94,24 @@ namespace MUSIC {
   void
   fast_cont_output_connector::mark ()
   {
-    std::vector<cont_subcon*>::iterator subcon = subconnectors.begin ();
-    for (; subcon != subconnectors.end (); ++subcon)
-      subcon->buffer.mark ();
+    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+    for (; i != subconnectors.end (); ++i)
+      {
+	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
+	subcon->buffer.mark ();
+      }
   }
 
   
   void
   cont_output_connector::send ()
   {
-    std::vector<cont_subcon*>::iterator subcon = subconnectors.begin ();
-    for (; subcon != subconnectors.end (); ++subconnectors)
-      subcon->send ();
-  }
-
-
-  void
-  fast_cont_output_connector::swap_buffers ()
-  {
-    cont_data_t* tmp = prev_sample;
-    prev_sample = sample;
-    sample = tmp;
+    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+    for (; i != subconnectors.end (); ++i)
+      {
+	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
+	subcon->send ();
+      }
   }
 
 
@@ -64,12 +120,6 @@ namespace MUSIC {
   {
   }
   
-  
-  void
-  slow_cont_input_connector::receive ()
-  {
-  }
-
   
   void
   slow_cont_input_connector::to_application ()
@@ -95,6 +145,12 @@ namespace MUSIC {
 
 
   void
+  slow_cont_input_connector::buffers_to_application ()
+  {
+  }
+
+  
+  void
   slow_cont_input_connector::tick ()
   {
     if (synch.communicate ())
@@ -104,6 +160,12 @@ namespace MUSIC {
 
 
   void
+  slow_cont_output_connector::application_to_buffers ()
+  {
+  }
+
+  
+  void
   slow_cont_output_connector::tick ()
   {
     application_to_buffers ();
@@ -112,6 +174,18 @@ namespace MUSIC {
   }
 
 
+  void
+  fast_cont_input_connector::buffers_to (cont_data_t* data)
+  {
+  }
+
+  
+  void
+  fast_cont_input_connector::interpolate_to_application ()
+  {
+  }
+
+  
   void
   fast_cont_input_connector::tick ()
   {

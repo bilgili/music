@@ -17,7 +17,8 @@ libmusic_la_SOURCES = \
 	clock.cc music/clock.hh \
 	connector.cc music/connector.hh \
 	permutation_index.cc music/permutation_index.hh \
-	synchronizer.cc music/synchronizer.hh
+	synchronizer.cc music/synchronizer.hh \
+	FIBO.cc music/FIBO.hh
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
@@ -38,6 +39,8 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/index_map.hh music/data_map.hh \
 		       music/linear_index.hh music/array_data.hh \
 		       music/configuration.hh music/error.hh \
-		       music/port.hh
+		       music/port.hh music/clock.hh music/connector.hh \
+		       music/permutation_index.hh music/synchronizer.hh \
+		       music/FIBO.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

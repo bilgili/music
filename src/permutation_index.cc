@@ -19,6 +19,7 @@
 #include <mpi.h>
 #include "music/setup.hh"
 #include "music/runtime.hh"
+#include "music/permutation_index.hh"
 
 namespace MUSIC {
   

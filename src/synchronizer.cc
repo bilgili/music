@@ -20,6 +20,21 @@
 
 namespace MUSIC {
 
-  
+bool
+synchronizer::sample ()
+{
+}
+
+
+bool
+synchronizer::mark ()
+{
+}
+
+
+bool
+synchronizer::communicate ()
+{
+}
 
 }

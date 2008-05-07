@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -149,7 +149,7 @@ launch (int rank, application_map* map, char** argv)
   string binary;
   config->lookup ("binary", &binary);
   config->write_env ();
-  execvp (binary.data (), argv);
+  execvp (binary.c_str (), argv);
 
   // if we get here, something is wrong
   perror ("MUSIC");

@@ -18,6 +18,8 @@
 
 #ifndef MUSIC_CONNECTOR_HH
 
+#include <mpi.h>
+
 #include <vector>
 
 #include "music/synchronizer.hh"
@@ -28,12 +30,16 @@ namespace MUSIC {
   typedef char cont_data_t;
 
   class subconnector {
+  protected:
+    MPI::Intercomm comm;
+    int partner;
   public:
-    subconnector ();
+    subconnector () { }
+    subconnector (int element_size);
     FIBO buffer;
   };
   
-  class output_subconnector : public subconnector {
+  class output_subconnector : virtual public subconnector {
   public:
     output_subconnector ();
     void send ();
@@ -41,9 +47,9 @@ namespace MUSIC {
     int end_idx ();
   };
   
-  class input_subconnector : public subconnector {
+  class input_subconnector : virtual public subconnector {
   };
-  
+
   class cont_output_subconnector : public output_subconnector {
   public:
     void mark ();
@@ -51,25 +57,39 @@ namespace MUSIC {
   
   class cont_input_subconnector : public input_subconnector {
   };
+
+  class event_subconnector : virtual public subconnector {
+  public:
+    event_subconnector ();
+  };
   
   class event_output_subconnector : public output_subconnector {
+  public:
+    void send ();
   };
   
   class event_input_subconnector : public input_subconnector {
+  public:
+    void receive ();
   };
   
   class connector {
   protected:
     synchronizer synch;
-    std::vector<subconnector*> subconnectors;
   public:
     virtual void tick () = 0;
   };
 
   class output_connector : virtual public connector {
+  public:
+#if 0
+    std::vector<output_subconnector*> subconnectors;
+#endif
   };
   
   class input_connector : virtual public connector {
+  protected:
+    subconnector subcon;
   };
 
   class cont_connector : virtual public connector {
@@ -123,13 +143,20 @@ namespace MUSIC {
   public:
     void tick ();
   };
+
+  class event_connector : virtual public connector {
+  public:
+    event_connector ();
+  };
   
   class event_output_connector : public output_connector {
+    void send ();
   public:
     void tick ();
   };
   
   class event_input_connector : public input_connector {
+    void receive ();
   public:
     void tick ();
   };

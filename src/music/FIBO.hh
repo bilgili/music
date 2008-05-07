@@ -23,11 +23,15 @@
 namespace MUSIC {
 
   class FIBO {
+    std::vector<char*> buffer;
+    int element_size;
   public:
-    FIBO ();
+    FIBO () { }
+    FIBO (int element_size);
     //*fixme* return type
     void* insert ();
     void mark ();
+    void next_block (char*& data, int& size);
   };
   
   

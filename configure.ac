@@ -93,7 +93,7 @@ else
       changequote([, ])
       ;;
     openmpi|bgl)
-      MPI_LDFLAGS=""
+      MPI_LDFLAGS="mpicxx -showme:link"
       ;;
     *)
       AC_MSG_ERROR([

@@ -17,10 +17,13 @@
  */
 
 #include "music/connector.hh"
+#include "music/event.hh"
+#include "music/messages.hh"
 
 namespace MUSIC {
 
-  subconnector::subconnector ()
+  subconnector::subconnector (int es)
+    : buffer (es)
   {
   }
 
@@ -50,6 +53,45 @@ namespace MUSIC {
   }
 
 
+  event_subconnector::event_subconnector ()
+    : subconnector (sizeof (event))
+  {
+    
+  }
+  
+
+  void
+  cont_output_subconnector::mark ()
+  {
+  }
+  
+
+  void
+  event_output_subconnector::send ()
+  {
+    cont_data_t* data;
+    int size;
+    buffer.next_block (data, size);
+    //*fixme* marshalling
+    comm.Send (data, size, MPI::BYTE, partner, SPIKE_MSG);
+  }
+  
+
+  void
+  event_input_subconnector::receive ()
+  {
+  }
+  
+
+  // Connectors
+
+  
+  void
+  cont_input_connector::receive ()
+  {
+  }
+
+  
   void
   cont_connector::swap_buffers (cont_data_t*& b1, cont_data_t*& b2)
   {
@@ -61,18 +103,6 @@ namespace MUSIC {
   
 
   void
-  cont_output_subconnector::mark ()
-  {
-  }
-  
-
-  void
-  cont_input_connector::receive ()
-  {
-  }
-
-  
-    void
   fast_cont_output_connector::interpolate_to (int start, int end, cont_data_t* data)
   {
   }
@@ -81,37 +111,42 @@ namespace MUSIC {
   void
   fast_cont_output_connector::interpolate_to_buffers ()
   {
-    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+#if 0
+    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
-	output_subconnector* subcon = (output_subconnector*) *i;
-	cont_data_t* data = (cont_data_t*) subcon->buffer.insert ();
-	interpolate_to (subcon->start_idx (), subcon->end_idx (), data);
+	cont_data_t* data = (cont_data_t*) (*i)->buffer.insert ();
+	interpolate_to ((*i)->start_idx (), (*i)->end_idx (), data);
       }
+#endif
   }
 
   
   void
   fast_cont_output_connector::mark ()
   {
-    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+#if 0
+    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
 	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
 	subcon->buffer.mark ();
       }
+#endif
   }
 
   
   void
   cont_output_connector::send ()
   {
-    std::vector<subconnector*>::iterator i = subconnectors.begin ();
+#if 0
+    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
 	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
 	subcon->send ();
       }
+#endif
   }
 
 
@@ -197,14 +232,43 @@ namespace MUSIC {
   }
 
 
+  event_connector::event_connector ()
+  {
+  }
+  
+
+  void
+  event_output_connector::send ()
+  {
+#if 0
+    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
+    for (; i != subconnectors.end (); ++i)
+      {
+	event_output_subconnector* subcon = (event_output_subconnector*) *i;
+	subcon->send ();
+      }
+#endif
+  }
+  
+  
   void
   event_output_connector::tick ()
   {
+    if (synch.communicate ())
+      send ();    
   }
 
+
+  void
+  event_input_connector::receive ()
+  {
+  }
+  
   
   void
   event_input_connector::tick ()
   {
+    if (synch.communicate ())
+      receive ();    
   }
 }

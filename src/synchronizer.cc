@@ -23,18 +23,21 @@ namespace MUSIC {
 bool
 synchronizer::sample ()
 {
+  return true;
 }
 
 
 bool
 synchronizer::mark ()
 {
+  return false;
 }
 
 
 bool
 synchronizer::communicate ()
 {
+  return true;
 }
 
 }

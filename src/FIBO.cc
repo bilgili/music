@@ -20,7 +20,8 @@
 
 namespace MUSIC {
 
-  FIBO::FIBO ()
+  FIBO::FIBO (int es)
+    : element_size (es)
   {
   }
 
@@ -34,6 +35,12 @@ namespace MUSIC {
 
   void
   FIBO::mark ()
+  {
+  }
+
+
+  void
+  FIBO::next_block (char*& data, int& size)
   {
   }
   

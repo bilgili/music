@@ -13,7 +13,11 @@ libmusic_la_SOURCES = \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
 	parse.cc music/parse.hh \
-	port.cc music/port.hh
+	port.cc music/port.hh \
+	clock.cc music/clock.hh \
+	connector.cc music/connector.hh \
+	permutation_index.cc music/permutation_index.hh \
+	synchronizer.cc music/synchronizer.hh
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@

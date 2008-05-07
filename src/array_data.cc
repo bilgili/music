@@ -24,4 +24,8 @@ namespace MUSIC {
   {
   }
   
+  array_data::array_data (void* buffer, MPI_Datatype type, int base_index, int size)
+  {
+  }
+  
 }

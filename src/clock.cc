@@ -20,9 +20,10 @@
 
 namespace MUSIC {
 
-  clock::clock (clock_state_t ti)
-    : tick_interval (ti)
+  clock::clock (double tb, double h)
+    : timebase (tb)
   {
+    tick_interval = (unsigned long long) (h / tb + 0.5);
   }
 
   
@@ -30,6 +31,13 @@ namespace MUSIC {
   clock::tick ()
   {
     state += tick_interval;
+  }
+  
+
+  double
+  clock::time ()
+  {
+    return timebase * state;
   }
   
 }

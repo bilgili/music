@@ -5,7 +5,7 @@
 
 #define TIMESTEP 0.0005
 
-MPI_Comm comm;
+MPI::Intracomm comm;
 double* data;
 
 int

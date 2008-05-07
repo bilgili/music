@@ -24,10 +24,12 @@
 namespace MUSIC {
 
   class port {
+    int _width;
   public:
-    virtual bool is_connected ();
-    virtual bool has_width ();
-    virtual int width ();
+    port () : _width (-1) { }
+    bool is_connected ();
+    bool has_width ();
+    int width ();
   };
 
   class output_port : virtual public port {
@@ -41,11 +43,13 @@ namespace MUSIC {
 
   class cont_output_port : public cont_port, public output_port {
   public:
+    void map (data_map* dmap);
     void map (data_map* dmap, int max_buffered);
   };
   
   class cont_input_port : public cont_port, public input_port {
   public:
+    void map (data_map* dmap, double delay = 0.0, bool interpolate = true);
     void map (data_map* dmap, int max_buffered, bool interpolate = true);
     void map (data_map* dmap,
 	      double delay,
@@ -58,6 +62,7 @@ namespace MUSIC {
 
   class event_output_port : public event_port, public output_port {
   public:
+    void map (index_map* indices);
     void map (index_map* indices, int max_buffered);
   };
 
@@ -78,6 +83,7 @@ namespace MUSIC {
 
   class message_output_port : public message_port, public output_port {
   public:
+    void map ();
     void map (int max_buffered);
   };
 

@@ -22,7 +22,7 @@ main (int nargs, char* argv[])
 
   MUSIC::setup* setup = new MUSIC::setup (nargs, argv);
 
-  MPI_Comm comm = setup->communicator ();
+  MPI::Intracomm comm = setup->communicator ();
   
   rank = comm.Get_rank ();
 
@@ -41,7 +41,7 @@ main (int nargs, char* argv[])
 		  data, DATA_SIZE, MPI_DOUBLE,
 		  0);
 
-    runtime->tick (time);
+    runtime->tick ();
   }
 
   runtime->finalize ();

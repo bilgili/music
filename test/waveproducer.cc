@@ -4,7 +4,7 @@
 
 #define TIMESTEP 0.001
 
-MPI_Comm comm;
+MPI::Intracomm comm;
 double* data;
 
 int
@@ -14,7 +14,7 @@ main (int argc, char* argv[])
 
   MUSIC::setup* setup = new MUSIC::setup (argc, argv);
   
-  MUSIC::port* wavedata = setup->publish_cont_output ("wavedata");
+  MUSIC::cont_output_port* wavedata = setup->publish_cont_output ("wavedata");
 
   comm = setup->communicator ();
   int n_processes = comm.Get_size (); // how many processes are there?
@@ -33,7 +33,7 @@ main (int argc, char* argv[])
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = MUSIC::runtime (setup, TIMESTEP);
+  MUSIC::runtime* runtime = new MUSIC::runtime (setup, TIMESTEP);
 
   double time = runtime->time ();
   while (time < stoptime)

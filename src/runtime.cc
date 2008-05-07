@@ -5,7 +5,8 @@
 namespace MUSIC {
 
   runtime::runtime (setup* s, double h)
-    : local_time (h)
+    //*fixme* 1e-9
+    : local_time (1e-9, h)
   {
   }
 
@@ -36,5 +37,11 @@ namespace MUSIC {
     local_time.tick ();
   }
 
+
+  double
+  runtime::time ()
+  {
+    return local_time.time ();
+  }
 }
 

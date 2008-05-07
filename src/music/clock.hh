@@ -27,11 +27,13 @@ namespace MUSIC {
 #endif
   
   class clock {
-    clock_state_t state;;
+    clock_state_t state;
     clock_state_t tick_interval;
+    double timebase;
   public:
-    clock (clock_state_t tick_interval);
+    clock (double tb, double h);
     void tick ();
+    double time ();
   };
 
 }

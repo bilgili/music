@@ -14,14 +14,14 @@ namespace MUSIC {
   MPI::Intracomm
   runtime::communicator ()
   {
-    return myCommunicator;
+    return my_communicator;
   }
 
 
   void
   runtime::finalize ()
   {
-    myCommunicator.Free ();
+    my_communicator.Free ();
     MPI::Finalize ();
   }
 

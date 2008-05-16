@@ -11,19 +11,25 @@ double* data;
 int
 main (int args, char* argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (nargs, argv);
+  MUSIC::setup* setup = new MUSIC::setup (args, argv);
 
-  MUSIC::port* wavedata = setup->publish_cont_input ("wavedata");
+  MUSIC::cont_input_port* wavedata = setup->publish_cont_input ("wavedata");
 
   comm = setup->communicator ();
   int n_processes = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();        // which process am I?
+  int width;
+  if (wavedata->has_width ())
+    width = wavedata->width ();
+  else
+    comm.Abort (1);
+
   // For clarity, assume that width is a multiple of n_processes
   int n_local_vars = width / n_processes;
   data = new double[n_local_vars];
-  ostringstream filename;
-  filename << arg[1] << rank << ".out";
-  ofstream file (filename.str ().data ());
+  std::ostringstream filename;
+  filename << argv[1] << rank << ".out";
+  std::ofstream file (filename.str ().data ());
     
   // Declare where in memory to put data
   MUSIC::array_data dmap (data,
@@ -35,13 +41,13 @@ main (int args, char* argv[])
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = MUSIC::runtime (setup, TIMESTEP);
+  MUSIC::runtime* runtime = new MUSIC::runtime (setup, TIMESTEP);
 
   double time = runtime->time ();
   while (time < stoptime)
     {
       // Retrieve data from other program
-      runtime->tick (time);
+      runtime->tick ();
 
       // Dump to file
       for (int i = 0; i < n_local_vars; ++i)
@@ -51,6 +57,8 @@ main (int args, char* argv[])
       time = runtime->time ();
     }
 
+  runtime->finalize ();
+  
   delete runtime;
 
   return 0;

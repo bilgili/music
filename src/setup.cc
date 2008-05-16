@@ -26,6 +26,18 @@ namespace MUSIC {
   setup::setup (int& argc, char**& argv)
   {
     MPI::Init (argc, argv);
+    init (argc, argv);
+  }
+
+  setup::setup (int& argc, char**& argv, int required, int* provided)
+  {
+    *provided = MPI::Init_thread (argc, argv, required);
+    init (argc, argv);
+  }
+
+  void
+  setup::init (int& argc, char**& argv)
+  {
     int my_rank = MPI::COMM_WORLD.Get_rank ();
     _config = new configuration ();
     if (_config->launched_by_music ())

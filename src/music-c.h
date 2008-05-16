@@ -23,6 +23,10 @@
 typedef struct MUSIC_setup MUSIC_setup;
 
 MUSIC_setup *MUSIC_create_setup (int *argc, char ***argv);
+MUSIC_setup *MUSIC_create_setup_thread (int *argc,
+					char ***argv,
+					int required,
+					int* provided);
 
 /* Communicators */
 

@@ -12,13 +12,22 @@ MPI_CXX="$CXX"
 AC_MSG_CHECKING([which MPI system we think we are using])
 case "$MPI_CXX" in
   mpiCC)
-    changequote(<, >)
+    changequote({, })
     if $MPI_CXX -compile_info >/dev/null 2>/dev/null; then
       SYSGUESS=mpich
       CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
     else
-      SYSGUESS=openmpi
-      CXX="$MPI_CXX"
+      #	mpiCC can be a C compiler under OpenMPI
+      if mpicxx -showme >/dev/null 2>/dev/null; then
+        SYSGUESS=openmpi
+        CXX="`mpicxx -showme | sed -e 's/^\([^ ]*\).*/\1/'`"
+      else
+        changequote([, ])      
+        AC_MSG_ERROR([
+Confused when trying to determine MPI_CXX, MPI_CXXFLAGS etc.
+Please set them manually.])
+        changequote({, })
+      fi
     fi
     changequote([, ])
     ;;
@@ -93,7 +102,7 @@ else
       changequote([, ])
       ;;
     openmpi|bgl)
-      MPI_LDFLAGS="mpicxx -showme:link"
+      MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
     *)
       AC_MSG_ERROR([

@@ -1,4 +1,4 @@
-binary=launchtest
+binary=./launchtest
 np=3
 [1]
   args=hej du glade

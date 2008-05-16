@@ -45,6 +45,10 @@ namespace MUSIC {
   public:
     setup (int& argc, char**& argv);
 
+    setup (int& argc, char**& argv, int required, int* provided);
+
+    void init (int& argc, char**& argv);
+
     MPI::Intracomm communicator ();
 
     bool config (string var, string* result);

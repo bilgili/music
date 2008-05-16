@@ -33,6 +33,13 @@ MUSIC_create_setup (int *argc, char ***argv)
 }
 
 
+MUSIC_setup *
+MUSIC_create_setup_thread (int *argc, char ***argv, int required, int *provided)
+{
+  return (MUSIC_setup *) new MUSIC::setup (*argc, *argv, required, provided);
+}
+
+
 /* Communicators */
 
 MPI_Comm

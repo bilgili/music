@@ -21,6 +21,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "../config.h"
+
 #include "application_map.hh"
 
 extern "C" {

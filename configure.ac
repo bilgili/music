@@ -34,6 +34,7 @@ Please set them manually.])
   mpixlcxx|mpicxx)
     SYSGUESS=bgl
     CXX="$MPI_CXX"
+    CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
     ;;
   *)
     SYSGUESS=unknown
@@ -101,8 +102,11 @@ else
       MPI_LDFLAGS="`$MPI_CXX -link_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
       ;;
-    openmpi|bgl)
+    openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
+      ;;
+    bgl)
+      MPI_LDFLAGS=""
       ;;
     *)
       AC_MSG_ERROR([

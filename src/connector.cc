@@ -18,7 +18,7 @@
 
 #include "music/connector.hh"
 #include "music/event.hh"
-#include "music/messages.hh"
+#include "music/message.hh"
 
 namespace MUSIC {
 

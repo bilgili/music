@@ -18,6 +18,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/music-config.hh"
+
+#if MUSIC_HAVE_SIZE_T
+#include <sys/types.h>
+#else
+typedef int size_t;
+#endif
+
 /* Setup */
 
 typedef struct MUSIC_setup MUSIC_setup;

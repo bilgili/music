@@ -21,6 +21,8 @@
 // 02111-1307, USA.
 //------------------------------------------------------------------------
 
+#include "../config.h"
+
 #include "AbstractParser.h"
 
 using namespace rude::config;

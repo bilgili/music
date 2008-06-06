@@ -22,6 +22,8 @@
 //------------------------------------------------------------------------
 
 
+#include "../config.h"
+
 #include "KeyValue.h"
 
 #ifndef INCLUDED_AbstractWriter_H

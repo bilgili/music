@@ -21,6 +21,8 @@
 // 02111-1307, USA.
 //------------------------------------------------------------------------
 
+#include "../config.h"
+
 #include "ParserJuly2004.h"
 
 #ifndef INCLUDED_AbstractOrganiser_h

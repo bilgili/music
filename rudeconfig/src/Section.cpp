@@ -21,6 +21,8 @@
 // 02111-1307, USA.
 //------------------------------------------------------------------------
 
+#include "../config.h"
+
 #include "Section.h"
 
 #ifndef INCLUDED_RUDE_DataLine_H

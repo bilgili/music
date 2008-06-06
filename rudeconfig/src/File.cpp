@@ -22,6 +22,8 @@
 //------------------------------------------------------------------------
 
 
+#include "../config.h"
+
 #include "File.h"
 
 #ifndef INCLUDED_Section_H

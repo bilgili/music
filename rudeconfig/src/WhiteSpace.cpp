@@ -22,6 +22,8 @@
 //------------------------------------------------------------------------
 
 
+#include "../config.h"
+
 #include "WhiteSpace.h"
 
 #ifndef INCLUDED_AbstractWriter_H

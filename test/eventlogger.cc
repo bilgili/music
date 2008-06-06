@@ -1,6 +1,6 @@
+#include <mpi.h>
 #include <cstdlib>
 #include <iostream>
-#include <mpi.h>
 #include <music.hh>
 
 #define TIMESTEP 0.010

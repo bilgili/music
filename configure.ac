@@ -1,6 +1,7 @@
 dnl Process this file with autoconf to produce configure.
 AC_INIT(music, 0.0.0)
 AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER([config.h])
 
 if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
@@ -141,11 +142,18 @@ CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
 CC="$save_CC"
 
-AC_SUBST([MPI_CXXFLAGS MPI_CFLAGS MPI_LDFLAGS])
+if test $ac_cv_type_size_t = yes; then
+  MUSIC_HAVE_SIZE_T=1
+else
+  MUSIC_HAVE_SIZE_T=0
+fi
+
+AC_SUBST([MPI_CXXFLAGS MPI_CFLAGS MPI_LDFLAGS MUSIC_HAVE_SIZE_T])
 
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
+  src/music/music-config.hh
   test/Makefile
   rudeconfig/Makefile
   utils/Makefile

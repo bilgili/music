@@ -18,9 +18,11 @@
 
 #ifndef MUSIC_CLOCK_HH
 
+#include "music/music-config.hh"
+
 namespace MUSIC {
 
-#ifdef HAVE_LONG_LONG
+#ifdef MUSIC_HAVE_LONG_LONG
   typedef unsigned long long clock_state_t;
 #else
 #error 64-bit clocks without long long not yet implemented

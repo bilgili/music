@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <cstdlib>
 #include <cmath>
 #include <music.hh>
 

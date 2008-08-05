@@ -1,3 +1,9 @@
+2008-08-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/ConfigImpl.cpp: #include <cstring>.
+
+	* src/File.h: #include <string>.
+
 2007-11-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* ParserJuly2004.cpp: Use int instead of char to handle parsed
@@ -16,7 +22,7 @@
 
  ChangeLog for RudeConfig C++ Library
 
- Copyright (C) 2005, 2007 Matthew Flood
+ Copyright (C) 2005, 2007, 2008 Matthew Flood
  See file AUTHORS for contact information
 
  This file is part of RudeConfig.

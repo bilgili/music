@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include <music/error.hh>
 
 #include <iostream>
+#include <stdlib.h>
 
 namespace MUSIC {
   

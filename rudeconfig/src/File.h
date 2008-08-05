@@ -1,6 +1,6 @@
 // File.h
 //
-// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Matthew Flood
+// Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2008 Matthew Flood
 // See file AUTHORS for contact information
 //
 // This file is part of RudeConfig.
@@ -38,6 +38,8 @@
 #include <map>
 #define INCLUDED_MAP
 #endif
+
+#include <string>
 
 using namespace rude::config;
 

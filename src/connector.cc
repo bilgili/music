@@ -73,7 +73,7 @@ namespace MUSIC {
     int size;
     buffer.next_block (data, size);
     //*fixme* marshalling
-    comm.Send (data, size, MPI::BYTE, partner, SPIKE_MSG);
+    comm.Send (data, size, MPI::BYTE, partner, MUSIC_SPIKE_MSG);
   }
   
 

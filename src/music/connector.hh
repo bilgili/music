@@ -27,6 +27,8 @@
 
 namespace MUSIC {
 
+  const int MUSIC_SPIKE_MSG = 1;
+
   typedef char cont_data_t;
 
   class subconnector {

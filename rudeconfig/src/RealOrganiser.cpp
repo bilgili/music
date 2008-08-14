@@ -43,7 +43,7 @@ RealOrganiser::RealOrganiser(File *file)
 	d_file = file;
 	d_section = d_file->getSection("");
 }
-
+
 void RealOrganiser::foundSection(const char *sectionName, const char *comment)
 {
 	d_section = d_file->getSection(sectionName);
@@ -54,7 +54,7 @@ void RealOrganiser::foundComment(const char *comment)
 {
 	d_section->addComment(comment);
 }
-
+
 void RealOrganiser::foundWhiteSpace(const char *whitespace)
 {
 	d_section->addWhiteSpace(whitespace);
@@ -64,6 +64,18 @@ void RealOrganiser::foundData(const char *key, const char *value, const char *co
 {
 	d_section->setValue(key, value, comment);
 }
-
+
+void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
+{
+  std::cout << "foundSourceDest srcApp " << srcApp
+            << " srcObj " << srcObj 
+            << " destApp " << destApp 
+            << " destObj " << destObj
+            << " width " << width 
+            << " comment " << comment << "\n";
+
+  d_section->setSourceDest(srcApp,srcObj,destApp,destObj,width,comment);
+}
+
 }} // end namespaces
-
+

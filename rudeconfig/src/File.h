@@ -65,6 +65,12 @@ public:
 	bool deleteData(const char *name);
 	void setStringValue(const char *name, const char *value);
 	int getNumDataMembers() const;
+
+        int getNumSourceDestMembers() const;
+        const char *getSrcAt(int index) const;
+        const char *getDestAt(int index) const;
+        const char *getWidthAt(int index) const;
+
 	const char *getDataNameAt(int index) const;
 	const char *getDataValueAt(int index) const;
 	bool exists(const char *name) const;

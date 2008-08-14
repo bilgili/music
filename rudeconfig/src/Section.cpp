@@ -33,6 +33,10 @@
 #include "KeyValue.h"
 #endif
 
+#ifndef INCLUDED_SourceDest_H
+#include "SourceDest.h"
+#endif
+
 #ifndef INCLUDED_WhiteSpace_H
 #include "WhiteSpace.h"
 #endif
@@ -45,272 +49,413 @@
 #include "AbstractWriter.h"
 #endif
 
+#ifndef INCLUDED_STRING
+#include <string>
+#define INCLUDED_STRING
+#endif
+
+
 using namespace rude::config;
 
 namespace rude{
-namespace config{
+  namespace config{
 
-Section::Section(const char *sectionname, const char *sectioncomment)
-{
-	d_isDeleted = false;
-	d_sectionname = sectionname ? sectionname: "";
-	d_sectioncomment = sectioncomment ? sectioncomment: "";
-}
-
-Section::~Section()
-{
-	std::vector<DataLine*>::iterator iter;
-	for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
+    Section::Section(const char *sectionname, const char *sectioncomment)
+    {
+      d_isDeleted = false;
+      d_sectionname = sectionname ? sectionname: "";
+      d_sectioncomment = sectioncomment ? sectioncomment: "";
+    }
+
+    Section::~Section()
+    {
+      std::vector<DataLine*>::iterator iter;
+      for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
 	{
-			delete (*iter);
+          delete (*iter);
 	}
-}
-
-void Section::acceptWriter(AbstractWriter& writer) const
-{
-	writer.visitSection(*this);
-
-	// Send the writer to all the children.
-	// The writer will know what to do.
-	//
-	std::vector<DataLine*>::iterator iter;
-	for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
+    }
+
+    void Section::acceptWriter(AbstractWriter& writer) const
+    {
+      writer.visitSection(*this);
+
+      // Send the writer to all the children.
+      // The writer will know what to do.
+      //
+      std::vector<DataLine*>::iterator iter;
+      for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
 	{
-		(*iter)->acceptWriter(writer);
+          (*iter)->acceptWriter(writer);
 	}
-}
-
-const char *Section::getSectionName() const
-{
-	return d_sectionname.c_str();
-}
-
-const char *Section::getSectionComment() const
-{
-	return d_sectioncomment.c_str();
-}
-
-void Section::setSectionComment(const char * newcomment)
-{
-	d_sectioncomment = newcomment ? newcomment : "";
-}
-
-bool Section::isDeleted() const
-{
-	return d_isDeleted;
-}
-
-void Section::isDeleted(bool is_it_or_not)
-{
-	d_isDeleted = is_it_or_not;
-	if(d_isDeleted)
+    }
+
+    const char *Section::getSectionName() const
+    {
+      return d_sectionname.c_str();
+    }
+
+    const char *Section::getSectionComment() const
+    {
+      return d_sectioncomment.c_str();
+    }
+
+    void Section::setSectionComment(const char * newcomment)
+    {
+      d_sectioncomment = newcomment ? newcomment : "";
+    }
+
+    bool Section::isDeleted() const
+    {
+      return d_isDeleted;
+    }
+
+    void Section::isDeleted(bool is_it_or_not)
+    {
+      d_isDeleted = is_it_or_not;
+      if(d_isDeleted)
 	{
-		// Delete all data members
-		//
-		std::vector<DataLine*>::iterator iter;
-		for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
-		{
-			(*iter)->isDeleted(true);
-		}
-		d_kv_vector.clear();
-		d_kv_map.clear();
+          // Delete all data members
+          //
+          std::vector<DataLine*>::iterator iter;
+          for(iter = d_allDataVector.begin(); iter != d_allDataVector.end(); iter++)
+            {
+              (*iter)->isDeleted(true);
+            }
+          d_kv_vector.clear();
+          d_kv_map.clear();
+          d_sd_vector.clear();
+          d_sd_map.clear();
 	}
-}
-
-int Section::getNumDataMembers() const
-{
+    }
+
+    int Section::getNumDataMembers() const
+    {
 	
-	return d_kv_vector.size();
-}
-
-const char *Section::getDataNameAt(int index) const
-{
-	KeyValue *kv = d_kv_vector[index];
-	if(kv)
+      return d_kv_vector.size();
+    }
+
+
+    int Section::getNumSourceDestMembers() const
+    {
+      return d_sd_vector.size();
+    }
+
+    const char *Section::getDataNameAt(int index) const
+    {
+      KeyValue *kv = d_kv_vector[index];
+      if(kv)
 	{
-		return kv->getName();
+          return kv->getName();
 	}
-	return "";
-}
-
-const char *Section::getDataValueAt(int index) const
-{
-	KeyValue *kv = d_kv_vector[index];
-	if(kv)
+      return "";
+    }
+
+    // Returns the concatenation of destApp.destObj
+    const char *Section::getDestAt(int index) const
+    {
+      SourceDest *sd = d_sd_vector[index];
+      if(sd)
 	{
-		return kv->getValue();
+          return sd->getDest();
 	}
-	return "";
-}
-
-// MAPPED
-//
-bool Section::exists(const char *name) const
-{
-	if(name)
+      return "";
+    }
+
+    // Returns the concatenation of srcApp.srcObj
+    const char *Section::getSrcAt(int index) const
+    {
+      SourceDest *sd = d_sd_vector[index];
+      if(sd)
 	{
-		std::string myname = name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			return true;
-		}	
+          return sd->getSrc();
 	}
-	return false;
-}
-
-// MAPPED
-//
-const char * Section::getValue(const char *name) const
-{
-	if(name)
+      return "";
+    }
+
+    // Returns the concatenation of srcApp.srcObj
+    const char *Section::getWidthAt(int index) const
+    {
+      SourceDest *sd = d_sd_vector[index];
+      if(sd)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-				return mydata->getValue();
-		}
+          return sd->getWidth();
 	}
-	return "";
-}
-
-// MAPPED
-//
-void Section::setValue(const char *name, const char *value)
-{
-	if(name)
+      return "";
+    }
+
+    const char *Section::getDataValueAt(int index) const
+    {
+      KeyValue *kv = d_kv_vector[index];
+      if(kv)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			mydata->setValue(value);
-			mydata->isDeleted(false);
+          return kv->getValue();
+	}
+      return "";
+    }
+
+    // MAPPED
+    //
+    bool Section::exists(const char *name) const
+    {
+      if(name)
+	{
+          std::string myname = name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              return true;
+            }	
+	}
+      return false;
+    }
+
+    // MAPPED
+    //
+    bool Section::existsSD(const char *dest) const
+    {
+      if(dest)
+	{
+          std::string mydest = dest;
+          SourceDest *mysd = d_sd_map[mydest];
+          if(mysd)
+            {
+              return true;
+            }	
+	}
+      return false;
+    }
+
+    // MAPPED
+    //
+    const char * Section::getSrc(const char *dest) const
+    {
+      if(dest)
+	{
+          std::string mydest=dest;
+          SourceDest *mysd = d_sd_map[mydest];
+          if(mysd)
+            {
+              return mysd->getSrc();
+            }
+	}
+      return "";
+    }
+
+
+    // MAPPED
+    //
+    const char * Section::getWidth(const char *dest) const
+    {
+      if(dest)
+	{
+          std::string mydest=dest;
+          SourceDest *mysd = d_sd_map[mydest];
+          if(mysd)
+            {
+              return mysd->getWidth();
+            }
+	}
+      return "";
+    }
+
+
+    // MAPPED
+    //
+    const char * Section::getValue(const char *name) const
+    {
+      if(name)
+	{
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              return mydata->getValue();
+            }
+	}
+      return "";
+    }
+
+    // MAPPED
+    //
+    void Section::setValue(const char *name, const char *value)
+    {
+      if(name)
+	{
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              mydata->setValue(value);
+              mydata->isDeleted(false);
 			
-		} 
-		else
-		{	
-			KeyValue *newdata = new KeyValue();
-			newdata->setName(name);
-			newdata->setValue(value);
-			d_allDataVector.push_back(newdata);
-			d_kv_vector.push_back(newdata);
-			d_kv_map[myname] = newdata;
-		}
+            } 
+          else
+            {	
+              KeyValue *newdata = new KeyValue();
+              newdata->setName(name);
+              newdata->setValue(value);
+              d_allDataVector.push_back(newdata);
+              d_kv_vector.push_back(newdata);
+              d_kv_map[myname] = newdata;
+            }
 	}
-}
-
-// MAPPED
-//
-const char * Section::getComment(const char *name) const
-{
-	if(name)
+    }
+
+    // MAPPED
+    //
+    const char * Section::getComment(const char *name) const
+    {
+      if(name)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			return mydata->getComment();
-		}
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              return mydata->getComment();
+            }
 	}
-	return "";
-}
-
-// MAPPED
-//
-void Section::setComment(const char *name, const char *comment)
-{
-	if(name)
+      return "";
+    }
+
+    // MAPPED
+    //
+    void Section::setComment(const char *name, const char *comment)
+    {
+      if(name)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			mydata->setComment(comment);
-		} 
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              mydata->setComment(comment);
+            } 
 	}
-}
-
-// MAPPED
-//
-void Section::setValue(const char *name, const char *value, const char *comment)
-{
+    }
+
+    // MAPPED
+    //
+    void Section::setValue(const char *name, const char *value, const char *comment)
+    {
 	
-	if(name)
+      if(name)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			mydata->setValue(value);
-			mydata->setComment(comment);
-			mydata->isDeleted(false);
-		} 
-		else
-		{	
-			KeyValue *newdata = new KeyValue(name, value, comment);
-
-			d_allDataVector.push_back(newdata);
-			d_kv_vector.push_back(newdata);
-			d_kv_map[myname] = newdata;
-		}
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              mydata->setValue(value);
+              mydata->setComment(comment);
+              mydata->isDeleted(false);
+            } 
+          else
+            {	
+              KeyValue *newdata = new KeyValue(name, value, comment);
+
+              d_allDataVector.push_back(newdata);
+              d_kv_vector.push_back(newdata);
+              d_kv_map[myname] = newdata;
+            }
 	}
-}
-
-// MAPPED
-//
-void Section::addComment(const char *comment)
-{
-	Comment *newdata = new Comment(comment);
-	d_allDataVector.push_back(newdata);
-}
-
-// MAPPED
-//
-void Section::addWhiteSpace(const char *whitespace)
-{
-	WhiteSpace *newdata = new WhiteSpace(whitespace);
-	d_allDataVector.push_back(newdata);
-}
-
-// MAPPED
-//
-bool Section::deleteData(const char *name)
-{
-	// Since we are keeping deleted data in the d_allDataVector,
-	// multiple set/deletes will require lots of memory!!
-	//
-	if(name)
+    }
+
+    // MAPPED
+    //
+    void Section::setSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
+    {
+	
+      if(destObj)
 	{
-		std::string myname=name;
-		KeyValue *mydata = d_kv_map[myname];
-		if(mydata)
-		{
-			// Remain in d_allDataVector, but as deleted
-			//
-			mydata->isDeleted(true);
-
-			// remove from keyvalue vector and map
-			//
-			std::vector<KeyValue*>::iterator iter;
-			for(iter = d_kv_vector.begin(); iter != d_kv_vector.end(); iter ++)
-			{
-				if( *iter == mydata )
-				{
-					d_kv_vector.erase(iter);
-					break;
-				}
-			}
+          std::string mydest(destApp);
+          mydest += ".";
+          mydest += destObj;
+          SourceDest *mysd = d_sd_map[mydest];
+          if(mysd)
+            {
+              mysd->setSrcApp(srcApp);
+              mysd->setSrcObj(srcObj);
+              mysd->setDestApp(destApp);
+              mysd->setDestObj(destObj);
+              mysd->setWidth(width);
+              mysd->setComment(comment);
+              mysd->isDeleted(false);
+
+              if(1) 
+                {
+                  std::cout << "Created:\n" << mysd->toString();
+                }
+
+            } 
+          else
+            {	
+              SourceDest *newsd = new SourceDest(srcApp, srcObj, destApp, destObj, width, comment);
+
+              d_allDataVector.push_back(newsd);
+              d_sd_vector.push_back(newsd);
+              d_sd_map[mydest] = newsd;
+
+              if(1) 
+                {
+                  std::cout << "Created:\n" << newsd->toString();
+                }
+
+            }
+	}
+    }
+
+    // MAPPED
+    //
+    void Section::addComment(const char *comment)
+    {
+      Comment *newdata = new Comment(comment);
+      d_allDataVector.push_back(newdata);
+    }
+
+    // MAPPED
+    //
+    void Section::addWhiteSpace(const char *whitespace)
+    {
+      WhiteSpace *newdata = new WhiteSpace(whitespace);
+      d_allDataVector.push_back(newdata);
+    }
+
+    // MAPPED
+    //
+    bool Section::deleteData(const char *name)
+    {
+      // Since we are keeping deleted data in the d_allDataVector,
+      // multiple set/deletes will require lots of memory!!
+      //
+      if(name)
+	{
+          std::string myname=name;
+          KeyValue *mydata = d_kv_map[myname];
+          if(mydata)
+            {
+              // Remain in d_allDataVector, but as deleted
+              //
+              mydata->isDeleted(true);
+
+              // remove from keyvalue vector and map
+              //
+              std::vector<KeyValue*>::iterator iter;
+              for(iter = d_kv_vector.begin(); iter != d_kv_vector.end(); iter ++)
+                {
+                  if( *iter == mydata )
+                    {
+                      d_kv_vector.erase(iter);
+                      break;
+                    }
+                }
 			
-			d_kv_map.erase(myname);
-
-			return true;
-		}
+              d_kv_map.erase(myname);
+
+              return true;
+            }
 	}
-	return false;
-}
-
-}} // end namespace rude::config
-
-
+      return false;
+    }
+
+  }} // end namespace rude::config
+
+

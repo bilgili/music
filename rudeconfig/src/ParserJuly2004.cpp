@@ -46,7 +46,7 @@ namespace rude{
 namespace config{
 
 enum SectionState{ STARTSECTION, SECTIONID, ESCAPEID, ENDSECTIONID, SECTIONCOMMENT, FOUNDIDONLY, FOUNDIDCOMMENT, SECTIONERROR, ENDSECTION };
-enum KeyValueState{ KEY, KEYESCAPE, STARTVALUE, COMMENT, FINDCOMMENT, KVERROR, ENDKV, VALUE, QUOTEVALUE, NONQUOTEVALUE, QUOTEESCAPE, NONQUOTEESCAPE, ENDKEYVALUE};
+enum KeyValueState{ KEY, KEYESCAPE, STARTVALUE, COMMENT, FINDCOMMENT, KVERROR, ENDKV, VALUE, QUOTEVALUE, NONQUOTEVALUE, QUOTEESCAPE, NONQUOTEESCAPE, ENDKEYVALUE, LEFTARROW, RIGHTARROW, GETSOURCE, GETDEST, GETWIDTH, SDCOMMENT, ENDSOURCEDEST};
 
 void ParserJuly2004::stripTrailing(std::string& buffer)
 {
@@ -342,6 +342,15 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 			std::string value = "";
 			std::string comment = "";
 
+
+                        // Added to handle source -> dest
+
+                        std::string srcApp = "";
+                        std::string srcObj = "";
+                        std::string destApp = "";
+                        std::string destObj = "";
+                        std::string width = "";
+
 			while (kvState != ENDKEYVALUE)
 			{						
 				
@@ -349,6 +358,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 				{
 					case KEY:
 					{
+                                          std::cout << "KEY\n";
+
 							int c = infile.peek();
 							
 							if(c == EOF || isEOL(c))
@@ -386,6 +397,73 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
 								kvState = KEYESCAPE;
 							}
+                                                        else if(c == '-')
+                                                          {
+                                                            // Is it -> ??
+                                                            infile.get();
+                                                            c = infile.peek();
+
+                                                            if(c == '>')
+                                                              {
+                                                                infile.get();
+
+                                                                kvState = RIGHTARROW;
+                                                                // We need to split up the key into srcApp.srcObj and store them
+                                                                int dotPos = key.find_first_of('.');
+
+                                                                if(dotPos != string::npos)
+                                                                  {
+                                                                    srcApp = key.substr(0,dotPos);
+                                                                    srcObj = key.substr(dotPos+1,key.length()-dotPos-1);
+
+                                                                    std::cout << "Found srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+
+                                                                  }
+                                                                else
+                                                                  {
+                                                                    srcApp = "";
+                                                                    srcObj = key;
+                                                                  }
+                                                              }
+                                                            else
+                                                              {
+                                                                key += '-';
+                                                              }
+                                                          }
+                                                        else if(c == '<')
+                                                          {
+                                                            // IS it <- ??
+                                                            infile.get();
+                                                            c = infile.peek();
+
+                                                            if(c == '-')
+                                                              {
+                                                                infile.get();
+
+                                                                kvState = LEFTARROW;
+                                                                // We need to split up the key into destApp.destObj and store them
+                                                                int dotPos = key.find_first_of('.');
+
+                                                                if(dotPos != string::npos)
+                                                                  {
+
+                                                                    destApp = key.substr(0,dotPos);
+                                                                    destObj = key.substr(dotPos+1,key.length()-dotPos-1);
+
+                                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+
+                                                                  }
+                                                                else
+                                                                  {
+                                                                    destApp = "";
+                                                                    destObj = key;
+                                                                  }
+                                                              }
+                                                            else
+                                                              {
+                                                                key += '<';
+                                                              }
+                                                          }
 							else
 							{
 								// append to key
@@ -398,6 +476,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case KEYESCAPE:
 					{
+                                          std::cout << "KEYESCAPE\n";
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -421,6 +500,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case STARTVALUE:
 					{
+                                          std::cout << "STARTVALUE\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -451,10 +531,13 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case KVERROR:
 					{
+                                          std::cout << "KVERROR\n";
 							return false;
 					}
 					case FINDCOMMENT:
 					{
+                                          
+                                          std::cout << "FINDCOMMENT\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -486,6 +569,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case COMMENT:
 					{
+                                          std::cout << "COMMENT\n";
+
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -505,6 +590,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case VALUE:
 					{
+                                          std::cout << "VALUE\n";
+
 						int c = infile.peek();
 						if(c == '"')
 						{
@@ -522,6 +609,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEVALUE:
 					{
+                                          std::cout << "QUOTEVALUE\n";
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -556,6 +644,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEESCAPE:
 					{
+                                          std::cout << "QUOTEESCAPE\n";
+
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -574,6 +664,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEVALUE:
 					{
+                                          std::cout << "NONQUOTEVALUE\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -612,6 +703,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEESCAPE:
 					{
+                                          std::cout << "NONQUOTEESCAPE\n";
+
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -640,15 +733,344 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							break;
 					}				
 					case ENDKV:
-					{
-							chompEOL(infile);
+                                          {
+                                            std::cout << "ENDKV\n";
 
-							stripTrailing(key);
-							organiser.foundData(key.c_str(), value.c_str(), comment.c_str());
+                                            chompEOL(infile);
+                                            
+                                            stripTrailing(key);
+                                            organiser.foundData(key.c_str(), value.c_str(), comment.c_str());
+                                            
+                                            kvState = ENDKEYVALUE;
+                                            break;
+                                          }
+                                        case LEFTARROW:
+                                          {
+                                            std::cout << "LEFTARROW\n";
 
-							kvState = ENDKEYVALUE;
-							break;
-					}
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                kvState = ENDSOURCEDEST;
+
+                                                stripTrailing(value);
+
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    srcApp = value.substr(0,dotPos);
+                                                    srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
+
+                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                  }
+                                                else
+                                                  {
+                                                    std::cout << "srcObj: " << value << "\n";
+                                                    
+                                                    srcApp = "";
+                                                    srcObj = value;
+                                                  }
+                                              }
+                                            else if(c == ' ' || c == '\t')
+                                              {
+                                                // Discard whitespace
+                                                infile.get();
+                                              }
+                                            else if(d_commentchar != 0 && c == d_commentchar)
+                                              {
+                                                // discard '#'
+                                                infile.get();
+                                                
+                                                kvState = SDCOMMENT;
+                                              }
+                                            else 
+                                              {
+                                              kvState = GETSOURCE;
+                                              }
+
+
+                                            break;
+                                          }
+                                        case RIGHTARROW:
+                                          {
+                                            std::cout << "RIGHTARROW\n";
+
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                kvState = ENDSOURCEDEST;
+
+                                                stripTrailing(value);                                                
+
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    destApp = value.substr(0,dotPos);
+                                                    destObj = value.substr(dotPos+1,value.length()-dotPos-1);
+                                                  }
+                                                else
+                                                  {
+                                                    destApp = "";
+                                                    destObj = value;
+                                                  }
+                                              }
+                                            else if(c == ' ' || c == '\t')
+                                              {
+                                                // Discard whitespace
+                                                infile.get();
+                                              }
+                                            else if(d_commentchar != 0 && c == d_commentchar)
+                                              {
+                                                // discard '#'
+                                                infile.get();
+                                                
+                                                kvState = SDCOMMENT;
+                                              }
+                                            else 
+                                              {
+                                              kvState = GETDEST;
+                                              }
+
+                                            break;
+                                          }
+                                        case GETSOURCE:
+                                          {
+                                            std::cout << "GETSOURCE\n";
+
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                stripTrailing(value);
+
+                                                kvState = ENDSOURCEDEST;
+
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    srcApp = value.substr(0,dotPos);
+                                                    srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
+
+                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                  }
+                                                else
+                                                  {
+                                                    std::cout << "srcObj: " << value << "\n";
+                                                    
+                                                    srcApp = "";
+                                                    srcObj = value;
+                                                  }
+                                              }
+                                            else if((d_commentchar != 0 && c == d_commentchar) || c == '[')
+                                              {
+                                                // discard '#' or '['
+                                                //
+                                                infile.get();
+                                                
+                                                stripTrailing(value);
+                                                
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    srcApp = value.substr(0,dotPos);
+                                                    srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
+
+                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                  }
+                                                else
+                                                  {
+                                                    std::cout << "srcObj: " << value << "\n";
+                                                    
+                                                    srcApp = "";
+                                                    srcObj = value;
+                                                  }
+
+                                                // Which one was it, comment about to start or width info?
+                                                if(c == '[') 
+                                                  kvState = GETWIDTH;
+                                                else
+                                                  kvState = SDCOMMENT;
+                                              }
+                                            else
+                                              {
+                                                // append to value (temp storage for 
+                                                //
+                                                value += infile.get();
+
+                                                // LOOP
+                                              }
+
+                                            break;
+                                          }
+                                        case GETDEST:
+                                          {
+
+                                            std::cout << "GETDEST\n";
+
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                stripTrailing(value);
+
+                                                kvState = ENDSOURCEDEST;
+
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    destApp = value.substr(0,dotPos);
+                                                    destObj = value.substr(dotPos+1,value.length()-dotPos-1);
+
+                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+                                                                    
+                                                  }
+                                                else
+                                                  {
+                                                    destApp = "";
+                                                    destObj = value;
+                                                  }
+                                              }
+                                            else if((d_commentchar != 0 && c == d_commentchar) || c == '[')
+                                              {
+                                                // discard '#' or '['
+                                                //
+                                                infile.get();
+                                                
+                                                stripTrailing(value);
+                                                
+                                                int dotPos = value.find_first_of('.');
+
+                                                if(dotPos != string::npos)
+                                                  {
+                                                    destApp = value.substr(0,dotPos);
+                                                    destObj = value.substr(dotPos+1,value.length()-dotPos-1);
+
+                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+                                                                    
+                                                  }
+                                                else
+                                                  {
+                                                    destApp = "";
+                                                    destObj = value;
+                                                  }
+
+                                                // Which one was it, comment about to start or width info?
+                                                if(c == '[') 
+                                                  kvState = GETWIDTH;
+                                                else
+                                                  kvState = SDCOMMENT;
+                                              }
+                                            else
+                                              {
+                                                // append to value (temp storage for 
+                                                //
+                                                value += infile.get();
+
+                                                // LOOP
+                                              }
+
+                                            break;
+                                          }
+                                        case GETWIDTH:
+                                          {
+                                            std::cout << "GETWIDTH\n";
+
+                                            int c = infile.peek();
+                                            
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                setError("901", "Partial width found. No terminating ']'.");
+                                                kvState = KVERROR;
+                                              }
+                                            else if(d_commentchar != 0 && c == d_commentchar)
+                                              {
+                                                // discard '#'
+                                                //
+                                                infile.get();
+
+                                                kvState = SDCOMMENT;
+                                              }
+                                            else if(c == ' ' || c == '\t')
+                                              {
+                                                // discard whitespace
+                                                //
+                                                infile.get();
+
+
+                                                c = infile.peek();
+
+                                                if('0' <= c & c <= '9' & width.length() > 0)
+                                                  {
+                                                    setError("902", "Two numbers detected in the width declaration");
+                                                    kvState = KVERROR;
+                                                  }
+
+                                                // LOOP
+                                              }
+                                            else if(c == ']')
+                                              {
+                                                stripTrailing(width);
+                                                kvState = ENDSOURCEDEST;
+
+                                                // Ignoring any comments that might be here...
+                                              }
+                                            else if('0' <= c && c <= '9')
+                                              {
+                                                width += infile.get();
+                                              }
+                                            else {
+                                              setError("903", "Non integer number detected");
+                                              kvState = KVERROR;
+                                            }
+                                            break;
+                                          }
+                                        case SDCOMMENT:
+                                          {
+                                            std::cout << "SDCOMMENT\n";
+
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                stripTrailing(comment);
+                                                kvState = ENDSOURCEDEST;
+                                              }
+                                            else
+                                              {
+                                                // Append to comment
+                                                //
+                                                comment += infile.get();
+                                                
+                                                // LOOP	
+                                              }
+                                            break;
+                                          }
+                                        case ENDSOURCEDEST:
+                                          {
+                                            std::cout << "ENDSOURCEDEST\n";
+
+                                            chompEOL(infile);
+                                            
+                                            stripTrailing(srcApp);
+                                            stripTrailing(srcObj);
+                                            stripTrailing(destApp);
+                                            stripTrailing(destObj);
+                                            stripTrailing(width);
+
+                                            organiser.foundSourceDest(srcApp.c_str(), srcObj.c_str(), destApp.c_str(), destObj.c_str(), width.c_str(), comment.c_str());
+                                            
+                                            kvState = ENDKEYVALUE;
+                                            break;
+                                          }
+
+
 				} // end switch
 			} // end while
 		}

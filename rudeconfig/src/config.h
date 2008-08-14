@@ -230,6 +230,11 @@ public:
 	//=
 	const char *getError();
 
+        int getNumSourceDestMembers() const;
+        const char *getSrcAt(int index) const;
+        const char *getDestAt(int index) const;
+        const char *getWidthAt(int index) const;
+
 	//=
 	// Returns the number of sections in the entire configuration file
 	// This number includes the default section - ""  (the empty section at the beginning of the file) 

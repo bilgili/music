@@ -159,6 +159,12 @@ public:
 
 	// DATA METHODS
 	//
+
+        int getNumSourceDestMembers() const;
+        const char *getSrcAt(int index) const;
+        const char *getDestAt(int index) const;
+        const char *getWidthAt(int index) const;
+
 	int getNumDataMembers() const;
 	const char *getDataNameAt(int index) const;
 	const char *getDataValueAt(int index) const;

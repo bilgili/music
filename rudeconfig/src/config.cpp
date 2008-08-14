@@ -204,6 +204,30 @@ bool Config::deleteSection(const char *sectionname)
 //////////////////////////////////////////
 // Data Methods
 //////////////////////////////////////////
+
+
+int Config::getNumSourceDestMembers() const
+{
+  return d_implementation->getNumSourceDestMembers();
+}
+
+const char *Config::getSrcAt(int index) const
+{
+  return d_implementation->getSrcAt(index);
+}
+
+const char *Config::getDestAt(int index) const
+{
+  return d_implementation->getDestAt(index);
+}
+
+const char *Config::getWidthAt(int index) const
+{
+  return d_implementation->getWidthAt(index);
+}
+
+
+
 int Config::getNumDataMembers() const
 {
 	return d_implementation->getNumDataMembers();

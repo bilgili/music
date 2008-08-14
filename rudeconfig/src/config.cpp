@@ -211,14 +211,24 @@ int Config::getNumSourceDestMembers() const
   return d_implementation->getNumSourceDestMembers();
 }
 
-const char *Config::getSrcAt(int index) const
+const char *Config::getSrcAppAt(int index) const
 {
-  return d_implementation->getSrcAt(index);
+  return d_implementation->getSrcAppAt(index);
 }
 
-const char *Config::getDestAt(int index) const
+const char *Config::getDestAppAt(int index) const
 {
-  return d_implementation->getDestAt(index);
+  return d_implementation->getDestAppAt(index);
+}
+
+const char *Config::getSrcObjAt(int index) const
+{
+  return d_implementation->getSrcObjAt(index);
+}
+
+const char *Config::getDestObjAt(int index) const
+{
+  return d_implementation->getDestObjAt(index);
 }
 
 const char *Config::getWidthAt(int index) const

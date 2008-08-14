@@ -67,6 +67,8 @@ void RealOrganiser::foundData(const char *key, const char *value, const char *co
 
 void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
 {
+
+  /*
   std::cout << "foundSourceDest srcApp " << srcApp
             << " srcObj " << srcObj 
             << " destApp " << destApp 
@@ -74,7 +76,9 @@ void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, cons
             << " width " << width 
             << " comment " << comment << "\n";
 
-  d_section->setSourceDest(srcApp,srcObj,destApp,destObj,width,comment);
+  */
+
+  d_section->addSourceDest(srcApp,srcObj,destApp,destObj,width,comment);
 }
 
 }} // end namespaces

@@ -153,24 +153,38 @@ int File::getNumSourceDestMembers() const
   return 0;
 }
 
-const char *File::getSrcAt(int index) const
+const char *File::getSrcAppAt(int index) const
 {
   if(d_currentSection)
     {
-      const char *tmp = d_currentSection->getSrcAt(index);
-      std::cout << "src == " << tmp << "\n";
-      return tmp;
-
-      //return d_currentSection->getSrcAt(index);
+      return d_currentSection->getSrcAppAt(index);
     }
   return 0;
 }
 
-const char *File::getDestAt(int index) const
+const char *File::getDestAppAt(int index) const
 {
   if(d_currentSection)
     {
-    return d_currentSection->getDestAt(index);
+    return d_currentSection->getDestAppAt(index);
+    }
+  return 0;
+}
+
+const char *File::getSrcObjAt(int index) const
+{
+  if(d_currentSection)
+    {
+      return d_currentSection->getSrcObjAt(index);
+    }
+  return 0;
+}
+
+const char *File::getDestObjAt(int index) const
+{
+  if(d_currentSection)
+    {
+    return d_currentSection->getDestObjAt(index);
     }
   return 0;
 }

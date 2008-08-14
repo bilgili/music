@@ -67,8 +67,10 @@ public:
 	int getNumDataMembers() const;
 
         int getNumSourceDestMembers() const;
-        const char *getSrcAt(int index) const;
-        const char *getDestAt(int index) const;
+        const char *getSrcObjAt(int index) const;
+        const char *getDestObjAt(int index) const;
+        const char *getSrcAppAt(int index) const;
+        const char *getDestAppAt(int index) const;
         const char *getWidthAt(int index) const;
 
 	const char *getDataNameAt(int index) const;

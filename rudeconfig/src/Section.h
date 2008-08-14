@@ -82,7 +82,7 @@ namespace rude{
       // but a dest can only have one source.
       // Therefor we use dest for lookups!
       mutable std::vector<SourceDest*> d_sd_vector;
-      mutable std::map<std::string, SourceDest*> d_sd_map;
+
     public:
 
       Section(const char *sectionname, const char *sectioncomment=0);
@@ -157,9 +157,10 @@ namespace rude{
       //=
       const char *getDataNameAt(int index) const;
 
-      const char *getDestAt(int index) const;
-
-      const char *getSrcAt(int index) const;
+      const char *getDestAppAt(int index) const;
+      const char *getSrcAppAt(int index) const;
+      const char *getDestObjAt(int index) const;
+      const char *getSrcObjAt(int index) const;
 
       const char *getWidthAt(int index) const;
 
@@ -175,13 +176,6 @@ namespace rude{
       // Returns true if data name exists (and is not marked as deleted), false otherwise
       //=
       bool exists(const char *name) const;
-
-      bool existsSD(const char *name) const;
-
-      const char *getSrc(const char *dest) const;
-
-      const char *getWidth(const char *dest) const;
-
 
       //=
       // Returns the value associated with the data identified by <i>name</i>
@@ -226,7 +220,7 @@ namespace rude{
       void setValue(const char *name, const char *value, const char *comment);
 
 
-      void setSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment);
+      void addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment);
 
 
       //=

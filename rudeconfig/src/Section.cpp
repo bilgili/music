@@ -125,7 +125,6 @@ namespace rude{
           d_kv_vector.clear();
           d_kv_map.clear();
           d_sd_vector.clear();
-          d_sd_map.clear();
 	}
     }
 
@@ -151,24 +150,41 @@ namespace rude{
       return "";
     }
 
-    // Returns the concatenation of destApp.destObj
-    const char *Section::getDestAt(int index) const
+    const char *Section::getDestAppAt(int index) const
     {
       SourceDest *sd = d_sd_vector[index];
       if(sd)
 	{
-          return sd->getDest();
+          return sd->getDestApp();
 	}
       return "";
     }
 
-    // Returns the concatenation of srcApp.srcObj
-    const char *Section::getSrcAt(int index) const
+    const char *Section::getSrcAppAt(int index) const
     {
       SourceDest *sd = d_sd_vector[index];
       if(sd)
 	{
-          return sd->getSrc();
+          return sd->getSrcApp();
+	}
+      return "";
+    }
+    const char *Section::getDestObjAt(int index) const
+    {
+      SourceDest *sd = d_sd_vector[index];
+      if(sd)
+	{
+          return sd->getDestObj();
+	}
+      return "";
+    }
+
+    const char *Section::getSrcObjAt(int index) const
+    {
+      SourceDest *sd = d_sd_vector[index];
+      if(sd)
+	{
+          return sd->getSrcObj();
 	}
       return "";
     }
@@ -209,56 +225,6 @@ namespace rude{
 	}
       return false;
     }
-
-    // MAPPED
-    //
-    bool Section::existsSD(const char *dest) const
-    {
-      if(dest)
-	{
-          std::string mydest = dest;
-          SourceDest *mysd = d_sd_map[mydest];
-          if(mysd)
-            {
-              return true;
-            }	
-	}
-      return false;
-    }
-
-    // MAPPED
-    //
-    const char * Section::getSrc(const char *dest) const
-    {
-      if(dest)
-	{
-          std::string mydest=dest;
-          SourceDest *mysd = d_sd_map[mydest];
-          if(mysd)
-            {
-              return mysd->getSrc();
-            }
-	}
-      return "";
-    }
-
-
-    // MAPPED
-    //
-    const char * Section::getWidth(const char *dest) const
-    {
-      if(dest)
-	{
-          std::string mydest=dest;
-          SourceDest *mysd = d_sd_map[mydest];
-          if(mysd)
-            {
-              return mysd->getWidth();
-            }
-	}
-      return "";
-    }
-
 
     // MAPPED
     //
@@ -359,49 +325,18 @@ namespace rude{
 	}
     }
 
-    // MAPPED
+    // CREATES
     //
-    void Section::setSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
+    void Section::addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
     {
 	
-      if(destObj)
-	{
-          std::string mydest(destApp);
-          mydest += ".";
-          mydest += destObj;
-          SourceDest *mysd = d_sd_map[mydest];
-          if(mysd)
-            {
-              mysd->setSrcApp(srcApp);
-              mysd->setSrcObj(srcObj);
-              mysd->setDestApp(destApp);
-              mysd->setDestObj(destObj);
-              mysd->setWidth(width);
-              mysd->setComment(comment);
-              mysd->isDeleted(false);
+      SourceDest *newsd = new SourceDest(srcApp, srcObj, destApp, destObj, width, comment);
 
-              if(1) 
-                {
-                  std::cout << "Created:\n" << mysd->toString();
-                }
+      d_allDataVector.push_back(newsd);
+      d_sd_vector.push_back(newsd);
 
-            } 
-          else
-            {	
-              SourceDest *newsd = new SourceDest(srcApp, srcObj, destApp, destObj, width, comment);
-
-              d_allDataVector.push_back(newsd);
-              d_sd_vector.push_back(newsd);
-              d_sd_map[mydest] = newsd;
-
-              if(1) 
-                {
-                  std::cout << "Created:\n" << newsd->toString();
-                }
-
-            }
-	}
     }
+  
 
     // MAPPED
     //

@@ -358,7 +358,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 				{
 					case KEY:
 					{
-                                          std::cout << "KEY\n";
+                                          //std::cout << "KEY\n";
 
 							int c = infile.peek();
 							
@@ -416,7 +416,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                                     srcApp = key.substr(0,dotPos);
                                                                     srcObj = key.substr(dotPos+1,key.length()-dotPos-1);
 
-                                                                    std::cout << "Found srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                                    //std::cout << "Found srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
 
                                                                   }
                                                                 else
@@ -450,7 +450,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                                     destApp = key.substr(0,dotPos);
                                                                     destObj = key.substr(dotPos+1,key.length()-dotPos-1);
 
-                                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+                                                                    //std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
 
                                                                   }
                                                                 else
@@ -476,7 +476,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case KEYESCAPE:
 					{
-                                          std::cout << "KEYESCAPE\n";
+                                          //std::cout << "KEYESCAPE\n";
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -500,7 +500,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case STARTVALUE:
 					{
-                                          std::cout << "STARTVALUE\n";
+                                          //std::cout << "STARTVALUE\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -531,13 +531,13 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case KVERROR:
 					{
-                                          std::cout << "KVERROR\n";
+                                          //std::cout << "KVERROR\n";
 							return false;
 					}
 					case FINDCOMMENT:
 					{
                                           
-                                          std::cout << "FINDCOMMENT\n";
+                                          //std::cout << "FINDCOMMENT\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -569,7 +569,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case COMMENT:
 					{
-                                          std::cout << "COMMENT\n";
+                                          //std::cout << "COMMENT\n";
 
 							int c = infile.peek();
 
@@ -590,7 +590,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case VALUE:
 					{
-                                          std::cout << "VALUE\n";
+                                          //std::cout << "VALUE\n";
 
 						int c = infile.peek();
 						if(c == '"')
@@ -609,7 +609,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEVALUE:
 					{
-                                          std::cout << "QUOTEVALUE\n";
+                                          //std::cout << "QUOTEVALUE\n";
 							int c = infile.peek();
 							if(c == EOF)
 							{
@@ -644,7 +644,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case QUOTEESCAPE:
 					{
-                                          std::cout << "QUOTEESCAPE\n";
+                                          //std::cout << "QUOTEESCAPE\n";
 
 							int c = infile.peek();
 							if(c == EOF)
@@ -664,7 +664,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEVALUE:
 					{
-                                          std::cout << "NONQUOTEVALUE\n";
+                                          //std::cout << "NONQUOTEVALUE\n";
 							int c = infile.peek();
 
 							if(c == EOF || isEOL(c))
@@ -703,7 +703,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}
 					case NONQUOTEESCAPE:
 					{
-                                          std::cout << "NONQUOTEESCAPE\n";
+                                          //std::cout << "NONQUOTEESCAPE\n";
 
 							int c = infile.peek();
 							if(c == EOF)
@@ -734,7 +734,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 					}				
 					case ENDKV:
                                           {
-                                            std::cout << "ENDKV\n";
+                                            //std::cout << "ENDKV\n";
 
                                             chompEOL(infile);
                                             
@@ -746,7 +746,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case LEFTARROW:
                                           {
-                                            std::cout << "LEFTARROW\n";
+                                            //std::cout << "LEFTARROW\n";
 
                                             int c = infile.peek();
 
@@ -763,11 +763,11 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                     srcApp = value.substr(0,dotPos);
                                                     srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
 
-                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                    //std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
                                                   }
                                                 else
                                                   {
-                                                    std::cout << "srcObj: " << value << "\n";
+                                                    //std::cout << "srcObj: " << value << "\n";
                                                     
                                                     srcApp = "";
                                                     srcObj = value;
@@ -795,7 +795,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case RIGHTARROW:
                                           {
-                                            std::cout << "RIGHTARROW\n";
+                                            //std::cout << "RIGHTARROW\n";
 
                                             int c = infile.peek();
 
@@ -839,7 +839,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case GETSOURCE:
                                           {
-                                            std::cout << "GETSOURCE\n";
+                                            //std::cout << "GETSOURCE\n";
 
                                             int c = infile.peek();
 
@@ -856,11 +856,11 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                     srcApp = value.substr(0,dotPos);
                                                     srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
 
-                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                    //std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
                                                   }
                                                 else
                                                   {
-                                                    std::cout << "srcObj: " << value << "\n";
+                                                    //std::cout << "srcObj: " << value << "\n";
                                                     
                                                     srcApp = "";
                                                     srcObj = value;
@@ -881,11 +881,11 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                     srcApp = value.substr(0,dotPos);
                                                     srcObj = value.substr(dotPos+1,value.length()-dotPos-1);
 
-                                                    std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
+                                                    //std::cout << "srcApp: " << srcApp << " srcObj: " << srcObj << "\n";
                                                   }
                                                 else
                                                   {
-                                                    std::cout << "srcObj: " << value << "\n";
+                                                    //std::cout << "srcObj: " << value << "\n";
                                                     
                                                     srcApp = "";
                                                     srcObj = value;
@@ -911,7 +911,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                         case GETDEST:
                                           {
 
-                                            std::cout << "GETDEST\n";
+                                            //std::cout << "GETDEST\n";
 
                                             int c = infile.peek();
 
@@ -928,7 +928,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                     destApp = value.substr(0,dotPos);
                                                     destObj = value.substr(dotPos+1,value.length()-dotPos-1);
 
-                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+                                                    //std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
                                                                     
                                                   }
                                                 else
@@ -952,7 +952,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                     destApp = value.substr(0,dotPos);
                                                     destObj = value.substr(dotPos+1,value.length()-dotPos-1);
 
-                                                    std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
+                                                    //std::cout << "Found destApp: " << destApp << " destObj: " << destObj << "\n";
                                                                     
                                                   }
                                                 else
@@ -980,7 +980,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case GETWIDTH:
                                           {
-                                            std::cout << "GETWIDTH\n";
+                                            //std::cout << "GETWIDTH\n";
 
                                             int c = infile.peek();
                                             
@@ -1033,7 +1033,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case SDCOMMENT:
                                           {
-                                            std::cout << "SDCOMMENT\n";
+                                            //std::cout << "SDCOMMENT\n";
 
                                             int c = infile.peek();
 
@@ -1054,7 +1054,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                           }
                                         case ENDSOURCEDEST:
                                           {
-                                            std::cout << "ENDSOURCEDEST\n";
+                                            //std::cout << "ENDSOURCEDEST\n";
 
                                             chompEOL(infile);
                                             

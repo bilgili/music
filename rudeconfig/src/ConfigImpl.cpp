@@ -513,20 +513,24 @@ int ConfigImpl::getNumSourceDestMembers() const
   return d_file->getNumSourceDestMembers();
 }
 
-const char *ConfigImpl::getSrcAt(int index) const
+const char *ConfigImpl::getSrcAppAt(int index) const
 {
-  const char *tmp =  d_file->getSrcAt(index);
-
-  std::cout << "src=" << tmp << "\n";
-
-  return tmp;
-
-  //return d_file->getSrcAt(index);
+  return d_file->getSrcAppAt(index);
 }
 
-const char *ConfigImpl::getDestAt(int index) const
+const char *ConfigImpl::getDestAppAt(int index) const
 {
-  return d_file->getDestAt(index);
+  return d_file->getDestAppAt(index);
+}
+
+const char *ConfigImpl::getSrcObjAt(int index) const
+{
+  return d_file->getSrcObjAt(index);
+}
+
+const char *ConfigImpl::getDestObjAt(int index) const
+{
+  return d_file->getDestObjAt(index);
 }
 
 const char *ConfigImpl::getWidthAt(int index) const

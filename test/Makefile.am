@@ -2,7 +2,11 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = application1 waveproducer waveconsumer launchtest eventlogger
+bin_PROGRAMS = application1 waveproducer waveconsumer launchtest eventlogger #parsetest # rudetest
+
+#parsetest_SOURCES = parsetest.cc
+#parsetest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
+#parsetest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 application1_SOURCES = application1.cc
 application1_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
@@ -23,5 +27,9 @@ eventlogger_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 launchtest_SOURCES = launchtest.cc
 launchtest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
 launchtest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+#rudetest_SOURCES = rudetest.cc
+#rudetest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
+#rudetest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

@@ -32,6 +32,7 @@ librudeconfig_la_SOURCES = src/AbstractData.cpp \
 	src/AbstractParser.cpp \
 	src/ConfigImpl.cpp \
 	src/Writer.cpp \
+	src/SourceDest.cpp \
 	src/AbstractWriter.cpp \
 	src/DataLine.cpp \
 	src/ParserJuly2004.cpp \
@@ -52,7 +53,8 @@ librudeconfig_la_SOURCES = src/AbstractData.cpp \
 	src/DataLine.h \
 	src/KeyValue.h \
 	src/RealOrganiser.h \
-	src/Writer.h
+	src/Writer.h \
+        src/SourceDest.h
 
 librudeconfig_la_LDFLAGS = -version-info 5:1:2
 

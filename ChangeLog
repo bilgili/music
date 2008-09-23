@@ -1,3 +1,7 @@
+2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Setup MPI_C; Test for MPI::Init_thread.
+
 2007-11-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Don't try to build shared libraries on BGL.

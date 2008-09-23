@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(music, 0.0.0)
+AC_INIT(music, 0.0.1)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 
@@ -14,6 +14,7 @@ AC_MSG_CHECKING([which MPI system we think we are using])
 case "$MPI_CXX" in
   mpiCC)
     changequote({, })
+    MPI_C=mpicc
     if $MPI_CXX -compile_info >/dev/null 2>/dev/null; then
       SYSGUESS=mpich
       CXX="`$MPI_CXX -compile_info | sed -e 's/^\([^ ]*\).*/\1/'`"
@@ -33,6 +34,11 @@ Please set them manually.])
     changequote([, ])
     ;;
   mpixlcxx|mpicxx)
+    if test $MPI_CXX = mpixlcxx; then
+      MPI_C=mpixlc
+    else
+      MPI_C=mpicc
+    fi
     SYSGUESS=bgl
     CXX="$MPI_CXX"
     CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
@@ -137,10 +143,26 @@ AC_CHECK_TYPES([long long])
 
 AC_CHECK_FUNCS([strrchr])
 
-save_CC="$CC"
-CC="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
+AC_LANG_PUSH(C++)
+save_CXX="$CXX"
+CXX="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
-CC="$save_CC"
+
+AC_MSG_CHECKING([for MPI::Init_thread method])
+ac_have_cxx_mpi_init_thread=no
+AC_COMPILE_IFELSE([
+#include <mpi.h>
+int main (int argc, char **argv)
+{
+  int res = MPI::Init_thread (argc, argv, 0);
+}
+],
+AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
+ac_have_cxx_mpi_init_thread=yes
+)
+AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+CXX="$save_CXX"
+AC_LANG_POP(C++)
 
 if test $ac_cv_type_size_t = yes; then
   MUSIC_HAVE_SIZE_T=1

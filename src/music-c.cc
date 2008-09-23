@@ -19,6 +19,7 @@
 #include "music.hh"
 
 #include <string>
+#include <cstring>
 
 extern "C" {
 

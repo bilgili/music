@@ -31,7 +31,13 @@ namespace MUSIC {
 
   setup::setup (int& argc, char**& argv, int required, int* provided)
   {
+#ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
+#error hej
+#else
+    // Only C version provided in libmpich
+    MPI_Init_thread (&argc, &argv, required, provided);
+#endif
     init (argc, argv);
   }
 

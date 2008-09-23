@@ -1,3 +1,10 @@
+2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc (setup::setup): Compile use of MPI::Init_thread
+	conditionally.
+
+	* music-c.cc: #include <ctsring>.
+
 2007-11-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (libmusic_la_SOURCES): Added music/spike_data.hh,

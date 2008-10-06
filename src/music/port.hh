@@ -64,6 +64,7 @@ namespace MUSIC {
   public:
     void map (index_map* indices);
     void map (index_map* indices, int max_buffered);
+    void insert_event (double t, int id);
   };
 
   class event_input_port : public event_port, public input_port {

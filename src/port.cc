@@ -87,6 +87,12 @@ namespace MUSIC {
   {
   }
 
+
+  void
+  event_output_port::insert_event (double t, int id)
+  {
+  }
+
   
   void
   event_input_port::map (index_map* indices,

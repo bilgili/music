@@ -1,3 +1,7 @@
+2008-10-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh, port.cc (event_output_port::insert_event): New method.
+
 2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* setup.cc (setup::setup): Compile use of MPI::Init_thread

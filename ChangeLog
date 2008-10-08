@@ -1,3 +1,7 @@
+2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* config.h.in: New file.
+
 2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Setup MPI_C; Test for MPI::Init_thread.

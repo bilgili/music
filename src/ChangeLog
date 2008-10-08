@@ -1,3 +1,11 @@
+2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* runtime.cc (runtime::runtime): Initialize my_communicator and
+	schedule.
+
+	* music/connector.hh, connector.cc: Connectors take over the role
+	of subconnectors.
+
 2008-10-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/port.hh, port.cc (event_output_port::insert_event): New method.

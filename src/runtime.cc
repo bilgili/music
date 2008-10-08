@@ -8,6 +8,9 @@ namespace MUSIC {
     //*fixme* 1e-9
     : local_time (1e-9, h)
   {
+    my_communicator = s->communicator ().Dup ();
+    schedule = new std::vector<connector*>;
+    delete s;
   }
 
   

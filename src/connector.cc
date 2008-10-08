@@ -22,52 +22,52 @@
 
 namespace MUSIC {
 
-  subconnector::subconnector (int es)
+  connector::connector (int es)
     : buffer (es)
   {
   }
 
 
-  output_subconnector::output_subconnector ()
+  output_connector::output_connector ()
   {
   }
 
   
   void
-  output_subconnector::send ()
+  output_connector::send ()
   {
   }
 
   
   int
-  output_subconnector::start_idx ()
+  output_connector::start_idx ()
   {
     return 0;
   }
 
   
   int
-  output_subconnector::end_idx ()
+  output_connector::end_idx ()
   {
     return 0;
   }
 
 
-  event_subconnector::event_subconnector ()
-    : subconnector (sizeof (event))
+  event_connector::event_connector ()
+    : connector (sizeof (event))
   {
     
   }
   
 
   void
-  cont_output_subconnector::mark ()
+  cont_output_connector::mark ()
   {
   }
   
 
   void
-  event_output_subconnector::send ()
+  event_output_connector::send ()
   {
     cont_data_t* data;
     int size;
@@ -78,7 +78,7 @@ namespace MUSIC {
   
 
   void
-  event_input_subconnector::receive ()
+  event_input_connector::receive ()
   {
   }
   
@@ -232,25 +232,6 @@ namespace MUSIC {
   }
 
 
-  event_connector::event_connector ()
-  {
-  }
-  
-
-  void
-  event_output_connector::send ()
-  {
-#if 0
-    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
-    for (; i != subconnectors.end (); ++i)
-      {
-	event_output_subconnector* subcon = (event_output_subconnector*) *i;
-	subcon->send ();
-      }
-#endif
-  }
-  
-  
   void
   event_output_connector::tick ()
   {
@@ -259,12 +240,6 @@ namespace MUSIC {
   }
 
 
-  void
-  event_input_connector::receive ()
-  {
-  }
-  
-  
   void
   event_input_connector::tick ()
   {

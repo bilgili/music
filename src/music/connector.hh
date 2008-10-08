@@ -31,89 +31,44 @@ namespace MUSIC {
 
   typedef char cont_data_t;
 
-  class subconnector {
+  class connector {
   protected:
+    synchronizer synch;
     MPI::Intercomm comm;
     int partner;
   public:
-    subconnector () { }
-    subconnector (int element_size);
+    connector () { }
+    connector (int element_size);
+    virtual void tick () = 0;
     FIBO buffer;
   };
   
-  class output_subconnector : virtual public subconnector {
+  class output_connector : virtual public connector {
   public:
-    output_subconnector ();
+    output_connector ();
     void send ();
     int start_idx ();
     int end_idx ();
   };
   
-  class input_subconnector : virtual public subconnector {
-  };
-
-  class cont_output_subconnector : public output_subconnector {
-  public:
-    void mark ();
-  };
-  
-  class cont_input_subconnector : public input_subconnector {
-  };
-
-  class event_subconnector : virtual public subconnector {
-  public:
-    event_subconnector ();
-  };
-  
-  class event_output_subconnector : public output_subconnector {
-  public:
-    void send ();
-  };
-  
-  class event_input_subconnector : public input_subconnector {
-  public:
-    void receive ();
-  };
-  
-  class connector {
-  protected:
-    synchronizer synch;
-  public:
-    virtual void tick () = 0;
-  };
-
-  class output_connector : virtual public connector {
-  public:
-#if 0
-    std::vector<output_subconnector*> subconnectors;
-#endif
-  };
-  
   class input_connector : virtual public connector {
-  protected:
-    subconnector subcon;
   };
 
   class cont_connector : virtual public connector {
   public:
     void swap_buffers (cont_data_t*& b1, cont_data_t*& b2);
-  };  
+  };
+  
+  class cont_output_connector : virtual public output_connector, public cont_connector {
+  protected:
+    void mark ();
+    void send ();
+  };
   
   class fast_connector : virtual public connector {
   protected:
     cont_data_t* prev_sample;
     cont_data_t* sample;
-  };
-  
-  class cont_output_connector : public cont_connector, output_connector {
-  public:
-    void send ();
-  };
-  
-  class cont_input_connector : public cont_connector, input_connector {
-  protected:
-    void receive ();
-  public:
   };
   
   class fast_cont_output_connector : public cont_output_connector, fast_connector {
@@ -123,6 +78,11 @@ namespace MUSIC {
     void mark ();
   public:
     void tick ();
+  };
+  
+  class cont_input_connector : virtual public input_connector, public cont_connector {
+  protected:
+    void receive ();
   };
   
   class slow_cont_input_connector : public cont_input_connector {
@@ -152,8 +112,9 @@ namespace MUSIC {
   };
   
   class event_output_connector : public output_connector {
-    void send ();
   public:
+    void mark ();
+    void send ();
     void tick ();
   };
   

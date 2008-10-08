@@ -8,10 +8,14 @@
 MPI::Intracomm comm;
 
 class my_event_handler: public MUSIC::event_handler {
+  int rank;
+public:
+  my_event_handler (int _rank) : rank (_rank) { }
   void operator () (double t, int id)
   {
     // For now: just print out incoming events
-    std::cout << "Event " << id << " detected at " << t << std::endl;
+    std::cout << "Rank " << rank
+	      << ": Event " << id << " detected at " << t << std::endl;
   }
 };
 
@@ -36,10 +40,19 @@ main (int args, char* argv[])
     comm.Abort (1);
 
   int n_local = width / n_processes;
+  int rest = width % n_processes;
+  int first_id = n_local * rank;
+  if (rank < rest)
+    {
+      first_id += rank;
+      n_local += 1;
+    }
+  else
+    first_id += rest;
     
   // Port mapping
-  MUSIC::linear_index indexmap (rank * n_local, n_local);
-  my_event_handler evhandler;
+  MUSIC::linear_index indexmap (first_id, n_local);
+  my_event_handler evhandler (rank);
 
   evport->map (&indexmap, &evhandler, 0.0);
 

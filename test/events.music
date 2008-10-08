@@ -1,0 +1,8 @@
+np=1
+stoptime=1.0
+[from]
+  binary=/usr/local/bin/eventsource
+  args=10 contiguous spikes
+[to]
+  binary=/usr/local/bin/eventlogger
+  from.out -> to.eventlog [10]

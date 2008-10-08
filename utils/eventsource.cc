@@ -28,7 +28,7 @@
 
 #include "datafile.h"
 
-#define TIMESTEP 1e-3
+#define TIMESTEP 1e-2
 
 int n_units;
 string imaptype;
@@ -56,10 +56,10 @@ getargs (int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  getargs (argc, argv);
-
   MUSIC::setup* setup = new MUSIC::setup (argc, argv);
   
+  getargs (argc, argv);
+
   MUSIC::event_output_port* out = setup->publish_event_output ("out");
 
   MPI::Intracomm comm = setup->communicator ();

@@ -1,3 +1,9 @@
+2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsource.cc, datafile.h, datafile.cc: New files.
+
+	* Makefile.am: Added eventsource.
+
 2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music.cc (BGL): #include <rts.h>

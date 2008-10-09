@@ -18,8 +18,11 @@
 
 #ifndef MUSIC_PORT_HH
 
-#include "music/event_data.hh"
-#include "music/message_data.hh"
+#include <music/data_map.hh>
+#include <music/index_map.hh>
+#include <music/event.hh>
+#include <music/message.hh>
+#include <music/event_router.hh>
 
 namespace MUSIC {
 
@@ -61,6 +64,7 @@ namespace MUSIC {
   };
 
   class event_output_port : public event_port, public output_port {
+    event_router* router;
   public:
     void map (index_map* indices);
     void map (index_map* indices, int max_buffered);

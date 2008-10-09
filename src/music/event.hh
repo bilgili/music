@@ -38,7 +38,7 @@ namespace MUSIC {
 
   class event_handler {
   public:
-    void operator () (event* e);
+    virtual void operator () (double t, int id) = 0;
   };
   
 }

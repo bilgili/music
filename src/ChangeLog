@@ -1,3 +1,16 @@
+2008-10-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event.hh (event_handler::operator ()): Made virtual and
+	corrected arguments to adhere to RFC.
+
+	* port.cc (event_output_port::insert_event): Send spikes to event
+	router.
+
+	* Makefile.am (libmusic_la_SOURCES): Added event_router.cc,
+	music/event_router.hh
+
+	* music/event_router, event_router.cc: New files.
+
 2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* runtime.cc (runtime::runtime): Initialize my_communicator and

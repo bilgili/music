@@ -14,6 +14,7 @@ libmusic_la_SOURCES = \
 	configuration.cc music/configuration.hh \
 	parse.cc music/parse.hh \
 	port.cc music/port.hh \
+	event_router.cc music/event_router.hh \
 	clock.cc music/clock.hh \
 	connector.cc music/connector.hh \
 	permutation_index.cc music/permutation_index.hh \
@@ -41,8 +42,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/configuration.hh music/error.hh \
 		       music/port.hh music/clock.hh music/connector.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
-		       music/FIBO.hh \
-		       music/event_data.hh music/message_data.hh \
+		       music/FIBO.hh music/event_router.hh \
 		       music/cont_data.hh music/event.hh music/message.hh \
 		       music/message.hh music/music-config.hh
 

@@ -28,7 +28,6 @@
 #include <music/index_map.hh>
 #include <music/linear_index.hh>
 #include <music/cont_data.hh>
-#include <music/event_data.hh>
 #include <music/configuration.hh>
 #include <music/connector.hh>
 

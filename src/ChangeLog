@@ -1,5 +1,7 @@
 2008-10-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/event_data.hh, music/message_data.hh: Removed.
+
 	* music/event.hh (event_handler::operator ()): Made virtual and
 	corrected arguments to adhere to RFC.
 

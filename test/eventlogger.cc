@@ -7,11 +7,11 @@
 
 MPI::Intracomm comm;
 
-class my_event_handler: public MUSIC::event_handler {
+class my_event_handler: public MUSIC::event_handler_global_index {
   int rank;
 public:
   my_event_handler (int _rank) : rank (_rank) { }
-  void operator () (double t, int id)
+  void operator () (double t, MUSIC::global_index id)
   {
     // For now: just print out incoming events
     std::cout << "Rank " << rank

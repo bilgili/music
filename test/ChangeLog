@@ -1,6 +1,6 @@
 2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* eventlogger.cc: Updated to changes in id type.
+	* eventlogger.cc: Updated to use global_index.
 
 2008-02-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

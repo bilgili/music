@@ -68,18 +68,35 @@ namespace MUSIC {
   public:
     void map (index_map* indices);
     void map (index_map* indices, int max_buffered);
-    void insert_event (double t, int id);
+    void insert_event (double t, global_index id);
+    void insert_event (double t, local_index id);
   };
 
   class event_input_port : public event_port, public input_port {
   public:
     void map (index_map* indices,
-	      event_handler* handle_event,
+	      event_handler_global_index* handle_event,
 	      double acc_latency = 0.0);
     void map (index_map* indices,
-	      event_handler* handle_event,
+	      event_handler_local_index* handle_event,
+	      double acc_latency = 0.0);
+    void map (index_map* indices,
+	      event_handler_global_index* handle_event,
 	      double acc_latency,
 	      int max_buffered);
+    void map (index_map* indices,
+	      event_handler_local_index* handle_event,
+	      double acc_latency,
+	      int max_buffered);
+    // Facilities to support the C interface
+  public:
+    event_handler_global_index_proxy*
+    alloc_event_handler_global_index_proxy (void (*) (double, int));
+    event_handler_local_index_proxy*
+    alloc_event_handler_local_index_proxy (void (*) (double, int));
+  private:
+    event_handler_global_index_proxy c_event_handler_global_index;
+    event_handler_local_index_proxy c_event_handler_local_index;
   };
 
 

@@ -1,3 +1,22 @@
+2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh (event_input_port): Added facilities to support C
+	interface.
+
+	* music/port.hh, port.cc (event_input_port::map): Take
+	event_handler_global_index and event_handler_local_index instead
+	of event_handler in second argument.
+
+	* music/event.hh (event_handler_global_index,
+	event_handler_local_index): New classes which replace
+	event_handler.
+
+	* music/port.hh, port.cc (insert_event): Replaced old method with
+	two new, one with a second argument local_index, and an overloaded
+	version with global_index.
+
+	* music/index_map.hh (global_index, local_index): New classes.
+
 2008-10-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/event_data.hh, music/message_data.hh: Removed.

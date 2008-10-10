@@ -89,7 +89,14 @@ namespace MUSIC {
 
 
   void
-  event_output_port::insert_event (double t, int id)
+  event_output_port::insert_event (double t, global_index id)
+  {
+    router->insert_event (t, id);
+  }
+
+  
+  void
+  event_output_port::insert_event (double t, local_index id)
   {
     router->insert_event (t, id);
   }
@@ -97,7 +104,7 @@ namespace MUSIC {
   
   void
   event_input_port::map (index_map* indices,
-			 event_handler* handle_event,
+			 event_handler_global_index* handle_event,
 			 double acc_latency)
   {
   }
@@ -105,13 +112,46 @@ namespace MUSIC {
   
   void
   event_input_port::map (index_map* indices,
-			 event_handler* handle_event,
+			 event_handler_local_index* handle_event,
+			 double acc_latency)
+  {
+  }
+
+  
+  void
+  event_input_port::map (index_map* indices,
+			 event_handler_global_index* handle_event,
 			 double acc_latency,
 			 int max_buffered)
   {
   }
 
   
+  void
+  event_input_port::map (index_map* indices,
+			 event_handler_local_index* handle_event,
+			 double acc_latency,
+			 int max_buffered)
+  {
+  }
+
+  
+  event_handler_global_index_proxy*
+  event_input_port::alloc_event_handler_global_index_proxy (void (*eh) (double, int))
+  {
+    c_event_handler_global_index = event_handler_global_index_proxy (eh);
+    return &c_event_handler_global_index;
+  }
+
+  
+  event_handler_local_index_proxy*
+  event_input_port::alloc_event_handler_local_index_proxy (void (*eh) (double, int))
+  {
+    c_event_handler_local_index = event_handler_local_index_proxy (eh);
+    return &c_event_handler_local_index;
+  }
+  
+
   void
   message_output_port::map ()
   {
@@ -137,5 +177,4 @@ namespace MUSIC {
   {
   }
 
-  
 }

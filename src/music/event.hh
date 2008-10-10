@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#ifndef MUSIC_EVENT_HH
+
+#include <music/index_map.hh>
 
 namespace MUSIC {
 
@@ -36,9 +40,43 @@ namespace MUSIC {
   };
 #endif
 
-  class event_handler {
+  class event_handler_global_index {
   public:
-    virtual void operator () (double t, int id) = 0;
+    virtual void operator () (double t, global_index id) = 0;
+  };
+  
+  class event_handler_global_index_proxy
+    : public event_handler_global_index {
+    void (*event_handler) (double t, int id);
+  public:
+    event_handler_global_index_proxy () { }
+    event_handler_global_index_proxy (void (*eh) (double t, int id))
+      : event_handler (eh) { }
+    void operator () (double t, global_index id)
+    {
+      event_handler (t, id);
+    }
+  };
+  
+  class event_handler_local_index {
+  public:
+    virtual void operator () (double t, local_index id) = 0;
+  };
+  
+  class event_handler_local_index_proxy
+    : public event_handler_local_index {
+    void (*event_handler) (double t, int id);
+  public:
+    event_handler_local_index_proxy () { }
+    event_handler_local_index_proxy (void (*eh) (double t, int id))
+      : event_handler (eh) { }
+    void operator () (double t, local_index id)
+    {
+      event_handler (t, id);
+    }
   };
   
 }
+
+#define MUSIC_EVENT_HH
+#endif

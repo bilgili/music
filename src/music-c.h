@@ -115,11 +115,17 @@ void MUSIC_event_output_port_map (MUSIC_event_output_port *port,
 
 typedef void MUSIC_event_handler (double t, int id);
 
-void MUSIC_event_input_port_map (MUSIC_event_input_port *port,
-				 MUSIC_index_map *indices,
-				 MUSIC_event_handler *handle_event,
-				 double acc_latency,
-				 int max_buffered);
+void MUSIC_event_input_port_map_global_index (MUSIC_event_input_port *port,
+					      MUSIC_index_map *indices,
+					      MUSIC_event_handler *handle_event,
+					      double acc_latency,
+					      int max_buffered);
+
+void MUSIC_event_input_port_map_local_index (MUSIC_event_input_port *port,
+					     MUSIC_index_map *indices,
+					     MUSIC_event_handler *handle_event,
+					     double acc_latency,
+					     int max_buffered);
 
 void MUSIC_message_output_port_map (MUSIC_message_output_port *port,
 				    int max_buffered);

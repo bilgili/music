@@ -299,15 +299,31 @@ MUSIC_event_output_port_map (MUSIC_event_output_port *port,
 typedef void MUSIC_event_handler (double t, int id);
 
 void
-MUSIC_event_input_port_map (MUSIC_event_input_port *port,
-			    MUSIC_index_map *indices,
-			    MUSIC_event_handler *handle_event,
-			    double acc_latency,
-			    int max_buffered)
+MUSIC_event_input_port_map_global_index (MUSIC_event_input_port *port,
+					 MUSIC_index_map *indices,
+					 MUSIC_event_handler *handle_event,
+					 double acc_latency,
+					 int max_buffered)
 {
   MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
   MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
-  MUSIC::event_handler* cxx_handle_event = (MUSIC::event_handler *) handle_event;
+  MUSIC::event_handler_global_index_proxy* cxx_handle_event =
+    cxx_port->alloc_event_handler_global_index_proxy (handle_event);
+  cxx_port->map (cxx_indices, cxx_handle_event, acc_latency, max_buffered);
+}
+
+
+void
+MUSIC_event_input_port_map_local_index (MUSIC_event_input_port *port,
+					 MUSIC_index_map *indices,
+					 MUSIC_event_handler *handle_event,
+					 double acc_latency,
+					 int max_buffered)
+{
+  MUSIC::event_input_port* cxx_port = (MUSIC::event_input_port *) port;
+  MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
+  MUSIC::event_handler_local_index_proxy* cxx_handle_event =
+    cxx_port->alloc_event_handler_local_index_proxy (handle_event);
   cxx_port->map (cxx_indices, cxx_handle_event, acc_latency, max_buffered);
 }
 

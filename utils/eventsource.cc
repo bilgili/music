@@ -98,10 +98,11 @@ main (int argc, char *argv[])
   double time = runtime->time ();
   while (time < stoptime)
     {
+      std::cout << time << std::endl;
       double next_time = time + TIMESTEP;
       while (more_spikes && t < next_time)
 	{
-	  out->insert_event (t, id);
+	  out->insert_event (t, MUSIC::global_index (id));
 	  in >> t >> id;
 	  more_spikes = !in.eof ();
 	}

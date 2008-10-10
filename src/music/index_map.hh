@@ -23,6 +23,7 @@ namespace MUSIC {
   class global_index {
     int id;
   public:
+    global_index () { }
     global_index (int i) : id (i) { }
     operator int () { return id; }
   };
@@ -30,6 +31,7 @@ namespace MUSIC {
   class local_index {
     int id;
   public:
+    local_index () { }
     local_index (int i) : id (i) { }
     operator int () { return id; }
   };

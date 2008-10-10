@@ -1,5 +1,8 @@
 2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/index_map.hh (local_index::local_index,
+	local_index::local_index): New constructor.
+
 	* music-c.h, music-c.cc (MUSIC_event_input_port_map_global_index,
 	MUSIC_event_input_port_map_local_index): Replacing
 	MUSIC_event_input_port_map.

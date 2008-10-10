@@ -154,7 +154,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							else if(isEOL(c))
 							{
 								setError("101", "End of line found before section ID");
-								sectionState = SECTIONERROR;								
+								sectionState = SECTIONERROR;   
 							}
 							else if(c == ' ' || c == '\t')
 							{
@@ -189,7 +189,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							else if(isEOL(c))
 							{
 								setError("103", "End of line found before end-of-section marker");
-								sectionState = SECTIONERROR;								
+								sectionState = SECTIONERROR;	     
 							}
 							else if(c == '\\')
 							{
@@ -1017,6 +1017,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                             else if(c == ']')
                                               {
                                                 stripTrailing(width);
+                                                infile.get(); // Throw away ]
                                                 kvState = ENDSOURCEDEST;
 
                                                 // Ignoring any comments that might be here...

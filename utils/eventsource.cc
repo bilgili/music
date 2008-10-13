@@ -98,7 +98,6 @@ main (int argc, char *argv[])
   double time = runtime->time ();
   while (time < stoptime)
     {
-      std::cout << time << std::endl;
       double next_time = time + TIMESTEP;
       while (more_spikes && t < next_time)
 	{

@@ -1,3 +1,19 @@
+2008-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, music/FIBO.hh, FIBO.cc, clock.cc,
+	music/configuration.hh, configuration.cc, music/connector.hh,
+	connector.cc, music/event_router.hh, event_router.cc,
+	music/port.hh, port.cc, music/runtime.hh, runtime.cc,
+	music/setup.hh, setup.cc, synchronizer.cc: A first, cheating,
+	approximation of the implementation of spike communication.  Will
+	be followed by cleanups and real implementation.  The present
+	implementation only allows two applications with an output and
+	input port respectively.  The ports have a constant width given in
+	ports.hh and the sender and receiver application must have equal
+	number of MPI processes.
+
+	* music/connectivity.hh, connectivity.cc: New files.
+
 2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/index_map.hh (local_index::local_index,

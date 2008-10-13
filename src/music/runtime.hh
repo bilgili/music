@@ -32,24 +32,22 @@ namespace MUSIC {
   private:
     MPI::Intracomm my_communicator;
     clock local_time;
-    std::vector<input_port>* input_ports;
-    std::vector<output_port>* output_ports;
-    std::vector<connector*>* schedule;
+    std::vector<input_port*>* input_ports;
+    std::vector<output_port*>* output_ports;
+    std::vector<connector*> schedule;
+
+    void connect (setup* s);
   
   public:
     runtime (setup* s, double h);
     
-    MPI::Intracomm
-    communicator ();
+    MPI::Intracomm communicator ();
 
-    void
-    finalize ();
+    void finalize ();
 
-    void
-    tick ();
+    void tick ();
 
-    double
-    time ();
+    double time ();
   };
 
 }

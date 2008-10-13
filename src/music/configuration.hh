@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,18 @@
 #include <string>
 #include <map>
 
+#include "music/connectivity.hh"
+
 namespace MUSIC {
+
+  class port_info {
+    std::string name;
+    int width;
+  };
+
+  class application_info {
+    
+  };
 
   class configuration {
   private:
@@ -29,6 +40,7 @@ namespace MUSIC {
     bool _launched_by_music;
     int _color;
     configuration* default_config;
+    connectivity* _connectivity_map;
     std::map<std::string, std::string> dict;
     void tap (std::ostringstream& env, configuration* mask);
   public:
@@ -42,6 +54,7 @@ namespace MUSIC {
     bool lookup (std::string name, int* result);
     bool lookup (std::string name, double* result);
     void insert (std::string name, std::string value);
+    connectivity* connectivity_map ();
   };
 
 }

@@ -17,6 +17,7 @@
  */
 
 #include "music/port.hh"
+#include "music/setup.hh"
 
 namespace MUSIC {
 
@@ -79,12 +80,18 @@ namespace MUSIC {
   void
   event_output_port::map (index_map* indices)
   {
+    int max_buffered = 2; //*fixme*
+    map (indices, max_buffered);
   }
 
   
   void
   event_output_port::map (index_map* indices, int max_buffered)
   {
+    event_output_connector* c
+      = new event_output_connector (_setup->communicator ());
+    router = new event_router (&c->buffer);
+    _setup->add_output_connector (c);
   }
 
 
@@ -107,6 +114,8 @@ namespace MUSIC {
 			 event_handler_global_index* handle_event,
 			 double acc_latency)
   {
+    int max_buffered = 2; //*fixme*
+    map (indices, handle_event, acc_latency, max_buffered);
   }
 
   
@@ -115,6 +124,8 @@ namespace MUSIC {
 			 event_handler_local_index* handle_event,
 			 double acc_latency)
   {
+    int max_buffered = 2; //*fixme*
+    map (indices, handle_event, acc_latency, max_buffered);
   }
 
   
@@ -124,6 +135,10 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
+    event_input_connector* c
+      = new event_input_connector (_setup->communicator (),
+				   handle_event);
+    _setup->add_input_connector (c);
   }
 
   
@@ -133,6 +148,10 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
+    event_input_connector* c
+      = new event_input_connector (_setup->communicator (),
+				   (event_handler_global_index*) handle_event);//*fixme*
+    _setup->add_input_connector (c);
   }
 
   

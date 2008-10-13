@@ -30,7 +30,7 @@ synchronizer::sample ()
 bool
 synchronizer::mark ()
 {
-  return false;
+  return true;
 }
 
 

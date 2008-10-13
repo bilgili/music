@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -50,11 +50,16 @@ namespace MUSIC {
       {
 	// launched by the music utility
 	my_communicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);
+	_global_comm_dup = MPI::COMM_WORLD.Dup ();
 	string binary;
 	_config->lookup ("binary", &binary);
 	string args;
 	_config->lookup ("args", &args);
 	argv = parse_args (binary, args, &argc);
+	input_ports = new std::vector<input_port*>;
+	output_ports = new std::vector<output_port*>;
+	_input_connectors = new std::vector<input_connector*>;
+	_output_connectors = new std::vector<output_connector*>;
       }
     else
       {
@@ -95,29 +100,52 @@ namespace MUSIC {
   cont_input_port*
   setup::publish_cont_input (std::string identifier)
   {
-    return new cont_input_port ();
+    cont_input_port* port = new cont_input_port (this, identifier);
+    if (port->is_connected ()) //*fixme* warp into port code
+      input_ports->push_back (port);
+    return port;
   }
 
 
   cont_output_port*
   setup::publish_cont_output (std::string identifier)
   {
-    return new cont_output_port ();
+    cont_output_port* port = new cont_output_port (this, identifier);
+    if (port->is_connected ())
+      output_ports->push_back (port);
+    return port;
   }
 
 
   event_input_port*
   setup::publish_event_input (std::string identifier)
   {
-    return new event_input_port ();
+    event_input_port* port = new event_input_port (this, identifier);
+    if (port->is_connected ())
+      input_ports->push_back (port);
+    return port;
   }
 
 
   event_output_port*
   setup::publish_event_output (std::string identifier)
   {
-    return new event_output_port ();
+    event_output_port* port = new event_output_port (this, identifier);
+    if (port->is_connected ())
+      output_ports->push_back (port);
+    return port;
   }
 
+  
+  void setup::add_input_connector (input_connector* c)
+  {
+    _input_connectors->push_back (c);
+  }
+
+  
+  void setup::add_output_connector (output_connector* c)
+  {
+    _output_connectors->push_back (c);
+  }
 
 }

@@ -16,24 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/event_router.hh"
-#include "music/event.hh"
+#ifndef MUSIC_CONNECTIVITY_HH
 
 namespace MUSIC {
 
-  event_router::event_router (FIBO* buffer)
-  {
-    buffers.push_back (buffer);
-  }
-  
-  
-  void
-  event_router::insert_event (double t, int id)
-  {
-    //*fixme*
-    event* e = static_cast<event*> (buffers[0]->insert ());
-    e->t = t;
-    e->id = id;
-  }
+  class connectivity {
+  public:
+  };
 
 }
+
+#define MUSIC_CONNECTIVITY_HH
+#endif

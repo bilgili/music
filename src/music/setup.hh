@@ -39,7 +39,11 @@ namespace MUSIC {
   private:
     configuration* _config;
     MPI::Intracomm my_communicator;
-    std::vector<connector*>* schedule;
+    MPI::Intracomm _global_comm_dup;
+    std::vector<input_port*>* input_ports;
+    std::vector<output_port*>* output_ports;
+    std::vector<output_connector*>* _output_connectors;
+    std::vector<input_connector*>* _input_connectors;
 
   public:
     setup (int& argc, char**& argv);
@@ -50,6 +54,8 @@ namespace MUSIC {
 
     MPI::Intracomm communicator ();
 
+    MPI::Intracomm global_comm_dup () { return _global_comm_dup; }
+    
     bool config (string var, string* result);
 
     bool config (string var, int* result);
@@ -67,6 +73,21 @@ namespace MUSIC {
     message_input_port* publish_message_input (string identifier);
 
     message_output_port* publish_message_output (string identifier);
+
+    std::vector<input_connector*>* input_connectors ()
+    {
+      return _input_connectors;
+    }
+
+    void add_input_connector (input_connector* c);
+    
+    std::vector<output_connector*>* output_connectors ()
+    {
+      return _output_connectors;
+    }
+    
+    void add_output_connector (output_connector* c);
+    
   };
   
 }

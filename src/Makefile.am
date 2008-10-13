@@ -12,6 +12,7 @@ libmusic_la_SOURCES = \
 	music/index_map.hh music/data_map.hh \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
+	connectivity.cc music/connectivity.hh \
 	parse.cc music/parse.hh \
 	port.cc music/port.hh \
 	event_router.cc music/event_router.hh \
@@ -39,7 +40,8 @@ musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/index_map.hh music/data_map.hh \
 		       music/linear_index.hh music/array_data.hh \
-		       music/configuration.hh music/error.hh \
+		       music/configuration.hh music/connectivity.hh \
+		       music/error.hh \
 		       music/port.hh music/clock.hh music/connector.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
 		       music/FIBO.hh music/event_router.hh \

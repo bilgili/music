@@ -23,13 +23,23 @@ namespace MUSIC {
   FIBO::FIBO (int es)
     : element_size (es)
   {
+    size = element_size * n_initial;
+    buffer.reserve (size);
+    insertion = 0;
   }
 
   
   void *
   FIBO::insert ()
   {
-    return 0;
+    if (insertion == size)
+      grow (2 * size);
+    // Here we use the assumption that vector memory is contiguous
+    // Josuttis says this is the intention of STL even though the
+    // first version of the report is not clear about this.
+    void* memory = static_cast<void*> (&buffer[insertion]);
+    insertion += element_size;
+    return memory;
   }
   
 
@@ -40,8 +50,20 @@ namespace MUSIC {
 
 
   void
-  FIBO::next_block (char*& data, int& size)
+  FIBO::next_block (void*& data, int& size)
   {
+    //*fixme*
+    data = static_cast<void*> (&buffer[0]);
+    size = insertion;
+    insertion = 0;
+  }
+
+
+  void
+  FIBO::grow (int new_size)
+  {
+    size = new_size;
+    buffer.reserve (size);
   }
   
 }

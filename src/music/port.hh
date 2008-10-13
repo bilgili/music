@@ -18,18 +18,27 @@
 
 #ifndef MUSIC_PORT_HH
 
+#include <string>
+
 #include <music/data_map.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>
 #include <music/message.hh>
 #include <music/event_router.hh>
+#include <music/connectivity.hh>
 
 namespace MUSIC {
 
+  class setup;
+
   class port {
+    static const int constant_width = 60;
     int _width;
+  protected:
+    setup* _setup;
   public:
-    port () : _width (-1) { }
+    port () { }
+    port (setup* s, std::string identifier) : _setup (s), _width (constant_width) { }
     bool is_connected ();
     bool has_width ();
     int width ();
@@ -46,12 +55,16 @@ namespace MUSIC {
 
   class cont_output_port : public cont_port, public output_port {
   public:
+    cont_output_port (setup* s, std::string id)
+      : port (s, id) { }
     void map (data_map* dmap);
     void map (data_map* dmap, int max_buffered);
   };
   
   class cont_input_port : public cont_port, public input_port {
   public:
+    cont_input_port (setup* s, std::string id)
+      : port (s, id) { }
     void map (data_map* dmap, double delay = 0.0, bool interpolate = true);
     void map (data_map* dmap, int max_buffered, bool interpolate = true);
     void map (data_map* dmap,
@@ -66,6 +79,8 @@ namespace MUSIC {
   class event_output_port : public event_port, public output_port {
     event_router* router;
   public:
+    event_output_port (setup* s, std::string id)
+      : port (s, id) { }
     void map (index_map* indices);
     void map (index_map* indices, int max_buffered);
     void insert_event (double t, global_index id);
@@ -74,6 +89,8 @@ namespace MUSIC {
 
   class event_input_port : public event_port, public input_port {
   public:
+    event_input_port (setup* s, std::string id)
+      : port (s, id) { }
     void map (index_map* indices,
 	      event_handler_global_index* handle_event,
 	      double acc_latency = 0.0);

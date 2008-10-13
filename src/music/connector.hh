@@ -21,9 +21,11 @@
 #include <mpi.h>
 
 #include <vector>
+#include <string>
 
-#include "music/synchronizer.hh"
-#include "music/FIBO.hh"
+#include <music/synchronizer.hh>
+#include <music/FIBO.hh>
+#include <music/event.hh>
 
 namespace MUSIC {
 
@@ -32,15 +34,24 @@ namespace MUSIC {
   typedef char cont_data_t;
 
   class connector {
+  private:
   protected:
     synchronizer synch;
-    MPI::Intercomm comm;
+    MPI::Intracomm comm;
+    MPI::Intercomm intercomm;
     int partner;
+    int _local_leader;
+    int _remote_leader;
+    std::string _remote_port_name;
   public:
     connector () { }
-    connector (int element_size);
+    connector (MPI::Intracomm c, int element_size);
     virtual void tick () = 0;
-    FIBO buffer;
+    FIBO buffer;//*fixme* move
+    int local_leader () const { return _local_leader; }
+    int remote_leader () const { return _remote_leader; }
+    std::string remote_port_name () const { return _remote_port_name; }
+    void connect ();
   };
   
   class output_connector : virtual public connector {
@@ -52,6 +63,8 @@ namespace MUSIC {
   };
   
   class input_connector : virtual public connector {
+  public:
+    input_connector ();
   };
 
   class cont_connector : virtual public connector {
@@ -113,14 +126,18 @@ namespace MUSIC {
   
   class event_output_connector : public output_connector {
   public:
+    event_output_connector (MPI::Intracomm c);
     void mark ();
     void send ();
     void tick ();
   };
   
   class event_input_connector : public input_connector {
+  private:
+    event_handler_global_index* handle_event;
     void receive ();
   public:
+    event_input_connector (MPI::Intracomm c, event_handler_global_index* eh);
     void tick ();
   };
   

@@ -23,6 +23,7 @@ namespace MUSIC {
   clock::clock (double tb, double h)
     : timebase (tb)
   {
+    state = 0;
     tick_interval = (unsigned long long) (h / tb + 0.5);
   }
 

@@ -27,6 +27,7 @@ namespace MUSIC {
   class event_router {
     std::vector <FIBO*> buffers;
   public:
+    event_router (FIBO* buffer);
     void insert_event (double t, int id);
   };
   

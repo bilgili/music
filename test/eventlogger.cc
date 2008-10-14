@@ -31,6 +31,12 @@ main (int args, char* argv[])
 
   // Port publishing
   MUSIC::event_input_port* evport = setup->publish_event_input ("eventlog");
+  if (!evport->is_connected ())
+    {
+      if (rank == 0)
+	std::cerr << "eventlog port is not connected" << std::endl;
+      exit (1);
+    }
 
   // Split the width among the available processes
   int width;

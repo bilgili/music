@@ -1,3 +1,7 @@
+2008-10-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Check that port is connected before mapping it.
+
 2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventlogger.cc: Updated to use global_index.

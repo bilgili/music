@@ -40,7 +40,7 @@ namespace MUSIC {
 #if DEBUG
     std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << _local_leader << " and remote " << _remote_leader << std::endl;
 #endif
-    intercomm = comm.Create_intercomm (_local_leader, MPI::COMM_WORLD, _remote_leader, 0);
+    intercomm = comm.Create_intercomm (0, MPI::COMM_WORLD, _remote_leader, 0);
     partner = intercomm.Get_rank ();
   }
 
@@ -48,8 +48,10 @@ namespace MUSIC {
   output_connector::output_connector ()
   {
     //*fixme*
-    _local_leader = 0;
-    _remote_leader = MPI::COMM_WORLD.Get_size () / 2;
+    int n_proc = MPI::COMM_WORLD.Get_size () / 2;
+    int rank = MPI::COMM_WORLD.Get_rank ();
+    _local_leader = rank < n_proc ? 0 : n_proc;
+    _remote_leader = rank < n_proc ? n_proc : 0;
     _remote_port_name = "nisse";
   }
 
@@ -77,8 +79,10 @@ namespace MUSIC {
   input_connector::input_connector ()
   {
     //*fixme*
-    _local_leader = 0;
-    _remote_leader = 0;
+    int n_proc = MPI::COMM_WORLD.Get_size () / 2;
+    int rank = MPI::COMM_WORLD.Get_rank ();
+    _local_leader = rank < n_proc ? 0 : n_proc;
+    _remote_leader = rank < n_proc ? n_proc : 0;
     _remote_port_name = "nisse";
   }
 

@@ -29,9 +29,12 @@ namespace MUSIC {
     //*fixme* 1e-9
     : local_time (1e-9, h)
   {
-    my_communicator = s->communicator ().Dup ();
-    connect (s);
-    delete s;
+    if (s->launched_by_music ())
+      {
+	my_communicator = s->communicator ().Dup ();
+	connect (s);
+	delete s;
+      }
   }
 
   

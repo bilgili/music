@@ -50,6 +50,8 @@ namespace MUSIC {
 
     setup (int& argc, char**& argv, int required, int* provided);
 
+    bool launched_by_music ();
+
     void init (int& argc, char**& argv);
 
     MPI::Intracomm communicator ();

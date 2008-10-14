@@ -41,12 +41,18 @@ namespace MUSIC {
     init (argc, argv);
   }
 
+  bool
+  setup::launched_by_music ()
+  {
+    return _config->launched_by_music ();
+  }
+
   void
   setup::init (int& argc, char**& argv)
   {
     int my_rank = MPI::COMM_WORLD.Get_rank ();
     _config = new configuration ();
-    if (_config->launched_by_music ())
+    if (launched_by_music ())
       {
 	// launched by the music utility
 	my_communicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);

@@ -18,6 +18,7 @@
 
 #include "music/port.hh"
 #include "music/setup.hh"
+#include "music/error.hh"
 
 namespace MUSIC {
 
@@ -28,6 +29,14 @@ namespace MUSIC {
       return true;
     else
       return false;
+  }
+
+
+  void
+  port::check_connected ()
+  {
+    if (!is_connected ())
+      error ("attempt to map an unconnected port");
   }
 
 
@@ -48,18 +57,21 @@ namespace MUSIC {
   void
   cont_output_port::map (data_map* dmap)
   {
+    check_connected ();
   }
 
   
   void
   cont_output_port::map (data_map* dmap, int max_buffered)
   {
+    check_connected ();
   }
 
   
   void
   cont_input_port::map (data_map* dmap, double delay, bool interpolate)
   {
+    check_connected ();
   }
 
   
@@ -68,6 +80,7 @@ namespace MUSIC {
 			int max_buffered,
 			bool interpolate)
   {
+    check_connected ();
   }
 
   
@@ -77,12 +90,14 @@ namespace MUSIC {
 			int max_buffered,
 			bool interpolate)
   {
+    check_connected ();
   }
 
   
   void
   event_output_port::map (index_map* indices)
   {
+    check_connected ();
     int max_buffered = 2; //*fixme*
     map (indices, max_buffered);
   }
@@ -91,6 +106,7 @@ namespace MUSIC {
   void
   event_output_port::map (index_map* indices, int max_buffered)
   {
+    check_connected ();
     event_output_connector* c
       = new event_output_connector (_setup->communicator ());
     router = new event_router (&c->buffer);
@@ -117,6 +133,7 @@ namespace MUSIC {
 			 event_handler_global_index* handle_event,
 			 double acc_latency)
   {
+    check_connected ();
     int max_buffered = 2; //*fixme*
     map (indices, handle_event, acc_latency, max_buffered);
   }
@@ -127,6 +144,7 @@ namespace MUSIC {
 			 event_handler_local_index* handle_event,
 			 double acc_latency)
   {
+    check_connected ();
     int max_buffered = 2; //*fixme*
     map (indices, handle_event, acc_latency, max_buffered);
   }
@@ -138,6 +156,7 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
+    check_connected ();
     event_input_connector* c
       = new event_input_connector (_setup->communicator (),
 				   handle_event);
@@ -151,6 +170,7 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
+    check_connected ();
     event_input_connector* c
       = new event_input_connector (_setup->communicator (),
 				   (event_handler_global_index*) handle_event);//*fixme*
@@ -177,18 +197,21 @@ namespace MUSIC {
   void
   message_output_port::map ()
   {
+    check_connected ();
   }
 
   
   void
   message_output_port::map (int max_buffered)
   {
+    check_connected ();
   }
 
   
   void
   message_input_port::map (message_handler* handler, double acc_latency)
   {
+    check_connected ();
   }
 
   
@@ -197,6 +220,7 @@ namespace MUSIC {
 			   double acc_latency,
 			   int max_buffered)
   {
+    check_connected ();
   }
 
 }

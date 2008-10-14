@@ -36,6 +36,7 @@ namespace MUSIC {
     int _width;
   protected:
     setup* _setup;
+    void check_connected ();
   public:
     port () { }
     port (setup* s, std::string identifier) : _setup (s), _width (constant_width) { }

@@ -33,8 +33,8 @@ namespace MUSIC {
       {
 	my_communicator = s->communicator ().Dup ();
 	connect (s);
-	delete s;
       }
+    delete s;
   }
 
   

@@ -24,7 +24,10 @@ namespace MUSIC {
   bool
   port::is_connected ()
   {
-    return true;
+    if (_setup->launched_by_music ()) //*fixme*
+      return true;
+    else
+      return false;
   }
 
 

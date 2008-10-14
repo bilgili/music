@@ -1,3 +1,8 @@
+2008-10-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/port.hh, port.cc (port::is_connected): Make sure this
+	method works also in the runtime phase.
+
 2008-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am, music/FIBO.hh, FIBO.cc, clock.cc,

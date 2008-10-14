@@ -34,12 +34,13 @@ namespace MUSIC {
   class port {
     static const int constant_width = 60;
     int _width;
+    bool _is_connected;
   protected:
     setup* _setup;
     void check_connected ();
   public:
     port () { }
-    port (setup* s, std::string identifier) : _setup (s), _width (constant_width) { }
+    port (setup* s, std::string identifier);
     bool is_connected ();
     bool has_width ();
     int width ();

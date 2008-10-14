@@ -22,13 +22,17 @@
 
 namespace MUSIC {
 
+  port::port (setup* s, std::string identifier)
+    : _setup (s),
+      _width (constant_width),
+      _is_connected (s->launched_by_music ())
+  {
+  }
+  
   bool
   port::is_connected ()
   {
-    if (_setup->launched_by_music ()) //*fixme*
-      return true;
-    else
-      return false;
+    return _is_connected;
   }
 
 

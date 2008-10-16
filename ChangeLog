@@ -1,3 +1,8 @@
+2008-10-16  Mikael Djurfeldt  <mikael@moritz-heliass-macbook.local>
+
+	* configure.ac: Use $CXX instead of $MPI_CXX in tests for
+	configuration of MPI implementation dependent code.
+
 2008-09-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Setup MPI_C; Test for MPI::Init_thread.

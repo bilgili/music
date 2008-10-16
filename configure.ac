@@ -145,7 +145,8 @@ AC_CHECK_FUNCS([strrchr])
 
 AC_LANG_PUSH(C++)
 save_CXX="$CXX"
-CXX="$MPI_CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
+dnl Must use $CXX, not $MPI_CXX, here
+CXX="$CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_create])
 
 AC_MSG_CHECKING([for MPI::Init_thread method])

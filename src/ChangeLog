@@ -1,3 +1,8 @@
+2008-10-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/FIBO.hh (FIBO::buffer): Bugfix: Changed to vector of char
+	instead of char*.
+
 2008-10-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/port.hh, port.cc (port::is_connected): Make sure this

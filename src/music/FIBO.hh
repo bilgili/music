@@ -26,7 +26,7 @@ namespace MUSIC {
   private:
     static const int n_initial = 10;
     
-    std::vector<char*> buffer;
+    std::vector<char> buffer;
     int element_size;
     int size;
     int insertion;

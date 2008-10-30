@@ -18,6 +18,19 @@
 
 #include "music/connector.hh"
 
+//#define MUSIC_DEBUG 1
+
+#ifdef MUSIC_DEBUG
+#define MUSIC_LOG(X) (std::cout << X << std::endl)
+#define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cout << X << std::endl; }
+#define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
+#else
+#define MUSIC_LOG(X)
+#define MUSIC_LOGN(N, X)
+
+#define MUSIC_LOG0(X)
+#endif
+
 namespace MUSIC {
 
   connector::connector (connector_info _info,
@@ -274,6 +287,7 @@ namespace MUSIC {
 	  subconn = c->second;
 	else
 	  {
+	    MUSIC_LOGN (2, "creating input subconn receiving from " << i->rank ());
 	    if (type == index::GLOBAL)
 	      subconn
 		= new event_input_subconnector_global (&synch,

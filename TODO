@@ -1,7 +1,11 @@
-* Build and use connectivity
+* Error check width
+
+* Allow different time steps
 
 * Implement mark function in FIBO
 
 * Buffering schedule in synchronizer
 
-* Implement real routing protocol
+* Move all MPI implementation dependent code into a subdirectory
+  mpidep.  This directory should also contain a test binary which is
+  built and run before anything else is being compiled

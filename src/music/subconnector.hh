@@ -28,7 +28,8 @@
 
 namespace MUSIC {
 
-  const int MUSIC_SPIKE_MSG = 1;
+  const int SPIKE_MSG = 1;
+  const int SPIKE_BUFFER_MAX = 10000 * sizeof (event);
 
   // The subconnector is responsible for the local side of the
   // communication between two MPI processes, one for each port of a

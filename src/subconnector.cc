@@ -134,11 +134,19 @@ namespace MUSIC {
     void* data;
     int size;
     _buffer.next_block (data, size);
-    //*fixme* marshalling, routing to multiple partners
-#if MUSIC_DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " sending " << size << " bytes" << std::endl;
-#endif
-    intercomm.Send (data, size, MPI::BYTE, _remote_rank, MUSIC_SPIKE_MSG);
+    //*fixme* marshalling
+    char* buffer = static_cast <char*> (data);
+    while (size >= SPIKE_BUFFER_MAX)
+      {
+	intercomm.Send (buffer,
+			SPIKE_BUFFER_MAX,
+			MPI::BYTE,
+			_remote_rank,
+			SPIKE_MSG);
+	buffer += SPIKE_BUFFER_MAX;
+	size -= SPIKE_BUFFER_MAX;
+      }
+    intercomm.Send (buffer, size, MPI::BYTE, _remote_rank, SPIKE_MSG);
   }
   
 
@@ -212,40 +220,48 @@ namespace MUSIC {
   void
   event_input_subconnector_global::receive ()
   {
-    int size = 10000; //*fixme*
-    char* data[size]; 
+    char* data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
-#if MUSIC_DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " receiving" << std::endl;
-#endif
-    intercomm.Recv (data, size, MPI::BYTE, _remote_rank, MUSIC_SPIKE_MSG, status);
-    int n_events = status.Get_count (MPI::BYTE) / sizeof (event);
-#if MUSIC_DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " received " << n_events << " events" << std::endl;
-#endif
-    event* ev = (event*) data;
-    for (int i = 0; i < n_events; ++i)
-      (*handle_event) (ev[i].t, ev[i].id);
+    int size;
+    do
+      {
+	intercomm.Recv (data,
+			SPIKE_BUFFER_MAX,
+			MPI::BYTE,
+			_remote_rank,
+			SPIKE_MSG,
+			status);
+	size = status.Get_count (MPI::BYTE);
+	int n_events = size / sizeof (event);
+	event* ev = (event*) data;
+	for (int i = 0; i < n_events; ++i)
+	  (*handle_event) (ev[i].t, ev[i].id);
+      }
+    while (size == SPIKE_BUFFER_MAX);
   }
 
 
   void
   event_input_subconnector_local::receive ()
   {
-    int size = 10000; //*fixme*
-    char* data[size]; 
+    char* data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
-#if MUSIC_DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " receiving" << std::endl;
-#endif
-    intercomm.Recv (data, size, MPI::BYTE, _remote_rank, MUSIC_SPIKE_MSG, status);
-    int n_events = status.Get_count (MPI::BYTE) / sizeof (event);
-#if MUSIC_DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " received " << n_events << " events" << std::endl;
-#endif
-    event* ev = (event*) data;
-    for (int i = 0; i < n_events; ++i)
-      (*handle_event) (ev[i].t, ev[i].id);
+    int size;
+    do
+      {
+	intercomm.Recv (data,
+			SPIKE_BUFFER_MAX,
+			MPI::BYTE,
+			_remote_rank,
+			SPIKE_MSG,
+			status);
+	size = status.Get_count (MPI::BYTE);
+	int n_events = size / sizeof (event);
+	event* ev = (event*) data;
+	for (int i = 0; i < n_events; ++i)
+	  (*handle_event) (ev[i].t, ev[i].id);
+      }
+    while (size == SPIKE_BUFFER_MAX);
   }
 
 }

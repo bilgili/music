@@ -24,9 +24,11 @@
 
 #ifdef MUSIC_DEBUG
 #define MUSIC_LOG(X) (std::cout << X << std::endl)
-#define MUSIC_LOG0(X) { if (MPI::COMM_WORLD.Get_rank () == 0) std::cout << X << std::endl; }
+#define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cout << X << std::endl; }
+#define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
 #else
 #define MUSIC_LOG(X)
+#define MUSIC_LOGN(N, X)
 #define MUSIC_LOG0(X)
 #endif
 
@@ -196,6 +198,17 @@ namespace MUSIC {
   }
 
   
+  void
+  spatial_negotiator::log (int n, spatial_negotiation_data& d)
+  {
+    MUSIC_LOGN (n,
+		n << ": (" << d.begin () << ", "
+		<< d.end () << ", "
+		<< d.local () << ", "
+		<< d.rank () << ")");
+  }
+
+  
   // Compute intersection intervals between source and dest.  Store
   // the resulting intervals with rank from source in buffer
   // belonging to rank in dest.
@@ -359,7 +372,7 @@ namespace MUSIC {
     intersect_to_buffers (local, remote, results);
 
     // Send to remote connector
-    for (int i = 0; i < n_processes; ++i)
+    for (int i = 0; i < remote_n_proc; ++i)
       send (intercomm, i, results[i]);
     
     results.resize (n_processes);
@@ -389,6 +402,7 @@ namespace MUSIC {
 						       local_rank);
     negotiation_iterator canonical_dist
       = canonical_distribution (width, remote_n_proc);
+    MUSIC_LOGN (2, "2: intersect_to_buffers (local, remote, results)");
     intersect_to_buffers (mapped_dist, canonical_dist, remote);
 
     for (int i = 0; i < remote_n_proc; ++i)
@@ -396,6 +410,14 @@ namespace MUSIC {
     
     for (int i = 0; i < remote_n_proc; ++i)
       receive (intercomm, i, remote[i]);
+    
+    MUSIC_LOGN (2, "2: remote:");
+    for (int i = 0; i < remote.size (); ++i)
+      {
+	MUSIC_LOGN (2, "2: buffer " << i << ":");
+	for (int j = 0; j < remote[i].size (); ++j)
+	  log (2, remote[i][j]);
+      }
     
     return negotiation_iterator (remote);
   }

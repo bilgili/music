@@ -1,5 +1,8 @@
 2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* spatial.cc (spatial_output_negotiator::negotiate): Bugfix: Use
+	remote_n_proc instead of n_processes when sending to remote side.
+
 	* music/application_map.hh, application_map.cc, index_map.cc,
 	music/interval.hh, music/interval_tree.hh, music/ioutils.hh,
 	ioutils.cc, music/spatial.hh, spatial.cc, music/subconnector.hh,

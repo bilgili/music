@@ -132,6 +132,7 @@ namespace MUSIC {
     spatial_negotiator (index_map* indices, index::type type);
     void log (spatial_negotiation_data& d, int rank);
     void log (spatial_negotiation_data& d);
+    void log (int n, spatial_negotiation_data& d);
     void negotiate_width ();
     negotiation_iterator wrap_intervals (index_map::iterator beg,
 					 index_map::iterator end,

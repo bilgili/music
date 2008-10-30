@@ -21,14 +21,61 @@
 #include <vector>
 
 #include <music/FIBO.hh>
+#include <music/interval_tree.hh>
+#include <music/index_map.hh>
+#include <music/event.hh>
 
 namespace MUSIC {
 
-  class event_router {
-    std::vector <FIBO*> buffers;
+  class event_routing_data {
+    index_interval _interval;
+    FIBO* buffer;
   public:
-    event_router (FIBO* buffer);
-    void insert_event (double t, int id);
+    event_routing_data () { }
+    event_routing_data (index_interval i, FIBO* b)
+      : _interval (i), buffer (b) { }
+    int begin () const { return _interval.begin (); }
+    int end () const { return _interval.end (); }
+    int offset () const { return _interval.local (); }
+    void insert (double t, int id) {
+      event* e = static_cast<event*> (buffer->insert ());
+      e->t = t;
+      e->id = id;
+    }
+  };
+
+
+  class event_router {
+    class inserter : public interval_tree<int, event_routing_data>::action {
+    protected:
+      double _t;
+      int _id;
+    public:
+      inserter (double t, int id) : _t (t), _id (id) { };
+    };
+    
+    class inserter_global : public inserter {
+    public:
+      inserter_global (double t, int id) : inserter (t, id) { };
+      void operator() (event_routing_data& data) {
+	data.insert (_t, _id);
+      }
+    };
+    
+    class inserter_local : public inserter {
+    public:
+      inserter_local (double t, int id) : inserter (t, id) { };
+      void operator() (event_routing_data& data) {
+	data.insert (_t, _id + data.offset ());
+      };
+    };
+    
+    interval_tree<int, event_routing_data> routing_table;
+  public:
+    void insert_routing_interval (index_interval i, FIBO* b);
+    void build_table ();
+    void insert_event (double t, global_index id);
+    void insert_event (double t, local_index id);
   };
   
 }

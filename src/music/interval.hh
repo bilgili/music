@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,24 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_PERMUTATION_INDEX_HH
-
-#include <vector>
-
-#include "music/index_map.hh"
+#ifndef MUSIC_INTERVAL_HH
 
 namespace MUSIC {
 
-  class permutation_index : public index_map {
-    std::vector<interval> _indices;
+  class interval {
+    int _begin;
+    int _end;
   public:
-    permutation_index (global_index *indices, int size);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();    
+    interval () { }
+    interval (int b, int e) : _begin (b), _end (e) { }
+    int begin () const { return _begin; }
+    int end () const { return _end; }
   };
 
 }
 
-#define MUSIC_PERMUTATION_INDEX_HH
+#define MUSIC_INTERVAL_HH
 #endif

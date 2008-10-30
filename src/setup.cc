@@ -29,6 +29,7 @@ namespace MUSIC {
     init (argc, argv);
   }
 
+  
   setup::setup (int& argc, char**& argv, int required, int* provided)
   {
 #ifdef HAVE_CXX_MPI_INIT_THREAD
@@ -40,6 +41,16 @@ namespace MUSIC {
 #endif
     init (argc, argv);
   }
+
+
+  setup::~setup ()
+  {
+    for (std::vector<port*>::iterator i = _ports.begin ();
+	 i != _ports.end ();
+	 ++i)
+      (*i)->setup_cleanup ();
+  }
+  
 
   bool
   setup::launched_by_music ()
@@ -55,22 +66,17 @@ namespace MUSIC {
     if (launched_by_music ())
       {
 	// launched by the music utility
-	my_communicator = MPI::COMM_WORLD.Split (_config->color (), my_rank);
-	_global_comm_dup = MPI::COMM_WORLD.Dup ();
+	comm = MPI::COMM_WORLD.Split (_config->color (), my_rank);
 	string binary;
 	_config->lookup ("binary", &binary);
 	string args;
 	_config->lookup ("args", &args);
 	argv = parse_args (binary, args, &argc);
-	input_ports = new std::vector<input_port*>;
-	output_ports = new std::vector<output_port*>;
-	_input_connectors = new std::vector<input_connector*>;
-	_output_connectors = new std::vector<output_connector*>;
       }
     else
       {
 	// launched with mpirun
-	my_communicator = MPI::COMM_WORLD;
+	comm = MPI::COMM_WORLD;
       }
   }
 
@@ -78,7 +84,42 @@ namespace MUSIC {
   MPI::Intracomm
   setup::communicator ()
   {
-    return my_communicator;
+    return comm;
+  }
+
+
+  connectivity_info*
+  setup::port_connectivity (const std::string local_name)
+  {
+    return _config->connectivity_map ()->info (local_name);
+  }
+
+
+  bool
+  setup::is_connected (const std::string local_name)
+  {
+    return _config->connectivity_map ()->is_connected (local_name);
+  }
+
+
+  connectivity_info::port_direction
+  setup::port_direction (const std::string local_name)
+  {
+    return _config->connectivity_map ()->direction (local_name);
+  }
+
+
+  int
+  setup::port_width (const std::string local_name)
+  {
+    return _config->connectivity_map ()->width (local_name);
+  }
+
+
+  port_connector_info
+  setup::port_connections (const std::string local_name)
+  {
+    return _config->connectivity_map ()->connections (local_name);
   }
 
 
@@ -106,52 +147,40 @@ namespace MUSIC {
   cont_input_port*
   setup::publish_cont_input (std::string identifier)
   {
-    cont_input_port* port = new cont_input_port (this, identifier);
-    if (port->is_connected ()) //*fixme* warp into port code
-      input_ports->push_back (port);
-    return port;
+    return new cont_input_port (this, identifier);
   }
 
 
   cont_output_port*
   setup::publish_cont_output (std::string identifier)
   {
-    cont_output_port* port = new cont_output_port (this, identifier);
-    if (port->is_connected ())
-      output_ports->push_back (port);
-    return port;
+    return new cont_output_port (this, identifier);
   }
 
 
   event_input_port*
   setup::publish_event_input (std::string identifier)
   {
-    event_input_port* port = new event_input_port (this, identifier);
-    if (port->is_connected ())
-      input_ports->push_back (port);
-    return port;
+    return new event_input_port (this, identifier);
   }
 
 
   event_output_port*
   setup::publish_event_output (std::string identifier)
   {
-    event_output_port* port = new event_output_port (this, identifier);
-    if (port->is_connected ())
-      output_ports->push_back (port);
-    return port;
+    return new event_output_port (this, identifier);
   }
 
   
-  void setup::add_input_connector (input_connector* c)
+  void setup::add_port (port* p)
   {
-    _input_connectors->push_back (c);
+    _ports.push_back (p);
   }
 
   
-  void setup::add_output_connector (output_connector* c)
+  void setup::add_connector (connector* c)
   {
-    _output_connectors->push_back (c);
+    _connectors.push_back (c);
   }
 
 }

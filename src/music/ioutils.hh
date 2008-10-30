@@ -16,24 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_PERMUTATION_INDEX_HH
+#ifndef MUSIC_IOUTILS_HH
 
-#include <vector>
-
-#include "music/index_map.hh"
+#include <sstream>
 
 namespace MUSIC {
 
-  class permutation_index : public index_map {
-    std::vector<interval> _indices;
-  public:
-    permutation_index (global_index *indices, int size);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();    
-  };
+  namespace ioutils {
+    //*fixme* these could be stream classes
+    void write (std::ostringstream& out, std::string s);
+    std::string read (std::istringstream& in, int delim);
+    std::string read (std::istringstream& in);
+  }
 
 }
 
-#define MUSIC_PERMUTATION_INDEX_HH
+#define MUSIC_IOUTILS_HH
 #endif

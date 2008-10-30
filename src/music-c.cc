@@ -286,13 +286,24 @@ MUSIC_cont_input_port_map (MUSIC_cont_input_port *port,
 
 
 void
-MUSIC_event_output_port_map (MUSIC_event_output_port *port,
-			     MUSIC_index_map *indices,
-			     int max_buffered)
+MUSIC_event_output_port_map_global_index (MUSIC_event_output_port *port,
+					  MUSIC_index_map *indices,
+					  int max_buffered)
 {
   MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
   MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
-  cxx_port->map (cxx_indices, max_buffered);
+  cxx_port->map (cxx_indices, MUSIC::index::GLOBAL, max_buffered);
+}
+
+
+void
+MUSIC_event_output_port_map_local_index (MUSIC_event_output_port *port,
+					  MUSIC_index_map *indices,
+					  int max_buffered)
+{
+  MUSIC::event_output_port* cxx_port = (MUSIC::event_output_port *) port;
+  MUSIC::index_map* cxx_indices = (MUSIC::index_map *) indices;
+  cxx_port->map (cxx_indices, MUSIC::index::LOCAL, max_buffered);
 }
 
 
@@ -357,7 +368,10 @@ MUSIC_permutation_index *
 MUSIC_create_permutation_index (int *indices,
 				int size)
 {
-  return (MUSIC_permutation_index *) new MUSIC::permutation_index (indices, size);
+  void* data = static_cast<void*> (indices);
+  return (MUSIC_permutation_index *)
+    new MUSIC::permutation_index (static_cast<MUSIC::global_index*> (data),
+				  size);
 }
 
 

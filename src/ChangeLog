@@ -1,3 +1,13 @@
+2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/application_map.hh, application_map.cc, index_map.cc,
+	music/interval.hh, music/interval_tree.hh, music/ioutils.hh,
+	ioutils.cc, music/spatial.hh, spatial.cc, music/subconnector.hh,
+	subconnector.cc, music/temporal.hh, temporal.cc: New files.
+
+	* Changes throughout to implement propagation of configuration
+	information and routing of spikes.
+
 2008-10-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/FIBO.hh (FIBO::buffer): Bugfix: Changed to vector of char

@@ -24,14 +24,14 @@ namespace MUSIC {
     : timebase (tb)
   {
     state = 0;
-    tick_interval = (unsigned long long) (h / tb + 0.5);
+    _tick_interval = (unsigned long long) (h / tb + 0.5);
   }
 
   
   void
   clock::tick ()
   {
-    state += tick_interval;
+    state += _tick_interval;
   }
   
 

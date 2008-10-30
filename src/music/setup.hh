@@ -38,17 +38,16 @@ namespace MUSIC {
   class setup {
   private:
     configuration* _config;
-    MPI::Intracomm my_communicator;
-    MPI::Intracomm _global_comm_dup;
-    std::vector<input_port*>* input_ports;
-    std::vector<output_port*>* output_ports;
-    std::vector<output_connector*>* _output_connectors;
-    std::vector<input_connector*>* _input_connectors;
+    MPI::Intracomm comm;
+    std::vector<port*> _ports;
+    std::vector<connector*> _connectors;
 
   public:
     setup (int& argc, char**& argv);
 
     setup (int& argc, char**& argv, int required, int* provided);
+
+    virtual ~setup ();
 
     bool launched_by_music ();
 
@@ -56,8 +55,18 @@ namespace MUSIC {
 
     MPI::Intracomm communicator ();
 
-    MPI::Intracomm global_comm_dup () { return _global_comm_dup; }
-    
+    connectivity_info* port_connectivity (const std::string local_name);
+
+    //*fixme* unused
+    bool is_connected (const std::string local_name);
+
+    connectivity_info::port_direction
+    port_direction (const std::string local_name);
+
+    int port_width (const std::string local_name);
+
+    port_connector_info port_connections (const std::string local_name);
+
     bool config (string var, string* result);
 
     bool config (string var, int* result);
@@ -76,19 +85,19 @@ namespace MUSIC {
 
     message_output_port* publish_message_output (string identifier);
 
-    std::vector<input_connector*>* input_connectors ()
+    std::vector<port*>* ports ()
     {
-      return _input_connectors;
-    }
+      return &_ports;
+    }    
 
-    void add_input_connector (input_connector* c);
+    void add_port (port* p);
     
-    std::vector<output_connector*>* output_connectors ()
+    std::vector<connector*>* connectors ()
     {
-      return _output_connectors;
+      return &_connectors;
     }
     
-    void add_output_connector (output_connector* c);
+    void add_connector (connector* c);
     
   };
   

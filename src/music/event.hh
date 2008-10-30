@@ -62,7 +62,7 @@ namespace MUSIC {
   public:
     virtual void operator () (double t, local_index id) = 0;
   };
-  
+
   class event_handler_local_index_proxy
     : public event_handler_local_index {
     void (*event_handler) (double t, int id);
@@ -74,6 +74,18 @@ namespace MUSIC {
     {
       event_handler (t, id);
     }
+  };
+
+  class event_handler_ptr {
+    union {
+      event_handler_global_index* global;
+      event_handler_local_index* local;
+    } ptr;
+  public:
+    event_handler_ptr (event_handler_global_index* p) { ptr.global = p; }
+    event_handler_ptr (event_handler_local_index* p) { ptr.local = p; }
+    event_handler_global_index* global () { return ptr.global; }
+    event_handler_local_index* local () { return ptr.local; }
   };
   
 }

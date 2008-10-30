@@ -23,59 +23,89 @@
 namespace MUSIC {
 
   port::port (setup* s, std::string identifier)
-    : _setup (s),
-      _width (constant_width),
-      _is_connected (s->launched_by_music ())
+    : _setup (s)
   {
+    _connectivity_info = s->port_connectivity (identifier);
+    _setup->add_port (this);
   }
-  
+
+
   bool
   port::is_connected ()
   {
-    return _is_connected;
+    return _connectivity_info != connectivity::NO_CONNECTIVITY;
   }
 
 
   void
-  port::check_connected ()
+  port::assert_output ()
   {
     if (!is_connected ())
       error ("attempt to map an unconnected port");
+    else if (_connectivity_info->direction () != connectivity_info::OUTPUT)
+      error ("output port connected as input");
+  }
+
+
+  void
+  port::assert_input ()
+  {
+    if (!is_connected ())
+      error ("attempt to map an unconnected port");
+    else if (_connectivity_info->direction () != connectivity_info::INPUT)
+      error ("input port connected as output");
   }
 
 
   bool
   port::has_width ()
   {
-    return _width != -1;
+    return _connectivity_info->width () != connectivity_info::NO_WIDTH;
   }
 
 
   int
   port::width ()
   {
-    return _width;
+    int w = _connectivity_info->width ();
+    if (w == connectivity_info::NO_WIDTH)
+      error ("width requested for port with unspecified width");
+    return w;
   }
 
 
   void
+  output_redistribution_port::setup_cleanup ()
+  {
+    delete negotiator;
+  }
+  
+  
+  void
+  input_redistribution_port::setup_cleanup ()
+  {
+    delete negotiator;
+  }
+  
+  
+  void
   cont_output_port::map (data_map* dmap)
   {
-    check_connected ();
+    assert_output ();
   }
 
   
   void
   cont_output_port::map (data_map* dmap, int max_buffered)
   {
-    check_connected ();
+    assert_output ();
   }
 
   
   void
   cont_input_port::map (data_map* dmap, double delay, bool interpolate)
   {
-    check_connected ();
+    assert_input ();
   }
 
   
@@ -84,7 +114,7 @@ namespace MUSIC {
 			int max_buffered,
 			bool interpolate)
   {
-    check_connected ();
+    assert_input ();
   }
 
   
@@ -94,41 +124,73 @@ namespace MUSIC {
 			int max_buffered,
 			bool interpolate)
   {
-    check_connected ();
+    assert_input ();
   }
 
   
   void
-  event_output_port::map (index_map* indices)
+  event_output_port::map (index_map* indices, index::type type)
   {
-    check_connected ();
-    int max_buffered = 2; //*fixme*
-    map (indices, max_buffered);
+    assert_output ();
+    int max_buffered = 0;
+    map_impl (indices, type, max_buffered);
   }
 
   
   void
-  event_output_port::map (index_map* indices, int max_buffered)
+  event_output_port::map (index_map* indices,
+			  index::type type,
+			  int max_buffered)
   {
-    check_connected ();
-    event_output_connector* c
-      = new event_output_connector (_setup->communicator ());
-    router = new event_router (&c->buffer);
-    _setup->add_output_connector (c);
+    assert_output ();
+    if (max_buffered <= 0)
+      {
+	error ("event_output_port::map: max_buffered should be a positive integer");
+      }
+    map_impl (indices, type, max_buffered);
+  }
+
+  
+  void
+  event_output_port::map_impl (index_map* indices,
+			       index::type type,
+			       int max_buffered)
+  {
+    MPI::Intracomm comm = _setup->communicator ();
+    // Retrieve info about all remote connectors of this port
+    port_connector_info port_connections
+      = _connectivity_info->connections ();
+    negotiator = new spatial_output_negotiator (indices, type);
+    for (port_connector_info::iterator info = port_connections.begin ();
+	 info != port_connections.end ();
+	 ++info)
+      // Create connector
+      _setup->add_connector (new event_output_connector (*info,
+							 negotiator,
+							 max_buffered,
+							 comm,
+							 router));
   }
 
 
+  void
+  event_output_port::build_table ()
+  {
+    router.build_table ();
+  }
+
+  
   void
   event_output_port::insert_event (double t, global_index id)
   {
-    router->insert_event (t, id);
+    router.insert_event (t, id);
   }
 
   
   void
   event_output_port::insert_event (double t, local_index id)
   {
-    router->insert_event (t, id);
+    router.insert_event (t, id);
   }
 
   
@@ -137,9 +199,13 @@ namespace MUSIC {
 			 event_handler_global_index* handle_event,
 			 double acc_latency)
   {
-    check_connected ();
-    int max_buffered = 2; //*fixme*
-    map (indices, handle_event, acc_latency, max_buffered);
+    assert_input ();
+    int max_buffered = 0;
+    map_impl (indices,
+	      index::GLOBAL,
+	      event_handler_ptr (handle_event),
+	      acc_latency,
+	      max_buffered);
   }
 
   
@@ -148,9 +214,13 @@ namespace MUSIC {
 			 event_handler_local_index* handle_event,
 			 double acc_latency)
   {
-    check_connected ();
-    int max_buffered = 2; //*fixme*
-    map (indices, handle_event, acc_latency, max_buffered);
+    assert_input ();
+    int max_buffered = 0;
+    map_impl (indices,
+	      index::LOCAL,
+	      event_handler_ptr (handle_event),
+	      acc_latency,
+	      max_buffered);
   }
 
   
@@ -160,11 +230,16 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
-    check_connected ();
-    event_input_connector* c
-      = new event_input_connector (_setup->communicator (),
-				   handle_event);
-    _setup->add_input_connector (c);
+    assert_input ();
+    if (max_buffered <= 0)
+      {
+	error ("event_input_port::map: max_buffered should be a positive integer");
+      }
+    map_impl (indices,
+	      index::GLOBAL,
+	      event_handler_ptr (handle_event),
+	      acc_latency,
+	      max_buffered);
   }
 
   
@@ -174,11 +249,39 @@ namespace MUSIC {
 			 double acc_latency,
 			 int max_buffered)
   {
-    check_connected ();
-    event_input_connector* c
-      = new event_input_connector (_setup->communicator (),
-				   (event_handler_global_index*) handle_event);//*fixme*
-    _setup->add_input_connector (c);
+    assert_input ();
+    if (max_buffered <= 0)
+      {
+	error ("event_input_port::map: max_buffered should be a positive integer");
+      }
+    map_impl (indices,
+	      index::LOCAL,
+	      event_handler_ptr (handle_event),
+	      acc_latency,
+	      max_buffered);
+  }
+
+  
+  void
+  event_input_port::map_impl (index_map* indices,
+			      index::type type,
+			      event_handler_ptr handle_event,
+			      double acc_latency,
+			      int max_buffered)
+  {
+    MPI::Intracomm comm = _setup->communicator ();
+    // Retrieve info about all remote connectors of this port
+    port_connector_info port_connections
+      = _connectivity_info->connections ();
+    port_connector_info::iterator info = port_connections.begin ();
+    negotiator = new spatial_input_negotiator (indices, type);
+    _setup->add_connector (new event_input_connector (*info,
+						      negotiator,
+						      handle_event,
+						      type,
+						      acc_latency,
+						      max_buffered,
+						      comm));
   }
 
   
@@ -201,21 +304,21 @@ namespace MUSIC {
   void
   message_output_port::map ()
   {
-    check_connected ();
+    assert_output ();
   }
 
   
   void
   message_output_port::map (int max_buffered)
   {
-    check_connected ();
+    assert_output ();
   }
 
   
   void
   message_input_port::map (message_handler* handler, double acc_latency)
   {
-    check_connected ();
+    assert_output ();
   }
 
   
@@ -224,7 +327,7 @@ namespace MUSIC {
 			   double acc_latency,
 			   int max_buffered)
   {
-    check_connected ();
+    assert_output ();
   }
 
 }

@@ -16,24 +16,43 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_PERMUTATION_INDEX_HH
-
-#include <vector>
-
 #include "music/index_map.hh"
 
 namespace MUSIC {
 
-  class permutation_index : public index_map {
-    std::vector<interval> _indices;
-  public:
-    permutation_index (global_index *indices, int size);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();    
-  };
+  const index_interval
+  index_map::iterator::operator* ()
+  {
+    return **_implementation;
+  }
+  
+
+  const index_interval*
+  index_map::iterator::operator-> ()
+  {
+    return _implementation->dereference ();
+  }
+  
+
+  bool
+  index_map::iterator::operator== (const iterator& i) const
+  {
+    return _implementation->is_equal (i.implementation ());
+  }
+  
+
+  bool
+  index_map::iterator::operator!= (const iterator& i) const
+  {
+    return !_implementation->is_equal (i.implementation ());
+  }
+  
+
+  index_map::iterator&
+  index_map::iterator::operator++ ()
+  {
+    ++*_implementation;
+    return *this;
+  }
 
 }
-
-#define MUSIC_PERMUTATION_INDEX_HH
-#endif

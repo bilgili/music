@@ -17,141 +17,26 @@
  */
 
 #include "music/connector.hh"
-#include "music/event.hh"
-#include "music/message.hh"
-
-//*fixme* remove
-#include <iostream>
-
-#define DEBUG 0
 
 namespace MUSIC {
 
-  connector::connector (MPI::Intracomm c, int es)
-    : comm (c), buffer (es)
-  {
-    
-  }
-
-
-  void
-  connector::connect ()
-  {
-#if DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << _local_leader << " and remote " << _remote_leader << std::endl;
-#endif
-    intercomm = comm.Create_intercomm (0, MPI::COMM_WORLD, _remote_leader, 0);
-    partner = intercomm.Get_rank ();
-  }
-
-
-  output_connector::output_connector ()
-  {
-    //*fixme*
-    int n_proc = MPI::COMM_WORLD.Get_size () / 2;
-    int rank = MPI::COMM_WORLD.Get_rank ();
-    _local_leader = rank < n_proc ? 0 : n_proc;
-    _remote_leader = rank < n_proc ? n_proc : 0;
-    _remote_port_name = "nisse";
-  }
-
-  
-  void
-  output_connector::send ()
+  connector::connector (connector_info _info,
+			spatial_negotiator* _negotiator,
+			MPI::Intracomm c)
+    : info (_info),
+      negotiator (_negotiator),
+      comm (c)
   {
   }
 
   
-  int
-  output_connector::start_idx ()
+  MPI::Intercomm
+  connector::create_intercomm ()
   {
-    return 0;
-  }
-
-  
-  int
-  output_connector::end_idx ()
-  {
-    return 0;
-  }
-
-  
-  input_connector::input_connector ()
-  {
-    //*fixme*
-    int n_proc = MPI::COMM_WORLD.Get_size () / 2;
-    int rank = MPI::COMM_WORLD.Get_rank ();
-    _local_leader = rank < n_proc ? 0 : n_proc;
-    _remote_leader = rank < n_proc ? n_proc : 0;
-    _remote_port_name = "nisse";
-  }
-
-
-  event_connector::event_connector ()
-  {
-    
-  }
-  
-
-  void
-  cont_output_connector::mark ()
-  {
-  }
-
-
-  event_output_connector::event_output_connector (MPI::Intracomm c)
-    : connector (c, sizeof (event))
-  {
-  }
-  
-
-  void
-  event_output_connector::send ()
-  {
-    void* data;
-    int size;
-    buffer.next_block (data, size);
-    //*fixme* marshalling, routing to multiple partners
-#if DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " sending " << size << " bytes" << std::endl;
-#endif
-    intercomm.Send (data, size, MPI::BYTE, partner, MUSIC_SPIKE_MSG);
-  }
-  
-
-  event_input_connector::event_input_connector (MPI::Intracomm c,
-						event_handler_global_index* eh)
-    : handle_event (eh), connector (c, sizeof (event))
-  {
-  }
-
-  
-  void
-  event_input_connector::receive ()
-  {
-    int size = 1000; //*fixme*
-    char* data[size]; 
-    MPI::Status status;
-#if DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " receiving" << std::endl;
-#endif
-    intercomm.Recv (data, size, MPI::BYTE, partner, MUSIC_SPIKE_MSG, status);
-    int n_events = status.Get_count (MPI::BYTE) / sizeof (event);
-#if DEBUG
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " received " << n_events << " events" << std::endl;
-#endif
-    event* ev = (event*) data;
-    for (int i = 0; i < n_events; ++i)
-      (*handle_event) (ev[i].t, ev[i].id);
-  }
-  
-
-  // Connectors
-
-  
-  void
-  cont_input_connector::receive ()
-  {
+    return comm.Create_intercomm (0,
+				  MPI::COMM_WORLD, //*fixme* recursive?
+				  info.remote_leader (),
+				  0); //*fixme* tag
   }
 
   
@@ -165,6 +50,12 @@ namespace MUSIC {
   }
   
 
+  void
+  cont_input_connector::receive ()
+  {
+  }
+
+  
   void
   fast_cont_output_connector::interpolate_to (int start, int end, cont_data_t* data)
   {
@@ -295,18 +186,114 @@ namespace MUSIC {
   }
 
 
-  void
-  event_output_connector::tick ()
+  event_connector::event_connector (connector_info _info,
+				    spatial_negotiator* _negotiator,
+				    MPI::Intracomm c)
+    : connector (_info, _negotiator, c)
   {
-    if (synch.communicate ())
-      send ();
+  }
+  
+
+  event_output_connector::event_output_connector (connector_info conn_info,
+						  spatial_output_negotiator* _negotiator,
+						  int max_buffered,
+						  MPI::Intracomm comm,
+						  event_router& _router)
+    : connector (conn_info, _negotiator, comm),
+      event_connector (conn_info, _negotiator, comm),
+      router (_router)
+  {
   }
 
-
+  
   void
-  event_input_connector::tick ()
+  event_output_connector::spatial_negotiation
+  (std::vector<output_subconnector*>& osubconn,
+   std::vector<input_subconnector*>& isubconn)
   {
-    if (synch.communicate ())
-      receive ();    
+    std::map<int, event_output_subconnector*> subconnectors;
+    MPI::Intercomm intercomm = create_intercomm ();
+    for (negotiation_iterator i = negotiator->negotiate (comm,
+							 intercomm,
+							 info.n_processes ());
+	 !i.end ();
+	 ++i)
+      {
+	std::map<int, event_output_subconnector*>::iterator c
+	  = subconnectors.find (i->rank ());
+	event_output_subconnector* subconn;
+	if (c != subconnectors.end ())
+	  subconn = c->second;
+	else
+	  {
+	    subconn = new event_output_subconnector (&synch,
+						     intercomm,
+						     i->rank (),
+						     receiver_port_name ());
+	    subconnectors.insert (std::make_pair (i->rank (), subconn));
+	    osubconn.push_back (subconn);
+	  }
+	router.insert_routing_interval (i->interval (), subconn->buffer ());
+      }
   }
+
+  
+  event_input_connector::event_input_connector (connector_info conn_info,
+						spatial_input_negotiator* negotiator,
+						event_handler_ptr _handle_event,
+						index::type _type,
+						double acc_latency,
+						int max_buffered,
+						MPI::Intracomm comm)
+    : connector (conn_info, negotiator, comm),
+      event_connector (conn_info, negotiator, comm),
+      handle_event (_handle_event),
+      type (_type)
+  {
+  }
+
+  
+  void
+  event_input_connector::spatial_negotiation
+  (std::vector<output_subconnector*>& osubconn,
+   std::vector<input_subconnector*>& isubconn)
+  {
+    std::map<int, event_input_subconnector*> subconnectors;
+    MPI::Intercomm intercomm = create_intercomm ();
+    int receiver_rank = intercomm.Get_rank ();
+    for (negotiation_iterator i = negotiator->negotiate (comm,
+							 intercomm,
+							 info.n_processes ());
+	 !i.end ();
+	 ++i)
+      {
+	std::map<int, event_input_subconnector*>::iterator c
+	  = subconnectors.find (i->rank ());
+	event_input_subconnector* subconn;
+	if (c != subconnectors.end ())
+	  subconn = c->second;
+	else
+	  {
+	    if (type == index::GLOBAL)
+	      subconn
+		= new event_input_subconnector_global (&synch,
+						       intercomm,
+						       i->rank (),
+						       receiver_rank,
+						       receiver_port_name (),
+						       handle_event.global ());
+	    else
+	      subconn
+		= new event_input_subconnector_local (&synch,
+						      intercomm,
+						      i->rank (),
+						      receiver_rank,
+						      receiver_port_name (),
+						      handle_event.local ());
+	    subconnectors.insert (std::make_pair (i->rank (), subconn));
+	    isubconn.push_back (subconn);
+	  }
+      }
+  }
+
 }

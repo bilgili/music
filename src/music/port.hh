@@ -26,24 +26,35 @@
 #include <music/message.hh>
 #include <music/event_router.hh>
 #include <music/connectivity.hh>
+#include <music/spatial.hh>
 
 namespace MUSIC {
 
   class setup;
 
   class port {
-    static const int constant_width = 60;
-    int _width;
-    bool _is_connected;
   protected:
     setup* _setup;
-    void check_connected ();
+    connectivity_info* _connectivity_info;
+    void assert_output ();
+    void assert_input ();
   public:
     port () { }
     port (setup* s, std::string identifier);
+    virtual void build_table () { };
+    virtual void setup_cleanup () { };
     bool is_connected ();
     bool has_width ();
     int width ();
+  };
+
+  // A redistribution_port is a port with the ability to route
+  // globally indexed data items from a sender MPI process to the
+  // correct receiver MPI process.  Examples are cont_ports and
+  // event_ports.
+  
+  class redistribution_port : virtual public port {
+  protected:
   };
 
   class output_port : virtual public port {
@@ -52,10 +63,24 @@ namespace MUSIC {
   class input_port : virtual public port {
   };
 
-  class cont_port : virtual public port {
+  class output_redistribution_port : output_port {
+  protected:
+    spatial_output_negotiator* negotiator;
+  public:
+    void setup_cleanup ();
   };
 
-  class cont_output_port : public cont_port, public output_port {
+  class input_redistribution_port : output_port {
+  protected:
+    spatial_input_negotiator* negotiator;
+  public:
+    void setup_cleanup ();
+  };
+
+  class cont_port : public redistribution_port {
+  };
+
+  class cont_output_port : public cont_port, public output_redistribution_port {
   public:
     cont_output_port (setup* s, std::string id)
       : port (s, id) { }
@@ -63,7 +88,7 @@ namespace MUSIC {
     void map (data_map* dmap, int max_buffered);
   };
   
-  class cont_input_port : public cont_port, public input_port {
+  class cont_input_port : public cont_port, public input_redistribution_port {
   public:
     cont_input_port (setup* s, std::string id)
       : port (s, id) { }
@@ -74,22 +99,29 @@ namespace MUSIC {
 	      int max_buffered,
 	      bool interpolate = true);
   };
+
   
-  class event_port : virtual public port {
+  class event_port : public redistribution_port {
   };
 
-  class event_output_port : public event_port, public output_port {
-    event_router* router;
+  
+  class event_output_port : public event_port,
+			    public output_redistribution_port {
+    event_router router;
   public:
     event_output_port (setup* s, std::string id)
       : port (s, id) { }
-    void map (index_map* indices);
-    void map (index_map* indices, int max_buffered);
+    void map (index_map* indices, index::type type);
+    void map (index_map* indices, index::type type, int max_buffered);
+    void map_impl (index_map* indices, index::type type, int max_buffered);
+    void build_table ();
     void insert_event (double t, global_index id);
     void insert_event (double t, local_index id);
   };
 
-  class event_input_port : public event_port, public input_port {
+
+  class event_input_port : public event_port,
+			   public input_redistribution_port {
   public:
     event_input_port (setup* s, std::string id)
       : port (s, id) { }
@@ -107,6 +139,11 @@ namespace MUSIC {
 	      event_handler_local_index* handle_event,
 	      double acc_latency,
 	      int max_buffered);
+    void map_impl (index_map* indices,
+		   index::type type,
+		   event_handler_ptr handle_event,
+		   double acc_latency,
+		   int max_buffered);
     // Facilities to support the C interface
   public:
     event_handler_global_index_proxy*

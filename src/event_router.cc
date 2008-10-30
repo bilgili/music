@@ -21,19 +21,32 @@
 
 namespace MUSIC {
 
-  event_router::event_router (FIBO* buffer)
+  void
+  event_router::insert_routing_interval (index_interval i, FIBO* b)
   {
-    buffers.push_back (buffer);
+    routing_table.add (event_routing_data (i, b));
   }
   
-  
+
   void
-  event_router::insert_event (double t, int id)
+  event_router::build_table ()
   {
-    //*fixme*
-    event* e = static_cast<event*> (buffers[0]->insert ());
-    e->t = t;
-    e->id = id;
+    routing_table.build ();
+  }
+
+
+  void
+  event_router::insert_event (double t, global_index id)
+  {
+    inserter_global i (t, id);
+    routing_table.search (id, &i);
+  }
+
+  void
+  event_router::insert_event (double t, local_index id)
+  {
+    inserter_local i (t, id);
+    routing_table.search (id, &i);
   }
 
 }

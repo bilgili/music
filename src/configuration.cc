@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,13 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sstream>
-
 extern "C" {
 #include <stdlib.h>
 }
 
 #include "music/configuration.hh"
+#include "music/ioutils.hh"
 #include "music/error.hh"
 
 namespace MUSIC {
@@ -30,8 +29,8 @@ namespace MUSIC {
   const char* const configuration::config_env_var_name = "_MUSIC_CONFIG_";
 
   
-  configuration::configuration (int color, configuration* def)
-    : _color (color), default_config (def)
+  configuration::configuration (std::string name, int color, configuration* def)
+    : _application_name (name), _color (color), default_config (def)
   {
     
   }
@@ -50,41 +49,27 @@ namespace MUSIC {
       {
 	_launched_by_music = true;
 	std::istringstream env (config_str);
+	_application_name = ioutils::read (env);
+	env.ignore ();
 	env >> _color;
+	env.ignore ();
+	_applications = new application_map (env);
+	env.ignore ();
+	_connectivity_map = new connectivity (env);
 	// parse config string
-	env.ignore (); // ignore initial colon
 	while (!env.eof ())
 	  {
-	    const int maxsize = 80;
-	    char* name = new char[maxsize];
-	    env.get (name, maxsize, '=');
 	    env.ignore ();
-	    std::ostringstream value;
-	    while (true)
-	      {
-		int c = env.get ();
-		switch (c)
-		  {
-		  case '\\':
-		    value << (char) env.get ();
-		    continue;
-		  default:
-		    value << (char) c;
-		    continue;
-		  case ':':
-		  case EOF:
-		    break;
-		  }
-		break;
-	      }
-	    insert (name, value.str ());
+	    std::string name = ioutils::read (env, '=');
+	    env.ignore ();
+	    insert (name, ioutils::read (env));
 	  }
       }
   }
 
   
   void
-  configuration::tap (std::ostringstream& env, configuration* mask)
+  configuration::write (std::ostringstream& env, configuration* mask)
   {
     std::map<std::string, std::string>::iterator pos;
     for (pos = dict.begin (); pos != dict.end (); ++pos)
@@ -93,23 +78,7 @@ namespace MUSIC {
 	if (!(mask && mask->lookup (name)))
 	  {
 	    env << ':' << name << '=';
-	    std::istringstream value (pos->second);
-	    while (true)
-	      {
-		int c;
-		switch (c = value.get ())
-		  {
-		  case '\\':
-		  case ':':
-		    env << '\\';
-		  default:
-		    env << (char) c;
-		    continue;
-		  case EOF:
-		    break;
-		  }
-		break;
-	      }
+	    ioutils::write (env, pos->second);
 	  }
       }
   }
@@ -118,10 +87,15 @@ namespace MUSIC {
   void
   configuration::write_env ()
   {
+    //*fixme* generally make lexical structure more strict and make
+    //sure that everything written can be consistently read back
     std::ostringstream env;
-    env << _color;
-    tap (env, 0);
-    default_config->tap (env, this);
+    env << _application_name << ':' << _color << ':';
+    _applications->write (env);
+    env << ':';
+    _connectivity_map->write (env);
+    write (env, 0);
+    default_config->write (env, this);
     setenv (config_env_var_name, env.str ().c_str (), 1);
   }
 
@@ -195,10 +169,32 @@ namespace MUSIC {
     dict.insert (std::make_pair (name, value));
   }
 
+  
+  application_map*
+  configuration::applications ()
+  {
+    return _applications;
+  }
+
+  
+  void
+  configuration::set_applications (application_map* a)
+  {
+    _applications = a;
+  }
+
+  
   connectivity*
   configuration::connectivity_map ()
   {
     return _connectivity_map;
+  }
+
+
+  void
+  configuration::set_connectivity_map (connectivity* c)
+  {
+    _connectivity_map = c;
   }
 
 }

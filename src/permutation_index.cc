@@ -23,8 +23,31 @@
 
 namespace MUSIC {
   
-  permutation_index::permutation_index (int* indices, int size)
+  permutation_index::permutation_index (global_index* indices, int size)
   {
+    //*fixme* collapse where possible
+    for (int i = 0; i < size; ++i)
+      _indices.push_back (interval (indices[i], indices[i] + 1));
+  }
+
+  index_map::iterator
+  permutation_index::begin ()
+  {
+    return index_map::iterator (0); //*fixme*
+  }
+
+  
+  const index_map::iterator
+  permutation_index::end () const
+  {
+    return index_map::iterator (0);
+  }
+
+
+  index_map*
+  permutation_index::copy ()
+  {
+    return new permutation_index (*this);
   }
 
 }

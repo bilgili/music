@@ -26,62 +26,74 @@
 #include <music/synchronizer.hh>
 #include <music/FIBO.hh>
 #include <music/event.hh>
+#include <music/spatial.hh>
+#include <music/connectivity.hh>
+#include <music/event_router.hh>
+
+#include <music/subconnector.hh>
 
 namespace MUSIC {
 
-  const int MUSIC_SPIKE_MSG = 1;
-
   typedef char cont_data_t;
 
+  // The connector is responsible for one side of the communication
+  // between the ports of a port pair.  An output port can have
+  // multiple connectors while an input port only has one.  The method
+  // connector::connect () creates one subconnector for each MPI
+  // process we will communicate with on the remote side.
+
   class connector {
-  private:
   protected:
-    synchronizer synch;
+    connector_info info;
+    spatial_negotiator* negotiator;
     MPI::Intracomm comm;
-    MPI::Intercomm intercomm;
-    int partner;
-    int _local_leader;
-    int _remote_leader;
-    std::string _remote_port_name;
+    synchronizer synch;
   public:
     connector () { }
-    connector (MPI::Intracomm c, int element_size);
-    virtual void tick () = 0;
-    FIBO buffer;//*fixme* move
-    int local_leader () const { return _local_leader; }
-    int remote_leader () const { return _remote_leader; }
-    std::string remote_port_name () const { return _remote_port_name; }
-    void connect ();
+    connector (connector_info _info,
+	       spatial_negotiator* _negotiator,
+	       MPI::Intracomm c);
+    std::string receiver_app_name () const
+    { return info.receiver_app_name (); }
+    std::string receiver_port_name () const
+    { return info.receiver_port_name (); }
+    MPI::Intercomm create_intercomm ();
+    virtual void
+    spatial_negotiation (std::vector<output_subconnector*>& osubconn,
+			 std::vector<input_subconnector*>& isubconn) { }
   };
-  
+
   class output_connector : virtual public connector {
   public:
-    output_connector ();
-    void send ();
-    int start_idx ();
-    int end_idx ();
+#if 0
+    std::vector<output_subconnector*> subconnectors;
+#endif
   };
   
   class input_connector : virtual public connector {
-  public:
-    input_connector ();
+  protected:
   };
 
   class cont_connector : virtual public connector {
   public:
     void swap_buffers (cont_data_t*& b1, cont_data_t*& b2);
-  };
-  
-  class cont_output_connector : virtual public output_connector, public cont_connector {
-  protected:
-    void mark ();
-    void send ();
-  };
+  };  
   
   class fast_connector : virtual public connector {
   protected:
     cont_data_t* prev_sample;
     cont_data_t* sample;
+  };
+  
+  class cont_output_connector : public cont_connector, output_connector {
+  public:
+    void send ();
+  };
+  
+  class cont_input_connector : public cont_connector, input_connector {
+  protected:
+    void receive ();
+  public:
   };
   
   class fast_cont_output_connector : public cont_output_connector, fast_connector {
@@ -91,11 +103,6 @@ namespace MUSIC {
     void mark ();
   public:
     void tick ();
-  };
-  
-  class cont_input_connector : virtual public input_connector, public cont_connector {
-  protected:
-    void receive ();
   };
   
   class slow_cont_input_connector : public cont_input_connector {
@@ -121,24 +128,40 @@ namespace MUSIC {
 
   class event_connector : virtual public connector {
   public:
-    event_connector ();
+    event_connector (connector_info info,
+		     spatial_negotiator* negotiator,
+		     MPI::Intracomm c);
   };
   
-  class event_output_connector : public output_connector {
-  public:
-    event_output_connector (MPI::Intracomm c);
-    void mark ();
+  class event_output_connector : public output_connector, public event_connector {
+    event_router& router;
     void send ();
+  public:
+    event_output_connector (connector_info conn_info,
+			    spatial_output_negotiator* negotiator,
+			    int max_buffered,
+			    MPI::Intracomm comm,
+			    event_router& router);
+    void spatial_negotiation (std::vector<output_subconnector*>& osubconn,
+			      std::vector<input_subconnector*>& isubconn);
     void tick ();
   };
   
-  class event_input_connector : public input_connector {
+  class event_input_connector : public input_connector, public event_connector {
+    
   private:
-    event_handler_global_index* handle_event;
-    void receive ();
+    event_handler_ptr handle_event;
+    index::type type;
   public:
-    event_input_connector (MPI::Intracomm c, event_handler_global_index* eh);
-    void tick ();
+    event_input_connector (connector_info conn_info,
+			   spatial_input_negotiator* negotiator,
+			   event_handler_ptr handle_event,
+			   index::type type,
+			   double acc_latency,
+			   int max_buffered,
+			   MPI::Intracomm comm);
+    void spatial_negotiation (std::vector<output_subconnector*>& osubconn,
+			      std::vector<input_subconnector*>& isubconn);
   };
   
 }

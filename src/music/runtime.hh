@@ -30,16 +30,20 @@ namespace MUSIC {
 
   class runtime {
   private:
-    MPI::Intracomm my_communicator;
+    MPI::Intracomm comm;
     clock local_time;
-    std::vector<input_port*>* input_ports;
-    std::vector<output_port*>* output_ports;
-    std::vector<connector*> schedule;
+    std::vector<output_subconnector*> output_subconnectors;
+    std::vector<input_subconnector*> input_subconnectors;
+    std::vector<subconnector*> schedule;
 
-    void connect (setup* s);
+    void spatial_negotiation (setup* s);
+    void build_schedule (int local_rank);
+    void build_tables (setup* s);
+    void temporal_negotiation (setup* s, double timebase, clock_state_t ti);
   
   public:
     runtime (setup* s, double h);
+    ~runtime ();
     
     MPI::Intracomm communicator ();
 

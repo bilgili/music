@@ -21,107 +21,176 @@
 #include <algorithm>
 
 #include "music/runtime.hh"
-
+#include "music/temporal.hh"
 
 namespace MUSIC {
 
   runtime::runtime (setup* s, double h)
-    //*fixme* 1e-9
-    : local_time (1e-9, h)
   {
-    my_communicator = s->communicator ();
+    // Setup the MUSIC clock
+    double timebase;
+    if (!s->config ("timebase", &timebase))
+      timebase = 1e-9;		// default timebase
+    local_time = clock (timebase, h);
+    
+    comm = s->communicator ();
     if (s->launched_by_music ())
       {
-	connect (s);
+	spatial_negotiation (s);
+	build_tables (s);
+	build_schedule (comm.Get_rank ());
+	temporal_negotiation (s, timebase, local_time.tick_interval ());
       }
     delete s;
   }
 
-  
-  bool
-  less_remote_leader (const connector* c1, const connector* c2)
+
+  runtime::~runtime ()
   {
-    return (c1->remote_leader () < c2->remote_leader ()
-	    || (c1->remote_leader () == c2->remote_leader ()
-		&& c1->remote_port_name () < c2->remote_port_name ()));
+    for (std::vector<output_subconnector*>::iterator c
+	   = output_subconnectors.begin ();
+	 c != output_subconnectors.end ();
+	 ++c)
+      delete *c;
+    for (std::vector<input_subconnector*>::iterator c
+	   = input_subconnectors.begin ();
+	 c != input_subconnectors.end ();
+	 ++c)
+      delete *c;
+  }
+  
+
+  // This predicate gives a total order for connectors which is the
+  // same on the sender and receiver sides.  It belongs here rather
+  // than in connector.hh or connector.cc since it is connected to the
+  // connect algorithm.
+  bool
+  less_connector (const connector* c1, const connector* c2)
+  {
+    return (c1->receiver_app_name () < c2->receiver_app_name ()
+	    || (c1->receiver_app_name () == c2->receiver_app_name ()
+		&& c1->receiver_port_name () < c2->receiver_port_name ()));
+  }
+  
+  
+  // This predicate gives a total order for subconnectors which is the
+  // same on the sender and receiver sides.  It belongs here rather
+  // than in connector.hh or connector.cc since it is connected to the
+  // connect algorithm.
+  bool
+  less_subconnector (const subconnector* c1, const subconnector* c2)
+  {
+    return (c1->receiver_rank () < c2->receiver_rank ()
+	    || (c1->receiver_rank () == c2->receiver_rank ()
+		&& c1->receiver_port_name () < c2->receiver_port_name ()));
   }
 
   
   void
-  runtime::connect (setup* s)
+  runtime::spatial_negotiation (setup* s)
   {
-    // This communication schedule prevents dead-locking,
-    // both during inter-communicator creation and
-    // during communication of data.
+    // Let each connector pair setup their inter-communicators
+    // and create all required subconnectors.
+
+    std::vector<connector*>* connectors = s->connectors ();
+    // This ordering is necessary so that both sender and receiver
+    // in each pair sets up communication at the same point in time
+    //
+    // Note that we don't need to use the dead-lock scheme used in
+    // build_schedule () here.
+    //
+    sort (connectors->begin (), connectors->end (), less_connector);
+    for (std::vector<connector*>::iterator c = connectors->begin ();
+	 c != connectors->end ();
+	 ++c)
+      (*c)->spatial_negotiation (output_subconnectors, input_subconnectors);
+  }
+
+  void
+  runtime::build_schedule (int local_rank)
+  {
+    // Build the communication schedule.
+    
+    // The following communication schedule prevents dead-locking,
+    // both during inter-communicator creation and during
+    // communication of data.
     //
     // Mikael Djurfeldt et al. (2005) "Massively parallel simulation
     // of brain-scale neuronal network models." Tech. Rep.
     // TRITA-NA-P0513, CSC, KTH, Stockholm.
+    
+    // First sort connectors according to a total order
+    
+    sort (output_subconnectors.begin (), output_subconnectors.end (),
+	  less_subconnector);
+    sort (input_subconnectors.begin (), input_subconnectors.end (),
+	  less_subconnector);
 
-    // First sort connectors according to remote_leader
-    std::vector<input_connector*>* iconnectors = s->input_connectors ();
-    sort (iconnectors->begin (), iconnectors->end (), less_remote_leader);
-    std::vector<output_connector*>* oconnectors = s->output_connectors ();
-    sort (oconnectors->begin (), oconnectors->end (), less_remote_leader);
-
-    // Now, connect to other process groups and build up the schedule
-    // to be used later during communication of data.
-    for (std::vector<input_connector*>::iterator c = iconnectors->begin ();
-	 (c != iconnectors->end ()
-	  && (*c)->remote_leader () < (*c)->local_leader ());
+    // Now, build up the schedule to be used later during
+    // communication of data.
+    for (std::vector<input_subconnector*>::iterator c = input_subconnectors.begin ();
+	 (c != input_subconnectors.end ()
+	  && (*c)->remote_rank () < local_rank);
 	 ++c)
-      {
-	(*c)->connect ();
-	schedule.push_back (*c);
-      }
+      schedule.push_back (*c);
     {
-      std::vector<output_connector*>::iterator c = oconnectors->begin ();
+      std::vector<output_subconnector*>::iterator c = output_subconnectors.begin ();
       for (;
-	   (c != oconnectors->end ()
-	    && (*c)->remote_leader () < (*c)->local_leader ());
+	   (c != output_subconnectors.end ()
+	    && (*c)->remote_rank () < local_rank);
 	   ++c)
 	;
-      for (; c != oconnectors->end (); ++c)
-	{
-	  (*c)->connect ();
-	  schedule.push_back (*c);
-	}
+      for (; c != output_subconnectors.end (); ++c)
+	schedule.push_back (*c);
     }
-    for (std::vector<output_connector*>::iterator c = oconnectors->begin ();
-	 (c != oconnectors->end ()
-	  && (*c)->remote_leader () < (*c)->local_leader ());
+    for (std::vector<output_subconnector*>::iterator c = output_subconnectors.begin ();
+	 (c != output_subconnectors.end ()
+	  && (*c)->remote_rank () < local_rank);
 	 ++c)
-      {
-	(*c)->connect ();
-	schedule.push_back (*c);
-      }
+      schedule.push_back (*c);
     {
-      std::vector<input_connector*>::iterator c = iconnectors->begin ();
+      std::vector<input_subconnector*>::iterator c = input_subconnectors.begin ();
       for (;
-	   (c != iconnectors->end ()
-	    && (*c)->remote_leader () < (*c)->local_leader ());
+	   (c != input_subconnectors.end ()
+	    && (*c)->remote_rank () < local_rank);
 	   ++c)
 	;
-      for (; c != iconnectors->end (); ++c)
-	{
-	  (*c)->connect ();
-	  schedule.push_back (*c);
-	}
+      for (; c != input_subconnectors.end (); ++c)
+	schedule.push_back (*c);
     }
   }
 
   
+  void
+  runtime::build_tables (setup* s)
+  {
+    std::vector<port*>* ports = s->ports ();
+    for (std::vector<port*>::iterator p = ports->begin ();
+	 p != ports->end ();
+	 ++p)
+      (*p)->build_table ();
+  }
+
+  
+  void
+  runtime::temporal_negotiation (setup* s, double timebase, clock_state_t ti)
+  {
+    // Temporal negotiation is done globally by a serial algorithm
+    // which yields the same result in each process
+    temporal_negotiator negotiator (s, timebase, ti);
+  }
+
+
   MPI::Intracomm
   runtime::communicator ()
   {
-    return my_communicator;
+    return comm;
   }
 
 
   void
   runtime::finalize ()
   {
-    //my_communicator.Free ();
     MPI::Finalize ();
   }
 
@@ -130,7 +199,7 @@ namespace MUSIC {
   runtime::tick ()
   {
     // Loop through the schedule of connectors
-    std::vector<connector*>::iterator c;
+    std::vector<subconnector*>::iterator c;
     for (c = schedule.begin (); c != schedule.end (); ++c)
       (*c)->tick ();
     

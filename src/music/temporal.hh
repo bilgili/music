@@ -16,24 +16,30 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_PERMUTATION_INDEX_HH
+#ifndef MUSIC_TEMPORAL_HH
 
-#include <vector>
-
-#include "music/index_map.hh"
+#include <music/index_map.hh>
+#include <music/clock.hh>
 
 namespace MUSIC {
 
-  class permutation_index : public index_map {
-    std::vector<interval> _indices;
+  class setup;
+
+  class temporal_negotiation_data {
+    index_interval _interval;
+    int _rank;
   public:
-    permutation_index (global_index *indices, int size);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();    
+    temporal_negotiation_data (index_interval i, int r)
+      : _interval (i), _rank (r) { }
+  };
+
+  class temporal_negotiator {
+  public:
+    temporal_negotiator (setup* s, double timebase, clock_state_t ti);
+    void negotiate () { };
   };
 
 }
 
-#define MUSIC_PERMUTATION_INDEX_HH
+#define MUSIC_TEMPORAL_HH
 #endif

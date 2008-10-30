@@ -109,7 +109,7 @@ namespace MUSIC {
 	w = i->end ();
     // Now take maximum over all processes
     std::vector<int> m (n_processes);
-    comm.Allgather (&w, 1, MPI::INTEGER, &m[0], 1, MPI::INTEGER);
+    comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
     for (int i = 0; i < n_processes; ++i)
       if (m[i] > w)
 	w = m[i];
@@ -296,7 +296,7 @@ namespace MUSIC {
       {
 	comm.Send (data,
 		   sizeof (spatial_negotiation_data) / sizeof (int) * n_intervals,
-		   MPI::INTEGER,
+		   MPI::INT,
 		   dest_rank,
 		   0); //*fixme* tag
 	data += TRANSMITTED_INTERVALS_MAX;
@@ -304,7 +304,7 @@ namespace MUSIC {
       }
     comm.Send (data,
 	       sizeof (spatial_negotiation_data) / sizeof (int) * n_intervals,
-	       MPI::INTEGER,
+	       MPI::INT,
 	       dest_rank,
 	       0); //*fixme* tag
   }
@@ -324,11 +324,11 @@ namespace MUSIC {
 	comm.Recv (&intervals[next_pos],
 		   sizeof (spatial_negotiation_data) / sizeof (int)
 		   * TRANSMITTED_INTERVALS_MAX,
-		   MPI::INTEGER,
+		   MPI::INT,
 		   source_rank,
 		   0,
 		   status); //*fixme* tag
-	n_received = (status.Get_count (MPI::INTEGER)
+	n_received = (status.Get_count (MPI::INT)
 		      / (sizeof (spatial_negotiation_data) / sizeof (int)));
 	next_pos += n_received;
       }

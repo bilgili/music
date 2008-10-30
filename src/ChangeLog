@@ -1,5 +1,7 @@
 2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* spatial.cc: Bugfix: Changed MPI::INTEGER (Fortran) -> MPI::INT
+
 	* spatial.hh (TRANSMITTED_INTERVALS_MAX): New constant.
 
 	* spatial.cc (spatial_negotiator::send,

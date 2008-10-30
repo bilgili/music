@@ -78,7 +78,7 @@ main (int argc, char *argv[])
     first_id += rest;
   MUSIC::linear_index indices (first_id, n_local_units);
   
-  out->map (&indices);
+  out->map (&indices, MUSIC::index::GLOBAL);
   
   double stoptime;
   setup->config ("stoptime", &stoptime);

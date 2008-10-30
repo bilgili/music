@@ -23,7 +23,7 @@
 
 #include "../config.h"
 
-#include "application_map.hh"
+#include "application_mapper.hh"
 
 extern "C" {
 #include <sys/types.h>
@@ -145,9 +145,8 @@ usage (int rank)
 
 
 void
-launch (int rank, application_map* map, char** argv)
+launch (MUSIC::configuration* config, char** argv)
 {
-  MUSIC::configuration* config = map->configuration_for_rank (rank);
   string binary;
   config->lookup ("binary", &binary);
   config->write_env ();
@@ -202,9 +201,9 @@ main (int argc, char *argv[])
 	std::cerr << "Couldn't open config file " << argv[1] << std::endl;
       exit (1);
     }
-  application_map* map = new application_map (config_file);
-
-  launch (rank, map, argv);
+  MUSIC::application_mapper map (config_file, rank);
+  
+  launch (map.config (), argv);
 
   return 0;
 }

@@ -1,3 +1,8 @@
+2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Changes to implement propagation of configuration
+	information and routing of spikes.
+
 2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventsource.cc: Updated to use global_index.

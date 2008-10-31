@@ -228,24 +228,22 @@ namespace MUSIC {
   void
   spatial_negotiator::intersect_to_buffers
   (std::vector<negotiation_intervals>& source,
-   negotiation_iterator dest,
+   std::vector<negotiation_intervals>& dest,
    std::vector<negotiation_intervals>& buffers)
   {
-    MUSIC_LOG0 ("intersecting-vnv to " << buffers.size () << " buffers");
+    MUSIC_LOG0 ("intersecting-vvv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
     for (std::vector<negotiation_intervals>::iterator i = buffers.begin ();
 	 i != buffers.end ();
 	 ++i)
       i->clear ();
-    for (std::vector<negotiation_intervals>::iterator i = source.begin ();
-	 i != source.end ();
-	 ++i)
-      {
-	MUSIC_LOG0 ("buffer size: " << i->size ());
-	negotiation_iterator b = negotiation_iterator (*i);
-	MUSIC_LOG0 ("endness: " << b.end ());
-	intersect_to_buffers_2 (b, dest, buffers);
-      }
+    for (std::vector<negotiation_intervals>::iterator d = dest.begin ();
+	 d != dest.end ();
+	 ++d)
+      for (std::vector<negotiation_intervals>::iterator s = source.begin ();
+	 s != source.end ();
+	   ++s)
+	intersect_to_buffers_2 (*s, *d, buffers);
   }
 
   
@@ -292,7 +290,7 @@ namespace MUSIC {
 	      {//*fixme* put inte helper function to get overview
 		spatial_negotiation_data d (dest->begin (),
 					    dest->end (),
-					    source->local () - dest->local (),
+					    dest->local () - source->local (),
 					    source->rank ());
 		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
@@ -302,7 +300,7 @@ namespace MUSIC {
 	      {
 		spatial_negotiation_data d (dest->begin (),
 					    source->end (),
-					    source->local () - dest->local (),
+					    dest->local () - source->local (),
 					    source->rank ());
 		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
@@ -316,7 +314,7 @@ namespace MUSIC {
 	      {
 		spatial_negotiation_data d (source->begin (),
 					    source->end (),
-					    source->local () - dest->local (),
+					    dest->local () - source->local (),
 					    source->rank ());
 		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
@@ -326,7 +324,7 @@ namespace MUSIC {
 	      {
 		spatial_negotiation_data d (source->begin (),
 					    dest->end (),
-					    source->local () - dest->local (),
+					    dest->local () - source->local (),
 					    source->rank ());
 		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);

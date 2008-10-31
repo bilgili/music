@@ -148,7 +148,7 @@ namespace MUSIC {
 		     std::vector<negotiation_intervals>& in);
     negotiation_iterator canonical_distribution (int width, int n_processes);
     void intersect_to_buffers (std::vector<negotiation_intervals>& source,
-			       negotiation_iterator dest,
+			       std::vector<negotiation_intervals>& dest,
 			       std::vector<negotiation_intervals>& buffers);
     void intersect_to_buffers (negotiation_iterator source,
 			       negotiation_iterator dest,

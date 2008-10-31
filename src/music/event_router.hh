@@ -66,7 +66,7 @@ namespace MUSIC {
     public:
       inserter_local (double t, int id) : inserter (t, id) { };
       void operator() (event_routing_data& data) {
-	data.insert (_t, _id + data.offset ());
+	data.insert (_t, _id - data.offset ());
       };
     };
     

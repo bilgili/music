@@ -170,6 +170,7 @@ namespace MUSIC {
   public:
     spatial_output_negotiator (index_map* indices, index::type type)
       : spatial_negotiator (indices, type) { }
+    void negotiate_width (MPI::Intercomm c);
     negotiation_iterator negotiate (MPI::Intracomm comm,
 				    MPI::Intercomm intercomm,
 				    int remote_n_proc);
@@ -180,6 +181,7 @@ namespace MUSIC {
   public:
     spatial_input_negotiator (index_map* indices, index::type type)
       : spatial_negotiator (indices, type) { }
+    void negotiate_width (MPI::Intercomm c);
     negotiation_iterator negotiate (MPI::Intracomm comm,
 				    MPI::Intercomm intercomm,
 				    int remote_n_proc);

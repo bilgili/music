@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <sstream>
+
 #include "music/error.hh"
 
 #include "music/spatial.hh"
@@ -104,7 +106,6 @@ namespace MUSIC {
   void
   spatial_negotiator::negotiate_width ()
   {
-    //*fixme* insert error checking for width
     // First determine local least upper bound
     int w = -1;
     for (index_map::iterator i = indices->begin ();
@@ -119,6 +120,34 @@ namespace MUSIC {
       if (m[i] > w)
 	w = m[i];
     width = w;
+  }
+
+  
+  void
+  spatial_output_negotiator::negotiate_width (MPI::Intercomm intercomm)
+  {
+    spatial_negotiator::negotiate_width ();
+    if (local_rank == 0)
+      {
+	int remote_width;
+	intercomm.Recv (&remote_width, 1, MPI::INT, 0, 0); //*fixme* tag
+	if (remote_width != width)
+	  {
+	    std::ostringstream msg;
+	    msg << "sender and receiver width mismatch ("
+		<< width << " != " << remote_width << ")";
+	    error (msg.str ());
+	  }
+      }
+  }
+
+  
+  void
+  spatial_input_negotiator::negotiate_width (MPI::Intercomm intercomm)
+  {
+    spatial_negotiator::negotiate_width ();
+    if (local_rank == 0)
+      intercomm.Send (&width, 1, MPI::INT, 0, 0); //*fixme* tag
   }
 
   
@@ -418,7 +447,7 @@ namespace MUSIC {
     remote.resize (remote_n_proc);
     results.resize (n_processes);
 
-    negotiate_width ();
+    negotiate_width (intercomm);
     negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
 						       indices->end (),
 						       local_rank);
@@ -478,7 +507,7 @@ namespace MUSIC {
     local_rank = comm.Get_rank ();
     remote.resize (remote_n_proc);
     
-    negotiate_width ();
+    negotiate_width (intercomm);
     negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
 						       indices->end (),
 						       local_rank);

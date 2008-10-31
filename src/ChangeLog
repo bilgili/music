@@ -1,5 +1,11 @@
 2008-10-31  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/spatial.hh, spatial.cc (negotiate_width): Error check
+	width.
+
+	* music/event_router.hh (inserter_global): Offsets are negative
+	due to the spatial negotiation algorithm.
+
 	* music/spatial.hh, spatial.cc (intersect_to_buffers): New
 	implementation which allows index_maps for different MPI processes
 	to overlap.  The new algorithm is O (NP^2) where N is the number of

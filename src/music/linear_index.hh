@@ -33,11 +33,13 @@ namespace MUSIC {
       virtual const index_interval* dereference ();
       virtual bool is_equal (iterator_implementation* i) const;
       virtual void operator++ ();
+      virtual iterator_implementation* copy ()
+      {
+	return new iterator (_indices);
+      }
     };
 
     linear_index (global_index baseindex, int size);
-    //global_index base_index () const { return _baseindex; }
-    //int size () const { return _size; }
     virtual index_map::iterator begin ();
     virtual const index_map::iterator end () const;
     virtual index_map* copy ();

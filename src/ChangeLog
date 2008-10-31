@@ -1,3 +1,12 @@
+2008-10-31  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/permutation_index.hh, permutation_index.cc: Implemented.
+
+	* music/index_map.hh (index_map): Use value semantics (so that we
+	can copy the position by copying the iterator).
+
+	* music/linear_index.hh (linear_index): Ditto.
+
 2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* spatial.cc: Bugfix: Changed MPI::INTEGER (Fortran) -> MPI::INT

@@ -61,39 +61,28 @@ namespace MUSIC {
       virtual const index_interval operator* () = 0;
       virtual const index_interval* dereference () = 0;
       virtual bool is_equal (iterator_implementation* i) const = 0;
-      virtual void operator++ () = 0;      
+      virtual void operator++ () = 0;
+      virtual iterator_implementation* copy () = 0;
     };
 
     
     class iterator {
       iterator_implementation* _implementation;
-      int* ref_count; //*fixme* use some other mechanism, e.g. template
     public:
       iterator (iterator_implementation* impl)
-	: _implementation (impl), ref_count (new int (1)) { }
+	: _implementation (impl) { }
       ~iterator ()
       {
-	if (--*ref_count == 0)
-	  {
-	    delete _implementation;
-	    delete ref_count;
-	  }
+	delete _implementation;
       }
       iterator (const iterator& i)
-	: _implementation (i._implementation), ref_count (i.ref_count)
+	: _implementation (i._implementation->copy ())
       {
-	++*ref_count;
       }
       const iterator& operator= (const iterator& i)
       {
-	if (--*ref_count == 0)
-	  {
-	    delete _implementation;
-	    delete ref_count;
-	  }
-	_implementation = i._implementation;
-	ref_count = i.ref_count;
-	++*ref_count;
+	delete _implementation;
+	_implementation = i._implementation->copy ();
 	return *this;
       }
       iterator_implementation* implementation () const

@@ -26,7 +26,7 @@ namespace MUSIC {
   void
   error (std::string msg)
   {
-    std::cerr << "Error in MUSIC library: " << msg;
+    std::cerr << "Error in MUSIC library: " << msg << std::endl;
     abort ();
   }
 

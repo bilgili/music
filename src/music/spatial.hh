@@ -48,8 +48,6 @@ namespace MUSIC {
   typedef std::vector<spatial_negotiation_data> negotiation_intervals;
   
 
-  //*fixme* Generalize this iterator and index_map::iterator
-  //to iterator_with_implementation?
   class negotiation_iterator {
   public:
     class implementation {
@@ -57,6 +55,19 @@ namespace MUSIC {
       virtual bool end () = 0;
       virtual void operator++ () = 0;
       virtual spatial_negotiation_data* dereference () = 0;
+      virtual implementation* copy () = 0;
+    };
+
+    class interval_traversal : public implementation {
+      negotiation_intervals& buffer;
+      int interval;
+    public:
+      interval_traversal (negotiation_intervals& _buffer)
+	: buffer (_buffer), interval (0) { }
+      bool end () { return interval == buffer.size (); }
+      void operator++ () { ++interval; }
+      spatial_negotiation_data* dereference () { return &buffer[interval]; }
+      virtual implementation* copy () { return new interval_traversal (*this); }
     };
 
     class buffer_traversal : public implementation {
@@ -69,37 +80,27 @@ namespace MUSIC {
       bool end ();
       void operator++ ();
       spatial_negotiation_data* dereference ();
+      virtual implementation* copy () { return new buffer_traversal (*this); }
     };
 
   private:
     implementation* _implementation;
-    int* ref_count;
   public:
     negotiation_iterator (implementation* impl);
+    negotiation_iterator (negotiation_intervals& buffer);
     negotiation_iterator (std::vector<negotiation_intervals>& buffers);
     ~negotiation_iterator ()
     {
-      if (--*ref_count == 0)
-	{
-	  delete _implementation;
-	  delete ref_count;
-	}
+      delete _implementation;
     }
     negotiation_iterator (const negotiation_iterator& i)
-      : _implementation (i._implementation), ref_count (i.ref_count)
+      : _implementation (i._implementation->copy ())
     {
-      ++*ref_count;
     }
     const negotiation_iterator& operator= (const negotiation_iterator& i)
     {
-      if (--*ref_count == 0)
-	{
-	  delete _implementation;
-	  delete ref_count;
-	}
-      _implementation = i._implementation;
-      ref_count = i.ref_count;
-      ++*ref_count;
+      delete _implementation;
+      _implementation = i._implementation->copy ();
       return *this;
     }
     bool end () { return _implementation->end (); }
@@ -146,9 +147,17 @@ namespace MUSIC {
     void all_to_all (std::vector<negotiation_intervals>& out,
 		     std::vector<negotiation_intervals>& in);
     negotiation_iterator canonical_distribution (int width, int n_processes);
+    void intersect_to_buffers (std::vector<negotiation_intervals>& source,
+			       negotiation_iterator dest,
+			       std::vector<negotiation_intervals>& buffers);
     void intersect_to_buffers (negotiation_iterator source,
 			       negotiation_iterator dest,
 			       std::vector<negotiation_intervals>& buffers);
+  private:
+    void intersect_to_buffers_2 (negotiation_iterator source,
+				 negotiation_iterator dest,
+				 std::vector<negotiation_intervals>& buffers);
+  public:
     virtual negotiation_iterator negotiate (MPI::Intracomm comm,
 					    MPI::Intercomm intercomm,
 					    int remote_n_proc) = 0;

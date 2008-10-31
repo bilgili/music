@@ -77,15 +77,20 @@ namespace MUSIC {
 
 
   negotiation_iterator::negotiation_iterator (implementation* impl)
-    : _implementation (impl), ref_count (new int (1))
+    : _implementation (impl)
   {
   }
 
 
+  negotiation_iterator::negotiation_iterator (negotiation_intervals& buffer)
+    : _implementation (new interval_traversal (buffer))
+  {
+  }
+  
+
   negotiation_iterator::negotiation_iterator
   (std::vector<negotiation_intervals>& buffers)
-    : _implementation (new buffer_traversal (buffers)),
-      ref_count (new int (1))
+    : _implementation (new buffer_traversal (buffers))
   {
   }
   
@@ -142,6 +147,10 @@ namespace MUSIC {
 	data = spatial_negotiation_data (index_interval (i, high, 0), r);
 	return &data;
       }
+      implementation* copy ()
+      {
+	return new wrapper (*this);
+      }
     };
 
     return negotiation_iterator (new wrapper (width, n_processes));
@@ -171,6 +180,10 @@ namespace MUSIC {
       {
 	data = spatial_negotiation_data (*i, _rank);
 	return &data;
+      }
+      implementation* copy ()
+      {
+	return new wrapper (*this);
       }
     };
 
@@ -214,14 +227,54 @@ namespace MUSIC {
   // belonging to rank in dest.
   void
   spatial_negotiator::intersect_to_buffers
+  (std::vector<negotiation_intervals>& source,
+   negotiation_iterator dest,
+   std::vector<negotiation_intervals>& buffers)
+  {
+    MUSIC_LOG0 ("intersecting-vnv to " << buffers.size () << " buffers");
+    // Cleanup old buffer content
+    for (std::vector<negotiation_intervals>::iterator i = buffers.begin ();
+	 i != buffers.end ();
+	 ++i)
+      i->clear ();
+    for (std::vector<negotiation_intervals>::iterator i = source.begin ();
+	 i != source.end ();
+	 ++i)
+      {
+	MUSIC_LOG0 ("buffer size: " << i->size ());
+	negotiation_iterator b = negotiation_iterator (*i);
+	MUSIC_LOG0 ("endness: " << b.end ());
+	intersect_to_buffers_2 (b, dest, buffers);
+      }
+  }
+
+  
+  void
+  spatial_negotiator::intersect_to_buffers
   (negotiation_iterator source,
    negotiation_iterator dest,
    std::vector<negotiation_intervals>& buffers)
   {
-    MUSIC_LOG0 ("intersecting to " << buffers.size () << " buffers");
+    MUSIC_LOG0 ("intersecting-nnv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
-    for (int i = 0; i < buffers.size (); ++i)
-      buffers[i].clear ();
+    for (std::vector<negotiation_intervals>::iterator i = buffers.begin ();
+	 i != buffers.end ();
+	 ++i)
+      i->clear ();
+    intersect_to_buffers_2 (source, dest, buffers);
+  }
+    
+    
+  void
+  spatial_negotiator::intersect_to_buffers_2
+  (negotiation_iterator source,
+   negotiation_iterator dest,
+   std::vector<negotiation_intervals>& buffers)
+  {
+    if (source.end ())
+      MUSIC_LOG0 ("source empty on entry");
+    if (dest.end ())
+      MUSIC_LOG0 ("dest empty on entry");
     while (!source.end () && !dest.end ())
       {
 	MUSIC_LOG0 ("comparing " <<

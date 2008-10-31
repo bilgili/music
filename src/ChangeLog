@@ -1,5 +1,10 @@
 2008-10-31  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/spatial.hh, spatial.cc (intersect_to_buffers): New
+	implementation which allows index_maps for different MPI processes
+	to overlap.  The new algorithm is O (NP) where N is the number of
+	indices and P the number of processes.  (The old one was O (N).)
+
 	* music/permutation_index.hh, permutation_index.cc: Implemented.
 
 	* music/index_map.hh (index_map): Use value semantics (so that we

@@ -134,6 +134,9 @@ main (int argc, char* argv[])
 
   // Port mapping
 
+  my_event_handler_global evhandler_global (rank);
+  my_event_handler_local evhandler_local (rank);
+
   if (imaptype == "linear")
     {
       int n_local = width / n_processes;
@@ -149,15 +152,9 @@ main (int argc, char* argv[])
       MUSIC::linear_index indexmap (first_id, n_local);
       
       if (indextype == "global")
-	{
-	  my_event_handler_global evhandler (rank);
-	  evport->map (&indexmap, &evhandler, 0.0);
-	}
+	evport->map (&indexmap, &evhandler_global, 0.0);
       else
-	{
-	  my_event_handler_local evhandler (rank);
-	  evport->map (&indexmap, &evhandler, 0.0);
-	}
+	evport->map (&indexmap, &evhandler_local, 0.0);
     }
   else
     {
@@ -167,15 +164,9 @@ main (int argc, char* argv[])
       MUSIC::permutation_index indexmap (&v.front (), v.size ());
       
       if (indextype == "global")
-	{
-	  my_event_handler_global evhandler (rank);
-	  evport->map (&indexmap, &evhandler, 0.0);
-	}
+	evport->map (&indexmap, &evhandler_global, 0.0);
       else
-	{
-	  my_event_handler_local evhandler (rank);
-	  evport->map (&indexmap, &evhandler, 0.0);
-	}
+	evport->map (&indexmap, &evhandler_local, 0.0);
     }
 
   double stoptime;

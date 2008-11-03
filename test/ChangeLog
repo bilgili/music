@@ -1,7 +1,8 @@
 2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventlogger.cc: Added better argument handling, including
-	options.
+	options; Bugfix: Don't pass pointers to automatic event handlers
+	to map.
 
 	* events.music: Removed index map type argument (which is now an
 	option).

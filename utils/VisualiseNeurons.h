@@ -11,6 +11,7 @@
 
 #define TIMESTEP 1e-3
 
+
 class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
  public:
@@ -18,6 +19,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     tau_ = 50e-3;
     time_ = 0;
     oldTime_ = 0;
+
   }
   
   void init(int argc, char **argv);
@@ -27,16 +29,21 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void operator () ( double t, MUSIC::global_index id );
 
   void display();
-  void rotateTimer(int v);
-  void updateVolt(int v);
+  void rotateTimer();
+  void tick();
+
   void addNeuron(double x, double y, double z);
-  void tick(int v);
+
+  static void displayWrapper();
+  static void rotateTimerWrapper(int v);
+  static void tickWrapper(int v);
 
   typedef struct {
     GLdouble x;
     GLdouble y;
     GLdouble z;
   }point3d;
+
 
  private:
 
@@ -52,6 +59,13 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   double oldTime_;
 
   double rotAngle_;
+
+  int rank_;
+
 };
+
+static std::vector<VisualiseNeurons*> objTable_;
+
+
 
 #endif 

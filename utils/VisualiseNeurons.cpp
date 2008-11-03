@@ -2,15 +2,19 @@
 
 void VisualiseNeurons::init(int argc, char **argv) {
 
+  // Add this object to the static-wrapper
+  objTable_.push_back(this);
+
+
   // Init glut
   glutInit(&argc,argv);
 
   // Init music
   MUSIC::setup* setup = new MUSIC::setup(argc, argv);
   MPI::Intracomm comm = setup->communicator();
-  int rank = comm.Get_rank(); 
+  rank_ = comm.Get_rank(); 
 
-  if(rank > 0) {
+  if(rank_ > 0) {
     std::cerr << argv[0] << " only supports one process currently!" 
               << std::endl;
     exit(-1);
@@ -18,8 +22,9 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
   MUSIC::event_input_port* evport = setup->publish_event_input("plot");
 
+
   if (!evport->is_connected()) {
-    if (rank == 0)
+    if (rank_ == 0)
       std::cerr << "eventlog port is not connected" << std::endl;
     exit (1);
   }
@@ -77,17 +82,33 @@ void VisualiseNeurons::init(int argc, char **argv) {
 }
 
 void VisualiseNeurons::start() {
-  glutDisplayFunc(display);
-  glutTimerFunc(25,rotateTimer, 1);
-  glutTimerFunc(1,tick, 1);
+  if(rank_ == 0) {
+    glutDisplayFunc(displayWrapper);
+    glutTimerFunc(25,rotateTimerWrapper, 1);
+    glutTimerFunc(1,tickWrapper, 1);
 
-  glutMainLoop();
+    glutMainLoop();
+  } else {
+    std::cerr << "Only run start() on rank 0" << std::endl;
+  }
 }
 
 void VisualiseNeurons::finalize() {
   runtime_->finalize ();
 
   delete runtime_;
+
+  std::cout << "Rank " << rank_ 
+            << ": Searching for VisualiseNeurons wrapper object";
+  for(int i = 0; i < objTable_.size(); i++) {
+    if(objTable_[i] == this) {
+      std::cout << "found.";
+    }
+    else {
+      std::cout << ".";
+    }
+  }
+  std::cout << std::endl;
 
   // Should delete all other objects also.
 
@@ -134,7 +155,7 @@ void VisualiseNeurons::addNeuron(double x, double y, double z) {
   volt_.push_back(0);
 }
 
-void VisualiseNeurons::rotateTimer(int v) {
+void VisualiseNeurons::rotateTimer() {
   rotAngle_ += 0.5;
 
   if(rotAngle_ >= 36000) {
@@ -142,8 +163,6 @@ void VisualiseNeurons::rotateTimer(int v) {
   }
 
   glutPostRedisplay();
-  glutTimerFunc(25,rotateTimer, 1);
- 
 
 }
 
@@ -156,7 +175,7 @@ void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
 }
 
 
-void VisualiseNeurons::tick(int v) {
+void VisualiseNeurons::tick() {
 
   runtime_->tick ();
 
@@ -166,11 +185,43 @@ void VisualiseNeurons::tick(int v) {
   // This function should call the music tick() if needed
 
   for(int i = 0; i < volt_.size(); i++) {
-    volt_[i] *= (time_-oldTime_)/tau_;
+    volt_[i] *= 1-(time_-oldTime_)/tau_;
   }
 
-  glutTimerFunc(1,tick, 1);
+}
+
+
+void VisualiseNeurons::displayWrapper() {
+  for(int i = 0; i < objTable_.size(); i++) {
+    VisualiseNeurons *vn = objTable_[i];
+    vn->display();
+  }
+}
+
+void VisualiseNeurons::rotateTimerWrapper(int v) {
+  for(int i = 0; i < objTable_.size(); i++) {
+    VisualiseNeurons *vn = objTable_[i];
+    vn->rotateTimer();
+  }
+
+  glutTimerFunc(25,rotateTimerWrapper, 1);
 
 }
+
+void VisualiseNeurons::tickWrapper(int v) {
+  for(int i = 0; i < objTable_.size(); i++) {
+    VisualiseNeurons *vn = objTable_[i];
+    vn->tick();
+  }
+
+  glutTimerFunc(1,tickWrapper, 1);
+
+}
+
+
+
+
+
+
 
 

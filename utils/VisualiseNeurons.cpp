@@ -254,6 +254,8 @@ void VisualiseNeurons::tick() {
     volt_[i] *= 1-(time_-oldTime_)/tau_;
   }
 
+  glutPostRedisplay();
+
 }
 
 

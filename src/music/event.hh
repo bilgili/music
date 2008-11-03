@@ -26,6 +26,8 @@ namespace MUSIC {
   public:
     double t;
     int id;
+    event (double _t, int _id) : t (_t), id (_id) { }
+    bool operator< (const event& other) const { return t < other.t; }
   };
 
 #if 0

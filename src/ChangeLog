@@ -1,5 +1,8 @@
 2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/event.hh (event::event): New constructor.
+	(event::operator<): New operator.
+
 	* port.cc (port::has_width, port::width): Added some error
 	checking.
 

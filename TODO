@@ -1,5 +1,3 @@
-* Error check width
-
 * Allow different time steps
 
 * Implement mark function in FIBO
@@ -9,3 +7,8 @@
 * Move all MPI implementation dependent code into a subdirectory
   mpidep.  This directory should also contain a test binary which is
   built and run before anything else is being compiled
+
+* Write piecewise_linear_index and derive linear_index and
+  permutation_index from it.
+
+* Improve all error reporting (giving more informative messages with names etc)

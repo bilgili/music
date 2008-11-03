@@ -180,6 +180,13 @@ main (int argc, char *argv[])
   std::ostringstream spikefile;
   spikefile << prefix << rank << suffix;
   datafile in (spikefile.str ());
+  if (!in)
+    {
+      if (rank == 0)
+	std::cerr << "eventsource: could not open "
+		  << spikefile.str () << std::endl;
+      abort ();      
+    }
 
   MUSIC::runtime* runtime = new MUSIC::runtime (setup, timestep);
 

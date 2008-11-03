@@ -11,6 +11,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
   // Init glut
   glutInit(&argc,argv);
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
   // Init music
   MUSIC::setup* setup = new MUSIC::setup(argc, argv);
@@ -173,9 +174,12 @@ void VisualiseNeurons::display() {
     GLdouble blue  = baseLineCol_.b + (excitedCol_.b-baseLineCol_.b)*col;
 
     glColor3d(red,green,blue);
-    glTranslated(coords_[i].x,coords_[i].y,coords_[i].z);
-    double scale = coords_[i].r*(1+spikeScale_*col);
+    //float specReflection[] = { 0.2*col, 0.2*col, 0.2*col, 1 };
+    //glMaterialfv(GL_FRONT, GL_SPECULAR, specReflection);
 
+    glTranslated(coords_[i].x,coords_[i].y,coords_[i].z);
+
+    double scale = coords_[i].r*(1+spikeScale_*col);
     glScaled(scale,scale,scale);
     glCallList(neuronList_);
     glPopMatrix();

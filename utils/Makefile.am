@@ -2,7 +2,8 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = music eventsource viewevents
+bin_PROGRAMS = music eventsource @OPTIONAL_UTILS@
+EXTRA_PROGRAMS = viewevents
 
 music_SOURCES = music.cc application_mapper.cc application_mapper.hh
 music_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@

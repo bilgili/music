@@ -7,6 +7,7 @@
 #include <mpi.h>
 #include <music.hh>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include "datafile.h"
 
@@ -26,8 +27,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     time_ = 0;
     oldTime_ = 0;
 
-    maxX_ = 0; maxY_ = 0; maxZ_ = 0;
-    minX_ = 1e99; minY_ = 1e99; minZ_ = 1e99;
+    maxDist_ = 0;
 
   }
   
@@ -81,7 +81,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
   int rank_;
 
-  double maxX_, maxY_, maxZ_, minX_, minY_, minZ_;
+  double maxDist_;
 
 };
 

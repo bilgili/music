@@ -60,8 +60,9 @@ void VisualiseNeurons::init(int argc, char **argv) {
   runtime_ = new MUSIC::runtime (setup, TIMESTEP);
 
   // Music done.
+  
 
-
+  // GLUT
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowSize(500, 500);
   glutInitWindowPosition(50, 50);
@@ -89,20 +90,24 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Setup camera
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  double zTrans = (4*minZ_ < -4*maxZ_) ? 4*minZ_ : -4*maxZ_;
-  double zDist = abs(zTrans) + 2*((maxZ_ > -minZ_) ? maxZ_ : -minZ_);
+  double fov = 0.7*maxDist_/2;
 
-  glFrustum(-40,40,-40,40,50,zDist); // Visible range 50-800
-  glTranslated(0,0,zTrans); //-600
+  std::cout << "MAX DIST: " << maxDist_ << std::endl;
+  glFrustum(-fov,fov,-fov,fov,maxDist_/2,3.1*maxDist_); // Visible range 50-800
+  glTranslated(0,0,-2.2*maxDist_); //-600
   glRotated(30,1,0,0);
   glMatrixMode(GL_MODELVIEW);
 
   // Create displaylist for neuron(s)
   GLUquadric* neuronQuad = gluNewQuadric();
 
+  int nVert = (coords_.size() < 500) ? 10 : 5;
+
   neuronList_ = glGenLists(1);
+
   glNewList(neuronList_, GL_COMPILE);
-  gluSphere(neuronQuad, 1, 20, 10);
+  gluSphere(neuronQuad, 1, nVert*2, nVert);
+  //gluSphere(neuronQuad, 1, 20, 10);
   glEndList();
 }
 
@@ -168,6 +173,18 @@ void VisualiseNeurons::display() {
     glScaled(coords_[i].r, coords_[i].r, coords_[i].r);
     glCallList(neuronList_);
     glPopMatrix();
+  }
+
+  char buffer[20];
+
+  sprintf(buffer,"%.3f s",time_);
+  //std::cout << "Buffer: " << buffer << std::endl;
+
+  glLoadIdentity();
+  glColor3d(1,1,1);
+  glRasterPos2d(-maxDist_*1.7,-maxDist_*1.75);
+  for(int i = 0; i < strlen(buffer); i++) {
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,buffer[i]);
   }
 
   glutSwapBuffers();
@@ -247,7 +264,7 @@ void VisualiseNeurons::tickWrapper(int v) {
 }
 
 void VisualiseNeurons::readConfigFile(string filename) {
-  double x, y, z, r;
+  double x, y, z, r, dist;
 
   int i = 0;
 
@@ -270,6 +287,8 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   while(!in.eof()) {
     addNeuron(x,y,z,r);
+    dist = sqrt(x*x + y*y + z*z);
+    maxDist_ = (dist > maxDist_) ? dist : maxDist_;
 
     // std::cout << "Neuron " << i << " at " << x << "," << y << "," << z 
     //           << " radie " << r << std::endl;
@@ -277,14 +296,6 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
     // Read in neuron coordinates
     in >> x >> y >> z >> r;
-
-    maxX_ = (x > maxX_) ? x : maxX_;
-    maxY_ = (y > maxY_) ? y : maxY_;
-    maxZ_ = (z > maxZ_) ? z : maxZ_;
-
-    minX_ = (x < minX_) ? x : minX_;
-    minY_ = (y < minY_) ? y : minY_;
-    minZ_ = (z < minZ_) ? z : minZ_;
 
   }
 

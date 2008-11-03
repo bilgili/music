@@ -1,5 +1,5 @@
 np=1
-stoptime=1.0
+stoptime=2.0
 [from]
   binary=/usr/local/bin/eventsource
   args=1000 contiguous spikes

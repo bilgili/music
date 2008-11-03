@@ -5,4 +5,4 @@ stoptime=1.0
   args=10 spikes
 [to]
   binary=/usr/local/bin/eventlogger
-  from.out -> to.eventlog [5000]
+  from.out -> to.eventlog [10]

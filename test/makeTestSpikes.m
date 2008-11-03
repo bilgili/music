@@ -1,12 +1,13 @@
-% makeTestSpikes(1000,0.1,1) 
+% makeTestSpikes('viewevents-spikes0.dat',5000,10,1) 
 
-function makeTestSpikes(width, freq, maxTime)
+function makeTestSpikes(filename, width, freq, maxTime)
 
 spikeTimes = sort(maxTime*rand(ceil(width*freq*maxTime),1));
+spikeTimes(spikeTimes < 1e-5) = [];
 
 id = ceil(width*rand(size(spikeTimes)));
 
-fid = fopen('spikes0.dat','w');
+fid = fopen(filename,'w');
 for i=1:length(spikeTimes)
     fprintf(fid,'%d %d\n', spikeTimes(i), id(i));
 end

@@ -1,8 +1,8 @@
 np=1
-stoptime=2.0
+stoptime=1.0
 [from]
   binary=/usr/local/bin/eventsource
-  args=1000 spikes
+  args=-t 1e-3 1000 viewevents2-spikes
 [to]
   binary=/usr/local/bin/viewevents
   from.out -> to.plot [1000]

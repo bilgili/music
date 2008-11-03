@@ -2,7 +2,7 @@
 
 
 #include <GL/gl.h>
-#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <math.h>
 #include <mpi.h>
 #include <music.hh>
@@ -25,7 +25,9 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   VisualiseNeurons() {
     tau_ = 50e-3;
     time_ = 0;
+    stopTime_ = 0;
     oldTime_ = 0;
+    done_ = 0;
 
     maxDist_ = 0;
 
@@ -72,10 +74,13 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
   neuronColour baseLineCol_;
   neuronColour excitedCol_;
+  double spikeScale_;
 
   double tau_;
   double time_;
   double oldTime_;
+  double stopTime_;
+  int done_;
 
   double rotAngle_;
 

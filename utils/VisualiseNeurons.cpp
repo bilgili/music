@@ -23,6 +23,10 @@ void VisualiseNeurons::init(int argc, char **argv) {
     exit(-1);
   }
 
+  // Store the stop time
+  setup->config ("stoptime", &stopTime_);
+
+
   if(argc < 2) {
     std::cerr << argv[0] << " requires a config-file as inparameter." 
               << std::endl;
@@ -92,7 +96,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
   glLoadIdentity();
   double fov = 0.7*maxDist_/2;
 
-  std::cout << "MAX DIST: " << maxDist_ << std::endl;
+  // std::cout << "MAX DIST: " << maxDist_ << std::endl;
   glFrustum(-fov,fov,-fov,fov,maxDist_/2,3.1*maxDist_); // Visible range 50-800
   glTranslated(0,0,-2.2*maxDist_); //-600
   glRotated(30,1,0,0);
@@ -170,7 +174,9 @@ void VisualiseNeurons::display() {
 
     glColor3d(red,green,blue);
     glTranslated(coords_[i].x,coords_[i].y,coords_[i].z);
-    glScaled(coords_[i].r, coords_[i].r, coords_[i].r);
+    double scale = coords_[i].r*(1+spikeScale_*col);
+
+    glScaled(scale,scale,scale);
     glCallList(neuronList_);
     glPopMatrix();
   }
@@ -179,6 +185,7 @@ void VisualiseNeurons::display() {
 
   sprintf(buffer,"%.3f s",time_);
   //std::cout << "Buffer: " << buffer << std::endl;
+  //std::cout << time_ << std::endl;
 
   glLoadIdentity();
   glColor3d(1,1,1);
@@ -213,7 +220,7 @@ void VisualiseNeurons::rotateTimer() {
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
   // For now: just print out incoming events
-  std::cout << "Event " << id << " detected at " << t << std::endl;
+  //std::cout << "Event " << id << " detected at " << t << std::endl;
   
   volt_[id] = 1;
   
@@ -226,6 +233,10 @@ void VisualiseNeurons::tick() {
 
   oldTime_ = time_;
   time_ = runtime_->time ();
+
+  if(time_ >= stopTime_ - TIMESTEP/2.0) {
+    done_ = 1;
+  }
 
   // This function should call the music tick() if needed
 
@@ -244,27 +255,39 @@ void VisualiseNeurons::displayWrapper() {
 }
 
 void VisualiseNeurons::rotateTimerWrapper(int v) {
+  VisualiseNeurons *vn = 0;
+
   for(int i = 0; i < objTable_.size(); i++) {
-    VisualiseNeurons *vn = objTable_[i];
+    vn = objTable_[i];
     vn->rotateTimer();
   }
 
-  glutTimerFunc(25,rotateTimerWrapper, 1);
-
+  if(vn && !(vn->done_)) {
+    glutTimerFunc(25,rotateTimerWrapper, 1);
+  }
 }
 
 void VisualiseNeurons::tickWrapper(int v) {
+  VisualiseNeurons *vn = 0;
+
   for(int i = 0; i < objTable_.size(); i++) {
-    VisualiseNeurons *vn = objTable_[i];
+    vn = objTable_[i];
     vn->tick();
   }
 
-  glutTimerFunc(1,tickWrapper, 1);
-
+  if(vn && !vn->done_) {
+    glutTimerFunc(1,tickWrapper, 1);
+    // std::cout << "Time = " << vn->time_ 
+    //           << " stopTime = " << vn->stopTime_ << std::endl;
+  } else {
+    std::cout << "End of simulation " << vn->time_ << std::endl;
+    glutLeaveMainLoop();
+  }
 }
 
 void VisualiseNeurons::readConfigFile(string filename) {
   double x, y, z, r, dist;
+  double minDist = 1e66, maxR = 0;
 
   int i = 0;
 
@@ -290,6 +313,13 @@ void VisualiseNeurons::readConfigFile(string filename) {
     dist = sqrt(x*x + y*y + z*z);
     maxDist_ = (dist > maxDist_) ? dist : maxDist_;
 
+    // Dist and R are used to calculate spikeScale_    
+    if(dist > 0) {
+      minDist = (dist < minDist) ? dist : minDist;
+    }
+
+    maxR = (r > maxR) ? r : maxR;
+
     // std::cout << "Neuron " << i << " at " << x << "," << y << "," << z 
     //           << " radie " << r << std::endl;
     i++;
@@ -299,7 +329,11 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   }
 
+  spikeScale_ = (minDist/(3*maxR))-1;
+  spikeScale_ = (spikeScale_ > 0) ? spikeScale_ : 0;
+
   std::cout << "Read " << i << " neuron positions" << std::endl;
+  std::cout << "Setting spike scalign to " << spikeScale_ << std::endl;
 }
 
 

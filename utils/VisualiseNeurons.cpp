@@ -95,12 +95,14 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Setup camera
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  double fov = 0.7*maxDist_/2;
+  double fov = (is3dFlag_) ? 0.7*maxDist_/2 : 0.5*maxDist_/2;
 
   // std::cout << "MAX DIST: " << maxDist_ << std::endl;
   glFrustum(-fov,fov,-fov,fov,maxDist_/2,3.1*maxDist_); // Visible range 50-800
   glTranslated(0,0,-2.2*maxDist_); //-600
-  glRotated(30,1,0,0);
+
+  double camAng = (is3dFlag_) ? 30 : -30;
+  glRotated(camAng,1,0,0);
   glMatrixMode(GL_MODELVIEW);
 
   // Create displaylist for neuron(s)
@@ -137,17 +139,17 @@ void VisualiseNeurons::finalize() {
 
   delete runtime_;
 
-  std::cout << "Rank " << rank_ 
-            << ": Searching for VisualiseNeurons wrapper object";
+  //  std::cout << "Rank " << rank_ 
+  //          << ": Searching for VisualiseNeurons wrapper object";
   for(int i = 0; i < objTable_.size(); i++) {
     if(objTable_[i] == this) {
-      std::cout << "found.";
+      //std::cout << "found.";
     }
     else {
-      std::cout << ".";
+      //std::cout << ".";
     }
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
 
   // Should delete all other objects also.
 
@@ -228,9 +230,11 @@ void VisualiseNeurons::rotateTimer() {
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
   // For now: just print out incoming events
-  std::cout << "Event " << id << " detected at " << t << std::endl;
+  // std::cout << "Event " << id << " detected at " << t << std::endl;
 
-  assert(id < volt_.size());
+  assert(0 <= id && id < volt_.size());
+  assert(time_ < t); // time_ is old timestep
+  assert(t < time_ + TIMESTEP*(1+1e-9));
 
   volt_[id] = 1;
   

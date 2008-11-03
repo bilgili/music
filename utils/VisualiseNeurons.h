@@ -17,13 +17,14 @@
 #define _VISUALISE_NEURONS
 
 #define TIMESTEP 1e-3
+#define PI 3.141592653589793
 
 
 class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
  public:
   VisualiseNeurons() {
-    tau_ = 50e-3;
+    tau_ = 10e-3;
     time_ = 0;
     stopTime_ = 0;
     oldTime_ = 0;

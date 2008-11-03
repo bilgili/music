@@ -24,33 +24,103 @@
 #include <string>
 #include <cstdlib>
 
+extern "C" {
+#include <unistd.h>
+#include <getopt.h>
+};
+
 #include <music.hh>
 
 #include "datafile.h"
 
-#define TIMESTEP 1e-2
-
-int n_units;
-string imaptype;
-string prefix;
-string suffix;
+const double DEFAULT_TIMESTEP = 1e-2;
 
 void
-getargs (int argc, char* argv[])
+usage (int rank)
 {
-  if (argc < 4 || argc > 5 )
+  if (rank == 0)
     {
-      std::cerr << "eventsource N_UNITS IMAPTYPE PREFIX [SUFFIX]" << std::endl;
-      exit (1);
+      std::cerr << "Usage: eventsource [OPTION...] N_UNITS PREFIX [SUFFIX]" << std::endl
+		<< "`eventsource' reads spikes from a set of files with names PREFIX RANK SUFFIX" << std::endl
+		<< "and propagates these spikes through a MUSIC output port." << std::endl << std:: endl
+		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
+		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
+		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
+		<< "  -h, --help              print this help message" << std::endl << std::endl
+		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
+    }
+  exit (1);
+}
+
+int n_units;
+double timestep = DEFAULT_TIMESTEP;
+string imaptype = "linear";
+string indextype = "global";
+string prefix;
+string suffix = ".dat";
+
+void
+getargs (int rank, int argc, char* argv[])
+{
+  opterr = 0; // handle errors ourselves
+  while (1)
+    {
+      static struct option long_options[] =
+	{
+	  {"timestep",  required_argument, 0, 't'},
+	  {"imaptype",  required_argument, 0, 'm'},
+	  {"indextype", required_argument, 0, 'i'},
+	  {"help",      no_argument,       0, 'h'},
+	  {0, 0, 0, 0}
+	};
+      /* `getopt_long' stores the option index here. */
+      int option_index = 0;
+
+      // the + below tells getopt_long not to reorder argv
+      int c = getopt_long (argc, argv, "+t:m:i:h", long_options, &option_index);
+
+      /* detect the end of the options */
+      if (c == -1)
+	break;
+
+      switch (c)
+	{
+	case 't':
+	  timestep = atof (optarg); //*fixme* error checking
+	  continue;
+	case 'm':
+	  imaptype = optarg;
+	  if (imaptype != "linear" && imaptype != "roundrobin")
+	    {
+	      usage (rank);
+	      abort ();
+	    }
+	  continue;
+	case 'i':
+	  indextype = optarg;
+	  if (indextype != "global" && indextype != "local")
+	    {
+	      usage (rank);
+	      abort ();
+	    }
+	  continue;
+	case '?':
+	  break; // ignore unknown options
+	case 'h':
+	  usage (rank);
+
+	default:
+	  abort ();
+	}
     }
 
-  n_units = atoi (argv[1]);
-  imaptype = argv[2];
-  prefix = argv[3];
-  if (argc == 4)
-    suffix = ".dat";
-  else
-    suffix = argv[4];
+  if (argc < optind + 2 || argc > optind + 3)
+    usage (rank);
+
+  n_units = atoi (argv[optind]);
+  prefix = argv[optind + 1];
+  if (argc == optind + 3)
+    suffix = argv[optind + 2];
 }
 
 int
@@ -58,28 +128,52 @@ main (int argc, char *argv[])
 {
   MUSIC::setup* setup = new MUSIC::setup (argc, argv);
   
-  getargs (argc, argv);
-
-  MUSIC::event_output_port* out = setup->publish_event_output ("out");
-
   MPI::Intracomm comm = setup->communicator ();
   int n_processes = comm.Get_size ();
   int rank = comm.Get_rank ();
-  int n_units_per_process = n_units / n_processes;
-  int n_local_units = n_units_per_process;
-  int rest = n_units % n_processes;
-  int first_id = n_units_per_process * rank;
-  if (rank < rest)
+  
+  getargs (rank, argc, argv);
+
+  MUSIC::event_output_port* out = setup->publish_event_output ("out");
+  if (!out->is_connected ())
     {
-      first_id += rank;
-      n_local_units += 1;
+      if (rank == 0)
+	std::cerr << "eventsource port is not connected" << std::endl;
+      exit (1);
+    }
+
+  MUSIC::index::type type;
+  if (indextype == "global")
+    type = MUSIC::index::GLOBAL;
+  else
+    type = MUSIC::index::LOCAL;
+  
+  if (imaptype == "linear")
+    {
+      int n_units_per_process = n_units / n_processes;
+      int n_local_units = n_units_per_process;
+      int rest = n_units % n_processes;
+      int first_id = n_units_per_process * rank;
+      if (rank < rest)
+	{
+	  first_id += rank;
+	  n_local_units += 1;
+	}
+      else
+	first_id += rest;
+      MUSIC::linear_index indices (first_id, n_local_units);
+      
+      out->map (&indices, type);
     }
   else
-    first_id += rest;
-  MUSIC::linear_index indices (first_id, n_local_units);
-  
-  out->map (&indices, MUSIC::index::GLOBAL);
-  
+    {
+      std::vector<MUSIC::global_index> v;
+      for (int i = rank; i < n_units; i += n_processes)
+	v.push_back (i);
+      MUSIC::permutation_index indices (&v.front (), v.size ());
+      out->map (&indices, type);
+    }
+
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
@@ -87,7 +181,7 @@ main (int argc, char *argv[])
   spikefile << prefix << rank << suffix;
   datafile in (spikefile.str ());
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, TIMESTEP);
+  MUSIC::runtime* runtime = new MUSIC::runtime (setup, timestep);
 
   in.skip_header ();
   int id;
@@ -98,7 +192,7 @@ main (int argc, char *argv[])
   double time = runtime->time ();
   while (time < stoptime)
     {
-      double next_time = time + TIMESTEP;
+      double next_time = time + timestep;
       while (more_spikes && t < next_time)
 	{
 	  out->insert_event (t, MUSIC::global_index (id));

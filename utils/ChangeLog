@@ -1,3 +1,8 @@
+2008-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsource.cc: Extended to support global and local indices and
+	roundrobin index maps.
+
 2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Changes to implement propagation of configuration

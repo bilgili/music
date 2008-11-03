@@ -182,9 +182,8 @@ main (int argc, char *argv[])
   datafile in (spikefile.str ());
   if (!in)
     {
-      if (rank == 0)
-	std::cerr << "eventsource: could not open "
-		  << spikefile.str () << std::endl;
+      std::cerr << "eventsource: could not open "
+		<< spikefile.str () << std::endl;
       abort ();      
     }
 

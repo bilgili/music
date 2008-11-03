@@ -143,6 +143,10 @@ AC_CHECK_TYPES([long long])
 
 AC_CHECK_FUNCS([strrchr])
 
+dnl Other checks
+OPTIONAL_PROGRAMS=""
+AC_CHECK_HEADER([GL/glut.h], OPTIONAL_UTILS+="viewevents ")
+
 AC_LANG_PUSH(C++)
 save_CXX="$CXX"
 dnl Must use $CXX, not $MPI_CXX, here
@@ -177,7 +181,7 @@ else
   MUSIC_HAVE_LONG_LONG=0
 fi
 
-AC_SUBST([MPI_CXXFLAGS MPI_CFLAGS MPI_LDFLAGS MUSIC_HAVE_SIZE_T MUSIC_HAVE_LONG_LONG])
+AC_SUBST([MPI_CXXFLAGS MPI_CFLAGS MPI_LDFLAGS MUSIC_HAVE_SIZE_T MUSIC_HAVE_LONG_LONG OPTIONAL_UTILS])
 
 AC_CONFIG_FILES([
   Makefile
@@ -189,6 +193,13 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
+
+if test "$ac_cv_header_GL_glut_h" = "no"; then
+   AC_MSG_NOTICE([
+NOTE: viewevents will not be built since the GL/glut.h header was not
+      found on this system.  This is no problem unless you plan to
+      view spiking activity graphically.])
+fi
 
 dnl Local Variables:
 dnl comment-start: "dnl "

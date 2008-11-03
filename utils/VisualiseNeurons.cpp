@@ -1,3 +1,6 @@
+// VisualiseNeurons.cpp written by Johannes Hjorth, hjorth@nada.kth.se
+
+
 #include "VisualiseNeurons.h"
 
 void VisualiseNeurons::init(int argc, char **argv) {
@@ -20,6 +23,17 @@ void VisualiseNeurons::init(int argc, char **argv) {
     exit(-1);
   }
 
+  if(argc < 2) {
+    std::cerr << argv[0] << " requires a config-file as inparameter." 
+              << std::endl;
+    exit(-1);
+  }
+
+  string confFile(argv[1]);
+
+  readConfigFile(confFile);
+
+
   MUSIC::event_input_port* evport = setup->publish_event_input("plot");
 
 
@@ -28,6 +42,14 @@ void VisualiseNeurons::init(int argc, char **argv) {
       std::cerr << "eventlog port is not connected" << std::endl;
     exit (1);
   }
+
+  if(evport->width() != coords_.size()) {
+    std::cerr << "Size mismatch: port width " << evport->width()
+              << " number of neurons to plot " << coords_.size()
+              << std::endl;
+  }
+
+
 
   MUSIC::linear_index indexmap(0, evport->width());
   evport->map (&indexmap, this, 0.0);
@@ -67,8 +89,11 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Setup camera
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glFrustum(-40,40,-40,40,50,800); // Visible range
-  glTranslated(0,0,-600);
+  double zTrans = (4*minZ_ < -4*maxZ_) ? 4*minZ_ : -4*maxZ_;
+  double zDist = abs(zTrans) + 2*((maxZ_ > -minZ_) ? maxZ_ : -minZ_);
+
+  glFrustum(-40,40,-40,40,50,zDist); // Visible range 50-800
+  glTranslated(0,0,zTrans); //-600
   glRotated(30,1,0,0);
   glMatrixMode(GL_MODELVIEW);
 
@@ -77,7 +102,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
   neuronList_ = glGenLists(1);
   glNewList(neuronList_, GL_COMPILE);
-  gluSphere(neuronQuad, 30, 20, 10);
+  gluSphere(neuronQuad, 1, 20, 10);
   glEndList();
 }
 
@@ -131,13 +156,16 @@ void VisualiseNeurons::display() {
     double col = volt_[i]; //(volt_[i] - vMin)/(vMax - vMin);
 
     // maxCol is [1 0.9 0]
-    GLdouble red =   0.25 + 0.75*col;
-    GLdouble green = 0.53 + 0.37*col;
-    GLdouble blue =  0.10 - 0.10*col;
+    //    GLdouble red =   0.25 + 0.75*col;
+    //    GLdouble green = 0.53 + 0.37*col;
+    //    GLdouble blue =  0.10 - 0.10*col;
+    GLdouble red   = baseLineCol_.r + (excitedCol_.r-baseLineCol_.r)*col;
+    GLdouble green = baseLineCol_.g + (excitedCol_.g-baseLineCol_.g)*col;
+    GLdouble blue  = baseLineCol_.b + (excitedCol_.b-baseLineCol_.b)*col;
 
     glColor3d(red,green,blue);
-
     glTranslated(coords_[i].x,coords_[i].y,coords_[i].z);
+    glScaled(coords_[i].r, coords_[i].r, coords_[i].r);
     glCallList(neuronList_);
     glPopMatrix();
   }
@@ -148,9 +176,9 @@ void VisualiseNeurons::display() {
 
 
 
-void VisualiseNeurons::addNeuron(double x, double y, double z) {
-  point3d p;
-  p.x = x; p.y = y; p.z = z;
+void VisualiseNeurons::addNeuron(double x, double y, double z, double r) {
+  neuronCoord p;
+  p.x = x; p.y = y; p.z = z; p.r = r;
   coords_.push_back(p);
   volt_.push_back(0);
 }
@@ -218,7 +246,50 @@ void VisualiseNeurons::tickWrapper(int v) {
 
 }
 
+void VisualiseNeurons::readConfigFile(string filename) {
+  double x, y, z, r;
 
+  int i = 0;
+
+  std::cout << "Reading : " << filename << std::endl;
+
+  datafile in(filename);
+
+  // !!! WHY?!!
+  // VisualiseNeurons.cpp:246: undefined reference to `datafile::skip_header()'
+  //in.skip_header();
+
+  // Read in neuron base colour
+  in >> baseLineCol_.r >> baseLineCol_.g >> baseLineCol_.b;
+
+  // Read in neuron excited colour
+  in >> excitedCol_.r >> excitedCol_.g>> excitedCol_.b;
+
+  // Read in neuron coordinates
+  in >> x >> y >> z >> r;
+
+  while(!in.eof()) {
+    addNeuron(x,y,z,r);
+
+    // std::cout << "Neuron " << i << " at " << x << "," << y << "," << z 
+    //           << " radie " << r << std::endl;
+    i++;
+
+    // Read in neuron coordinates
+    in >> x >> y >> z >> r;
+
+    maxX_ = (x > maxX_) ? x : maxX_;
+    maxY_ = (y > maxY_) ? y : maxY_;
+    maxZ_ = (z > maxZ_) ? z : maxZ_;
+
+    minX_ = (x < minX_) ? x : minX_;
+    minY_ = (y < minY_) ? y : minY_;
+    minZ_ = (z < minZ_) ? z : minZ_;
+
+  }
+
+  std::cout << "Read " << i << " neuron positions" << std::endl;
+}
 
 
 

@@ -1,3 +1,6 @@
+// VisualiseNeurons.h written by Johannes Hjorth, hjorth@nada.kth.se
+
+
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <math.h>
@@ -5,6 +8,9 @@
 #include <music.hh>
 #include <iostream>
 #include <vector>
+#include "datafile.h"
+
+
 
 #ifndef _VISUALISE_NEURONS
 #define _VISUALISE_NEURONS
@@ -20,9 +26,13 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     time_ = 0;
     oldTime_ = 0;
 
+    maxX_ = 0; maxY_ = 0; maxZ_ = 0;
+    minX_ = 1e99; minY_ = 1e99; minZ_ = 1e99;
+
   }
   
   void init(int argc, char **argv);
+  void readConfigFile(string filename);
   void start();
   void finalize();
 
@@ -32,7 +42,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void rotateTimer();
   void tick();
 
-  void addNeuron(double x, double y, double z);
+  void addNeuron(double x, double y, double z, double r);
 
   static void displayWrapper();
   static void rotateTimerWrapper(int v);
@@ -42,8 +52,14 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     GLdouble x;
     GLdouble y;
     GLdouble z;
-  }point3d;
+    GLdouble r;
+  }neuronCoord;
 
+  typedef struct {
+    GLdouble r;
+    GLdouble g;
+    GLdouble b;
+  }neuronColour;
 
  private:
 
@@ -51,8 +67,11 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   
   GLuint neuronList_;
 
-  std::vector<point3d> coords_;
+  std::vector<neuronCoord> coords_;
   std::vector<double> volt_;
+
+  neuronColour baseLineCol_;
+  neuronColour excitedCol_;
 
   double tau_;
   double time_;
@@ -61,6 +80,8 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   double rotAngle_;
 
   int rank_;
+
+  double maxX_, maxY_, maxZ_, minX_, minY_, minZ_;
 
 };
 

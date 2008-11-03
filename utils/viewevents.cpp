@@ -1,8 +1,11 @@
+// viewevents.cpp written by Johannes Hjorth, hjorth@nada.kth.se
+
+
 #include "VisualiseNeurons.h"
 #include <iostream>
 #include <sstream>
 #include <string>
-
+/*
 double xCoord[27] = { -150, -150, -150, 0, 0, 0, 150, 150, 150,
                       -150, -150, -150, 0, 0, 0, 150, 150, 150,
                       -150, -150, -150, 0, 0, 0, 150, 150, 150 };
@@ -26,18 +29,20 @@ double volt[27] = { 0.8147, 0.9058, 0.1270,
                     0.6787, 0.7577, 0.7431 };
 
 int maxNeurons = 27;
-
+*/
 
 int main(int argc, char **argv) {
 
   VisualiseNeurons *vn = new VisualiseNeurons();
   vn->init(argc,argv);
 
+  /*
   // The maxNeurons check is just temporary so we do not add more data 
   // than what is tabulated above.
   for(int i = 0; i < maxNeurons; i++) {
     vn->addNeuron(xCoord[i],yCoord[i],zCoord[i]);
   }
+  */
 
   vn->start();
 

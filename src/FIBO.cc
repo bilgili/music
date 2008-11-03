@@ -17,14 +17,14 @@
  */
 
 #include "music/FIBO.hh"
-
+#include <iostream>
 namespace MUSIC {
 
   FIBO::FIBO (int es)
     : element_size (es)
   {
     size = element_size * n_initial;
-    buffer.reserve (size);
+    buffer.resize (size);
     insertion = 0;
   }
 
@@ -63,7 +63,7 @@ namespace MUSIC {
   FIBO::grow (int new_size)
   {
     size = new_size;
-    buffer.reserve (size);
+    buffer.resize (size);
   }
   
 }

@@ -156,7 +156,6 @@ main (int argc, char* argv[])
       else
 	{
 	  my_event_handler_local evhandler (rank);
-	  MUSIC::linear_index indexmap (first_id, n_local);
 	  evport->map (&indexmap, &evhandler, 0.0);
 	}
     }

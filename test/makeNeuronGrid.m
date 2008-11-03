@@ -6,6 +6,10 @@
 % makeNeuronGrid('neuronGrid.data', ...
 %                (-1:1)*150,(-1:1)*150, (-1:1)*150, 30, ...
 %                [0.25 0.53 0.1], [1 0.9 0])
+%
+%makeNeuronGrid('neuronGridPlane.data',(-11:11)*50,(-11:11)*50,0, ...
+%               10, [0.53 0.25 0.1],[0.9 1 0])
+%
 
 function makeNeuronGrid(filename, x,y,z,r,colMin, colMax)
 

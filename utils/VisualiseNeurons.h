@@ -10,7 +10,7 @@
 #include <sstream>
 #include <vector>
 #include "datafile.h"
-
+#include <assert.h>
 
 
 #ifndef _VISUALISE_NEURONS
@@ -30,7 +30,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     done_ = 0;
 
     maxDist_ = 0;
-
+    is3dFlag_ = 0;
   }
   
   void init(int argc, char **argv);
@@ -38,6 +38,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void start();
   void finalize();
 
+  // Event handler for incomming spikes
   void operator () ( double t, MUSIC::global_index id );
 
   void display();
@@ -46,6 +47,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
   void addNeuron(double x, double y, double z, double r);
 
+  // Static wrapper functions
   static void displayWrapper();
   static void rotateTimerWrapper(int v);
   static void tickWrapper(int v);
@@ -54,7 +56,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     GLdouble x;
     GLdouble y;
     GLdouble z;
-    GLdouble r;
+    GLdouble r; // radie of neuron
   }neuronCoord;
 
   typedef struct {
@@ -65,28 +67,31 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
  private:
 
-  MUSIC::runtime* runtime_;
+  MUSIC::runtime* runtime_; // Music runtime object
   
-  GLuint neuronList_;
+  GLuint neuronList_;  // OpenGL list for drawing object
 
-  std::vector<neuronCoord> coords_;
-  std::vector<double> volt_;
+  std::vector<neuronCoord> coords_;  // Coordinates of neuron population
+  std::vector<double> volt_;  // Activity of neuron population
+ 
+  neuronColour baseLineCol_;  // Colour of resting neuron
+  neuronColour excitedCol_;   // Colour of spiking neuron
+  double spikeScale_;         // eg, 0.1 = scale up spiking neurons by 10%
 
-  neuronColour baseLineCol_;
-  neuronColour excitedCol_;
-  double spikeScale_;
+  double tau_;       // Tau decay of activity
+  double time_;      // Current time
+  double oldTime_;   // Previous timestep
+  double stopTime_;  // End of simulations
+  int done_;         // Simulation done?
 
-  double tau_;
-  double time_;
-  double oldTime_;
-  double stopTime_;
-  int done_;
+  double rotAngle_;  // Current rotation angle
 
-  double rotAngle_;
+  int rank_;         // Rank of this process
 
-  int rank_;
+  double maxDist_;   // Distance from origo to outermost neuron
+                     // Used when calculating camera position
 
-  double maxDist_;
+  int is3dFlag_;
 
 };
 

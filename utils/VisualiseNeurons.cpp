@@ -119,7 +119,11 @@ void VisualiseNeurons::init(int argc, char **argv) {
 void VisualiseNeurons::start() {
   if(rank_ == 0) {
     glutDisplayFunc(displayWrapper);
-    glutTimerFunc(25,rotateTimerWrapper, 1);
+    if(is3dFlag_) {
+      // Only rotate if all neurons are not in a plane
+      glutTimerFunc(25,rotateTimerWrapper, 1);
+    }
+
     glutTimerFunc(1,tickWrapper, 1);
 
     glutMainLoop();
@@ -224,8 +228,10 @@ void VisualiseNeurons::rotateTimer() {
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
   // For now: just print out incoming events
-  //std::cout << "Event " << id << " detected at " << t << std::endl;
-  
+  std::cout << "Event " << id << " detected at " << t << std::endl;
+
+  assert(id < volt_.size());
+
   volt_[id] = 1;
   
 }
@@ -299,6 +305,13 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   datafile in(filename);
 
+  if (!in) {
+    std::cerr << "eventsource: could not open "
+              << filename << std::endl;
+    abort ();
+  }
+
+
   // !!! WHY?!!
   // VisualiseNeurons.cpp:246: undefined reference to `datafile::skip_header()'
   //in.skip_header();
@@ -316,6 +329,12 @@ void VisualiseNeurons::readConfigFile(string filename) {
     addNeuron(x,y,z,r);
     dist = sqrt(x*x + y*y + z*z);
     maxDist_ = (dist > maxDist_) ? dist : maxDist_;
+
+    // All neurons are not in one plane
+    if(abs(x) > 1e-9 && abs(y) > 1e-9 && abs(z) > 1e-9) {
+      is3dFlag_ = 1;
+    }
+
 
     // Dist and R are used to calculate spikeScale_    
     if(dist > 0) {

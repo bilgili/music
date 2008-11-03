@@ -44,6 +44,8 @@ namespace MUSIC {
     if (config_str == NULL)
       {
 	_launched_by_music = false;
+	_applications = new application_map ();
+	_connectivity_map = new connectivity ();
       }
     else
       {
@@ -65,6 +67,13 @@ namespace MUSIC {
 	    insert (name, ioutils::read (env));
 	  }
       }
+  }
+
+
+  configuration::~configuration ()
+  {
+    delete _connectivity_map;
+    delete _applications;
   }
 
   

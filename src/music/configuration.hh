@@ -40,6 +40,7 @@ namespace MUSIC {
   public:
     configuration ();
     configuration (std::string name, int color, configuration* def);
+    ~configuration ();
     bool launched_by_music () { return _launched_by_music; }
     void write_env ();
     int color () { return _color; };

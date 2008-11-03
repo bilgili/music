@@ -38,14 +38,14 @@ namespace MUSIC {
   void
   event_router::insert_event (double t, global_index id)
   {
-    inserter_global i (t, id);
+    inserter i (t, id);
     routing_table.search (id, &i);
   }
 
   void
   event_router::insert_event (double t, local_index id)
   {
-    inserter_local i (t, id);
+    inserter i (t, id);
     routing_table.search (id, &i);
   }
 

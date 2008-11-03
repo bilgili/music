@@ -52,22 +52,10 @@ namespace MUSIC {
       int _id;
     public:
       inserter (double t, int id) : _t (t), _id (id) { };
-    };
-    
-    class inserter_global : public inserter {
-    public:
-      inserter_global (double t, int id) : inserter (t, id) { };
-      void operator() (event_routing_data& data) {
-	data.insert (_t, _id);
-      }
-    };
-    
-    class inserter_local : public inserter {
-    public:
-      inserter_local (double t, int id) : inserter (t, id) { };
-      void operator() (event_routing_data& data) {
+      void operator() (event_routing_data& data)
+      {
 	data.insert (_t, _id - data.offset ());
-      };
+      }
     };
     
     interval_tree<int, event_routing_data> routing_table;
@@ -77,7 +65,7 @@ namespace MUSIC {
     void insert_event (double t, global_index id);
     void insert_event (double t, local_index id);
   };
-  
+    
 }
 
 #define EVENT_ROUTER_HH

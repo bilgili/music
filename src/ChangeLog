@@ -1,3 +1,27 @@
+2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* port.cc (port::has_width, port::width): Added some error
+	checking.
+
+	* music/spatial.hh,
+	spatial.cc (spatial_negotiator::wrap_intervals): Compute local
+	offset differently depending on index::type argument.
+
+	* music/index_map.hh (index_interval::set_local): New member
+	function.
+
+	* linear_index.cc, permutation_index.cc: Correctly compute local
+	index offset.
+
+	* configuration (configuration::configuration,
+	configuration::~configuration): Create and delete application_map
+	and connectivity also when not launched under music.
+
+	* event_router.cc (event_router::insert_event): Always subtract
+	local offset (not subtracting requires that all offsets are zero
+	which only happens either if both sides use global indices or if
+	both sides use local indices which even out).
+
 2008-10-31  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/spatial.hh, spatial.cc (negotiate_width): Error check

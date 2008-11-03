@@ -246,6 +246,11 @@ namespace MUSIC {
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    osubconn.push_back (subconn);
 	  }
+	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+		   << ": ("
+		   << i->begin () << ", "
+		   << i->end () << ", "
+		   << i->local () << ") -> " << i->rank ());
 	router.insert_routing_interval (i->interval (), subconn->buffer ());
       }
   }
@@ -287,7 +292,6 @@ namespace MUSIC {
 	  subconn = c->second;
 	else
 	  {
-	    MUSIC_LOGN (2, "creating input subconn receiving from " << i->rank ());
 	    if (type == index::GLOBAL)
 	      subconn
 		= new event_input_subconnector_global (&synch,
@@ -307,6 +311,11 @@ namespace MUSIC {
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    isubconn.push_back (subconn);
 	  }
+	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+		   << ": " << i->rank () << " -> ("
+		   << i->begin () << ", "
+		   << i->end () << ", "
+		   << i->local () << ")");
       }
   }
 

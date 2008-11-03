@@ -60,6 +60,8 @@ namespace MUSIC {
   bool
   port::has_width ()
   {
+    if (!is_connected ())
+      error ("attempt to ask for width of an unconnected port");
     return _connectivity_info->width () != connectivity_info::NO_WIDTH;
   }
 
@@ -67,6 +69,8 @@ namespace MUSIC {
   int
   port::width ()
   {
+    if (!is_connected ())
+      error ("attempt to ask for width of an unconnected port");
     int w = _connectivity_info->width ();
     if (w == connectivity_info::NO_WIDTH)
       error ("width requested for port with unspecified width");

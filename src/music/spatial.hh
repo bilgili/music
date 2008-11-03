@@ -41,6 +41,7 @@ namespace MUSIC {
     int begin () const { return _interval.begin (); }
     int end () const { return _interval.end (); }
     int local () const { return _interval.local (); }
+    void set_local (int l) { _interval.set_local (l); }
     int rank () const { return _rank; }
   };
 
@@ -139,6 +140,7 @@ namespace MUSIC {
     void negotiate_width ();
     negotiation_iterator wrap_intervals (index_map::iterator beg,
 					 index_map::iterator end,
+					 index::type type,
 					 int rank);
     void send (MPI::Comm& comm, int dest_rank,
 	       negotiation_intervals& intervals);

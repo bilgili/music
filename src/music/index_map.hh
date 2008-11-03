@@ -52,6 +52,7 @@ namespace MUSIC {
     index_interval (global_index b, global_index e, local_index l)
       : interval (b, e), _local (l) { }
     local_index local () const { return _local; }
+    void set_local (int l) { _local = l; }
   };
 
   class index_map {

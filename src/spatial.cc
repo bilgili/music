@@ -189,13 +189,15 @@ namespace MUSIC {
   negotiation_iterator
   spatial_negotiator::wrap_intervals (index_map::iterator beg,
 				      index_map::iterator end,
+				      index::type type,
 				      int rank)
   {
     class wrapper : public negotiation_iterator::implementation {
-      index_map::iterator i;
       index_map::iterator _end;
-      int _rank;
+    protected:
       spatial_negotiation_data data;
+      index_map::iterator i;
+      int _rank;
     public:
       wrapper (index_map::iterator beg,
 	       index_map::iterator end,
@@ -205,6 +207,36 @@ namespace MUSIC {
       }
       bool end () { return i == _end; }
       void operator++ () { ++i; }
+    };
+
+    class global_wrapper : public wrapper {
+    public:
+      global_wrapper (index_map::iterator beg,
+		      index_map::iterator end,
+		      int rank)
+	: wrapper (beg, end, rank)
+      {
+      }
+      spatial_negotiation_data* dereference ()
+      {
+	data = spatial_negotiation_data (*i, _rank);
+	data.set_local (0);
+	return &data;
+      }
+      implementation* copy ()
+      {
+	return new global_wrapper (*this);
+      }
+    };
+  
+    class local_wrapper : public wrapper {
+    public:
+      local_wrapper (index_map::iterator beg,
+		     index_map::iterator end,
+		     int rank)
+	: wrapper (beg, end, rank)
+      {
+      }
       spatial_negotiation_data* dereference ()
       {
 	data = spatial_negotiation_data (*i, _rank);
@@ -212,11 +244,24 @@ namespace MUSIC {
       }
       implementation* copy ()
       {
-	return new wrapper (*this);
+	return new local_wrapper (*this);
       }
     };
-
-    return negotiation_iterator (new wrapper (beg, end, rank));
+  
+    wrapper* w;
+    if (type == index::GLOBAL)
+      {
+	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
+		   << " selecting global_wrapper" << std::endl);
+	w = new global_wrapper (beg, end, rank);
+      }
+    else
+      {
+	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
+		   << " selecting local_wrapper" << std::endl);
+	w = new local_wrapper (beg, end, rank);
+      }
+    return negotiation_iterator (w);
   }
 
   
@@ -450,6 +495,7 @@ namespace MUSIC {
     negotiate_width (intercomm);
     negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
 						       indices->end (),
+						       type,
 						       local_rank);
     negotiation_iterator canonical_dist
       = canonical_distribution (width, n_processes);
@@ -510,6 +556,7 @@ namespace MUSIC {
     negotiate_width (intercomm);
     negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
 						       indices->end (),
+						       type,
 						       local_rank);
     negotiation_iterator canonical_dist
       = canonical_distribution (width, remote_n_proc);

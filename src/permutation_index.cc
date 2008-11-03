@@ -34,7 +34,7 @@ namespace MUSIC {
     
     //*fixme* collapse where possible
     for (int i = 0; i < size; ++i)
-      _indices.push_back (index_interval (indices[i], indices[i] + 1, i));
+      _indices.push_back (index_interval (indices[i], indices[i] + 1, indices[i] - i));
     sort (_indices.begin (), _indices.end ());
   }
   

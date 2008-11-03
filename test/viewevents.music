@@ -2,7 +2,7 @@ np=1
 stoptime=10.0
 [from]
   binary=/usr/local/bin/eventsource
-  args=27 contiguous spikes
+  args=27 spikes
 [to]
   binary=/usr/local/bin/viewevents
   from.out -> to.plot [27]

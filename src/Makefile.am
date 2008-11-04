@@ -7,7 +7,7 @@ lib_LTLIBRARIES = libmusic.la libmusic-c.la
 libmusic_la_SOURCES = \
 	runtime.cc music/runtime.hh \
 	setup.cc music/setup.hh \
-	error.cc music/error.hh \
+	error.cc music/error.hh music/debug.hh \
 	linear_index.cc music/linear_index.hh \
 	index_map.cc music/index_map.hh music/data_map.hh \
 	array_data.cc music/array_data.hh \
@@ -50,7 +50,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/configuration.hh music/connectivity.hh \
 		       music/application_map.hh music/ioutils.hh \
 		       music/spatial.hh music/temporal.hh music/error.hh \
-		       music/port.hh music/clock.hh \
+		       music/debug.hh music/port.hh music/clock.hh \
 		       music/connector.hh music/subconnector.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
 		       music/FIBO.hh music/event_router.hh \

@@ -1,3 +1,7 @@
+2008-11-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/debug.hh: New file.
+
 2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* FIBO.cc (FIBO::FIBO, FIBO::grow): Bugfix: Use resize instead of

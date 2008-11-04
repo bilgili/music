@@ -1,8 +1,8 @@
 2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* eventsink.cc: New file
+	* eventsink.cc, eventselect.cc: New files.
 
-	* Makefile.am: Added eventsink.
+	* Makefile.am: Added eventsink, eventselect.
 
 	* eventsource.cc: Error checking when opening files.
 

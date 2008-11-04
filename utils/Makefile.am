@@ -2,7 +2,7 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = music eventsource eventsink @OPTIONAL_UTILS@
+bin_PROGRAMS = music eventsource eventsink eventselect @OPTIONAL_UTILS@
 EXTRA_PROGRAMS = viewevents
 
 music_SOURCES = music.cc application_mapper.cc application_mapper.hh
@@ -16,6 +16,10 @@ eventsource_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/rudeconfig/l
 eventsink_SOURCES = eventsink.cc
 eventsink_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
 eventsink_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
+
+eventselect_SOURCES = eventselect.cc
+eventselect_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+eventselect_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
 
 viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
 viewevents_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@

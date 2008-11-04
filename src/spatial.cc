@@ -16,23 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+
 #include <sstream>
 
+#include "music/debug.hh"
 #include "music/error.hh"
 
 #include "music/spatial.hh"
-
-//#define MUSIC_DEBUG 1
-
-#ifdef MUSIC_DEBUG
-#define MUSIC_LOG(X) (std::cout << X << std::endl)
-#define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cout << X << std::endl; }
-#define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
-#else
-#define MUSIC_LOG(X)
-#define MUSIC_LOGN(N, X)
-#define MUSIC_LOG0(X)
-#endif
 
 namespace MUSIC {
 
@@ -265,37 +256,6 @@ namespace MUSIC {
   }
 
   
-  void
-  spatial_negotiator::log (spatial_negotiation_data& d, int rank)
-  {
-    MUSIC_LOG0 ("(" << d.begin () << ", "
-		<< d.end () << ", "
-		<< d.local () << ", "
-		<< d.rank () << ") -> " << rank);
-  }
-
-  
-  void
-  spatial_negotiator::log (spatial_negotiation_data& d)
-  {
-    MUSIC_LOG0 ("(" << d.begin () << ", "
-		<< d.end () << ", "
-		<< d.local () << ", "
-		<< d.rank () << ")");
-  }
-
-  
-  void
-  spatial_negotiator::log (int n, spatial_negotiation_data& d)
-  {
-    MUSIC_LOGN (n,
-		n << ": (" << d.begin () << ", "
-		<< d.end () << ", "
-		<< d.local () << ", "
-		<< d.rank () << ")");
-  }
-
-  
   // Compute intersection intervals between source and dest.  Store
   // the resulting intervals with rank from source in buffer
   // belonging to rank in dest.
@@ -366,7 +326,6 @@ namespace MUSIC {
 					    dest->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
-		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
@@ -376,7 +335,6 @@ namespace MUSIC {
 					    source->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
-		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
@@ -390,7 +348,6 @@ namespace MUSIC {
 					    source->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
-		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
@@ -400,7 +357,6 @@ namespace MUSIC {
 					    dest->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
-		log (d, dest->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
@@ -511,20 +467,6 @@ namespace MUSIC {
       receive (intercomm, i, remote[i]);
     
     results.resize (remote_n_proc);
-    MUSIC_LOG0 ("local:");
-    for (int i = 0; i < local.size (); ++i)
-      {
-	MUSIC_LOG0 ("buffer " << i << ":");
-	for (int j = 0; j < local[i].size (); ++j)
-	  log (local[i][j]);
-      }
-    MUSIC_LOG0 ("remote:");
-    for (int i = 0; i < remote.size (); ++i)
-      {
-	MUSIC_LOG0 ("buffer " << i << ":");
-	for (int j = 0; j < remote[i].size (); ++j)
-	  log (remote[i][j]);
-      }
     MUSIC_LOG0 ("intersect_to_buffers (local, remote, results)");
     intersect_to_buffers (local, remote, results);
 
@@ -568,14 +510,6 @@ namespace MUSIC {
     
     for (int i = 0; i < remote_n_proc; ++i)
       receive (intercomm, i, remote[i]);
-    
-    MUSIC_LOGN (2, "2: remote:");
-    for (int i = 0; i < remote.size (); ++i)
-      {
-	MUSIC_LOGN (2, "2: buffer " << i << ":");
-	for (int j = 0; j < remote[i].size (); ++j)
-	  log (2, remote[i][j]);
-      }
     
     return negotiation_iterator (remote);
   }

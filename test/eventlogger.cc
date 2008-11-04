@@ -117,7 +117,7 @@ main (int argc, char* argv[])
     }
 
   // Port publishing
-  MUSIC::event_input_port* evport = setup->publish_event_input ("eventlog");
+  MUSIC::event_input_port* evport = setup->publish_event_input ("in");
   if (!evport->is_connected ())
     {
       if (rank == 0)

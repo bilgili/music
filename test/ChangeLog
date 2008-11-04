@@ -1,3 +1,8 @@
+2008-11-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc, events.music: Input port renamed from "eventlog"
+	to "in".
+
 2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventlogger.cc: Added better argument handling, including

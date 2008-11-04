@@ -12,3 +12,5 @@
   permutation_index from it.
 
 * Improve all error reporting (giving more informative messages with names etc)
+
+* Option for music launcer to get map over rank allocations

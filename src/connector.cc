@@ -16,20 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/connector.hh"
-
 //#define MUSIC_DEBUG 1
 
-#ifdef MUSIC_DEBUG
-#define MUSIC_LOG(X) (std::cout << X << std::endl)
-#define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cout << X << std::endl; }
-#define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
-#else
-#define MUSIC_LOG(X)
-#define MUSIC_LOGN(N, X)
-
-#define MUSIC_LOG0(X)
-#endif
+#include "music/connector.hh"
+#include "music/debug.hh"
 
 namespace MUSIC {
 

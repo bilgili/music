@@ -292,7 +292,13 @@ void VisualiseNeurons::tickWrapper(int v) {
   }
 
   if(vn && !vn->done_) {
+    // Flushing buffers and waiting for code to finish, trying to keep
+    // both displays in synch.
+    glFlush();
+    glFinish();
+
     glutTimerFunc(1,tickWrapper, 1);
+
     // std::cout << "Time = " << vn->time_ 
     //           << " stopTime = " << vn->stopTime_ << std::endl;
   } else {

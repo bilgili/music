@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include "music/connectivity.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
@@ -50,18 +53,22 @@ namespace MUSIC {
 		     int remote_leader,
 		     int remote_n_proc)
   {
-    std::map<std::string, connectivity_info*>::iterator cmap_info
+    std::map<std::string, int>::iterator cmap_info
       = connectivity_map.find (local_port);
     connectivity_info* info;
     if (cmap_info == connectivity_map.end ())
       {
+	MUSIC_LOG ("creating new entry for " << local_port);
+	int index = _connections.size ();
 	_connections.push_back (connectivity_info (dir, width));
 	info = &_connections.back ();
-	connectivity_map.insert (std::make_pair (local_port, info));
+	MUSIC_LOG ("ci = " << info);
+	connectivity_map.insert (std::make_pair (local_port, index));
       }
     else
       {
-	info = cmap_info->second;
+	MUSIC_LOG ("found old entry for " << local_port);
+	info = &_connections[cmap_info->second];
 	if (info->direction () != dir)
 	  error ("port " + local_port + " used both as output and input");
       }
@@ -72,12 +79,12 @@ namespace MUSIC {
   connectivity_info*
   connectivity::info (std::string port_name)
   {
-    std::map<std::string, connectivity_info*>::iterator info
+    std::map<std::string, int>::iterator info
       = connectivity_map.find (port_name);
     if (info == connectivity_map.end ())
       return NO_CONNECTIVITY;
     else
-      return info->second;
+      return &_connections[info->second];
   }
 
 
@@ -91,21 +98,21 @@ namespace MUSIC {
   connectivity_info::port_direction
   connectivity::direction (std::string port_name)
   {
-    return connectivity_map[port_name]->direction ();
+    return _connections[connectivity_map[port_name]].direction ();
   }
 
   
   int
   connectivity::width (std::string port_name)
   {
-    return connectivity_map[port_name]->width ();
+    return _connections[connectivity_map[port_name]].width ();
   }
 
   
   port_connector_info
   connectivity::connections (std::string port_name)
   {
-    return connectivity_map[port_name]->connections ();
+    return _connections[connectivity_map[port_name]].connections ();
   }
 
 
@@ -113,13 +120,13 @@ namespace MUSIC {
   connectivity::write (std::ostringstream& out)
   {
     out << connectivity_map.size ();
-    std::map<std::string, connectivity_info*>::iterator i;
+    std::map<std::string, int>::iterator i;
     for (i = connectivity_map.begin ();
 	 i != connectivity_map.end ();
 	 ++i)
       {
 	out << ':' << i->first << ':';
-	connectivity_info* ci = i->second;
+	connectivity_info* ci = &_connections[i->second];
 	out << ci->direction () << ':' << ci->width () << ':';
 	port_connector_info conns = ci->connections ();
 	out << conns.size ();

@@ -73,7 +73,7 @@ namespace MUSIC {
   
   class connectivity {
     std::vector<connectivity_info> _connections;
-    std::map<std::string, connectivity_info*> connectivity_map;
+    std::map<std::string, int> connectivity_map;
     void read (std::istringstream& in);
   public:
     connectivity () { }

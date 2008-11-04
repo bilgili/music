@@ -16,7 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+
 #include "music/error.hh"
+#include "music/debug.hh"
 
 #include "application_mapper.hh"
 
@@ -90,6 +93,7 @@ namespace MUSIC {
 	if (rank < rank_end)
 	  {
 	    selected_name = ai->name ();
+	    MUSIC_LOG ("rank " << rank << " mapped as " << selected_name);
 	    return;
 	  }
       }
@@ -149,7 +153,8 @@ namespace MUSIC {
 	    else
 	      { //*fixme*
 		std::istringstream ws (width);
-		ws >> w;
+		if (!(ws >> w))
+		  error ("could not interpret width");
 	      }
 	    _connectivity_map->add (dir == connectivity_info::OUTPUT
 				    ? sender_port

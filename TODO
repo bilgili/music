@@ -1,5 +1,7 @@
 * Allow different time steps
 
+* Join intervals at spatial negotiation.
+
 * Implement mark function in FIBO
 
 * Buffering schedule in synchronizer
@@ -14,3 +16,8 @@
 * Improve all error reporting (giving more informative messages with names etc)
 
 * Option for music launcer to get map over rank allocations
+
+* Set flags with options to the music utility and transmit them to the
+  applications so that library behavior can be controlled.  E.g.,
+  print out run statistics, such as part of time spent in tick() when
+  deleting runtime.

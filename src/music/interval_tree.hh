@@ -79,7 +79,7 @@ namespace MUSIC {
   int
   interval_tree<point_type, data_type>::compute_size () const
   {
-    int b = 1;
+    int b = 2;
     int s = nodes.size () + 1;
     while (s != 0)
       {

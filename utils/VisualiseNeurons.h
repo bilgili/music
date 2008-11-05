@@ -11,12 +11,15 @@
 #include <vector>
 #include "datafile.h"
 #include <assert.h>
-
+#include <pthread.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <getopt.h>
 
 #ifndef _VISUALISE_NEURONS
 #define _VISUALISE_NEURONS
 
-#define TIMESTEP 1e-3
+#define DEFAULT_TIMESTEP 1e-3
 #define PI 3.141592653589793
 
 
@@ -24,14 +27,20 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
  public:
   VisualiseNeurons() {
-    tau_ = 10e-3;
-    time_ = 0;
-    stopTime_ = 0;
-    oldTime_ = 0;
-    done_ = 0;
+    tau_ = 10e-3;      // How fast does activity decay in visualisation?
+    time_ = 0;         // Current time
+    dt_ = DEFAULT_TIMESTEP;
+    stopTime_ = 0;     // End of simulation time
+    oldTime_ = 0;      // Time of previous timestep
+    done_ = 0;         // Are we there yet?
 
-    maxDist_ = 0;
-    is3dFlag_ = 0;
+    maxDist_ = 0;      // Radie of a thought sphere containing all neurons
+    is3dFlag_ = 0;     // If it is 3d structure, then lets rotate.
+
+    synchFlag_ = 0;    // Should we try to keep a steady pace or go full speed?
+    scaleTime_ = 1;
+
+    gettimeofday(&tickStartTime_,NULL);
   }
   
   void init(int argc, char **argv);
@@ -51,7 +60,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   // Static wrapper functions
   static void displayWrapper();
   static void rotateTimerWrapper(int v);
-  static void tickWrapper(int v);
+  static void* tickWrapper(void *arg);
 
   typedef struct {
     GLdouble x;
@@ -68,6 +77,10 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
 
  private:
 
+  void getArgs(int argc, char* argv[]);
+  void printHelp();
+
+
   MUSIC::runtime* runtime_; // Music runtime object
   
   GLuint neuronList_;  // OpenGL list for drawing object
@@ -79,6 +92,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   neuronColour excitedCol_;   // Colour of spiking neuron
   double spikeScale_;         // eg, 0.1 = scale up spiking neurons by 10%
 
+  double dt_;
   double tau_;       // Tau decay of activity
   double time_;      // Current time
   double oldTime_;   // Previous timestep
@@ -93,6 +107,16 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
                      // Used when calculating camera position
 
   int is3dFlag_;
+
+  pthread_t tickThreadID_;
+
+  int synchFlag_;    // Do we try to synch, or run full throttle?
+  double scaleTime_; // real time / simulated time
+  struct timeval tickStartTime_;
+  struct timeval tickEndTime_;
+  struct timeval tickDelay_;
+
+  string confFile_;  // Config file with colours and coordinates
 
 };
 

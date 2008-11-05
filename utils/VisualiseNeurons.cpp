@@ -3,6 +3,72 @@
 
 #include "VisualiseNeurons.h"
 
+void VisualiseNeurons::printHelp() {
+  std::cerr << "Usage: viewevents" 
+            << " configfile -timestep <dt> -scalefactor <sf>" << std::endl
+            << std::endl
+            << "Config file is required" << std::endl
+            << "Default timestep is " << DEFAULT_TIMESTEP << std::endl
+            << "Scale factor is how many times slower visualisation "
+            << "time is relative to real time. "
+            << "If omitted the visualisation runs at full speed."
+            << std::endl;
+
+  exit(-1);
+}
+
+void VisualiseNeurons::getArgs(int argc, char* argv[]) {
+
+  opterr = 0; // handle errors ourselves
+  while (1)
+    {
+      static struct option long_options[] =
+	{
+	  {"timestep",  required_argument, 0, 't'},
+	  {"scaletime",  required_argument, 0, 's'},
+	  {"help",      no_argument,       0, 'h'},
+	  {0, 0, 0, 0}
+	};
+      /* `getopt_long' stores the option index here. */
+      int option_index = 0;
+
+      // the + below tells getopt_long not to reorder argv
+      int c = getopt_long (argc, argv, "+t:s:h", long_options, &option_index);
+
+      /* detect the end of the options */
+      if (c == -1)
+	break;
+
+      switch (c)
+	{
+	case 't':
+	  dt_ = atof (optarg); //*fixme* error checking
+          std::cout << "Using dt = " << dt_ << std::endl;
+	  continue;
+	case 's':
+          synchFlag_ = 1;
+          scaleTime_ = atof(optarg); //*fixme* error checking
+          std::cout << "Using scaletime: " << scaleTime_ << std::endl;
+	  continue;
+	case '?':
+	  break; // ignore unknown options
+	case 'h':
+          printHelp(); // exits
+
+	default:
+	  abort ();
+	}
+    }
+
+  if (argc < optind + 1 || argc > optind + 1) {
+    printHelp(); // exits
+  }
+
+  confFile_ = string(argv[optind]);
+
+}
+
+
 void VisualiseNeurons::init(int argc, char **argv) {
 
   // Add this object to the static-wrapper
@@ -27,17 +93,10 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Store the stop time
   setup->config ("stoptime", &stopTime_);
 
+  // Parse inparameters
+  getArgs(argc,argv);
 
-  if(argc < 2) {
-    std::cerr << argv[0] << " requires a config-file as inparameter." 
-              << std::endl;
-    exit(-1);
-  }
-
-  string confFile(argv[1]);
-
-  readConfigFile(confFile);
-
+  readConfigFile(confFile_);
 
   MUSIC::event_input_port* evport = setup->publish_event_input("plot");
 
@@ -62,7 +121,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  runtime_ = new MUSIC::runtime (setup, TIMESTEP);
+  runtime_ = new MUSIC::runtime (setup, dt_);
 
   // Music done.
   
@@ -120,15 +179,19 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
 void VisualiseNeurons::start() {
   if(rank_ == 0) {
+    void *exitStatus;
+
     glutDisplayFunc(displayWrapper);
     if(is3dFlag_) {
       // Only rotate if all neurons are not in a plane
       glutTimerFunc(25,rotateTimerWrapper, 1);
     }
 
-    glutTimerFunc(1,tickWrapper, 1);
+    pthread_create(&tickThreadID_, NULL, tickWrapper, &synchFlag_);
 
     glutMainLoop();
+    pthread_join(tickThreadID_,&exitStatus);
+
   } else {
     std::cerr << "Only run start() on rank 0" << std::endl;
   }
@@ -225,16 +288,19 @@ void VisualiseNeurons::rotateTimer() {
   }
 
   glutPostRedisplay();
+  //glFinish();
 
 }
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
   // For now: just print out incoming events
-  // std::cout << "Event " << id << " detected at " << t << std::endl;
+  std::cout << "Event " << id << " detected at " << t 
+            << " (vis time = " << time_ << ")" <<  std::endl;
 
   assert(0 <= id && id < volt_.size());
-  assert(time_ < t); // time_ is old timestep
-  assert(t < time_ + TIMESTEP*(1+1e-9));
+
+  assert(time_ - 2*dt_ < t); // time_ is old timestep
+  assert(t < time_ + dt_ + 1e-10);
 
   volt_[id] = 1;
   
@@ -243,22 +309,77 @@ void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
 
 void VisualiseNeurons::tick() {
 
-  runtime_->tick ();
+  if(!done_){
 
-  oldTime_ = time_;
-  time_ = runtime_->time ();
+    // What is real time before tick is called
+    // gettimeofday(&tickStartTime_,NULL);
 
-  if(time_ >= stopTime_ - TIMESTEP/2.0) {
-    done_ = 1;
+    // Call music to get the latest simulation data
+    std::cerr << "Entering tick (" << time_ <<")...";
+    runtime_->tick();
+    std::cerr << "done(" << time_ <<")." << std::endl;
+    
+
+    oldTime_ = time_;
+    time_ = runtime_->time ();
+
+    // Make sure the time steps are correct
+    assert(dt_ - 1e-9 < time_ - oldTime_ 
+           && time_ - oldTime_ < dt_ + 1e-9);
+
+
+    // Should we make the visualisation go in realTime=scaleTime_*simTime?
+    if(synchFlag_) {
+      // Yes, how long did we spend in the tick?
+      gettimeofday(&tickEndTime_,NULL);
+
+      // How much of the time allocated for this timestep remains?
+      double delayLeft = dt_*scaleTime_ 
+        - (tickEndTime_.tv_sec - tickStartTime_.tv_sec)
+        - (tickEndTime_.tv_usec - tickStartTime_.tv_usec) / 1000000.0;
+
+
+      if(delayLeft > 0) {        
+
+        // We reuse the timeval for the delay
+        tickDelay_.tv_sec = 0;
+        tickDelay_.tv_usec = (int) (delayLeft*1e6);
+
+        //        std::cerr << "Delay left : " << tickDelay_.tv_usec 
+        //                  << " milliseconds" << std::endl;
+
+        // Delay so that enough time passes
+        select(0,0,0,0,&tickDelay_);
+
+      } else {
+        // Whoops, simulation were too slow... print error.
+        std::cerr << "t = " << time_ 
+                  << ": Music's tick() took "
+                  << -delayLeft*1e6 << " microseconds too long to execute" 
+                  << std::endl;
+
+      }
+
+      // Set end of this tick as start of next tick
+      gettimeofday(&tickStartTime_,NULL);
+    }
+    
+
+    // Decay the volt/activity
+    for(int i = 0; i < volt_.size(); i++) {
+      volt_[i] *= 1-(time_-oldTime_)/tau_;
+    }
+
+    // Tell GLUT to update the screen
+    glutPostRedisplay();
+
+    // Have we reached the end?
+    if(time_ >= stopTime_ - dt_/2.0) {
+      done_ = 1;
+    }
+  } else {
+    std::cout << "Last tick." << std::endl;
   }
-
-  // This function should call the music tick() if needed
-
-  for(int i = 0; i < volt_.size(); i++) {
-    volt_[i] *= 1-(time_-oldTime_)/tau_;
-  }
-
-  glutPostRedisplay();
 
 }
 
@@ -283,29 +404,38 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
   }
 }
 
-void VisualiseNeurons::tickWrapper(int v) {
+
+
+void* VisualiseNeurons::tickWrapper(void *arg) {
   VisualiseNeurons *vn = 0;
 
-  for(int i = 0; i < objTable_.size(); i++) {
-    vn = objTable_[i];
-    vn->tick();
+  int allDone = 0;
+
+  while(!allDone && objTable_.size() > 0) {
+
+    allDone = 1;
+
+    for(int i = 0; i < objTable_.size(); i++) {
+      vn = objTable_[i];
+      vn->tick();
+
+      if(vn && !vn->done_) {
+        allDone = 0;
+      }
+    }
   }
 
-  if(vn && !vn->done_) {
-    // Flushing buffers and waiting for code to finish, trying to keep
-    // both displays in synch.
-    // glFlush();
-    glFinish();
+  std::cout << "Simulation done." << std::endl;
 
-    glutTimerFunc(1,tickWrapper, 1);
+  // Simulation done.
+  glutLeaveMainLoop();
 
-    // std::cout << "Time = " << vn->time_ 
-    //           << " stopTime = " << vn->stopTime_ << std::endl;
-  } else {
-    std::cout << "End of simulation " << vn->time_ << std::endl;
-    glutLeaveMainLoop();
-  }
+  // Thread ends, return null
+  return NULL;
+
+
 }
+
 
 void VisualiseNeurons::readConfigFile(string filename) {
   double x, y, z, r, dist;

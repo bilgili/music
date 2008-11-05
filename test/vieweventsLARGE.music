@@ -2,8 +2,8 @@ np=1
 stoptime=1.0
 [from]
   binary=/usr/local/bin/eventsource
-  args=-t 1e-3 1000 viewevents2-spikes
+  args=-t 1e-4 1000 viewevents2-spikes
 [to]
   binary=/usr/local/bin/viewevents
   from.out -> to.plot [1000]
-  args=neuronGridLARGE.data
+  args=-t 1e-4 -s 10.0 neuronGridLARGE.data

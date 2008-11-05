@@ -220,6 +220,7 @@ void VisualiseNeurons::finalize() {
 
 
 void VisualiseNeurons::display() {
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glLoadIdentity();
@@ -294,8 +295,8 @@ void VisualiseNeurons::rotateTimer() {
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
   // For now: just print out incoming events
-  std::cout << "Event " << id << " detected at " << t 
-            << " (vis time = " << time_ << ")" <<  std::endl;
+  //std::cout << "Event " << id << " detected at " << t 
+  //          << " (vis time = " << time_ << ")" <<  std::endl;
 
   assert(0 <= id && id < volt_.size());
 
@@ -315,6 +316,7 @@ void VisualiseNeurons::tick() {
     // gettimeofday(&tickStartTime_,NULL);
 
     // Call music to get the latest simulation data
+    std::cerr << "Size: " << volt_.size() << " ";
     std::cerr << "Entering tick (" << time_ <<")...";
     runtime_->tick();
     std::cerr << "done(" << time_ <<")." << std::endl;
@@ -396,7 +398,9 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 
   for(int i = 0; i < objTable_.size(); i++) {
     vn = objTable_[i];
-    vn->rotateTimer();
+    if(vn->is3dFlag_) {    
+      vn->rotateTimer();
+    }
   }
 
   if(vn && !(vn->done_)) {

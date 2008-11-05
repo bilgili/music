@@ -6,4 +6,4 @@ stoptime=1.0
 [to]
   binary=/usr/local/bin/viewevents
   from.out -> to.plot [529]
-  args=neuronGridPlane.data
+  args=-t 1e-3 -s 100.0 neuronGridPlane.data

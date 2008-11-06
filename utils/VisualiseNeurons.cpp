@@ -167,7 +167,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Create displaylist for neuron(s)
   GLUquadric* neuronQuad = gluNewQuadric();
 
-  int nVert = (coords_.size() < 500) ? 10 : 5;
+  int nVert = (coords_.size() < 500) ? 10 : 3;
 
   neuronList_ = glGenLists(1);
 
@@ -182,10 +182,7 @@ void VisualiseNeurons::start() {
     void *exitStatus;
 
     glutDisplayFunc(displayWrapper);
-    if(is3dFlag_) {
-      // Only rotate if all neurons are not in a plane
-      glutTimerFunc(25,rotateTimerWrapper, 1);
-    }
+    glutTimerFunc(25,rotateTimerWrapper, 1);    
 
     pthread_create(&tickThreadID_, NULL, tickWrapper, &synchFlag_);
 
@@ -262,8 +259,16 @@ void VisualiseNeurons::display() {
   //std::cout << time_ << std::endl;
 
   glLoadIdentity();
-  glColor3d(1,1,1);
-  glRasterPos2d(-maxDist_*1.7,-maxDist_*1.75);
+  glColor3d(0.2,0.2,0.4);
+  //  glRasterPos2d(-maxDist_*1.7,-maxDist_*1.75);
+  //  glRasterPos3d(-maxDist_*2,-1.7*maxDist_,0*maxDist_);
+  if(is3dFlag_) {
+    glColor3d(1,1,1);
+    glRasterPos3d(-maxDist_*0.9,-maxDist_*0.5,maxDist_);
+  }
+  else {
+    glRasterPos3d(-maxDist_*0.8,maxDist_*0.8,0.3*maxDist_);
+  }
   for(int i = 0; i < strlen(buffer); i++) {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,buffer[i]);
   }
@@ -297,8 +302,13 @@ void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
 
   assert(0 <= id && id < volt_.size());
 
+
   assert(time_ - 2*dt_ < t); // time_ is old timestep
-  assert(t < time_ + dt_ + 1e-10);
+  //  assert(t < time_ + 2*dt_); // Check that spike is not too old...
+  if(t < time_ + 2*dt_) {
+    std::cerr << "Too old spike: " << t << " sim time: " << time_ << std::endl;
+  }
+
 
   volt_[id] = 1;
   
@@ -411,7 +421,7 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
   glFinish();
 
   if(vn && !(vn->done_)) {
-    glutTimerFunc(25,rotateTimerWrapper, 1);
+    glutTimerFunc(100,rotateTimerWrapper, 1);
   }
 }
 

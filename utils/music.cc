@@ -150,6 +150,9 @@ launch (MUSIC::configuration* config, char** argv)
   string binary;
   config->lookup ("binary", &binary);
   config->write_env ();
+  string wd;
+  if (config->lookup ("wd", &wd))
+    chdir (wd.c_str ()); //*fixme* error checking
   execvp (binary.c_str (), argv);
 
   // if we get here, something is wrong

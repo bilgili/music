@@ -74,11 +74,6 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Add this object to the static-wrapper
   objTable_.push_back(this);
 
-
-  // Init glut
-  glutInit(&argc,argv);
-  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
-
   // Init music
   MUSIC::setup* setup = new MUSIC::setup(argc, argv);
   MPI::Intracomm comm = setup->communicator();
@@ -89,6 +84,11 @@ void VisualiseNeurons::init(int argc, char **argv) {
               << std::endl;
     exit(-1);
   }
+
+  // Init glut
+  glutInit(&argc,argv);
+  glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+
 
   // Store the stop time
   setup->config ("stoptime", &stopTime_);
@@ -288,9 +288,6 @@ void VisualiseNeurons::rotateTimer() {
     rotAngle_ -= 36000;
   }
 
-  glutPostRedisplay();
-  //glFinish();
-
 }
 
 void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
@@ -315,12 +312,19 @@ void VisualiseNeurons::tick() {
     // What is real time before tick is called
     // gettimeofday(&tickStartTime_,NULL);
 
+
+#if 0
     // Call music to get the latest simulation data
     std::cerr << "Size: " << volt_.size() << " ";
     std::cerr << "Entering tick (" << time_ <<")...";
+#endif
+
     runtime_->tick();
+
+#if 0
     std::cerr << "done(" << time_ <<")." << std::endl;
-    
+#endif    
+
 
     oldTime_ = time_;
     time_ = runtime_->time ();
@@ -402,6 +406,9 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
       vn->rotateTimer();
     }
   }
+
+  glutPostRedisplay();
+  glFinish();
 
   if(vn && !(vn->done_)) {
     glutTimerFunc(25,rotateTimerWrapper, 1);

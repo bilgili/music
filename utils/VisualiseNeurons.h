@@ -15,6 +15,7 @@
 #include <sys/time.h>
 #include <sys/select.h>
 #include <getopt.h>
+#include <string.h>
 
 #ifndef _VISUALISE_NEURONS
 #define _VISUALISE_NEURONS
@@ -41,6 +42,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     scaleTime_ = 1;
 
     gettimeofday(&tickStartTime_,NULL);
+    windowTitle_ = "viewevents";
   }
   
   void init(int argc, char **argv);
@@ -91,6 +93,8 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   neuronColour baseLineCol_;  // Colour of resting neuron
   neuronColour excitedCol_;   // Colour of spiking neuron
   double spikeScale_;         // eg, 0.1 = scale up spiking neurons by 10%
+
+  string windowTitle_; 
 
   double dt_;
   double tau_;       // Tau decay of activity

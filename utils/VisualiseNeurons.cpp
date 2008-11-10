@@ -27,13 +27,14 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
 	  {"timestep",  required_argument, 0, 't'},
 	  {"scaletime",  required_argument, 0, 's'},
 	  {"help",      no_argument,       0, 'h'},
+          {"title", required_argument, 0, 'T'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:s:h", long_options, &option_index);
+      int c = getopt_long (argc, argv, "+t:s:T:h", long_options, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -52,9 +53,12 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
 	  continue;
 	case '?':
 	  break; // ignore unknown options
+        case 'T':
+          windowTitle_ = optarg; //new string(optarg);
+          continue;
 	case 'h':
-          printHelp(); // exits
-
+          printHelp(); 
+          // fall through...
 	default:
 	  abort ();
 	}
@@ -130,7 +134,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH);
   glutInitWindowSize(500, 500);
   glutInitWindowPosition(50, 50);
-  glutCreateWindow("Neuron population");
+  glutCreateWindow(windowTitle_.c_str());
 
   // Initialise
   glEnable(GL_DEPTH_TEST);
@@ -167,7 +171,7 @@ void VisualiseNeurons::init(int argc, char **argv) {
   // Create displaylist for neuron(s)
   GLUquadric* neuronQuad = gluNewQuadric();
 
-  int nVert = (coords_.size() < 500) ? 10 : 3;
+  int nVert = (coords_.size() < 500) ? 10 : 2;
 
   neuronList_ = glGenLists(1);
 
@@ -185,6 +189,9 @@ void VisualiseNeurons::start() {
     glutTimerFunc(25,rotateTimerWrapper, 1);    
 
     pthread_create(&tickThreadID_, NULL, tickWrapper, &synchFlag_);
+
+    glutPostRedisplay();
+    glFinish();
 
     glutMainLoop();
     pthread_join(tickThreadID_,&exitStatus);
@@ -304,9 +311,9 @@ void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
 
 
   assert(time_ - 2*dt_ < t); // time_ is old timestep
-  //  assert(t < time_ + 2*dt_); // Check that spike is not too old...
-  if(t < time_ + 2*dt_) {
-    std::cerr << "Too old spike: " << t << " sim time: " << time_ << std::endl;
+  //assert(t < time_ + 2*dt_); // Check that spike is not too old...
+  if(t > time_ + 2*dt_) {
+    std::cerr << "Spike from the future: " << t << " sim time: " << time_ << std::endl;
   }
 
 

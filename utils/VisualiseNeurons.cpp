@@ -372,7 +372,9 @@ void VisualiseNeurons::tick() {
         //                  << " milliseconds" << std::endl;
 
         // Delay so that enough time passes
-        select(0,0,0,0,&tickDelay_);
+        //select(0,0,0,0,&tickDelay_);
+        usleep(tickDelay_.tv_usec);
+
 
       } else {
         // Whoops, simulation were too slow... print error.

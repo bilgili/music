@@ -394,7 +394,7 @@ void VisualiseNeurons::tick() {
     }
 
     // Tell GLUT to update the screen
-    glutPostRedisplay();
+    //glutPostRedisplay();
 
     // Have we reached the end?
     if(time_ >= stopTime_ - dt_/2.0) {

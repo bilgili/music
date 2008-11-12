@@ -1,5 +1,8 @@
 2008-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* VisualiseNeurons.cpp: #include <cstring>.  (Should change to C++
+	code.)
+
 	* music.cc (launch): Added standard configuration variable "wd",
 	specifying working directory.
 

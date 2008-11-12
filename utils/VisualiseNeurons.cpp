@@ -124,10 +124,6 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
-
-  runtime_ = new MUSIC::runtime (setup, dt_);
-
-  // Music done.
   
 
   // GLUT
@@ -179,13 +175,24 @@ void VisualiseNeurons::init(int argc, char **argv) {
   gluSphere(neuronQuad, 1, nVert*2, nVert);
   //gluSphere(neuronQuad, 1, 20, 10);
   glEndList();
+
+  glutDisplayFunc(displayWrapper);
+
+  glutPostRedisplay();
+  glFinish();
+
+  // Switch to runtime mode
+  runtime_ = new MUSIC::runtime (setup, dt_);
+
+  // Music done.
+
+
 }
 
 void VisualiseNeurons::start() {
   if(rank_ == 0) {
     void *exitStatus;
 
-    glutDisplayFunc(displayWrapper);
     glutTimerFunc(25,rotateTimerWrapper, 1);    
 
     pthread_create(&tickThreadID_, NULL, tickWrapper, &synchFlag_);

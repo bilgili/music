@@ -45,9 +45,8 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
     windowTitle_ = "viewevents";
   }
   
-  void init(int argc, char **argv);
+  void run(int argc, char **argv);
   void readConfigFile(string filename);
-  void start();
   void finalize();
 
   // Event handler for incomming spikes
@@ -62,7 +61,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   // Static wrapper functions
   static void displayWrapper();
   static void rotateTimerWrapper(int v);
-  static void* tickWrapper(void *arg);
+  static void* runMusic(void *arg);
 
   typedef struct {
     GLdouble x;
@@ -82,7 +81,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void getArgs(int argc, char* argv[]);
   void printHelp();
 
-
+  MUSIC::setup* setup_;     // ONLY to be used during setup phase
   MUSIC::runtime* runtime_; // Music runtime object
   
   GLuint neuronList_;  // OpenGL list for drawing object

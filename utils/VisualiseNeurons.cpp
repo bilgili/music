@@ -73,14 +73,14 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
 }
 
 
-void VisualiseNeurons::init(int argc, char **argv) {
+void VisualiseNeurons::run(int argc, char **argv) {
 
   // Add this object to the static-wrapper
   objTable_.push_back(this);
 
   // Init music
-  MUSIC::setup* setup = new MUSIC::setup(argc, argv);
-  MPI::Intracomm comm = setup->communicator();
+  setup_ = new MUSIC::setup(argc, argv);
+  MPI::Intracomm comm = setup_->communicator();
   rank_ = comm.Get_rank(); 
 
   if(rank_ > 0) {
@@ -95,14 +95,14 @@ void VisualiseNeurons::init(int argc, char **argv) {
 
 
   // Store the stop time
-  setup->config ("stoptime", &stopTime_);
+  setup_->config ("stoptime", &stopTime_);
 
   // Parse inparameters
   getArgs(argc,argv);
 
   readConfigFile(confFile_);
 
-  MUSIC::event_input_port* evport = setup->publish_event_input("plot");
+  MUSIC::event_input_port* evport = setup_->publish_event_input("plot");
 
 
   if (!evport->is_connected()) {
@@ -118,12 +118,11 @@ void VisualiseNeurons::init(int argc, char **argv) {
   }
 
 
-
   MUSIC::linear_index indexmap(0, evport->width());
   evport->map (&indexmap, this, 0.0);
 
   double stoptime;
-  setup->config ("stoptime", &stoptime);
+  setup_->config ("stoptime", &stoptime);
   
 
   // GLUT
@@ -181,21 +180,17 @@ void VisualiseNeurons::init(int argc, char **argv) {
   glutPostRedisplay();
   glFinish();
 
-  // Switch to runtime mode
-  runtime_ = new MUSIC::runtime (setup, dt_);
+
 
   // Music done.
 
 
-}
-
-void VisualiseNeurons::start() {
   if(rank_ == 0) {
     void *exitStatus;
 
     glutTimerFunc(25,rotateTimerWrapper, 1);    
 
-    pthread_create(&tickThreadID_, NULL, tickWrapper, &synchFlag_);
+    pthread_create(&tickThreadID_, NULL, runMusic, &synchFlag_);
 
     glutPostRedisplay();
     glFinish();
@@ -206,6 +201,7 @@ void VisualiseNeurons::start() {
   } else {
     std::cerr << "Only run start() on rank 0" << std::endl;
   }
+
 }
 
 void VisualiseNeurons::finalize() {
@@ -443,10 +439,25 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 
 
 
-void* VisualiseNeurons::tickWrapper(void *arg) {
+void* VisualiseNeurons::runMusic(void *arg) {
   VisualiseNeurons *vn = 0;
 
+  for(int i = 0; i < objTable_.size(); i++) {
+    vn = objTable_[i];
+    
+    // Switch to runtime mode
+    // If the code is extended to handle more than one process
+    // then this will actually be SLOWER since the runtimes 
+    // are *not* created in parallell
+
+    // Reason for this current setup is that we want to start
+    // the GLUT-loop as fast as possible, to get something on screen.
+    vn->runtime_ = new MUSIC::runtime (vn->setup_, vn->dt_);
+
+  }
+
   int allDone = 0;
+
 
   while(!allDone && objTable_.size() > 0) {
 

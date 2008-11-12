@@ -9,9 +9,7 @@
 int main(int argc, char **argv) {
 
   VisualiseNeurons *vn = new VisualiseNeurons();
-  vn->init(argc,argv);
-
-  vn->start();
+  vn->run(argc,argv);
 
   std::cout << "Done." << std::endl;
 

@@ -130,7 +130,10 @@ main (int argc, char* argv[])
   if (evport->has_width ())
     width = evport->width ();
   else
-    comm.Abort (1);
+    {
+      std::cerr << "eventlog port width not specified in configuration file" << std::endl;
+      comm.Abort (1);
+    }
 
   // Port mapping
 

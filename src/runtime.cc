@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include <mpi.h>
 
 #include <algorithm>
@@ -36,6 +39,7 @@ namespace MUSIC {
     comm = s->communicator ();
     if (s->launched_by_music ())
       {
+	MUSIC_LOG ("spatial negotiation");
 	spatial_negotiation (s);
 	build_tables (s);
 	build_schedule (comm.Get_rank ());

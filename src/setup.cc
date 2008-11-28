@@ -16,16 +16,29 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include <mpi.h>
 #include "music/setup.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"
+
+int debug_hang = 0;
+
+static void
+hang ()
+{
+  while (debug_hang)
+    ;
+}
 
 namespace MUSIC {
 
   setup::setup (int& argc, char**& argv)
   {
     MPI::Init (argc, argv);
+    MUSIC_LOG ("exiting MPI::Init");
     init (argc, argv);
   }
 
@@ -61,6 +74,7 @@ namespace MUSIC {
   void
   setup::init (int& argc, char**& argv)
   {
+    hang ();
     int my_rank = MPI::COMM_WORLD.Get_rank ();
     _config = new configuration ();
     if (launched_by_music ())

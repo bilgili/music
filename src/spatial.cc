@@ -456,7 +456,6 @@ namespace MUSIC {
     negotiation_iterator canonical_dist
       = canonical_distribution (width, n_processes);
     //*fixme* rename results
-    MUSIC_LOG0 ("intersect_to_buffers (mapped_dist, canonical_dist, results)");
     intersect_to_buffers (mapped_dist, canonical_dist, results);
 
     // Send to virtual connector
@@ -467,7 +466,6 @@ namespace MUSIC {
       receive (intercomm, i, remote[i]);
     
     results.resize (remote_n_proc);
-    MUSIC_LOG0 ("intersect_to_buffers (local, remote, results)");
     intersect_to_buffers (local, remote, results);
 
     // Send to remote connector
@@ -475,7 +473,6 @@ namespace MUSIC {
       send (intercomm, i, results[i]);
     
     results.resize (n_processes);
-    MUSIC_LOG0 ("intersect_to_buffers (remote, local, results)");
     intersect_to_buffers (remote, local, results);
 
     // Send back to real connector
@@ -502,7 +499,7 @@ namespace MUSIC {
 						       local_rank);
     negotiation_iterator canonical_dist
       = canonical_distribution (width, remote_n_proc);
-    MUSIC_LOGN (2, "2: intersect_to_buffers (local, remote, results)");
+
     intersect_to_buffers (mapped_dist, canonical_dist, remote);
 
     for (int i = 0; i < remote_n_proc; ++i)

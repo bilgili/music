@@ -1,3 +1,9 @@
+2008-11-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Added eventcounter.
+
+	* eventcounter.cc: New file.
+
 2008-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* VisualiseNeurons.cpp: #include <cstring>.  (Should change to C++

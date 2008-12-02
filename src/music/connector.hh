@@ -34,7 +34,7 @@
 
 namespace MUSIC {
 
-  typedef char cont_data_t;
+  typedef char contDataT;
 
   // The connector is responsible for one side of the communication
   // between the ports of a port pair.  An output port can have
@@ -42,126 +42,126 @@ namespace MUSIC {
   // connector::connect () creates one subconnector for each MPI
   // process we will communicate with on the remote side.
 
-  class connector {
+  class Connector {
   protected:
-    connector_info info;
-    spatial_negotiator* negotiator;
+    ConnectorInfo info;
+    SpatialNegotiator* negotiator;
     MPI::Intracomm comm;
-    synchronizer synch;
+    Synchronizer synch;
   public:
-    connector () { }
-    connector (connector_info _info,
-	       spatial_negotiator* _negotiator,
+    Connector () { }
+    Connector (ConnectorInfo _info,
+	       SpatialNegotiator* _negotiator,
 	       MPI::Intracomm c);
-    std::string receiver_app_name () const
-    { return info.receiver_app_name (); }
-    std::string receiver_port_name () const
-    { return info.receiver_port_name (); }
-    MPI::Intercomm create_intercomm ();
+    std::string receiverAppName () const
+    { return info.receiverAppName (); }
+    std::string receiverPortName () const
+    { return info.receiverPortName (); }
+    MPI::Intercomm createIntercomm ();
     virtual void
-    spatial_negotiation (std::vector<output_subconnector*>& osubconn,
-			 std::vector<input_subconnector*>& isubconn) { }
+    spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
+			 std::vector<InputSubconnector*>& isubconn) { }
   };
 
-  class output_connector : virtual public connector {
+  class OutputConnector : virtual public Connector {
   public:
 #if 0
-    std::vector<output_subconnector*> subconnectors;
+    std::vector<OutputSubconnector*> subconnectors;
 #endif
   };
   
-  class input_connector : virtual public connector {
+  class InputConnector : virtual public Connector {
   protected:
   };
 
-  class cont_connector : virtual public connector {
+  class ContConnector : virtual public Connector {
   public:
-    void swap_buffers (cont_data_t*& b1, cont_data_t*& b2);
+    void swapBuffers (contDataT*& b1, contDataT*& b2);
   };  
   
-  class fast_connector : virtual public connector {
+  class FastConnector : virtual public Connector {
   protected:
-    cont_data_t* prev_sample;
-    cont_data_t* sample;
+    contDataT* prevSample;
+    contDataT* sample;
   };
   
-  class cont_output_connector : public cont_connector, output_connector {
+  class ContOutputConnector : public ContConnector, OutputConnector {
   public:
     void send ();
   };
   
-  class cont_input_connector : public cont_connector, input_connector {
+  class ContInputConnector : public ContConnector, InputConnector {
   protected:
     void receive ();
   public:
   };
   
-  class fast_cont_output_connector : public cont_output_connector, fast_connector {
-    void interpolate_to (int start, int end, cont_data_t* data);
-    void interpolate_to_buffers ();
-    void application_to (cont_data_t* data);
+  class FastContOutputConnector : public ContOutputConnector, FastConnector {
+    void interpolateTo (int start, int end, contDataT* data);
+    void interpolateToBuffers ();
+    void applicationTo (contDataT* data);
     void mark ();
   public:
     void tick ();
   };
   
-  class slow_cont_input_connector : public cont_input_connector {
+  class SlowContInputConnector : public ContInputConnector {
   private:
-    void buffers_to_application ();
-    void to_application ();
+    void buffersToApplication ();
+    void toApplication ();
   public:
     void tick ();
   };
   
-  class slow_cont_output_connector : public cont_output_connector {
-    void application_to_buffers ();
+  class SlowContOutputConnector : public ContOutputConnector {
+    void applicationToBuffers ();
   public:
     void tick ();
   };
   
-  class fast_cont_input_connector : public cont_input_connector, fast_connector {
-    void buffers_to (cont_data_t* data);
-    void interpolate_to_application ();
+  class FastContInputConnector : public ContInputConnector, FastConnector {
+    void buffersTo (contDataT* data);
+    void interpolateToApplication ();
   public:
     void tick ();
   };
 
-  class event_connector : virtual public connector {
+  class EventConnector : virtual public Connector {
   public:
-    event_connector (connector_info info,
-		     spatial_negotiator* negotiator,
+    EventConnector (ConnectorInfo info,
+		     SpatialNegotiator* negotiator,
 		     MPI::Intracomm c);
   };
   
-  class event_output_connector : public output_connector, public event_connector {
-    event_router& router;
+  class EventOutputConnector : public OutputConnector, public EventConnector {
+    EventRouter& router;
     void send ();
   public:
-    event_output_connector (connector_info conn_info,
-			    spatial_output_negotiator* negotiator,
-			    int max_buffered,
+    EventOutputConnector (ConnectorInfo connInfo,
+			    SpatialOutputNegotiator* negotiator,
+			    int maxBuffered,
 			    MPI::Intracomm comm,
-			    event_router& router);
-    void spatial_negotiation (std::vector<output_subconnector*>& osubconn,
-			      std::vector<input_subconnector*>& isubconn);
+			    EventRouter& router);
+    void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
+			      std::vector<InputSubconnector*>& isubconn);
     void tick ();
   };
   
-  class event_input_connector : public input_connector, public event_connector {
+  class EventInputConnector : public InputConnector, public EventConnector {
     
   private:
-    event_handler_ptr handle_event;
-    index::type type;
+    EventHandlerPtr handleEvent;
+    Index::Type type;
   public:
-    event_input_connector (connector_info conn_info,
-			   spatial_input_negotiator* negotiator,
-			   event_handler_ptr handle_event,
-			   index::type type,
-			   double acc_latency,
-			   int max_buffered,
+    EventInputConnector (ConnectorInfo connInfo,
+			   SpatialInputNegotiator* negotiator,
+			   EventHandlerPtr handleEvent,
+			   Index::Type type,
+			   double accLatency,
+			   int maxBuffered,
 			   MPI::Intracomm comm);
-    void spatial_negotiation (std::vector<output_subconnector*>& osubconn,
-			      std::vector<input_subconnector*>& isubconn);
+    void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
+			      std::vector<InputSubconnector*>& isubconn);
   };
   
 }

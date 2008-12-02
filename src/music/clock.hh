@@ -23,20 +23,20 @@
 namespace MUSIC {
 
 #ifdef MUSIC_HAVE_LONG_LONG
-  typedef unsigned long long clock_state_t;
+  typedef unsigned long long ClockStateT;
 #else
 #error 64-bit clocks without long long not yet implemented
 #endif
   
-  class clock {
-    clock_state_t state;
-    clock_state_t _tick_interval;
+  class Clock {
+    ClockStateT state;
+    ClockStateT _tickInterval;
     double timebase;
   public:
-    clock () { };
-    clock (double tb, double h);
+    Clock () { };
+    Clock (double tb, double h);
     void tick ();
-    clock_state_t tick_interval () { return _tick_interval; }
+    ClockStateT tickInterval () { return _tickInterval; }
     double time ();
   };
 

@@ -30,21 +30,21 @@
 
 namespace MUSIC {
 
-  class setup;
+  class Setup;
 
-  class port {
+  class Port {
   protected:
-    setup* _setup;
-    connectivity_info* _connectivity_info;
-    void assert_output ();
-    void assert_input ();
+    Setup* _setup;
+    ConnectivityInfo* _ConnectivityInfo;
+    void assertOutput ();
+    void assertInput ();
   public:
-    port () { }
-    port (setup* s, std::string identifier);
-    virtual void build_table () { };
-    virtual void setup_cleanup () { };
-    bool is_connected ();
-    bool has_width ();
+    Port () { }
+    Port (Setup* s, std::string identifier);
+    virtual void buildTable () { };
+    virtual void setupCleanup () { };
+    bool isConnected ();
+    bool hasWidth ();
     int width ();
   };
 
@@ -53,122 +53,122 @@ namespace MUSIC {
   // correct receiver MPI process.  Examples are cont_ports and
   // event_ports.
   
-  class redistribution_port : virtual public port {
+  class RedistributionPort : virtual public Port {
   protected:
   };
 
-  class output_port : virtual public port {
+  class OutputPort : virtual public Port {
   };
 
-  class input_port : virtual public port {
+  class InputPort : virtual public Port {
   };
 
-  class output_redistribution_port : output_port {
+  class OutputRedistributionPort : OutputPort {
   protected:
-    spatial_output_negotiator* negotiator;
+    SpatialOutputNegotiator* negotiator;
   public:
-    void setup_cleanup ();
+    void setupCleanup ();
   };
 
-  class input_redistribution_port : output_port {
+  class InputRedistributionPort : OutputPort {
   protected:
-    spatial_input_negotiator* negotiator;
+    SpatialInputNegotiator* negotiator;
   public:
-    void setup_cleanup ();
+    void setupCleanup ();
   };
 
-  class cont_port : public redistribution_port {
+  class ContPort : public RedistributionPort {
   };
 
-  class cont_output_port : public cont_port, public output_redistribution_port {
+  class ContOutputPort : public ContPort, public OutputRedistributionPort {
   public:
-    cont_output_port (setup* s, std::string id)
-      : port (s, id) { }
-    void map (data_map* dmap);
-    void map (data_map* dmap, int max_buffered);
+    ContOutputPort (Setup* s, std::string id)
+      : Port (s, id) { }
+    void map (DataMap* dmap);
+    void map (DataMap* dmap, int maxBuffered);
   };
   
-  class cont_input_port : public cont_port, public input_redistribution_port {
+  class ContInputPort : public ContPort, public InputRedistributionPort {
   public:
-    cont_input_port (setup* s, std::string id)
-      : port (s, id) { }
-    void map (data_map* dmap, double delay = 0.0, bool interpolate = true);
-    void map (data_map* dmap, int max_buffered, bool interpolate = true);
-    void map (data_map* dmap,
+    ContInputPort (Setup* s, std::string id)
+      : Port (s, id) { }
+    void map (DataMap* dmap, double delay = 0.0, bool interpolate = true);
+    void map (DataMap* dmap, int maxBuffered, bool interpolate = true);
+    void map (DataMap* dmap,
 	      double delay,
-	      int max_buffered,
+	      int maxBuffered,
 	      bool interpolate = true);
   };
 
   
-  class event_port : public redistribution_port {
+  class EventPort : public RedistributionPort {
   };
 
   
-  class event_output_port : public event_port,
-			    public output_redistribution_port {
-    event_router router;
+  class EventOutputPort : public EventPort,
+			    public OutputRedistributionPort {
+    EventRouter router;
   public:
-    event_output_port (setup* s, std::string id)
-      : port (s, id) { }
-    void map (index_map* indices, index::type type);
-    void map (index_map* indices, index::type type, int max_buffered);
-    void map_impl (index_map* indices, index::type type, int max_buffered);
-    void build_table ();
-    void insert_event (double t, global_index id);
-    void insert_event (double t, local_index id);
+    EventOutputPort (Setup* s, std::string id)
+      : Port (s, id) { }
+    void map (IndexMap* indices, Index::Type type);
+    void map (IndexMap* indices, Index::Type type, int maxBuffered);
+    void mapImpl (IndexMap* indices, Index::Type type, int maxBuffered);
+    void buildTable ();
+    void insertEvent (double t, GlobalIndex id);
+    void insertEvent (double t, LocalIndex id);
   };
 
 
-  class event_input_port : public event_port,
-			   public input_redistribution_port {
+  class EventInputPort : public EventPort,
+			   public InputRedistributionPort {
   public:
-    event_input_port (setup* s, std::string id)
-      : port (s, id) { }
-    void map (index_map* indices,
-	      event_handler_global_index* handle_event,
-	      double acc_latency = 0.0);
-    void map (index_map* indices,
-	      event_handler_local_index* handle_event,
-	      double acc_latency = 0.0);
-    void map (index_map* indices,
-	      event_handler_global_index* handle_event,
-	      double acc_latency,
-	      int max_buffered);
-    void map (index_map* indices,
-	      event_handler_local_index* handle_event,
-	      double acc_latency,
-	      int max_buffered);
-    void map_impl (index_map* indices,
-		   index::type type,
-		   event_handler_ptr handle_event,
-		   double acc_latency,
-		   int max_buffered);
+    EventInputPort (Setup* s, std::string id)
+      : Port (s, id) { }
+    void map (IndexMap* indices,
+	      EventHandlerGlobalIndex* handleEvent,
+	      double accLatency = 0.0);
+    void map (IndexMap* indices,
+	      EventHandlerLocalIndex* handleEvent,
+	      double accLatency = 0.0);
+    void map (IndexMap* indices,
+	      EventHandlerGlobalIndex* handleEvent,
+	      double accLatency,
+	      int maxBuffered);
+    void map (IndexMap* indices,
+	      EventHandlerLocalIndex* handleEvent,
+	      double accLatency,
+	      int maxBuffered);
+    void mapImpl (IndexMap* indices,
+		   Index::Type type,
+		   EventHandlerPtr handleEvent,
+		   double accLatency,
+		   int maxBuffered);
     // Facilities to support the C interface
   public:
-    event_handler_global_index_proxy*
-    alloc_event_handler_global_index_proxy (void (*) (double, int));
-    event_handler_local_index_proxy*
-    alloc_event_handler_local_index_proxy (void (*) (double, int));
+    EventHandlerGlobalIndexProxy*
+    allocEventHandlerGlobalIndexProxy (void (*) (double, int));
+    EventHandlerLocalIndexProxy*
+    allocEventHandlerLocalIndexProxy (void (*) (double, int));
   private:
-    event_handler_global_index_proxy c_event_handler_global_index;
-    event_handler_local_index_proxy c_event_handler_local_index;
+    EventHandlerGlobalIndexProxy cEventHandlerGlobalIndex;
+    EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
   };
 
 
-  class message_port : virtual public port {
+  class MessagePort : virtual public Port {
   };
 
-  class message_output_port : public message_port, public output_port {
+  class MessageOutputPort : public MessagePort, public OutputPort {
   public:
     void map ();
-    void map (int max_buffered);
+    void map (int maxBuffered);
   };
 
-  class message_input_port : public message_port, public input_port {
+  class MessageInputPort : public MessagePort, public InputPort {
   public:
-    void map (message_handler* handler, double acc_latency = 0.0);
-    void map (message_handler* handler, double acc_latency, int max_buffered);
+    void map (MessageHandler* handler, double accLatency = 0.0);
+    void map (MessageHandler* handler, double accLatency, int maxBuffered);
   };
 
 }

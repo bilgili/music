@@ -20,7 +20,7 @@
 
 namespace MUSIC {
 
-  class synchronizer {
+  class Synchronizer {
   public:
     bool sample ();
     bool mark ();

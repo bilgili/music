@@ -24,18 +24,18 @@
 #include "music/runtime.hh"
 #include "music/parse.hh"
 
-int debug_hang = 0;
+int debugHang = 0;
 
 static void
 hang ()
 {
-  while (debug_hang)
+  while (debugHang)
     ;
 }
 
 namespace MUSIC {
 
-  setup::setup (int& argc, char**& argv)
+  Setup::Setup (int& argc, char**& argv)
   {
     MPI::Init (argc, argv);
     MUSIC_LOG ("exiting MPI::Init");
@@ -43,7 +43,7 @@ namespace MUSIC {
   }
 
   
-  setup::setup (int& argc, char**& argv, int required, int* provided)
+  Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
@@ -56,36 +56,36 @@ namespace MUSIC {
   }
 
 
-  setup::~setup ()
+  Setup::~Setup ()
   {
-    for (std::vector<port*>::iterator i = _ports.begin ();
+    for (std::vector<Port*>::iterator i = _ports.begin ();
 	 i != _ports.end ();
 	 ++i)
-      (*i)->setup_cleanup ();
+      (*i)->setupCleanup ();
   }
   
 
   bool
-  setup::launched_by_music ()
+  Setup::launchedByMusic ()
   {
-    return _config->launched_by_music ();
+    return _config->launchedByMusic ();
   }
 
   void
-  setup::init (int& argc, char**& argv)
+  Setup::init (int& argc, char**& argv)
   {
     hang ();
-    int my_rank = MPI::COMM_WORLD.Get_rank ();
-    _config = new configuration ();
-    if (launched_by_music ())
+    int myRank = MPI::COMM_WORLD.Get_rank ();
+    _config = new Configuration ();
+    if (launchedByMusic ())
       {
 	// launched by the music utility
-	comm = MPI::COMM_WORLD.Split (_config->color (), my_rank);
+	comm = MPI::COMM_WORLD.Split (_config->color (), myRank);
 	string binary;
 	_config->lookup ("binary", &binary);
 	string args;
 	_config->lookup ("args", &args);
-	argv = parse_args (binary, args, &argc);
+	argv = parseArgs (binary, args, &argc);
       }
     else
       {
@@ -96,103 +96,103 @@ namespace MUSIC {
 
 
   MPI::Intracomm
-  setup::communicator ()
+  Setup::communicator ()
   {
     return comm;
   }
 
 
-  connectivity_info*
-  setup::port_connectivity (const std::string local_name)
+  ConnectivityInfo*
+  Setup::portConnectivity (const std::string localName)
   {
-    return _config->connectivity_map ()->info (local_name);
+    return _config->connectivityMap ()->info (localName);
   }
 
 
   bool
-  setup::is_connected (const std::string local_name)
+  Setup::isConnected (const std::string localName)
   {
-    return _config->connectivity_map ()->is_connected (local_name);
+    return _config->connectivityMap ()->isConnected (localName);
   }
 
 
-  connectivity_info::port_direction
-  setup::port_direction (const std::string local_name)
+  ConnectivityInfo::PortDirection
+  Setup::portDirection (const std::string localName)
   {
-    return _config->connectivity_map ()->direction (local_name);
+    return _config->connectivityMap ()->direction (localName);
   }
 
 
   int
-  setup::port_width (const std::string local_name)
+  Setup::portWidth (const std::string localName)
   {
-    return _config->connectivity_map ()->width (local_name);
+    return _config->connectivityMap ()->width (localName);
   }
 
 
-  port_connector_info
-  setup::port_connections (const std::string local_name)
+  PortConnectorInfo
+  Setup::portConnections (const std::string localName)
   {
-    return _config->connectivity_map ()->connections (local_name);
+    return _config->connectivityMap ()->connections (localName);
   }
 
 
   bool
-  setup::config (string var, string* result)
+  Setup::config (string var, string* result)
   {
     return _config->lookup (var, result);
   }
 
   
   bool
-  setup::config (string var, int* result)
+  Setup::config (string var, int* result)
   {
     return _config->lookup (var, result);
   }
 
   
   bool
-  setup::config (string var, double* result)
+  Setup::config (string var, double* result)
   {
     return _config->lookup (var, result);
   }
 
   
-  cont_input_port*
-  setup::publish_cont_input (std::string identifier)
+  ContInputPort*
+  Setup::publishContInput (std::string identifier)
   {
-    return new cont_input_port (this, identifier);
+    return new ContInputPort (this, identifier);
   }
 
 
-  cont_output_port*
-  setup::publish_cont_output (std::string identifier)
+  ContOutputPort*
+  Setup::publishContOutput (std::string identifier)
   {
-    return new cont_output_port (this, identifier);
+    return new ContOutputPort (this, identifier);
   }
 
 
-  event_input_port*
-  setup::publish_event_input (std::string identifier)
+  EventInputPort*
+  Setup::publishEventInput (std::string identifier)
   {
-    return new event_input_port (this, identifier);
+    return new EventInputPort (this, identifier);
   }
 
 
-  event_output_port*
-  setup::publish_event_output (std::string identifier)
+  EventOutputPort*
+  Setup::publishEventOutput (std::string identifier)
   {
-    return new event_output_port (this, identifier);
+    return new EventOutputPort (this, identifier);
   }
 
   
-  void setup::add_port (port* p)
+  void Setup::addPort (Port* p)
   {
     _ports.push_back (p);
   }
 
   
-  void setup::add_connector (connector* c)
+  void Setup::addConnector (Connector* c)
   {
     _connectors.push_back (c);
   }

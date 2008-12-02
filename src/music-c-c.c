@@ -5,7 +5,7 @@
 /* Communicators */
 
 MPI_Comm
-MUSIC_setup_communicator (MUSIC_setup *setup)
+MUSICSetupCommunicator (MUSICSetup *setup)
 {
-  return (MPI_Comm) MUSIC_setup_communicator_glue (setup);
+  return (MPI_Comm) MUSICSetupCommunicatorGlue (setup);
 }

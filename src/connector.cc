@@ -23,8 +23,8 @@
 
 namespace MUSIC {
 
-  connector::connector (connector_info _info,
-			spatial_negotiator* _negotiator,
+  Connector::Connector (ConnectorInfo _info,
+			SpatialNegotiator* _negotiator,
 			MPI::Intracomm c)
     : info (_info),
       negotiator (_negotiator),
@@ -34,19 +34,19 @@ namespace MUSIC {
 
   
   MPI::Intercomm
-  connector::create_intercomm ()
+  Connector::createIntercomm ()
   {
     return comm.Create_intercomm (0,
 				  MPI::COMM_WORLD, //*fixme* recursive?
-				  info.remote_leader (),
+				  info.remoteLeader (),
 				  0); //*fixme* tag
   }
 
   
   void
-  cont_connector::swap_buffers (cont_data_t*& b1, cont_data_t*& b2)
+  ContConnector::swapBuffers (contDataT*& b1, contDataT*& b2)
   {
-    cont_data_t* tmp;
+    contDataT* tmp;
     tmp = b1;
     b1 = b2;
     b2 = tmp;
@@ -54,39 +54,39 @@ namespace MUSIC {
   
 
   void
-  cont_input_connector::receive ()
+  ContInputConnector::receive ()
   {
   }
 
   
   void
-  fast_cont_output_connector::interpolate_to (int start, int end, cont_data_t* data)
+  FastContOutputConnector::interpolateTo (int start, int end, contDataT* data)
   {
   }
   
   
   void
-  fast_cont_output_connector::interpolate_to_buffers ()
+  FastContOutputConnector::interpolateToBuffers ()
   {
 #if 0
-    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
+    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
-	cont_data_t* data = (cont_data_t*) (*i)->buffer.insert ();
-	interpolate_to ((*i)->start_idx (), (*i)->end_idx (), data);
+	contDataT* data = (contDataT*) (*i)->buffer.insert ();
+	interpolateTo ((*i)->startIdx (), (*i)->endIdx (), data);
       }
 #endif
   }
 
   
   void
-  fast_cont_output_connector::mark ()
+  FastContOutputConnector::mark ()
   {
 #if 0
-    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
+    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
-	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
+	ContOutputSubconnector* subcon = (ContOutputSubconnector*) *i;
 	subcon->buffer.mark ();
       }
 #endif
@@ -94,13 +94,13 @@ namespace MUSIC {
 
   
   void
-  cont_output_connector::send ()
+  ContOutputConnector::send ()
   {
 #if 0
-    std::vector<output_subconnector*>::iterator i = subconnectors.begin ();
+    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
     for (; i != subconnectors.end (); ++i)
       {
-	cont_output_subconnector* subcon = (cont_output_subconnector*) *i;
+	ContOutputSubconnector* subcon = (ContOutputSubconnector*) *i;
 	subcon->send ();
       }
 #endif
@@ -108,26 +108,26 @@ namespace MUSIC {
 
 
   void
-  fast_cont_output_connector::application_to (cont_data_t* data)
+  FastContOutputConnector::applicationTo (contDataT* data)
   {
   }
   
   
   void
-  slow_cont_input_connector::to_application ()
+  SlowContInputConnector::toApplication ()
   {
   }
 
   
   void
-  fast_cont_output_connector::tick ()
+  FastContOutputConnector::tick ()
   {
     if (synch.sample ())
       {
-	swap_buffers (prev_sample, sample);
+	swapBuffers (prevSample, sample);
 	// data is copied into sections destined to different subconnectors
-	application_to (sample);
-	interpolate_to_buffers ();
+	applicationTo (sample);
+	interpolateToBuffers ();
       }
     if (synch.mark ())
       mark ();
@@ -137,102 +137,102 @@ namespace MUSIC {
 
 
   void
-  slow_cont_input_connector::buffers_to_application ()
+  SlowContInputConnector::buffersToApplication ()
   {
   }
 
   
   void
-  slow_cont_input_connector::tick ()
+  SlowContInputConnector::tick ()
   {
     if (synch.communicate ())
       receive ();
-    buffers_to_application ();
+    buffersToApplication ();
   }
 
 
   void
-  slow_cont_output_connector::application_to_buffers ()
+  SlowContOutputConnector::applicationToBuffers ()
   {
   }
 
   
   void
-  slow_cont_output_connector::tick ()
+  SlowContOutputConnector::tick ()
   {
-    application_to_buffers ();
+    applicationToBuffers ();
     if (synch.communicate ())
       send ();
   }
 
 
   void
-  fast_cont_input_connector::buffers_to (cont_data_t* data)
+  FastContInputConnector::buffersTo (contDataT* data)
   {
   }
 
   
   void
-  fast_cont_input_connector::interpolate_to_application ()
+  FastContInputConnector::interpolateToApplication ()
   {
   }
 
   
   void
-  fast_cont_input_connector::tick ()
+  FastContInputConnector::tick ()
   {
     if (synch.communicate ())
       receive ();
-    swap_buffers (prev_sample, sample);
-    buffers_to (sample);
-    interpolate_to_application ();
+    swapBuffers (prevSample, sample);
+    buffersTo (sample);
+    interpolateToApplication ();
   }
 
 
-  event_connector::event_connector (connector_info _info,
-				    spatial_negotiator* _negotiator,
+  EventConnector::EventConnector (ConnectorInfo _info,
+				    SpatialNegotiator* _negotiator,
 				    MPI::Intracomm c)
-    : connector (_info, _negotiator, c)
+    : Connector (_info, _negotiator, c)
   {
   }
   
 
-  event_output_connector::event_output_connector (connector_info conn_info,
-						  spatial_output_negotiator* _negotiator,
-						  int max_buffered,
+  EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
+						  SpatialOutputNegotiator* _negotiator,
+						  int maxBuffered,
 						  MPI::Intracomm comm,
-						  event_router& _router)
-    : connector (conn_info, _negotiator, comm),
-      event_connector (conn_info, _negotiator, comm),
+						  EventRouter& _router)
+    : Connector (connInfo, _negotiator, comm),
+      EventConnector (connInfo, _negotiator, comm),
       router (_router)
   {
   }
 
   
   void
-  event_output_connector::spatial_negotiation
-  (std::vector<output_subconnector*>& osubconn,
-   std::vector<input_subconnector*>& isubconn)
+  EventOutputConnector::spatialNegotiation
+  (std::vector<OutputSubconnector*>& osubconn,
+   std::vector<InputSubconnector*>& isubconn)
   {
-    std::map<int, event_output_subconnector*> subconnectors;
-    MPI::Intercomm intercomm = create_intercomm ();
-    for (negotiation_iterator i = negotiator->negotiate (comm,
+    std::map<int, EventOutputSubconnector*> subconnectors;
+    MPI::Intercomm intercomm = createIntercomm ();
+    for (NegotiationIterator i = negotiator->negotiate (comm,
 							 intercomm,
-							 info.n_processes ());
+							 info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
-	std::map<int, event_output_subconnector*>::iterator c
+	std::map<int, EventOutputSubconnector*>::iterator c
 	  = subconnectors.find (i->rank ());
-	event_output_subconnector* subconn;
+	EventOutputSubconnector* subconn;
 	if (c != subconnectors.end ())
 	  subconn = c->second;
 	else
 	  {
-	    subconn = new event_output_subconnector (&synch,
+	    subconn = new EventOutputSubconnector (&synch,
 						     intercomm,
 						     i->rank (),
-						     receiver_port_name ());
+						     receiverPortName ());
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    osubconn.push_back (subconn);
 	  }
@@ -241,63 +241,63 @@ namespace MUSIC {
 		   << i->begin () << ", "
 		   << i->end () << ", "
 		   << i->local () << ") -> " << i->rank ());
-	router.insert_routing_interval (i->interval (), subconn->buffer ());
+	router.insertRoutingInterval (i->interval (), subconn->buffer ());
       }
   }
 
   
-  event_input_connector::event_input_connector (connector_info conn_info,
-						spatial_input_negotiator* negotiator,
-						event_handler_ptr _handle_event,
-						index::type _type,
-						double acc_latency,
-						int max_buffered,
+  EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
+						SpatialInputNegotiator* negotiator,
+						EventHandlerPtr _handleEvent,
+						Index::Type _type,
+						double accLatency,
+						int maxBuffered,
 						MPI::Intracomm comm)
-    : connector (conn_info, negotiator, comm),
-      event_connector (conn_info, negotiator, comm),
-      handle_event (_handle_event),
+    : Connector (connInfo, negotiator, comm),
+      EventConnector (connInfo, negotiator, comm),
+      handleEvent (_handleEvent),
       type (_type)
   {
   }
 
   
   void
-  event_input_connector::spatial_negotiation
-  (std::vector<output_subconnector*>& osubconn,
-   std::vector<input_subconnector*>& isubconn)
+  EventInputConnector::spatialNegotiation
+  (std::vector<OutputSubconnector*>& osubconn,
+   std::vector<InputSubconnector*>& isubconn)
   {
-    std::map<int, event_input_subconnector*> subconnectors;
-    MPI::Intercomm intercomm = create_intercomm ();
-    int receiver_rank = intercomm.Get_rank ();
-    for (negotiation_iterator i = negotiator->negotiate (comm,
+    std::map<int, EventInputSubconnector*> subconnectors;
+    MPI::Intercomm intercomm = createIntercomm ();
+    int receiverRank = intercomm.Get_rank ();
+    for (NegotiationIterator i = negotiator->negotiate (comm,
 							 intercomm,
-							 info.n_processes ());
+							 info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
-	std::map<int, event_input_subconnector*>::iterator c
+	std::map<int, EventInputSubconnector*>::iterator c
 	  = subconnectors.find (i->rank ());
-	event_input_subconnector* subconn;
+	EventInputSubconnector* subconn;
 	if (c != subconnectors.end ())
 	  subconn = c->second;
 	else
 	  {
-	    if (type == index::GLOBAL)
+	    if (type == Index::GLOBAL)
 	      subconn
-		= new event_input_subconnector_global (&synch,
+		= new EventInputSubconnectorGlobal (&synch,
 						       intercomm,
 						       i->rank (),
-						       receiver_rank,
-						       receiver_port_name (),
-						       handle_event.global ());
+						       receiverRank,
+						       receiverPortName (),
+						       handleEvent.global ());
 	    else
 	      subconn
-		= new event_input_subconnector_local (&synch,
+		= new EventInputSubconnectorLocal (&synch,
 						      intercomm,
 						      i->rank (),
-						      receiver_rank,
-						      receiver_port_name (),
-						      handle_event.local ());
+						      receiverRank,
+						      receiverPortName (),
+						      handleEvent.local ());
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    isubconn.push_back (subconn);
 	  }

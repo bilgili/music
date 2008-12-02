@@ -22,64 +22,64 @@
 
 namespace MUSIC {
   
-  linear_index::iterator::iterator (linear_index* li)
+  LinearIndex::iterator::iterator (LinearIndex* li)
     : _indices (li)
   {
   }
 
 
-  const index_interval
-  linear_index::iterator::operator* ()
+  const IndexInterval
+  LinearIndex::iterator::operator* ()
   {
     return _indices->_interval;
   }
 
 
-  const index_interval*
-  linear_index::iterator::dereference ()
+  const IndexInterval*
+  LinearIndex::iterator::dereference ()
   {
     return &_indices->_interval;
   }
 
 
   void
-  linear_index::iterator::operator++ ()
+  LinearIndex::iterator::operator++ ()
   {
     _indices = 0;
   }
 
 
   bool
-  linear_index::iterator::is_equal (iterator_implementation* i) const
+  LinearIndex::iterator::isEqual (IteratorImplementation* i) const
   {
     return _indices == static_cast<iterator*> (i)->_indices;
   }
   
   
-  linear_index::linear_index (global_index baseindex, int size)
+  LinearIndex::LinearIndex (GlobalIndex baseindex, int size)
     : _interval (baseindex, baseindex + size, static_cast<int> (baseindex))
   {
   }
 
 
-  index_map::iterator
-  linear_index::begin ()
+  IndexMap::iterator
+  LinearIndex::begin ()
   {
-    return index_map::iterator (new iterator (this));
+    return IndexMap::iterator (new iterator (this));
   }
 
   
-  const index_map::iterator
-  linear_index::end () const
+  const IndexMap::iterator
+  LinearIndex::end () const
   {
-    return index_map::iterator (new iterator (0));
+    return IndexMap::iterator (new iterator (0));
   }
 
 
-  index_map*
-  linear_index::copy ()
+  IndexMap*
+  LinearIndex::copy ()
   {
-    return new linear_index (*this);
+    return new LinearIndex (*this);
   }
   
 }

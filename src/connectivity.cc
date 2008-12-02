@@ -26,62 +26,62 @@
 namespace MUSIC {
 
   void
-  connectivity_info::add_connection (std::string rec_app,
-				     std::string rec_name,
-				     int r_leader,
-				     int n_proc)
+  ConnectivityInfo::addConnection (std::string recApp,
+				     std::string recName,
+				     int rLeader,
+				     int nProc)
   {
-    _port_connections.push_back (connector_info (rec_app,
-						 rec_name,
-						 r_leader,
-						 n_proc));
+    _portConnections.push_back (ConnectorInfo (recApp,
+						 recName,
+						 rLeader,
+						 nProc));
   }
 
 
-  connectivity::connectivity (std::istringstream& in)
+  Connectivity::Connectivity (std::istringstream& in)
   {
     read (in);
   }
   
 
   void
-  connectivity::add (std::string local_port,
-		     connectivity_info::port_direction dir,
+  Connectivity::add (std::string localPort,
+		     ConnectivityInfo::PortDirection dir,
 		     int width,
-		     std::string rec_app,
-		     std::string rec_port,
-		     int remote_leader,
-		     int remote_n_proc)
+		     std::string recApp,
+		     std::string recPort,
+		     int remoteLeader,
+		     int remoteNProc)
   {
-    std::map<std::string, int>::iterator cmap_info
-      = connectivity_map.find (local_port);
-    connectivity_info* info;
-    if (cmap_info == connectivity_map.end ())
+    std::map<std::string, int>::iterator cmapInfo
+      = connectivityMap.find (localPort);
+    ConnectivityInfo* info;
+    if (cmapInfo == connectivityMap.end ())
       {
-	MUSIC_LOG ("creating new entry for " << local_port);
+	MUSIC_LOG ("creating new entry for " << localPort);
 	int index = _connections.size ();
-	_connections.push_back (connectivity_info (dir, width));
+	_connections.push_back (ConnectivityInfo (dir, width));
 	info = &_connections.back ();
 	MUSIC_LOG ("ci = " << info);
-	connectivity_map.insert (std::make_pair (local_port, index));
+	connectivityMap.insert (std::make_pair (localPort, index));
       }
     else
       {
-	MUSIC_LOG ("found old entry for " << local_port);
-	info = &_connections[cmap_info->second];
+	MUSIC_LOG ("found old entry for " << localPort);
+	info = &_connections[cmapInfo->second];
 	if (info->direction () != dir)
-	  error ("port " + local_port + " used both as output and input");
+	  error ("port " + localPort + " used both as output and input");
       }
-    info->add_connection (rec_app, rec_port, remote_leader, remote_n_proc);
+    info->addConnection (recApp, recPort, remoteLeader, remoteNProc);
   }
 
 
-  connectivity_info*
-  connectivity::info (std::string port_name)
+  ConnectivityInfo*
+  Connectivity::info (std::string portName)
   {
     std::map<std::string, int>::iterator info
-      = connectivity_map.find (port_name);
-    if (info == connectivity_map.end ())
+      = connectivityMap.find (portName);
+    if (info == connectivityMap.end ())
       return NO_CONNECTIVITY;
     else
       return &_connections[info->second];
@@ -89,92 +89,92 @@ namespace MUSIC {
 
 
   bool
-  connectivity::is_connected (std::string port_name)
+  Connectivity::isConnected (std::string portName)
   {
-    return connectivity_map.find (port_name) != connectivity_map.end ();
+    return connectivityMap.find (portName) != connectivityMap.end ();
   }
 
 
-  connectivity_info::port_direction
-  connectivity::direction (std::string port_name)
+  ConnectivityInfo::PortDirection
+  Connectivity::direction (std::string portName)
   {
-    return _connections[connectivity_map[port_name]].direction ();
+    return _connections[connectivityMap[portName]].direction ();
   }
 
   
   int
-  connectivity::width (std::string port_name)
+  Connectivity::width (std::string portName)
   {
-    return _connections[connectivity_map[port_name]].width ();
+    return _connections[connectivityMap[portName]].width ();
   }
 
   
-  port_connector_info
-  connectivity::connections (std::string port_name)
+  PortConnectorInfo
+  Connectivity::connections (std::string portName)
   {
-    return _connections[connectivity_map[port_name]].connections ();
+    return _connections[connectivityMap[portName]].connections ();
   }
 
 
   void
-  connectivity::write (std::ostringstream& out)
+  Connectivity::write (std::ostringstream& out)
   {
-    out << connectivity_map.size ();
+    out << connectivityMap.size ();
     std::map<std::string, int>::iterator i;
-    for (i = connectivity_map.begin ();
-	 i != connectivity_map.end ();
+    for (i = connectivityMap.begin ();
+	 i != connectivityMap.end ();
 	 ++i)
       {
 	out << ':' << i->first << ':';
-	connectivity_info* ci = &_connections[i->second];
+	ConnectivityInfo* ci = &_connections[i->second];
 	out << ci->direction () << ':' << ci->width () << ':';
-	port_connector_info conns = ci->connections ();
+	PortConnectorInfo conns = ci->connections ();
 	out << conns.size ();
-	port_connector_info::iterator c;
+	PortConnectorInfo::iterator c;
 	for (c = conns.begin (); c != conns.end (); ++c)
 	  {
-	    out << ':' << c->receiver_app_name ();
-	    out << ':' << c->receiver_port_name ();
-	    out << ':' << c->remote_leader ();
-	    out << ':' << c->n_processes ();
+	    out << ':' << c->receiverAppName ();
+	    out << ':' << c->receiverPortName ();
+	    out << ':' << c->remoteLeader ();
+	    out << ':' << c->nProcesses ();
 	  }
       }
   }
   
 
   void
-  connectivity::read (std::istringstream& in)
+  Connectivity::read (std::istringstream& in)
   {
-    int n_ports;
-    in >> n_ports;
-    for (int i = 0; i < n_ports; ++i)
+    int nPorts;
+    in >> nPorts;
+    for (int i = 0; i < nPorts; ++i)
       {
 	in.ignore ();
-	std::string port_name = ioutils::read (in);
+	std::string portName = IOUtils::read (in);
 	in.ignore ();
 	int dir;
 	in >> dir;
-	connectivity_info::port_direction pdir
-	  = static_cast<connectivity_info::port_direction> (dir);
+	ConnectivityInfo::PortDirection pdir
+	  = static_cast<ConnectivityInfo::PortDirection> (dir);
 	in.ignore ();
 	int width;
 	in >> width;
 	in.ignore ();
-	int n_connections;
-	in >> n_connections;
-	for (int i = 0; i < n_connections; ++i)
+	int nConnections;
+	in >> nConnections;
+	for (int i = 0; i < nConnections; ++i)
 	  {
 	    in.ignore ();
-	    std::string rec_app = ioutils::read (in);
+	    std::string recApp = IOUtils::read (in);
 	    in.ignore ();
-	    std::string rec_port = ioutils::read (in);
+	    std::string recPort = IOUtils::read (in);
 	    in.ignore ();
-	    int r_leader;
-	    in >> r_leader;
+	    int rLeader;
+	    in >> rLeader;
 	    in.ignore ();
-	    int n_proc;
-	    in >> n_proc;
-	    add (port_name, pdir, width, rec_app, rec_port, r_leader, n_proc);
+	    int nProc;
+	    in >> nProc;
+	    add (portName, pdir, width, recApp, recPort, rLeader, nProc);
 	  }
       }
   }

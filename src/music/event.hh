@@ -22,72 +22,72 @@
 
 namespace MUSIC {
 
-  class event {
+  class Event {
   public:
     double t;
     int id;
-    event (double _t, int _id) : t (_t), id (_id) { }
-    bool operator< (const event& other) const { return t < other.t; }
+    Event (double _t, int _id) : t (_t), id (_id) { }
+    bool operator< (const Event& other) const { return t < other.t; }
   };
 
 #if 0
-  class event_fifo : public fifo<event> {
+  class EventFifo : public Fifo<Event> {
   public:
     void insert (int id, double t)
     {
-      event& s = fifo<event>::insert ();
+      Event& s = Fifo<Event>::insert ();
       s.id = id;
       s.t = t;
     }
   };
 #endif
 
-  class event_handler_global_index {
+  class EventHandlerGlobalIndex {
   public:
-    virtual void operator () (double t, global_index id) = 0;
+    virtual void operator () (double t, GlobalIndex id) = 0;
   };
   
-  class event_handler_global_index_proxy
-    : public event_handler_global_index {
-    void (*event_handler) (double t, int id);
+  class EventHandlerGlobalIndexProxy
+    : public EventHandlerGlobalIndex {
+    void (*eventHandler) (double t, int id);
   public:
-    event_handler_global_index_proxy () { }
-    event_handler_global_index_proxy (void (*eh) (double t, int id))
-      : event_handler (eh) { }
-    void operator () (double t, global_index id)
+    EventHandlerGlobalIndexProxy () { }
+    EventHandlerGlobalIndexProxy (void (*eh) (double t, int id))
+      : eventHandler (eh) { }
+    void operator () (double t, GlobalIndex id)
     {
-      event_handler (t, id);
+      eventHandler (t, id);
     }
   };
   
-  class event_handler_local_index {
+  class EventHandlerLocalIndex {
   public:
-    virtual void operator () (double t, local_index id) = 0;
+    virtual void operator () (double t, LocalIndex id) = 0;
   };
 
-  class event_handler_local_index_proxy
-    : public event_handler_local_index {
-    void (*event_handler) (double t, int id);
+  class EventHandlerLocalIndexProxy
+    : public EventHandlerLocalIndex {
+    void (*eventHandler) (double t, int id);
   public:
-    event_handler_local_index_proxy () { }
-    event_handler_local_index_proxy (void (*eh) (double t, int id))
-      : event_handler (eh) { }
-    void operator () (double t, local_index id)
+    EventHandlerLocalIndexProxy () { }
+    EventHandlerLocalIndexProxy (void (*eh) (double t, int id))
+      : eventHandler (eh) { }
+    void operator () (double t, LocalIndex id)
     {
-      event_handler (t, id);
+      eventHandler (t, id);
     }
   };
 
-  class event_handler_ptr {
+  class EventHandlerPtr {
     union {
-      event_handler_global_index* global;
-      event_handler_local_index* local;
+      EventHandlerGlobalIndex* global;
+      EventHandlerLocalIndex* local;
     } ptr;
   public:
-    event_handler_ptr (event_handler_global_index* p) { ptr.global = p; }
-    event_handler_ptr (event_handler_local_index* p) { ptr.local = p; }
-    event_handler_global_index* global () { return ptr.global; }
-    event_handler_local_index* local () { return ptr.local; }
+    EventHandlerPtr (EventHandlerGlobalIndex* p) { ptr.global = p; }
+    EventHandlerPtr (EventHandlerLocalIndex* p) { ptr.local = p; }
+    EventHandlerGlobalIndex* global () { return ptr.global; }
+    EventHandlerLocalIndex* local () { return ptr.local; }
   };
   
 }

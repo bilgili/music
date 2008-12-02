@@ -23,25 +23,25 @@
 
 namespace MUSIC {
 
-  class application_info {
+  class ApplicationInfo {
     std::string _name;
     int _leader;
-    int _n_proc;
+    int _nProc;
   public:
-    application_info (std::string name, int l, int n)
-      : _name (name), _leader (l), _n_proc (n) { }
+    ApplicationInfo (std::string name, int l, int n)
+      : _name (name), _leader (l), _nProc (n) { }
     std::string name () { return _name; }
     int leader () { return _leader; }
-    int n_proc () { return _n_proc; }
+    int nProc () { return _nProc; }
   };
 
   
-  class application_map : public std::vector<application_info> {
+  class ApplicationMap : public std::vector<ApplicationInfo> {
     void read (std::istringstream& in);
   public:
-    application_map () { }
-    application_map (std::istringstream& in);
-    application_info* lookup (std::string app_name);
+    ApplicationMap () { }
+    ApplicationMap (std::istringstream& in);
+    ApplicationInfo* lookup (std::string appName);
     void add (std::string name, int l, int n);
     void write (std::ostringstream& out);
   };

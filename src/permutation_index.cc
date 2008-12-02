@@ -23,48 +23,48 @@
 
 namespace MUSIC {
   
-  bool operator< (const index_interval& a, const index_interval& b)
+  bool operator< (const IndexInterval& a, const IndexInterval& b)
   {
     return (a.begin () < b.begin ()
 	    || (a.begin () == b.begin () && a.end () < b.end ()));
   }
   
-  permutation_index::permutation_index (global_index* indices, int size)
+  PermutationIndex::PermutationIndex (GlobalIndex* indices, int size)
   {
     
     //*fixme* collapse where possible
     for (int i = 0; i < size; ++i)
-      _indices.push_back (index_interval (indices[i],
+      _indices.push_back (IndexInterval (indices[i],
 					  indices[i] + 1,
 					  indices[i] - i));
     sort (_indices.begin (), _indices.end ());
   }
   
 
-  permutation_index::permutation_index (std::vector<index_interval>& indices)
+  PermutationIndex::PermutationIndex (std::vector<IndexInterval>& indices)
     : _indices (indices)
   {
   }
 
   
-  index_map::iterator
-  permutation_index::begin ()
+  IndexMap::iterator
+  PermutationIndex::begin ()
   {
-    return index_map::iterator (new iterator (&_indices.front ()));
+    return IndexMap::iterator (new iterator (&_indices.front ()));
   }
 
   
-  const index_map::iterator
-  permutation_index::end () const
+  const IndexMap::iterator
+  PermutationIndex::end () const
   {
-    return index_map::iterator (new iterator (&_indices.back () + 1));
+    return IndexMap::iterator (new iterator (&_indices.back () + 1));
   }
 
 
-  index_map*
-  permutation_index::copy ()
+  IndexMap*
+  PermutationIndex::copy ()
   {
-    return new permutation_index (_indices);
+    return new PermutationIndex (_indices);
   }
 
 }

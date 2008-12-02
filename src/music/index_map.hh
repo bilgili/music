@@ -24,53 +24,53 @@
 
 namespace MUSIC {
 
-  class index {
+  class Index {
   public:
-    enum type { GLOBAL, LOCAL };
+    enum Type { GLOBAL, LOCAL };
   };
 
-  class global_index : public index {
+  class GlobalIndex : public Index {
     int id;
   public:
-    global_index () { }
-    global_index (int i) : id (i) { }
+    GlobalIndex () { }
+    GlobalIndex (int i) : id (i) { }
     operator int () const { return id; }
   };
 
-  class local_index : public index {
+  class LocalIndex : public Index {
     int id;
   public:
-    local_index () { }
-    local_index (int i) : id (i) { }
+    LocalIndex () { }
+    LocalIndex (int i) : id (i) { }
     operator int () const { return id; }
   };
 
-  class index_interval : public interval {
-    local_index _local;
+  class IndexInterval : public interval {
+    LocalIndex _local;
   public:
-    index_interval () { }
-    index_interval (global_index b, global_index e, local_index l)
+    IndexInterval () { }
+    IndexInterval (GlobalIndex b, GlobalIndex e, LocalIndex l)
       : interval (b, e), _local (l) { }
-    local_index local () const { return _local; }
-    void set_local (int l) { _local = l; }
+    LocalIndex local () const { return _local; }
+    void setLocal (int l) { _local = l; }
   };
 
-  class index_map {
+  class IndexMap {
   public:
-    class iterator_implementation {
+    class IteratorImplementation {
     public:
-      virtual const index_interval operator* () = 0;
-      virtual const index_interval* dereference () = 0;
-      virtual bool is_equal (iterator_implementation* i) const = 0;
+      virtual const IndexInterval operator* () = 0;
+      virtual const IndexInterval* dereference () = 0;
+      virtual bool isEqual (IteratorImplementation* i) const = 0;
       virtual void operator++ () = 0;
-      virtual iterator_implementation* copy () = 0;
+      virtual IteratorImplementation* copy () = 0;
     };
 
     
     class iterator {
-      iterator_implementation* _implementation;
+      IteratorImplementation* _implementation;
     public:
-      iterator (iterator_implementation* impl)
+      iterator (IteratorImplementation* impl)
 	: _implementation (impl) { }
       ~iterator ()
       {
@@ -86,12 +86,12 @@ namespace MUSIC {
 	_implementation = i._implementation->copy ();
 	return *this;
       }
-      iterator_implementation* implementation () const
+      IteratorImplementation* implementation () const
       {
 	return _implementation;
       }
-      const index_interval operator* ();
-      const index_interval* operator-> ();
+      const IndexInterval operator* ();
+      const IndexInterval* operator-> ();
       bool operator== (const iterator& i) const;
       bool operator!= (const iterator& i) const;
       iterator& operator++ ();
@@ -101,7 +101,7 @@ namespace MUSIC {
     virtual iterator begin () = 0;
     virtual const iterator end () const = 0;
 
-    virtual index_map* copy () = 0;
+    virtual IndexMap* copy () = 0;
   };
 
 }

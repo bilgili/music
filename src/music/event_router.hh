@@ -27,43 +27,43 @@
 
 namespace MUSIC {
 
-  class event_routing_data {
-    index_interval _interval;
+  class EventRoutingData {
+    IndexInterval _interval;
     FIBO* buffer;
   public:
-    event_routing_data () { }
-    event_routing_data (index_interval i, FIBO* b)
+    EventRoutingData () { }
+    EventRoutingData (IndexInterval i, FIBO* b)
       : _interval (i), buffer (b) { }
     int begin () const { return _interval.begin (); }
     int end () const { return _interval.end (); }
     int offset () const { return _interval.local (); }
     void insert (double t, int id) {
-      event* e = static_cast<event*> (buffer->insert ());
+      Event* e = static_cast<Event*> (buffer->insert ());
       e->t = t;
       e->id = id;
     }
   };
 
 
-  class event_router {
-    class inserter : public interval_tree<int, event_routing_data>::action {
+  class EventRouter {
+    class Inserter : public IntervalTree<int, EventRoutingData>::Action {
     protected:
       double _t;
       int _id;
     public:
-      inserter (double t, int id) : _t (t), _id (id) { };
-      void operator() (event_routing_data& data)
+      Inserter (double t, int id) : _t (t), _id (id) { };
+      void operator() (EventRoutingData& data)
       {
 	data.insert (_t, _id - data.offset ());
       }
     };
     
-    interval_tree<int, event_routing_data> routing_table;
+    IntervalTree<int, EventRoutingData> routingTable;
   public:
-    void insert_routing_interval (index_interval i, FIBO* b);
-    void build_table ();
-    void insert_event (double t, global_index id);
-    void insert_event (double t, local_index id);
+    void insertRoutingInterval (IndexInterval i, FIBO* b);
+    void buildTable ();
+    void insertEvent (double t, GlobalIndex id);
+    void insertEvent (double t, LocalIndex id);
   };
     
 }

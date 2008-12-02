@@ -20,36 +20,36 @@
 
 namespace MUSIC {
 
-  const index_interval
-  index_map::iterator::operator* ()
+  const IndexInterval
+  IndexMap::iterator::operator* ()
   {
     return **_implementation;
   }
   
 
-  const index_interval*
-  index_map::iterator::operator-> ()
+  const IndexInterval*
+  IndexMap::iterator::operator-> ()
   {
     return _implementation->dereference ();
   }
   
 
   bool
-  index_map::iterator::operator== (const iterator& i) const
+  IndexMap::iterator::operator== (const iterator& i) const
   {
-    return _implementation->is_equal (i.implementation ());
+    return _implementation->isEqual (i.implementation ());
   }
   
 
   bool
-  index_map::iterator::operator!= (const iterator& i) const
+  IndexMap::iterator::operator!= (const iterator& i) const
   {
-    return !_implementation->is_equal (i.implementation ());
+    return !_implementation->isEqual (i.implementation ());
   }
   
 
-  index_map::iterator&
-  index_map::iterator::operator++ ()
+  IndexMap::iterator&
+  IndexMap::iterator::operator++ ()
   {
     ++*_implementation;
     return *this;

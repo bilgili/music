@@ -22,27 +22,27 @@
 
 namespace MUSIC {
 
-  class linear_index : public index_map {
-    index_interval _interval;
+  class LinearIndex : public IndexMap {
+    IndexInterval _interval;
   public:
-    class iterator : public index_map::iterator_implementation {
-      linear_index* _indices;
+    class iterator : public IndexMap::IteratorImplementation {
+      LinearIndex* _indices;
     public:
-      iterator (linear_index* li);
-      virtual const index_interval operator* ();
-      virtual const index_interval* dereference ();
-      virtual bool is_equal (iterator_implementation* i) const;
+      iterator (LinearIndex* li);
+      virtual const IndexInterval operator* ();
+      virtual const IndexInterval* dereference ();
+      virtual bool isEqual (IteratorImplementation* i) const;
       virtual void operator++ ();
-      virtual iterator_implementation* copy ()
+      virtual IteratorImplementation* copy ()
       {
 	return new iterator (_indices);
       }
     };
 
-    linear_index (global_index baseindex, int size);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();
+    LinearIndex (GlobalIndex baseindex, int size);
+    virtual IndexMap::iterator begin ();
+    virtual const IndexMap::iterator end () const;
+    virtual IndexMap* copy ();
   };
 
 }

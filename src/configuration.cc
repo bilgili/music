@@ -26,59 +26,59 @@ extern "C" {
 
 namespace MUSIC {
   
-  const char* const configuration::config_env_var_name = "_MUSIC_CONFIG_";
+  const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";
 
   
-  configuration::configuration (std::string name, int color, configuration* def)
-    : _application_name (name), _color (color), default_config (def)
+  Configuration::Configuration (std::string name, int color, Configuration* def)
+    : _applicationName (name), _color (color), defaultConfig (def)
   {
     
   }
 
   
-  configuration::configuration ()
-    : default_config (0)
+  Configuration::Configuration ()
+    : defaultConfig (0)
   {
-    int n_vars;
-    char* config_str = getenv (config_env_var_name);
-    if (config_str == NULL)
+    int nVars;
+    char* configStr = getenv (configEnvVarName);
+    if (configStr == NULL)
       {
-	_launched_by_music = false;
-	_applications = new application_map ();
-	_connectivity_map = new connectivity ();
+	_launchedByMusic = false;
+	_applications = new ApplicationMap ();
+	_connectivityMap = new Connectivity ();
       }
     else
       {
-	_launched_by_music = true;
-	std::istringstream env (config_str);
-	_application_name = ioutils::read (env);
+	_launchedByMusic = true;
+	std::istringstream env (configStr);
+	_applicationName = IOUtils::read (env);
 	env.ignore ();
 	env >> _color;
 	env.ignore ();
-	_applications = new application_map (env);
+	_applications = new ApplicationMap (env);
 	env.ignore ();
-	_connectivity_map = new connectivity (env);
+	_connectivityMap = new Connectivity (env);
 	// parse config string
 	while (!env.eof ())
 	  {
 	    env.ignore ();
-	    std::string name = ioutils::read (env, '=');
+	    std::string name = IOUtils::read (env, '=');
 	    env.ignore ();
-	    insert (name, ioutils::read (env));
+	    insert (name, IOUtils::read (env));
 	  }
       }
   }
 
 
-  configuration::~configuration ()
+  Configuration::~Configuration ()
   {
-    delete _connectivity_map;
+    delete _connectivityMap;
     delete _applications;
   }
 
   
   void
-  configuration::write (std::ostringstream& env, configuration* mask)
+  Configuration::write (std::ostringstream& env, Configuration* mask)
   {
     std::map<std::string, std::string>::iterator pos;
     for (pos = dict.begin (); pos != dict.end (); ++pos)
@@ -87,37 +87,37 @@ namespace MUSIC {
 	if (!(mask && mask->lookup (name)))
 	  {
 	    env << ':' << name << '=';
-	    ioutils::write (env, pos->second);
+	    IOUtils::write (env, pos->second);
 	  }
       }
   }
 
   
   void
-  configuration::write_env ()
+  Configuration::writeEnv ()
   {
     //*fixme* generally make lexical structure more strict and make
     //sure that everything written can be consistently read back
     std::ostringstream env;
-    env << _application_name << ':' << _color << ':';
+    env << _applicationName << ':' << _color << ':';
     _applications->write (env);
     env << ':';
-    _connectivity_map->write (env);
+    _connectivityMap->write (env);
     write (env, 0);
-    default_config->write (env, this);
-    setenv (config_env_var_name, env.str ().c_str (), 1);
+    defaultConfig->write (env, this);
+    setenv (configEnvVarName, env.str ().c_str (), 1);
   }
 
   
   bool
-  configuration::lookup (std::string name)
+  Configuration::lookup (std::string name)
   {
     return dict.find (name) != dict.end ();
   }
 
   
   bool
-  configuration::lookup (std::string name, std::string* result)
+  Configuration::lookup (std::string name, std::string* result)
   {
     std::map<std::string, std::string>::iterator pos = dict.find (name);
     if (pos != dict.end ())
@@ -126,12 +126,12 @@ namespace MUSIC {
 	return true;
       }
     else
-      return default_config && default_config->lookup (name, result);
+      return defaultConfig && defaultConfig->lookup (name, result);
   }
 
   
   bool
-  configuration::lookup (std::string name, int* result)
+  Configuration::lookup (std::string name, int* result)
   {
     std::map<std::string, std::string>::iterator pos = dict.find (name);
     if (pos != dict.end ())
@@ -147,12 +147,12 @@ namespace MUSIC {
 	return true;
       }
     else
-      return default_config && default_config->lookup (name, result);
+      return defaultConfig && defaultConfig->lookup (name, result);
   }
 
   
   bool
-  configuration::lookup (std::string name, double* result)
+  Configuration::lookup (std::string name, double* result)
   {
     std::map<std::string, std::string>::iterator pos = dict.find (name);
     if (pos != dict.end ())
@@ -168,42 +168,42 @@ namespace MUSIC {
 	return true;
       }
     else
-      return default_config && default_config->lookup (name, result);
+      return defaultConfig && defaultConfig->lookup (name, result);
   }
 
   
   void
-  configuration::insert (std::string name, std::string value)
+  Configuration::insert (std::string name, std::string value)
   {
     dict.insert (std::make_pair (name, value));
   }
 
   
-  application_map*
-  configuration::applications ()
+  ApplicationMap*
+  Configuration::applications ()
   {
     return _applications;
   }
 
   
   void
-  configuration::set_applications (application_map* a)
+  Configuration::setApplications (ApplicationMap* a)
   {
     _applications = a;
   }
 
   
-  connectivity*
-  configuration::connectivity_map ()
+  Connectivity*
+  Configuration::connectivityMap ()
   {
-    return _connectivity_map;
+    return _connectivityMap;
   }
 
 
   void
-  configuration::set_connectivity_map (connectivity* c)
+  Configuration::setConnectivityMap (Connectivity* c)
   {
-    _connectivity_map = c;
+    _connectivityMap = c;
   }
 
 }

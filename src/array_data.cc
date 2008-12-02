@@ -20,11 +20,11 @@
 
 namespace MUSIC {
   
-  array_data::array_data (void* buffer, MPI_Datatype type, index_map* map)
+  ArrayData::ArrayData (void* buffer, MPI_Datatype type, IndexMap* map)
   {
   }
   
-  array_data::array_data (void* buffer, MPI_Datatype type, int base_index, int size)
+  ArrayData::ArrayData (void* buffer, MPI_Datatype type, int baseIndex, int size)
   {
   }
   

@@ -28,89 +28,89 @@ namespace MUSIC {
 
   const int TRANSMITTED_INTERVALS_MAX = 10000;
 
-  class spatial_negotiation_data {
-    index_interval _interval;
+  class SpatialNegotiationData {
+    IndexInterval _interval;
     int _rank;
   public:
-    spatial_negotiation_data () { }
-    spatial_negotiation_data (index_interval i, int r)
+    SpatialNegotiationData () { }
+    SpatialNegotiationData (IndexInterval i, int r)
       : _interval (i), _rank (r) { }
-    spatial_negotiation_data (int b, int e, int l, int r)
+    SpatialNegotiationData (int b, int e, int l, int r)
       : _interval (b, e, l), _rank (r) { }
-    const index_interval& interval () const { return _interval; }
+    const IndexInterval& interval () const { return _interval; }
     int begin () const { return _interval.begin (); }
     int end () const { return _interval.end (); }
     int local () const { return _interval.local (); }
-    void set_local (int l) { _interval.set_local (l); }
+    void setLocal (int l) { _interval.setLocal (l); }
     int rank () const { return _rank; }
   };
 
 
-  typedef std::vector<spatial_negotiation_data> negotiation_intervals;
+  typedef std::vector<SpatialNegotiationData> NegotiationIntervals;
   
 
-  class negotiation_iterator {
+  class NegotiationIterator {
   public:
-    class implementation {
+    class Implementation {
     public:
       virtual bool end () = 0;
       virtual void operator++ () = 0;
-      virtual spatial_negotiation_data* dereference () = 0;
-      virtual implementation* copy () = 0;
+      virtual SpatialNegotiationData* dereference () = 0;
+      virtual Implementation* copy () = 0;
     };
 
-    class interval_traversal : public implementation {
-      negotiation_intervals& buffer;
+    class IntervalTraversal : public Implementation {
+      NegotiationIntervals& buffer;
       int interval;
     public:
-      interval_traversal (negotiation_intervals& _buffer)
+      IntervalTraversal (NegotiationIntervals& _buffer)
 	: buffer (_buffer), interval (0) { }
       bool end () { return interval == buffer.size (); }
       void operator++ () { ++interval; }
-      spatial_negotiation_data* dereference () { return &buffer[interval]; }
-      virtual implementation* copy () { return new interval_traversal (*this); }
+      SpatialNegotiationData* dereference () { return &buffer[interval]; }
+      virtual Implementation* copy () { return new IntervalTraversal (*this); }
     };
 
-    class buffer_traversal : public implementation {
-      std::vector<negotiation_intervals>& buffers;
+    class BufferTraversal : public Implementation {
+      std::vector<NegotiationIntervals>& buffers;
       int buffer;
       int interval;
-      void find_interval ();
+      void findInterval ();
     public:
-      buffer_traversal (std::vector<negotiation_intervals>& buffers);
+      BufferTraversal (std::vector<NegotiationIntervals>& buffers);
       bool end ();
       void operator++ ();
-      spatial_negotiation_data* dereference ();
-      virtual implementation* copy () { return new buffer_traversal (*this); }
+      SpatialNegotiationData* dereference ();
+      virtual Implementation* copy () { return new BufferTraversal (*this); }
     };
 
   private:
-    implementation* _implementation;
+    Implementation* _implementation;
   public:
-    negotiation_iterator (implementation* impl);
-    negotiation_iterator (negotiation_intervals& buffer);
-    negotiation_iterator (std::vector<negotiation_intervals>& buffers);
-    ~negotiation_iterator ()
+    NegotiationIterator (Implementation* impl);
+    NegotiationIterator (NegotiationIntervals& buffer);
+    NegotiationIterator (std::vector<NegotiationIntervals>& buffers);
+    ~NegotiationIterator ()
     {
       delete _implementation;
     }
-    negotiation_iterator (const negotiation_iterator& i)
+    NegotiationIterator (const NegotiationIterator& i)
       : _implementation (i._implementation->copy ())
     {
     }
-    const negotiation_iterator& operator= (const negotiation_iterator& i)
+    const NegotiationIterator& operator= (const NegotiationIterator& i)
     {
       delete _implementation;
       _implementation = i._implementation->copy ();
       return *this;
     }
     bool end () { return _implementation->end (); }
-    negotiation_iterator& operator++ ()
+    NegotiationIterator& operator++ ()
     {
       ++*_implementation;
       return *this;
     };
-    spatial_negotiation_data* operator-> ()
+    SpatialNegotiationData* operator-> ()
     {
       return _implementation->dereference ();
     }
@@ -123,67 +123,67 @@ namespace MUSIC {
   // complexity O (N / P) where N is the port width and P is the
   // number of MPI processes.
 
-  class spatial_negotiator {
+  class SpatialNegotiator {
   protected:
     MPI::Intracomm comm;
-    index_map* indices;
-    index::type type;
-    std::vector<negotiation_intervals> remote;
+    IndexMap* indices;
+    Index::Type type;
+    std::vector<NegotiationIntervals> remote;
     int width;
-    int local_rank;
-    int n_processes;
+    int localRank;
+    int nProcesses;
   public:
-    spatial_negotiator (index_map* indices, index::type type);
-    void negotiate_width ();
-    negotiation_iterator wrap_intervals (index_map::iterator beg,
-					 index_map::iterator end,
-					 index::type type,
-					 int rank);
-    void send (MPI::Comm& comm, int dest_rank,
-	       negotiation_intervals& intervals);
-    void receive (MPI::Comm& comm, int source_rank,
-		  negotiation_intervals& intervals);
-    void all_to_all (std::vector<negotiation_intervals>& out,
-		     std::vector<negotiation_intervals>& in);
-    negotiation_iterator canonical_distribution (int width, int n_processes);
-    void intersect_to_buffers (std::vector<negotiation_intervals>& source,
-			       std::vector<negotiation_intervals>& dest,
-			       std::vector<negotiation_intervals>& buffers);
-    void intersect_to_buffers (negotiation_iterator source,
-			       negotiation_iterator dest,
-			       std::vector<negotiation_intervals>& buffers);
+    SpatialNegotiator (IndexMap* indices, Index::Type type);
+    void negotiateWidth ();
+    NegotiationIterator wrapIntervals (IndexMap::iterator beg,
+				       IndexMap::iterator end,
+				       Index::Type type,
+				       int rank);
+    void send (MPI::Comm& comm, int destRank,
+	       NegotiationIntervals& intervals);
+    void receive (MPI::Comm& comm, int sourceRank,
+		  NegotiationIntervals& intervals);
+    void allToAll (std::vector<NegotiationIntervals>& out,
+		   std::vector<NegotiationIntervals>& in);
+    NegotiationIterator canonicalDistribution (int width, int nProcesses);
+    void intersectToBuffers (std::vector<NegotiationIntervals>& source,
+			     std::vector<NegotiationIntervals>& dest,
+			     std::vector<NegotiationIntervals>& buffers);
+    void intersectToBuffers (NegotiationIterator source,
+			       NegotiationIterator dest,
+			       std::vector<NegotiationIntervals>& buffers);
   private:
-    void intersect_to_buffers_2 (negotiation_iterator source,
-				 negotiation_iterator dest,
-				 std::vector<negotiation_intervals>& buffers);
+    void intersectToBuffers2 (NegotiationIterator source,
+			      NegotiationIterator dest,
+			      std::vector<NegotiationIntervals>& buffers);
   public:
-    virtual negotiation_iterator negotiate (MPI::Intracomm comm,
-					    MPI::Intercomm intercomm,
-					    int remote_n_proc) = 0;
+    virtual NegotiationIterator negotiate (MPI::Intracomm comm,
+					   MPI::Intercomm intercomm,
+					   int remoteNProc) = 0;
   };
 
 
-  class spatial_output_negotiator : public spatial_negotiator {
-    std::vector<negotiation_intervals> local;
-    std::vector<negotiation_intervals> results;
+  class SpatialOutputNegotiator : public SpatialNegotiator {
+    std::vector<NegotiationIntervals> local;
+    std::vector<NegotiationIntervals> results;
   public:
-    spatial_output_negotiator (index_map* indices, index::type type)
-      : spatial_negotiator (indices, type) { }
-    void negotiate_width (MPI::Intercomm c);
-    negotiation_iterator negotiate (MPI::Intracomm comm,
-				    MPI::Intercomm intercomm,
-				    int remote_n_proc);
+    SpatialOutputNegotiator (IndexMap* indices, Index::Type type)
+      : SpatialNegotiator (indices, type) { }
+    void negotiateWidth (MPI::Intercomm c);
+    NegotiationIterator negotiate (MPI::Intracomm comm,
+				   MPI::Intercomm intercomm,
+				   int remoteNProc);
   };
 
   
-  class spatial_input_negotiator : public spatial_negotiator {
+  class SpatialInputNegotiator : public SpatialNegotiator {
   public:
-    spatial_input_negotiator (index_map* indices, index::type type)
-      : spatial_negotiator (indices, type) { }
-    void negotiate_width (MPI::Intercomm c);
-    negotiation_iterator negotiate (MPI::Intracomm comm,
-				    MPI::Intercomm intercomm,
-				    int remote_n_proc);
+    SpatialInputNegotiator (IndexMap* indices, Index::Type type)
+      : SpatialNegotiator (indices, type) { }
+    void negotiateWidth (MPI::Intercomm c);
+    NegotiationIterator negotiate (MPI::Intracomm comm,
+				   MPI::Intercomm intercomm,
+				   int remoteNProc);
   };
 
 }

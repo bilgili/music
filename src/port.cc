@@ -16,322 +16,322 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/setup.hh" // Must be included first on BG/L
 #include "music/port.hh"
-#include "music/setup.hh"
 #include "music/error.hh"
 
 namespace MUSIC {
 
-  port::port (setup* s, std::string identifier)
+  Port::Port (Setup* s, std::string identifier)
     : _setup (s)
   {
-    _connectivity_info = s->port_connectivity (identifier);
-    _setup->add_port (this);
+    _ConnectivityInfo = s->portConnectivity (identifier);
+    _setup->addPort (this);
   }
 
 
   bool
-  port::is_connected ()
+  Port::isConnected ()
   {
-    return _connectivity_info != connectivity::NO_CONNECTIVITY;
+    return _ConnectivityInfo != Connectivity::NO_CONNECTIVITY;
   }
 
 
   void
-  port::assert_output ()
+  Port::assertOutput ()
   {
-    if (!is_connected ())
+    if (!isConnected ())
       error ("attempt to map an unconnected port");
-    else if (_connectivity_info->direction () != connectivity_info::OUTPUT)
+    else if (_ConnectivityInfo->direction () != ConnectivityInfo::OUTPUT)
       error ("output port connected as input");
   }
 
 
   void
-  port::assert_input ()
+  Port::assertInput ()
   {
-    if (!is_connected ())
+    if (!isConnected ())
       error ("attempt to map an unconnected port");
-    else if (_connectivity_info->direction () != connectivity_info::INPUT)
+    else if (_ConnectivityInfo->direction () != ConnectivityInfo::INPUT)
       error ("input port connected as output");
   }
 
 
   bool
-  port::has_width ()
+  Port::hasWidth ()
   {
-    if (!is_connected ())
+    if (!isConnected ())
       error ("attempt to ask for width of an unconnected port");
-    return _connectivity_info->width () != connectivity_info::NO_WIDTH;
+    return _ConnectivityInfo->width () != ConnectivityInfo::NO_WIDTH;
   }
 
 
   int
-  port::width ()
+  Port::width ()
   {
-    if (!is_connected ())
+    if (!isConnected ())
       error ("attempt to ask for width of an unconnected port");
-    int w = _connectivity_info->width ();
-    if (w == connectivity_info::NO_WIDTH)
+    int w = _ConnectivityInfo->width ();
+    if (w == ConnectivityInfo::NO_WIDTH)
       error ("width requested for port with unspecified width");
     return w;
   }
 
 
   void
-  output_redistribution_port::setup_cleanup ()
+  OutputRedistributionPort::setupCleanup ()
   {
     delete negotiator;
   }
   
   
   void
-  input_redistribution_port::setup_cleanup ()
+  InputRedistributionPort::setupCleanup ()
   {
     delete negotiator;
   }
   
   
   void
-  cont_output_port::map (data_map* dmap)
+  ContOutputPort::map (DataMap* dmap)
   {
-    assert_output ();
+    assertOutput ();
   }
 
   
   void
-  cont_output_port::map (data_map* dmap, int max_buffered)
+  ContOutputPort::map (DataMap* dmap, int maxBuffered)
   {
-    assert_output ();
+    assertOutput ();
   }
 
   
   void
-  cont_input_port::map (data_map* dmap, double delay, bool interpolate)
+  ContInputPort::map (DataMap* dmap, double delay, bool interpolate)
   {
-    assert_input ();
+    assertInput ();
   }
 
   
   void
-  cont_input_port::map (data_map* dmap,
-			int max_buffered,
+  ContInputPort::map (DataMap* dmap,
+			int maxBuffered,
 			bool interpolate)
   {
-    assert_input ();
+    assertInput ();
   }
 
   
   void
-  cont_input_port::map (data_map* dmap,
+  ContInputPort::map (DataMap* dmap,
 			double delay,
-			int max_buffered,
+			int maxBuffered,
 			bool interpolate)
   {
-    assert_input ();
+    assertInput ();
   }
 
   
   void
-  event_output_port::map (index_map* indices, index::type type)
+  EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
-    assert_output ();
-    int max_buffered = 0;
-    map_impl (indices, type, max_buffered);
+    assertOutput ();
+    int maxBuffered = 0;
+    mapImpl (indices, type, maxBuffered);
   }
 
   
   void
-  event_output_port::map (index_map* indices,
-			  index::type type,
-			  int max_buffered)
+  EventOutputPort::map (IndexMap* indices,
+			  Index::Type type,
+			  int maxBuffered)
   {
-    assert_output ();
-    if (max_buffered <= 0)
+    assertOutput ();
+    if (maxBuffered <= 0)
       {
-	error ("event_output_port::map: max_buffered should be a positive integer");
+	error ("EventOutputPort::map: maxBuffered should be a positive integer");
       }
-    map_impl (indices, type, max_buffered);
+    mapImpl (indices, type, maxBuffered);
   }
 
   
   void
-  event_output_port::map_impl (index_map* indices,
-			       index::type type,
-			       int max_buffered)
+  EventOutputPort::mapImpl (IndexMap* indices,
+			       Index::Type type,
+			       int maxBuffered)
   {
     MPI::Intracomm comm = _setup->communicator ();
     // Retrieve info about all remote connectors of this port
-    port_connector_info port_connections
-      = _connectivity_info->connections ();
-    negotiator = new spatial_output_negotiator (indices, type);
-    for (port_connector_info::iterator info = port_connections.begin ();
-	 info != port_connections.end ();
+    PortConnectorInfo portConnections
+      = _ConnectivityInfo->connections ();
+    negotiator = new SpatialOutputNegotiator (indices, type);
+    for (PortConnectorInfo::iterator info = portConnections.begin ();
+	 info != portConnections.end ();
 	 ++info)
       // Create connector
-      _setup->add_connector (new event_output_connector (*info,
+      _setup->addConnector (new EventOutputConnector (*info,
 							 negotiator,
-							 max_buffered,
+							 maxBuffered,
 							 comm,
 							 router));
   }
 
 
   void
-  event_output_port::build_table ()
+  EventOutputPort::buildTable ()
   {
-    router.build_table ();
+    router.buildTable ();
   }
 
   
   void
-  event_output_port::insert_event (double t, global_index id)
+  EventOutputPort::insertEvent (double t, GlobalIndex id)
   {
-    router.insert_event (t, id);
+    router.insertEvent (t, id);
   }
 
   
   void
-  event_output_port::insert_event (double t, local_index id)
+  EventOutputPort::insertEvent (double t, LocalIndex id)
   {
-    router.insert_event (t, id);
+    router.insertEvent (t, id);
   }
 
   
   void
-  event_input_port::map (index_map* indices,
-			 event_handler_global_index* handle_event,
-			 double acc_latency)
+  EventInputPort::map (IndexMap* indices,
+			 EventHandlerGlobalIndex* handleEvent,
+			 double accLatency)
   {
-    assert_input ();
-    int max_buffered = 0;
-    map_impl (indices,
-	      index::GLOBAL,
-	      event_handler_ptr (handle_event),
-	      acc_latency,
-	      max_buffered);
+    assertInput ();
+    int maxBuffered = 0;
+    mapImpl (indices,
+	      Index::GLOBAL,
+	      EventHandlerPtr (handleEvent),
+	      accLatency,
+	      maxBuffered);
   }
 
   
   void
-  event_input_port::map (index_map* indices,
-			 event_handler_local_index* handle_event,
-			 double acc_latency)
+  EventInputPort::map (IndexMap* indices,
+			 EventHandlerLocalIndex* handleEvent,
+			 double accLatency)
   {
-    assert_input ();
-    int max_buffered = 0;
-    map_impl (indices,
-	      index::LOCAL,
-	      event_handler_ptr (handle_event),
-	      acc_latency,
-	      max_buffered);
+    assertInput ();
+    int maxBuffered = 0;
+    mapImpl (indices,
+	      Index::LOCAL,
+	      EventHandlerPtr (handleEvent),
+	      accLatency,
+	      maxBuffered);
   }
 
   
   void
-  event_input_port::map (index_map* indices,
-			 event_handler_global_index* handle_event,
-			 double acc_latency,
-			 int max_buffered)
+  EventInputPort::map (IndexMap* indices,
+			 EventHandlerGlobalIndex* handleEvent,
+			 double accLatency,
+			 int maxBuffered)
   {
-    assert_input ();
-    if (max_buffered <= 0)
+    assertInput ();
+    if (maxBuffered <= 0)
       {
-	error ("event_input_port::map: max_buffered should be a positive integer");
+	error ("EventInputPort::map: maxBuffered should be a positive integer");
       }
-    map_impl (indices,
-	      index::GLOBAL,
-	      event_handler_ptr (handle_event),
-	      acc_latency,
-	      max_buffered);
+    mapImpl (indices,
+	      Index::GLOBAL,
+	      EventHandlerPtr (handleEvent),
+	      accLatency,
+	      maxBuffered);
   }
 
   
   void
-  event_input_port::map (index_map* indices,
-			 event_handler_local_index* handle_event,
-			 double acc_latency,
-			 int max_buffered)
+  EventInputPort::map (IndexMap* indices,
+			 EventHandlerLocalIndex* handleEvent,
+			 double accLatency,
+			 int maxBuffered)
   {
-    assert_input ();
-    if (max_buffered <= 0)
+    assertInput ();
+    if (maxBuffered <= 0)
       {
-	error ("event_input_port::map: max_buffered should be a positive integer");
+	error ("EventInputPort::map: maxBuffered should be a positive integer");
       }
-    map_impl (indices,
-	      index::LOCAL,
-	      event_handler_ptr (handle_event),
-	      acc_latency,
-	      max_buffered);
+    mapImpl (indices,
+	      Index::LOCAL,
+	      EventHandlerPtr (handleEvent),
+	      accLatency,
+	      maxBuffered);
   }
 
   
   void
-  event_input_port::map_impl (index_map* indices,
-			      index::type type,
-			      event_handler_ptr handle_event,
-			      double acc_latency,
-			      int max_buffered)
+  EventInputPort::mapImpl (IndexMap* indices,
+			      Index::Type type,
+			      EventHandlerPtr handleEvent,
+			      double accLatency,
+			      int maxBuffered)
   {
     MPI::Intracomm comm = _setup->communicator ();
     // Retrieve info about all remote connectors of this port
-    port_connector_info port_connections
-      = _connectivity_info->connections ();
-    port_connector_info::iterator info = port_connections.begin ();
-    negotiator = new spatial_input_negotiator (indices, type);
-    _setup->add_connector (new event_input_connector (*info,
+    PortConnectorInfo portConnections
+      = _ConnectivityInfo->connections ();
+    PortConnectorInfo::iterator info = portConnections.begin ();
+    negotiator = new SpatialInputNegotiator (indices, type);
+    _setup->addConnector (new EventInputConnector (*info,
 						      negotiator,
-						      handle_event,
+						      handleEvent,
 						      type,
-						      acc_latency,
-						      max_buffered,
+						      accLatency,
+						      maxBuffered,
 						      comm));
   }
 
   
-  event_handler_global_index_proxy*
-  event_input_port::alloc_event_handler_global_index_proxy (void (*eh) (double, int))
+  EventHandlerGlobalIndexProxy*
+  EventInputPort::allocEventHandlerGlobalIndexProxy (void (*eh) (double, int))
   {
-    c_event_handler_global_index = event_handler_global_index_proxy (eh);
-    return &c_event_handler_global_index;
+    cEventHandlerGlobalIndex = EventHandlerGlobalIndexProxy (eh);
+    return &cEventHandlerGlobalIndex;
   }
 
   
-  event_handler_local_index_proxy*
-  event_input_port::alloc_event_handler_local_index_proxy (void (*eh) (double, int))
+  EventHandlerLocalIndexProxy*
+  EventInputPort::allocEventHandlerLocalIndexProxy (void (*eh) (double, int))
   {
-    c_event_handler_local_index = event_handler_local_index_proxy (eh);
-    return &c_event_handler_local_index;
+    cEventHandlerLocalIndex = EventHandlerLocalIndexProxy (eh);
+    return &cEventHandlerLocalIndex;
   }
   
 
   void
-  message_output_port::map ()
+  MessageOutputPort::map ()
   {
-    assert_output ();
+    assertOutput ();
   }
 
   
   void
-  message_output_port::map (int max_buffered)
+  MessageOutputPort::map (int maxBuffered)
   {
-    assert_output ();
+    assertOutput ();
   }
 
   
   void
-  message_input_port::map (message_handler* handler, double acc_latency)
+  MessageInputPort::map (MessageHandler* handler, double accLatency)
   {
-    assert_output ();
+    assertOutput ();
   }
 
   
   void
-  message_input_port::map (message_handler* handler,
-			   double acc_latency,
-			   int max_buffered)
+  MessageInputPort::map (MessageHandler* handler,
+			   double accLatency,
+			   int maxBuffered)
   {
-    assert_output ();
+    assertOutput ();
   }
 
 }

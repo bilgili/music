@@ -22,31 +22,31 @@
 namespace MUSIC {
 
   void
-  event_router::insert_routing_interval (index_interval i, FIBO* b)
+  EventRouter::insertRoutingInterval (IndexInterval i, FIBO* b)
   {
-    routing_table.add (event_routing_data (i, b));
+    routingTable.add (EventRoutingData (i, b));
   }
   
 
   void
-  event_router::build_table ()
+  EventRouter::buildTable ()
   {
-    routing_table.build ();
+    routingTable.build ();
   }
 
 
   void
-  event_router::insert_event (double t, global_index id)
+  EventRouter::insertEvent (double t, GlobalIndex id)
   {
-    inserter i (t, id);
-    routing_table.search (id, &i);
+    Inserter i (t, id);
+    routingTable.search (id, &i);
   }
 
   void
-  event_router::insert_event (double t, local_index id)
+  EventRouter::insertEvent (double t, LocalIndex id)
   {
-    inserter i (t, id);
-    routing_table.search (id, &i);
+    Inserter i (t, id);
+    routingTable.search (id, &i);
   }
 
 }

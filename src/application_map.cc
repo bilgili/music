@@ -21,18 +21,18 @@
 
 namespace MUSIC {
 
-  application_map::application_map (std::istringstream& in)
+  ApplicationMap::ApplicationMap (std::istringstream& in)
   {
     read (in);
   }
 
   
-  application_info*
-  application_map::lookup (std::string app_name)
+  ApplicationInfo*
+  ApplicationMap::lookup (std::string appName)
   {
     for (iterator i = begin (); i != end (); ++i)
       {
-	if (i->name () == app_name)
+	if (i->name () == appName)
 	  return &*i;
       }
     return 0;
@@ -40,27 +40,27 @@ namespace MUSIC {
   
 
   void
-  application_map::add (std::string name, int l, int n)
+  ApplicationMap::add (std::string name, int l, int n)
   {
-    push_back (application_info (name, l, n));
+    push_back (ApplicationInfo (name, l, n));
   }
 
   
   void
-  application_map::write (std::ostringstream& out)
+  ApplicationMap::write (std::ostringstream& out)
   {
     out << size ();
     for (iterator i = begin (); i != end (); ++i)
       {
 	out << ':';
-	ioutils::write (out, i->name ());
-	out << ':' << i->n_proc ();
+	IOUtils::write (out, i->name ());
+	out << ':' << i->nProc ();
       }
   }
 
 
   void
-  application_map::read (std::istringstream& in)
+  ApplicationMap::read (std::istringstream& in)
   {
     int n;
     in >> n;
@@ -68,11 +68,11 @@ namespace MUSIC {
     for (int i = 0; i < n; ++i)
       {
 	in.ignore ();
-	std::string name = ioutils::read (in);
+	std::string name = IOUtils::read (in);
 	in.ignore ();
 	int np;
 	in >> np;
-	push_back (application_info (name, leader, np));
+	push_back (ApplicationInfo (name, leader, np));
 	leader += np;
       }
   }

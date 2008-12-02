@@ -23,19 +23,19 @@
 
 namespace MUSIC {
 
-  class setup;
+  class Setup;
 
-  class temporal_negotiation_data {
-    index_interval _interval;
+  class TemporalNegotiationData {
+    IndexInterval _interval;
     int _rank;
   public:
-    temporal_negotiation_data (index_interval i, int r)
+    TemporalNegotiationData (IndexInterval i, int r)
       : _interval (i), _rank (r) { }
   };
 
-  class temporal_negotiator {
+  class TemporalNegotiator {
   public:
-    temporal_negotiator (setup* s, double timebase, clock_state_t ti);
+    TemporalNegotiator (Setup* s, double timebase, ClockStateT ti);
     void negotiate () { };
   };
 

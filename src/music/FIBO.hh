@@ -24,22 +24,22 @@ namespace MUSIC {
 
   class FIBO {
   private:
-    static const int n_initial = 10;
+    static const int nInitial = 10;
     
     std::vector<char> buffer;
-    int element_size;
+    int elementSize;
     int size;
     int insertion;
 
-    void grow (int new_size);
+    void grow (int newSize);
     
   public:
     FIBO () { }
-    FIBO (int element_size);
+    FIBO (int elementSize);
     //*fixme* return type
     void* insert ();
     void mark ();
-    void next_block (void*& data, int& size);
+    void nextBlock (void*& data, int& size);
   };
   
   

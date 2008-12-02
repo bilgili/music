@@ -25,10 +25,10 @@
 
 namespace MUSIC {
 
-  class array_data : public data_map {
+  class ArrayData : public DataMap {
   public:
-    array_data (void* buffer, MPI_Datatype type, index_map* map);
-    array_data (void* buffer, MPI_Datatype type, int base_index, int size);
+    ArrayData (void* buffer, MPI_Datatype type, IndexMap* map);
+    ArrayData (void* buffer, MPI_Datatype type, int baseIndex, int size);
   };
 
 }

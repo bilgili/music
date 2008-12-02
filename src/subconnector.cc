@@ -20,108 +20,108 @@
 
 namespace MUSIC {
 
-  subconnector::subconnector (synchronizer* _synch,
+  Subconnector::Subconnector (Synchronizer* _synch,
 			      MPI::Intercomm _intercomm,
-			      int remote_rank,
-			      int receiver_rank,
-			      std::string receiver_port_name)
+			      int remoteRank,
+			      int receiverRank,
+			      std::string receiverPortName)
     : synch (_synch),
       intercomm (_intercomm),
-      _remote_rank (remote_rank),
-      _receiver_rank (receiver_rank),
-      _receiver_port_name (receiver_port_name)
+      _remoteRank (remoteRank),
+      _receiverRank (receiverRank),
+      _receiverPortName (receiverPortName)
   {
   }
 
 
-  subconnector::~subconnector ()
+  Subconnector::~Subconnector ()
   {
   }
 
   
   void
-  subconnector::connect ()
+  Subconnector::connect ()
   {
 #if 0
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << _local_leader << " and remote " << _remote_leader << std::endl;
+    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << _localLeader << " and remote " << _remoteLeader << std::endl;
 #endif
   }
 
 
-  output_subconnector::output_subconnector (synchronizer* synch,
+  OutputSubconnector::OutputSubconnector (Synchronizer* synch,
 					    MPI::Intercomm intercomm,
-					    int remote_rank,
-					    int receiver_rank,
-					    std::string receiver_port_name,
-					    int element_size)
-    : subconnector (synch,
+					    int remoteRank,
+					    int receiverRank,
+					    std::string receiverPortName,
+					    int elementSize)
+    : Subconnector (synch,
 		    intercomm,
-		    remote_rank,
-		    receiver_rank,
-		    receiver_port_name),
-      _buffer (element_size)
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      _buffer (elementSize)
   {
   }
 
   
   void
-  output_subconnector::send ()
+  OutputSubconnector::send ()
   {
   }
 
   
   int
-  output_subconnector::start_idx ()
+  OutputSubconnector::startIdx ()
   {
     return 0;
   }
 
   
   int
-  output_subconnector::end_idx ()
+  OutputSubconnector::endIdx ()
   {
     return 0;
   }
 
   
-  input_subconnector::input_subconnector ()
+  InputSubconnector::InputSubconnector ()
   {
   }
 
 
-  event_subconnector::event_subconnector ()
+  EventSubconnector::EventSubconnector ()
   {
     
   }
   
 
   void
-  cont_output_subconnector::mark ()
+  ContOutputSubconnector::mark ()
   {
   }
 
 
-  event_output_subconnector::event_output_subconnector (synchronizer* _synch,
+  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* _synch,
 							MPI::Intercomm _intercomm,
-							int remote_rank,
-							std::string _receiver_port_name)
-    : subconnector (_synch,
+							int remoteRank,
+							std::string _receiverPortName)
+    : Subconnector (_synch,
 		    _intercomm,
-		    remote_rank,
-		    remote_rank,
-		    _receiver_port_name),
-      output_subconnector (_synch,
+		    remoteRank,
+		    remoteRank,
+		    _receiverPortName),
+      OutputSubconnector (_synch,
 			   _intercomm,
-			   remote_rank,
-			   remote_rank, // receiver_rank same as remote rank
-			   _receiver_port_name,
-			   sizeof (event))
+			   remoteRank,
+			   remoteRank, // receiver_rank same as remote rank
+			   _receiverPortName,
+			   sizeof (Event))
   {
   }
   
 
   void
-  event_output_subconnector::tick ()
+  EventOutputSubconnector::tick ()
   {
     if (synch->communicate ())
       send ();
@@ -129,11 +129,11 @@ namespace MUSIC {
 
 
   void
-  event_output_subconnector::send ()
+  EventOutputSubconnector::send ()
   {
     void* data;
     int size;
-    _buffer.next_block (data, size);
+    _buffer.nextBlock (data, size);
     //*fixme* marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
@@ -141,75 +141,75 @@ namespace MUSIC {
 	intercomm.Send (buffer,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remote_rank,
+			_remoteRank,
 			SPIKE_MSG);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    intercomm.Send (buffer, size, MPI::BYTE, _remote_rank, SPIKE_MSG);
+    intercomm.Send (buffer, size, MPI::BYTE, _remoteRank, SPIKE_MSG);
   }
   
 
-  event_input_subconnector::event_input_subconnector (synchronizer* synch,
+  EventInputSubconnector::EventInputSubconnector (Synchronizer* synch,
 						      MPI::Intercomm intercomm,
-						      int remote_rank,
-						      int receiver_rank,
-						      std::string receiver_port_name)
-    : subconnector (synch,
+						      int remoteRank,
+						      int receiverRank,
+						      std::string receiverPortName)
+    : Subconnector (synch,
 		    intercomm,
-		    remote_rank,
-		    receiver_rank,
-		    receiver_port_name)
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName)
   {
   }
 
 
-  event_input_subconnector_global::event_input_subconnector_global
-  (synchronizer* synch,
+  EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
+  (Synchronizer* synch,
    MPI::Intercomm intercomm,
-   int remote_rank,
-   int receiver_rank,
-   std::string receiver_port_name,
-   event_handler_global_index* eh)
-    : subconnector (synch,
+   int remoteRank,
+   int receiverRank,
+   std::string receiverPortName,
+   EventHandlerGlobalIndex* eh)
+    : Subconnector (synch,
 		    intercomm,
-		    remote_rank,
-		    receiver_rank,
-		    receiver_port_name),
-      event_input_subconnector (synch,
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      EventInputSubconnector (synch,
 				intercomm,
-				remote_rank,
-				receiver_rank,
-				receiver_port_name),
-      handle_event (eh)
+				remoteRank,
+				receiverRank,
+				receiverPortName),
+      handleEvent (eh)
   {
   }
 
   
-  event_input_subconnector_local::event_input_subconnector_local
-  (synchronizer* synch,
+  EventInputSubconnectorLocal::EventInputSubconnectorLocal
+  (Synchronizer* synch,
    MPI::Intercomm intercomm,
-   int remote_rank,
-   int receiver_rank,
-   std::string receiver_port_name,
-   event_handler_local_index* eh)
-    : subconnector (synch,
+   int remoteRank,
+   int receiverRank,
+   std::string receiverPortName,
+   EventHandlerLocalIndex* eh)
+    : Subconnector (synch,
 		    intercomm,
-		    remote_rank,
-		    receiver_rank,
-		    receiver_port_name),
-      event_input_subconnector (synch,
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      EventInputSubconnector (synch,
 				intercomm,
-				remote_rank,
-				receiver_rank,
-				receiver_port_name),
-      handle_event (eh)
+				remoteRank,
+				receiverRank,
+				receiverPortName),
+      handleEvent (eh)
   {
   }
 
   
   void
-  event_input_subconnector::tick ()
+  EventInputSubconnector::tick ()
   {
     if (synch->communicate ())
       receive ();    
@@ -218,7 +218,7 @@ namespace MUSIC {
 
   //*fixme* isolate difference between global and local
   void
-  event_input_subconnector_global::receive ()
+  EventInputSubconnectorGlobal::receive ()
   {
     char* data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
@@ -228,21 +228,21 @@ namespace MUSIC {
 	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remote_rank,
+			_remoteRank,
 			SPIKE_MSG,
 			status);
 	size = status.Get_count (MPI::BYTE);
-	int n_events = size / sizeof (event);
-	event* ev = (event*) data;
-	for (int i = 0; i < n_events; ++i)
-	  (*handle_event) (ev[i].t, ev[i].id);
+	int nEvents = size / sizeof (Event);
+	Event* ev = (Event*) data;
+	for (int i = 0; i < nEvents; ++i)
+	  (*handleEvent) (ev[i].t, ev[i].id);
       }
     while (size == SPIKE_BUFFER_MAX);
   }
 
 
   void
-  event_input_subconnector_local::receive ()
+  EventInputSubconnectorLocal::receive ()
   {
     char* data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
@@ -252,14 +252,14 @@ namespace MUSIC {
 	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remote_rank,
+			_remoteRank,
 			SPIKE_MSG,
 			status);
 	size = status.Get_count (MPI::BYTE);
-	int n_events = size / sizeof (event);
-	event* ev = (event*) data;
-	for (int i = 0; i < n_events; ++i)
-	  (*handle_event) (ev[i].t, ev[i].id);
+	int nEvents = size / sizeof (Event);
+	Event* ev = (Event*) data;
+	for (int i = 0; i < nEvents; ++i)
+	  (*handleEvent) (ev[i].t, ev[i].id);
       }
     while (size == SPIKE_BUFFER_MAX);
   }

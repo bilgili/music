@@ -24,31 +24,31 @@
 
 namespace MUSIC {
 
-  class permutation_index : public index_map {
-    std::vector<index_interval> _indices;
+  class PermutationIndex : public IndexMap {
+    std::vector<IndexInterval> _indices;
   public:
-    class iterator : public index_map::iterator_implementation {
-      const index_interval* interval_ptr;
+    class iterator : public IndexMap::IteratorImplementation {
+      const IndexInterval* intervalPtr;
     public:
-      iterator (const index_interval* ptr) : interval_ptr (ptr) { }
-      virtual const index_interval operator* () { return *interval_ptr; }
-      virtual const index_interval* dereference () { return interval_ptr; }
-      virtual bool is_equal (iterator_implementation* i) const
+      iterator (const IndexInterval* ptr) : intervalPtr (ptr) { }
+      virtual const IndexInterval operator* () { return *intervalPtr; }
+      virtual const IndexInterval* dereference () { return intervalPtr; }
+      virtual bool isEqual (IteratorImplementation* i) const
       {
-	return interval_ptr == static_cast<iterator*> (i)->interval_ptr;
+	return intervalPtr == static_cast<iterator*> (i)->intervalPtr;
       }
-      virtual void operator++ () { ++interval_ptr; }
-      virtual iterator_implementation* copy ()
+      virtual void operator++ () { ++intervalPtr; }
+      virtual IteratorImplementation* copy ()
       {
-	return new iterator (interval_ptr);
+	return new iterator (intervalPtr);
       }
     };
     
-    permutation_index (global_index *indices, int size);
-    permutation_index (std::vector<index_interval>& indices);
-    virtual index_map::iterator begin ();
-    virtual const index_map::iterator end () const;
-    virtual index_map* copy ();    
+    PermutationIndex (GlobalIndex *indices, int size);
+    PermutationIndex (std::vector<IndexInterval>& indices);
+    virtual IndexMap::iterator begin ();
+    virtual const IndexMap::iterator end () const;
+    virtual IndexMap* copy ();    
   };
 
 }

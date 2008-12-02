@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,17 +24,17 @@
 
 namespace MUSIC {
   
-  class parser {
+  class Parser {
     std::istream* in;
-    void parse_string (std::ostringstream& arg, char delim);
+    void parseString (std::ostringstream& arg, char delim);
   public:
-    parser (std::string s);
+    Parser (std::string s);
     bool eof () { return in->eof (); }
-    void ignore_whitespace ();
-    std::string next_arg ();
+    void ignoreWhitespace ();
+    std::string nextArg ();
   };
 
-  char ** parse_args (std::string cmd,
+  char ** parseArgs (std::string cmd,
 		      std::string args,
 		      int* argc);
 }

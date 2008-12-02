@@ -28,10 +28,10 @@ typedef int size_t;
 
 /* Setup */
 
-typedef struct MUSIC_setup MUSIC_setup;
+typedef struct MUSICSetup MUSICSetup;
 
-MUSIC_setup *MUSIC_create_setup (int *argc, char ***argv);
-MUSIC_setup *MUSIC_create_setup_thread (int *argc,
+MUSICSetup *MUSICCreateSetup (int *argc, char ***argv);
+MUSICSetup *MUSICCreateSetupThread (int *argc,
 					char ***argv,
 					int required,
 					int* provided);
@@ -39,131 +39,131 @@ MUSIC_setup *MUSIC_create_setup_thread (int *argc,
 /* Communicators */
 
 #ifndef BUILDING_MUSIC_LIBRARY
-MPI_Intracomm MUSIC_setup_communicator (MUSIC_setup *setup);
+MPI_Intracomm MUSICSetupCommunicator (MUSICSetup *setup);
 #endif
 
 /* Ports */
 
-typedef struct MUSIC_cont_output_port MUSIC_cont_output_port;
-typedef struct MUSIC_cont_input_port MUSIC_cont_input_port;
-typedef struct MUSIC_event_output_port MUSIC_event_output_port;
-typedef struct MUSIC_event_input_port MUSIC_event_input_port;
-typedef struct MUSIC_message_output_port MUSIC_message_output_port;
-typedef struct MUSIC_message_input_port MUSIC_message_input_port;
+typedef struct MUSICContOutputPort MUSICContOutputPort;
+typedef struct MUSICContInputPort MUSICContInputPort;
+typedef struct MUSICEventOutputPort MUSICEventOutputPort;
+typedef struct MUSICEventInputPort MUSICEventInputPort;
+typedef struct MUSICMessageOutputPort MUSICMessageOutputPort;
+typedef struct MUSICMessageInputPort MUSICMessageInputPort;
 
-MUSIC_cont_output_port *MUSIC_publish_cont_output (MUSIC_setup *setup, char *id);
-MUSIC_cont_input_port *MUSIC_publish_cont_input (MUSIC_setup *setup, char *id);
-MUSIC_event_output_port *MUSIC_publish_event_output (MUSIC_setup *setup, char *id);
-MUSIC_event_input_port *MUSIC_publish_event_input (MUSIC_setup *setup, char *id);
-MUSIC_message_output_port *MUSIC_publish_message_output (MUSIC_setup *setup, char *id);
-MUSIC_message_input_port *MUSIC_publish_message_input (MUSIC_setup *setup, char *id);
+MUSICContOutputPort *MUSICPublishContOutput (MUSICSetup *setup, char *id);
+MUSICContInputPort *MUSICPublishContInput (MUSICSetup *setup, char *id);
+MUSICEventOutputPort *MUSICPublishEventOutput (MUSICSetup *setup, char *id);
+MUSICEventInputPort *MUSICPublishEventInput (MUSICSetup *setup, char *id);
+MUSICMessageOutputPort *MUSICPublishMessageOutput (MUSICSetup *setup, char *id);
+MUSICMessageInputPort *MUSICPublishMessageInput (MUSICSetup *setup, char *id);
 
-void MUSIC_destroy_cont_output (MUSIC_cont_output_port* port);
-void MUSIC_destroy_cont_input (MUSIC_cont_input_port* port);
-void MUSIC_destroy_event_output (MUSIC_event_output_port* port);
-void MUSIC_destroy_event_input (MUSIC_event_input_port* port);
-void MUSIC_destroy_message_output (MUSIC_message_output_port* port);
-void MUSIC_destroy_message_input (MUSIC_message_input_port* port);
+void MUSICDestroyContOutput (MUSICContOutputPort* port);
+void MUSICDestroyContInput (MUSICContInputPort* port);
+void MUSICDestroyEventOutput (MUSICEventOutputPort* port);
+void MUSICDestroyEventInput (MUSICEventInputPort* port);
+void MUSICDestroyMessageOutput (MUSICMessageOutputPort* port);
+void MUSICDestroyMessageInput (MUSICMessageInputPort* port);
 
 /* General port methods */
 
-int MUSIC_cont_output_port_is_connected (MUSIC_cont_output_port *port);
-int MUSIC_cont_input_port_is_connected (MUSIC_cont_input_port *port);
-int MUSIC_event_output_port_is_connected (MUSIC_event_output_port *port);
-int MUSIC_event_input_port_is_connected (MUSIC_event_input_port *port);
-int MUSIC_message_output_port_is_connected (MUSIC_message_output_port *port);
-int MUSIC_message_input_port_is_connected (MUSIC_message_input_port *port);
-int MUSIC_cont_output_port_has_width (MUSIC_cont_output_port *port);
-int MUSIC_cont_input_port_has_width (MUSIC_cont_input_port *port);
-int MUSIC_event_output_port_has_width (MUSIC_event_output_port *port);
-int MUSIC_event_input_port_has_width (MUSIC_event_input_port *port);
-int MUSIC_cont_output_port_width (MUSIC_cont_output_port *port);
-int MUSIC_cont_input_port_width (MUSIC_cont_input_port *port);
-int MUSIC_event_output_port_width (MUSIC_event_output_port *port);
-int MUSIC_event_input_port_width (MUSIC_event_input_port *port);
+int MUSICContOutputPortIsConnected (MUSICContOutputPort *port);
+int MUSICContInputPortIsConnected (MUSICContInputPort *port);
+int MUSICEventOutputPortIsConnected (MUSICEventOutputPort *port);
+int MUSICEventInputPortIsConnected (MUSICEventInputPort *port);
+int MUSICMessageOutputPortIsConnected (MUSICMessageOutputPort *port);
+int MUSICMessageInputPortIsConnected (MUSICMessageInputPort *port);
+int MUSICContOutputPortHasWidth (MUSICContOutputPort *port);
+int MUSICContInputPortHasWidth (MUSICContInputPort *port);
+int MUSICEventOutputPortHasWidth (MUSICEventOutputPort *port);
+int MUSICEventInputPortHasWidth (MUSICEventInputPort *port);
+int MUSICContOutputPortWidth (MUSICContOutputPort *port);
+int MUSICContInputPortWidth (MUSICContInputPort *port);
+int MUSICEventOutputPortWidth (MUSICEventOutputPort *port);
+int MUSICEventInputPortWidth (MUSICEventInputPort *port);
 
 /* Mapping */
 
 /* Data maps */
 
-typedef struct MUSIC_data_map MUSIC_data_map;
-typedef struct MUSIC_cont_data MUSIC_cont_data;
-typedef struct MUSIC_array_data MUSIC_array_data;
+typedef struct MUSICDataMap MUSICDataMap;
+typedef struct MUSICContData MUSICContData;
+typedef struct MUSICArrayData MUSICArrayData;
 
 /* Index maps */
 
-typedef struct MUSIC_index_map MUSIC_index_map;
-typedef struct MUSIC_permutation_index MUSIC_permutation_index;
-typedef struct MUSIC_linear_index MUSIC_linear_index;
+typedef struct MUSICIndexMap MUSICIndexMap;
+typedef struct MUSICPermutationIndex MUSICPermutationIndex;
+typedef struct MUSICLinearIndex MUSICLinearIndex;
 
 
 /* No arguments are optional. */
 
-void MUSIC_cont_output_port_map (MUSIC_cont_output_port *port,
-				 MUSIC_cont_data *dmap,
-				 int max_buffered);
+void MUSICContOutputPortMap (MUSICContOutputPort *port,
+				 MUSICContData *dmap,
+				 int maxBuffered);
 
-void MUSIC_cont_input_port_map (MUSIC_cont_input_port *port,
-				MUSIC_cont_data *dmap,
+void MUSICContInputPortMap (MUSICContInputPort *port,
+				MUSICContData *dmap,
 				double delay,
-				int max_buffered,
+				int maxBuffered,
 				int interpolate);
 
-void MUSIC_event_output_port_map (MUSIC_event_output_port *port,
-				  MUSIC_index_map *indices,
-				  int max_buffered);
+void MUSICEventOutputPortMap (MUSICEventOutputPort *port,
+				  MUSICIndexMap *indices,
+				  int maxBuffered);
 
-typedef void MUSIC_event_handler (double t, int id);
+typedef void MUSICEventHandler (double t, int id);
 
-void MUSIC_event_input_port_map_global_index (MUSIC_event_input_port *port,
-					      MUSIC_index_map *indices,
-					      MUSIC_event_handler *handle_event,
-					      double acc_latency,
-					      int max_buffered);
+void MUSICEventInputPortMapGlobalIndex (MUSICEventInputPort *port,
+					      MUSICIndexMap *indices,
+					      MUSICEventHandler *handleEvent,
+					      double accLatency,
+					      int maxBuffered);
 
-void MUSIC_event_input_port_map_local_index (MUSIC_event_input_port *port,
-					     MUSIC_index_map *indices,
-					     MUSIC_event_handler *handle_event,
-					     double acc_latency,
-					     int max_buffered);
+void MUSICEventInputPortMapLocalIndex (MUSICEventInputPort *port,
+					     MUSICIndexMap *indices,
+					     MUSICEventHandler *handleEvent,
+					     double accLatency,
+					     int maxBuffered);
 
-void MUSIC_message_output_port_map (MUSIC_message_output_port *port,
-				    int max_buffered);
+void MUSICMessageOutputPortMap (MUSICMessageOutputPort *port,
+				    int maxBuffered);
 
-typedef void MUSIC_message_handler (double t, void *msg, size_t size);
+typedef void MUSICMessageHandler (double t, void *msg, size_t size);
 
-void MUSIC_message_input_port_map (MUSIC_message_input_port *port,
-				   MUSIC_message_handler *handle_message,
-				   double acc_latency,
-				   int max_buffered);
+void MUSICMessageInputPortMap (MUSICMessageInputPort *port,
+				   MUSICMessageHandler *handleMessage,
+				   double accLatency,
+				   int maxBuffered);
 
 /* Index maps */
 
-MUSIC_permutation_index *MUSIC_create_permutation_index (int *indices,
+MUSICPermutationIndex *MUSICCreatePermutationIndex (int *indices,
 							 int size);
 
-void MUSIC_destroy_permutation_index (MUSIC_permutation_index *index);
+void MUSICDestroyPermutationIndex (MUSICPermutationIndex *Index);
 
-MUSIC_linear_index *MUSIC_create_linear_index (int base_index,
+MUSICLinearIndex *MUSICCreateLinearIndex (int baseIndex,
 					       int size);
 
-void MUSIC_destroy_linear_index (MUSIC_linear_index *index);
+void MUSICDestroyLinearIndex (MUSICLinearIndex *Index);
 
 /* Exception: The map argument can take any type of index map. */
 
-MUSIC_array_data *MUSIC_create_array_data (void *buffer,
+MUSICArrayData *MUSICCreateArrayData (void *buffer,
 					   MPI_Datatype type,
 					   void *map);
 
 /* Exception: MUSIC_create_linear_array_data corresponds to
    c++ music::array_data::array_data (..., ..., ..., ...) */
 
-MUSIC_array_data *MUSIC_create_linear_array_data (void *buffer,
+MUSICArrayData *MUSICCreateLinearArrayData (void *buffer,
 						  MPI_Datatype type,
-						  int base_index,
+						  int baseIndex,
 						  int size);
 
-void MUSIC_destroy_array_data (MUSIC_array_data *array_data);
+void MUSICDestroyArrayData (MUSICArrayData *arrayData);
 
 /* Configuration variables */
 
@@ -171,28 +171,28 @@ void MUSIC_destroy_array_data (MUSIC_array_data *array_data);
    Extra maxlen argument prevents buffer overflow.
    Result is terminated by \0 unless longer than maxlen - 1 */
 
-int MUSIC_config_string (MUSIC_setup *setup,
+int MUSICConfigString (MUSICSetup *setup,
 			 char *name,
 			 char *result,
 			 size_t maxlen);
 
-int MUSIC_config_int (MUSIC_setup *setup, char *name, int *result);
+int MUSICConfigInt (MUSICSetup *setup, char *name, int *result);
 
-int MUSIC_config_double (MUSIC_setup *setup, char *name, double *result);
+int MUSICConfigDouble (MUSICSetup *setup, char *name, double *result);
 
 /* Runtime */
 
-typedef struct MUSIC_runtime MUSIC_runtime;
+typedef struct MUSICRuntime MUSICRuntime;
 
-MUSIC_runtime *MUSIC_create_runtime (MUSIC_setup *setup, double h);
+MUSICRuntime *MUSICCreateRuntime (MUSICSetup *setup, double h);
 
-void MUSIC_tick (MUSIC_runtime *runtime);
+void MUSICTick (MUSICRuntime *runtime);
 
-double MUSIC_time (MUSIC_runtime *runtime);
+double MUSICTime (MUSICRuntime *runtime);
 
 /* Finalization */
 
-void MUSIC_destroy_runtime (MUSIC_runtime *runtime);
+void MUSICDestroyRuntime (MUSICRuntime *runtime);
 
 
 #define MUSIC_C_H

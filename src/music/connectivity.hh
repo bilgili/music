@@ -24,74 +24,74 @@
 
 namespace MUSIC {
 
-  class connector_info {
-    std::string _rec_app;
-    std::string _rec_port;
-    int _remote_leader;
-    int _n_proc;
+  class ConnectorInfo {
+    std::string _recApp;
+    std::string _recPort;
+    int _remoteLeader;
+    int _nProc;
   public:
-    connector_info () { }
-    connector_info (std::string rec_app,
-		    std::string rec_name,
-		    int r_leader,
-		    int n_proc)
-      : _rec_app (rec_app),
-	_rec_port (rec_name),
-	_remote_leader (r_leader),
-	_n_proc (n_proc)
+    ConnectorInfo () { }
+    ConnectorInfo (std::string recApp,
+		    std::string recName,
+		    int rLeader,
+		    int nProc)
+      : _recApp (recApp),
+	_recPort (recName),
+	_remoteLeader (rLeader),
+	_nProc (nProc)
     { }
-    std::string receiver_app_name () const { return _rec_app; }
-    std::string receiver_port_name () const { return _rec_port; }
-    int remote_leader () const { return _remote_leader; }
-    int n_processes () const { return _n_proc; } //*fixme* "remote" in name
+    std::string receiverAppName () const { return _recApp; }
+    std::string receiverPortName () const { return _recPort; }
+    int remoteLeader () const { return _remoteLeader; }
+    int nProcesses () const { return _nProc; } //*fixme* "remote" in name
   };
 
 
-  typedef std::vector<connector_info> port_connector_info;
+  typedef std::vector<ConnectorInfo> PortConnectorInfo;
 
 
-  class connectivity_info {
+  class ConnectivityInfo {
   public:
-    enum port_direction { OUTPUT, INPUT };
+    enum PortDirection { OUTPUT, INPUT };
     static const int NO_WIDTH = -1;
   private:
-    port_direction _dir;
+    PortDirection _dir;
     int _width;
-    port_connector_info _port_connections;
+    PortConnectorInfo _portConnections;
   public:
-    connectivity_info (port_direction dir, int width)
+    ConnectivityInfo (PortDirection dir, int width)
       : _dir (dir), _width (width) { }
-    port_direction direction () { return _dir; }
+    PortDirection direction () { return _dir; }
     int width () { return _width; } // NO_WIDTH if no width specified
-    port_connector_info connections () { return _port_connections; }
-    void add_connection (std::string rec_app,
-			 std::string rec_name,
-			 int r_leader,
-			 int n_proc);
+    PortConnectorInfo connections () { return _portConnections; }
+    void addConnection (std::string recApp,
+			 std::string recName,
+			 int rLeader,
+			 int nProc);
   };
 
   
-  class connectivity {
-    std::vector<connectivity_info> _connections;
-    std::map<std::string, int> connectivity_map;
+  class Connectivity {
+    std::vector<ConnectivityInfo> _connections;
+    std::map<std::string, int> connectivityMap;
     void read (std::istringstream& in);
   public:
-    connectivity () { }
-    connectivity (std::istringstream& in);
+    Connectivity () { }
+    Connectivity (std::istringstream& in);
     static const int NO_CONNECTIVITY = 0;
-    void add (std::string local_port,
-	      connectivity_info::port_direction dir,
+    void add (std::string localPort,
+	      ConnectivityInfo::PortDirection dir,
 	      int width,
-	      std::string rec_app,
-	      std::string rec_port,
-	      int remote_leader,
-	      int remote_n_proc);
-    connectivity_info* info (std::string port_name);
+	      std::string recApp,
+	      std::string recPort,
+	      int remoteLeader,
+	      int remoteNProc);
+    ConnectivityInfo* info (std::string portName);
     //*fixme* not used
-    bool is_connected (std::string port_name);
-    connectivity_info::port_direction direction (std::string port_name);
-    int width (std::string port_name);
-    port_connector_info connections (std::string port_name);
+    bool isConnected (std::string portName);
+    ConnectivityInfo::PortDirection direction (std::string portName);
+    int width (std::string portName);
+    PortConnectorInfo connections (std::string portName);
     void write (std::ostringstream& out);
   };
 

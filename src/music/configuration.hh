@@ -26,33 +26,33 @@
 
 namespace MUSIC {
 
-  class configuration {
+  class Configuration {
   private:
-    static const char* const config_env_var_name;
-    bool _launched_by_music;
-    std::string _application_name;
+    static const char* const configEnvVarName;
+    bool _launchedByMusic;
+    std::string _applicationName;
     int _color;
-    configuration* default_config;
-    application_map* _applications;
-    connectivity* _connectivity_map;
+    Configuration* defaultConfig;
+    ApplicationMap* _applications;
+    Connectivity* _connectivityMap;
     std::map<std::string, std::string> dict;
-    void write (std::ostringstream& env, configuration* mask);
+    void write (std::ostringstream& env, Configuration* mask);
   public:
-    configuration ();
-    configuration (std::string name, int color, configuration* def);
-    ~configuration ();
-    bool launched_by_music () { return _launched_by_music; }
-    void write_env ();
+    Configuration ();
+    Configuration (std::string name, int color, Configuration* def);
+    ~Configuration ();
+    bool launchedByMusic () { return _launchedByMusic; }
+    void writeEnv ();
     int color () { return _color; };
     bool lookup (std::string name);
     bool lookup (std::string name, std::string* result);
     bool lookup (std::string name, int* result);
     bool lookup (std::string name, double* result);
     void insert (std::string name, std::string value);
-    application_map* applications ();
-    void set_applications (application_map*);
-    connectivity* connectivity_map ();
-    void set_connectivity_map (connectivity* c);
+    ApplicationMap* applications ();
+    void setApplications (ApplicationMap*);
+    Connectivity* connectivityMap ();
+    void setConnectivityMap (Connectivity* c);
   };
 
 }

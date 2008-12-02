@@ -20,7 +20,7 @@
 
 namespace MUSIC {
 
-  namespace ioutils {
+  namespace IOUtils {
     
     void
     write (std::ostringstream& out, std::string s)

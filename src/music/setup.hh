@@ -35,37 +35,37 @@ using std::string;
 
 namespace MUSIC {
   
-  class setup {
+  class Setup {
   private:
-    configuration* _config;
+    Configuration* _config;
     MPI::Intracomm comm;
-    std::vector<port*> _ports;
-    std::vector<connector*> _connectors;
+    std::vector<Port*> _ports;
+    std::vector<Connector*> _connectors;
 
   public:
-    setup (int& argc, char**& argv);
+    Setup (int& argc, char**& argv);
 
-    setup (int& argc, char**& argv, int required, int* provided);
+    Setup (int& argc, char**& argv, int required, int* provided);
 
-    virtual ~setup ();
+    virtual ~Setup ();
 
-    bool launched_by_music ();
+    bool launchedByMusic ();
 
     void init (int& argc, char**& argv);
 
     MPI::Intracomm communicator ();
 
-    connectivity_info* port_connectivity (const std::string local_name);
+    ConnectivityInfo* portConnectivity (const std::string localName);
 
     //*fixme* unused
-    bool is_connected (const std::string local_name);
+    bool isConnected (const std::string localName);
 
-    connectivity_info::port_direction
-    port_direction (const std::string local_name);
+    ConnectivityInfo::PortDirection
+    portDirection (const std::string localName);
 
-    int port_width (const std::string local_name);
+    int portWidth (const std::string localName);
 
-    port_connector_info port_connections (const std::string local_name);
+    PortConnectorInfo portConnections (const std::string localName);
 
     bool config (string var, string* result);
 
@@ -73,31 +73,31 @@ namespace MUSIC {
 
     bool config (string var, double* result);
 
-    cont_input_port* publish_cont_input (string identifier);
+    ContInputPort* publishContInput (string identifier);
 
-    cont_output_port* publish_cont_output (string identifier);
+    ContOutputPort* publishContOutput (string identifier);
 
-    event_input_port* publish_event_input (string identifier);
+    EventInputPort* publishEventInput (string identifier);
 
-    event_output_port* publish_event_output (string identifier);
+    EventOutputPort* publishEventOutput (string identifier);
 
-    message_input_port* publish_message_input (string identifier);
+    MessageInputPort* publishMessageInput (string identifier);
 
-    message_output_port* publish_message_output (string identifier);
+    MessageOutputPort* publishMessageOutput (string identifier);
 
-    std::vector<port*>* ports ()
+    std::vector<Port*>* ports ()
     {
       return &_ports;
     }    
 
-    void add_port (port* p);
+    void addPort (Port* p);
     
-    std::vector<connector*>* connectors ()
+    std::vector<Connector*>* connectors ()
     {
       return &_connectors;
     }
     
-    void add_connector (connector* c);
+    void addConnector (Connector* c);
     
   };
   

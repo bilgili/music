@@ -16,14 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/setup.hh" // Must be included first on BG/L
 #include "music/temporal.hh"
-#include "music/setup.hh"
 
 namespace MUSIC {
 
-  temporal_negotiator::temporal_negotiator (setup* s,
+  TemporalNegotiator::TemporalNegotiator (Setup* s,
 					    double timebase,
-					    clock_state_t ti)
+					    ClockStateT ti)
   {
   }
   

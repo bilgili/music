@@ -21,9 +21,9 @@
 namespace MUSIC {
 
   FIBO::FIBO (int es)
-    : element_size (es)
+    : elementSize (es)
   {
-    size = element_size * n_initial;
+    size = elementSize * nInitial;
     buffer.resize (size);
     insertion = 0;
   }
@@ -38,7 +38,7 @@ namespace MUSIC {
     // Josuttis says this is the intention of STL even though the
     // first version of the report is not clear about this.
     void* memory = static_cast<void*> (&buffer[insertion]);
-    insertion += element_size;
+    insertion += elementSize;
     return memory;
   }
   
@@ -50,7 +50,7 @@ namespace MUSIC {
 
 
   void
-  FIBO::next_block (void*& data, int& size)
+  FIBO::nextBlock (void*& data, int& size)
   {
     //*fixme*
     data = static_cast<void*> (&buffer[0]);
@@ -60,9 +60,9 @@ namespace MUSIC {
 
 
   void
-  FIBO::grow (int new_size)
+  FIBO::grow (int newSize)
   {
-    size = new_size;
+    size = newSize;
     buffer.resize (size);
   }
   

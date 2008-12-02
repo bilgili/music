@@ -22,10 +22,10 @@
 
 namespace MUSIC {
 
-  class cont_data : public data_map {
+  class ContData : public DataMap {
   public:
-    cont_data (index_map* map);
-    cont_data (int base_index, int size);
+    ContData (IndexMap* map);
+    ContData (int baseIndex, int size);
   };
 
 }

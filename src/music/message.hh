@@ -18,27 +18,27 @@
 
 namespace MUSIC {
 
-  class message {
+  class Message {
   public:
     double t;
     int id;
   };
 
 #if 0
-  class message_fifo : public fifo<message> {
+  class MessageFifo : public Fifo<Message> {
   public:
     void insert (int id, double t)
     {
-      message& s = fifo<message>::insert ();
+      Message& s = Fifo<Message>::insert ();
       s.id = id;
       s.t = t;
     }
   };
 #endif
 
-  class message_handler {
+  class MessageHandler {
   public:
-    void operator () (message* e);
+    void operator () (Message* e);
   };
   
 }

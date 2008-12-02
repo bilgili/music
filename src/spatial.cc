@@ -18,25 +18,25 @@
 
 //#define MUSIC_DEBUG 1
 
+#include "music/spatial.hh" // Must be included first on BG/L
+
 #include <sstream>
 
 #include "music/debug.hh"
 #include "music/error.hh"
 
-#include "music/spatial.hh"
-
 namespace MUSIC {
 
-  negotiation_iterator::buffer_traversal::buffer_traversal
-  (std::vector<negotiation_intervals>& _buffers)
+  NegotiationIterator::BufferTraversal::BufferTraversal
+  (std::vector<NegotiationIntervals>& _buffers)
     : buffers (_buffers), buffer (0), interval (0)
   {
-    find_interval ();
+    findInterval ();
   }
 
 
   void
-  negotiation_iterator::buffer_traversal::find_interval ()
+  NegotiationIterator::BufferTraversal::findInterval ()
   {
     while (buffer < buffers.size () && interval == buffers[buffer].size ())
       {
@@ -48,66 +48,66 @@ namespace MUSIC {
   
 
   bool
-  negotiation_iterator::buffer_traversal::end ()
+  NegotiationIterator::BufferTraversal::end ()
   {
     return buffer == buffers.size ();
   }
 
 
   void
-  negotiation_iterator::buffer_traversal::operator++ ()
+  NegotiationIterator::BufferTraversal::operator++ ()
   {
     ++interval;
-    find_interval ();
+    findInterval ();
   }
 
 
-  spatial_negotiation_data*
-  negotiation_iterator::buffer_traversal::dereference ()
+  SpatialNegotiationData*
+  NegotiationIterator::BufferTraversal::dereference ()
   {
     return &buffers[buffer][interval];
   }
 
 
-  negotiation_iterator::negotiation_iterator (implementation* impl)
+  NegotiationIterator::NegotiationIterator (Implementation* impl)
     : _implementation (impl)
   {
   }
 
 
-  negotiation_iterator::negotiation_iterator (negotiation_intervals& buffer)
-    : _implementation (new interval_traversal (buffer))
+  NegotiationIterator::NegotiationIterator (NegotiationIntervals& buffer)
+    : _implementation (new IntervalTraversal (buffer))
   {
   }
   
 
-  negotiation_iterator::negotiation_iterator
-  (std::vector<negotiation_intervals>& buffers)
-    : _implementation (new buffer_traversal (buffers))
+  NegotiationIterator::NegotiationIterator
+  (std::vector<NegotiationIntervals>& buffers)
+    : _implementation (new BufferTraversal (buffers))
   {
   }
   
 
-  spatial_negotiator::spatial_negotiator (index_map* ind, index::type _type)
+  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type _type)
     : indices (ind->copy ()), type (_type)
   {
   }
 
 
   void
-  spatial_negotiator::negotiate_width ()
+  SpatialNegotiator::negotiateWidth ()
   {
     // First determine local least upper bound
     int w = -1;
-    for (index_map::iterator i = indices->begin ();
+    for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
       if (i->end () > w)
 	w = i->end ();
     // Now take maximum over all processes
-    std::vector<int> m (n_processes);
+    std::vector<int> m (nProcesses);
     comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
-    for (int i = 0; i < n_processes; ++i)
+    for (int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];
     width = w;
@@ -115,18 +115,18 @@ namespace MUSIC {
 
   
   void
-  spatial_output_negotiator::negotiate_width (MPI::Intercomm intercomm)
+  SpatialOutputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
-    spatial_negotiator::negotiate_width ();
-    if (local_rank == 0)
+    SpatialNegotiator::negotiateWidth ();
+    if (localRank == 0)
       {
-	int remote_width;
-	intercomm.Recv (&remote_width, 1, MPI::INT, 0, 0); //*fixme* tag
-	if (remote_width != width)
+	int remoteWidth;
+	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, 0); //*fixme* tag
+	if (remoteWidth != width)
 	  {
 	    std::ostringstream msg;
 	    msg << "sender and receiver width mismatch ("
-		<< width << " != " << remote_width << ")";
+		<< width << " != " << remoteWidth << ")";
 	    error (msg.str ());
 	  }
       }
@@ -134,64 +134,64 @@ namespace MUSIC {
 
   
   void
-  spatial_input_negotiator::negotiate_width (MPI::Intercomm intercomm)
+  SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
-    spatial_negotiator::negotiate_width ();
-    if (local_rank == 0)
+    SpatialNegotiator::negotiateWidth ();
+    if (localRank == 0)
       intercomm.Send (&width, 1, MPI::INT, 0, 0); //*fixme* tag
   }
 
   
-  negotiation_iterator
-  spatial_negotiator::canonical_distribution (int width, int n_processes)
+  NegotiationIterator
+  SpatialNegotiator::canonicalDistribution (int width, int nProcesses)
   {
-    class wrapper : public negotiation_iterator::implementation {
+    class Wrapper : public NegotiationIterator::Implementation {
       int i;
       int r;
       int w;
-      int n_per_process;
-      spatial_negotiation_data data;
+      int nPerProcess;
+      SpatialNegotiationData data;
     public:
-      wrapper (int width, int n_processes)
+      Wrapper (int width, int nProcesses)
 	: i (0), r (0), w (width)
       {
-	n_per_process = w / n_processes;
-	if (w % n_processes > 0)
-	  ++n_per_process;
+	nPerProcess = w / nProcesses;
+	if (w % nProcesses > 0)
+	  ++nPerProcess;
       }
       bool end () { return i >= w; }
-      void operator++ () { ++r; i += n_per_process; }
-      spatial_negotiation_data* dereference ()
+      void operator++ () { ++r; i += nPerProcess; }
+      SpatialNegotiationData* dereference ()
       {
-	int high = std::min (i + n_per_process, w);
-	data = spatial_negotiation_data (index_interval (i, high, 0), r);
+	int high = std::min (i + nPerProcess, w);
+	data = SpatialNegotiationData (IndexInterval (i, high, 0), r);
 	return &data;
       }
-      implementation* copy ()
+      Implementation* copy ()
       {
-	return new wrapper (*this);
+	return new Wrapper (*this);
       }
     };
 
-    return negotiation_iterator (new wrapper (width, n_processes));
+    return NegotiationIterator (new Wrapper (width, nProcesses));
   }
 
   
-  negotiation_iterator
-  spatial_negotiator::wrap_intervals (index_map::iterator beg,
-				      index_map::iterator end,
-				      index::type type,
-				      int rank)
+  NegotiationIterator
+  SpatialNegotiator::wrapIntervals (IndexMap::iterator beg,
+				    IndexMap::iterator end,
+				    Index::Type type,
+				    int rank)
   {
-    class wrapper : public negotiation_iterator::implementation {
-      index_map::iterator _end;
+    class Wrapper : public NegotiationIterator::Implementation {
+      IndexMap::iterator _end;
     protected:
-      spatial_negotiation_data data;
-      index_map::iterator i;
+      SpatialNegotiationData data;
+      IndexMap::iterator i;
       int _rank;
     public:
-      wrapper (index_map::iterator beg,
-	       index_map::iterator end,
+      Wrapper (IndexMap::iterator beg,
+	       IndexMap::iterator end,
 	       int rank)
 	: i (beg), _end (end), _rank (rank)
       {
@@ -200,59 +200,59 @@ namespace MUSIC {
       void operator++ () { ++i; }
     };
 
-    class global_wrapper : public wrapper {
+    class GlobalWrapper : public Wrapper {
     public:
-      global_wrapper (index_map::iterator beg,
-		      index_map::iterator end,
+      GlobalWrapper (IndexMap::iterator beg,
+		      IndexMap::iterator end,
 		      int rank)
-	: wrapper (beg, end, rank)
+	: Wrapper (beg, end, rank)
       {
       }
-      spatial_negotiation_data* dereference ()
+      SpatialNegotiationData* dereference ()
       {
-	data = spatial_negotiation_data (*i, _rank);
-	data.set_local (0);
+	data = SpatialNegotiationData (*i, _rank);
+	data.setLocal (0);
 	return &data;
       }
-      implementation* copy ()
+      Implementation* copy ()
       {
-	return new global_wrapper (*this);
+	return new GlobalWrapper (*this);
       }
     };
   
-    class local_wrapper : public wrapper {
+    class LocalWrapper : public Wrapper {
     public:
-      local_wrapper (index_map::iterator beg,
-		     index_map::iterator end,
+      LocalWrapper (IndexMap::iterator beg,
+		     IndexMap::iterator end,
 		     int rank)
-	: wrapper (beg, end, rank)
+	: Wrapper (beg, end, rank)
       {
       }
-      spatial_negotiation_data* dereference ()
+      SpatialNegotiationData* dereference ()
       {
-	data = spatial_negotiation_data (*i, _rank);
+	data = SpatialNegotiationData (*i, _rank);
 	return &data;
       }
-      implementation* copy ()
+      Implementation* copy ()
       {
-	return new local_wrapper (*this);
+	return new LocalWrapper (*this);
       }
     };
   
-    wrapper* w;
-    if (type == index::GLOBAL)
+    Wrapper* w;
+    if (type == Index::GLOBAL)
       {
 	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
-		   << " selecting global_wrapper" << std::endl);
-	w = new global_wrapper (beg, end, rank);
+		   << " selecting GlobalWrapper" << std::endl);
+	w = new GlobalWrapper (beg, end, rank);
       }
     else
       {
 	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
-		   << " selecting local_wrapper" << std::endl);
-	w = new local_wrapper (beg, end, rank);
+		   << " selecting LocalWrapper" << std::endl);
+	w = new LocalWrapper (beg, end, rank);
       }
-    return negotiation_iterator (w);
+    return NegotiationIterator (w);
   }
 
   
@@ -260,48 +260,48 @@ namespace MUSIC {
   // the resulting intervals with rank from source in buffer
   // belonging to rank in dest.
   void
-  spatial_negotiator::intersect_to_buffers
-  (std::vector<negotiation_intervals>& source,
-   std::vector<negotiation_intervals>& dest,
-   std::vector<negotiation_intervals>& buffers)
+  SpatialNegotiator::intersectToBuffers
+  (std::vector<NegotiationIntervals>& source,
+   std::vector<NegotiationIntervals>& dest,
+   std::vector<NegotiationIntervals>& buffers)
   {
     MUSIC_LOG0 ("intersecting-vvv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
-    for (std::vector<negotiation_intervals>::iterator i = buffers.begin ();
+    for (std::vector<NegotiationIntervals>::iterator i = buffers.begin ();
 	 i != buffers.end ();
 	 ++i)
       i->clear ();
-    for (std::vector<negotiation_intervals>::iterator d = dest.begin ();
+    for (std::vector<NegotiationIntervals>::iterator d = dest.begin ();
 	 d != dest.end ();
 	 ++d)
-      for (std::vector<negotiation_intervals>::iterator s = source.begin ();
+      for (std::vector<NegotiationIntervals>::iterator s = source.begin ();
 	 s != source.end ();
 	   ++s)
-	intersect_to_buffers_2 (*s, *d, buffers);
+	intersectToBuffers2 (*s, *d, buffers);
   }
 
   
   void
-  spatial_negotiator::intersect_to_buffers
-  (negotiation_iterator source,
-   negotiation_iterator dest,
-   std::vector<negotiation_intervals>& buffers)
+  SpatialNegotiator::intersectToBuffers
+  (NegotiationIterator source,
+   NegotiationIterator dest,
+   std::vector<NegotiationIntervals>& buffers)
   {
     MUSIC_LOG0 ("intersecting-nnv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
-    for (std::vector<negotiation_intervals>::iterator i = buffers.begin ();
+    for (std::vector<NegotiationIntervals>::iterator i = buffers.begin ();
 	 i != buffers.end ();
 	 ++i)
       i->clear ();
-    intersect_to_buffers_2 (source, dest, buffers);
+    intersectToBuffers2 (source, dest, buffers);
   }
     
     
   void
-  spatial_negotiator::intersect_to_buffers_2
-  (negotiation_iterator source,
-   negotiation_iterator dest,
-   std::vector<negotiation_intervals>& buffers)
+  SpatialNegotiator::intersectToBuffers2
+  (NegotiationIterator source,
+   NegotiationIterator dest,
+   std::vector<NegotiationIntervals>& buffers)
   {
     if (source.end ())
       MUSIC_LOG0 ("source empty on entry");
@@ -322,7 +322,7 @@ namespace MUSIC {
 	  if (dest->begin () < source->end ())
 	    if (dest->end () < source->end ())
 	      {//*fixme* put inte helper function to get overview
-		spatial_negotiation_data d (dest->begin (),
+		SpatialNegotiationData d (dest->begin (),
 					    dest->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
@@ -331,7 +331,7 @@ namespace MUSIC {
 	      }
 	    else
 	      {
-		spatial_negotiation_data d (dest->begin (),
+		SpatialNegotiationData d (dest->begin (),
 					    source->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
@@ -344,7 +344,7 @@ namespace MUSIC {
 	  if (source->begin () < dest->end ())
 	    if (source->end () < dest->end ())
 	      {
-		spatial_negotiation_data d (source->begin (),
+		SpatialNegotiationData d (source->begin (),
 					    source->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
@@ -353,7 +353,7 @@ namespace MUSIC {
 	      }
 	    else
 	      {
-		spatial_negotiation_data d (source->begin (),
+		SpatialNegotiationData d (source->begin (),
 					    dest->end (),
 					    dest->local () - source->local (),
 					    source->rank ());
@@ -367,148 +367,148 @@ namespace MUSIC {
 
 
   void
-  spatial_negotiator::send (MPI::Comm& comm,
-			    int dest_rank,
-			    negotiation_intervals& intervals)
+  SpatialNegotiator::send (MPI::Comm& comm,
+			    int destRank,
+			    NegotiationIntervals& intervals)
   {
-    spatial_negotiation_data* data = &intervals[0];
-    int n_intervals = intervals.size ();
-    while (n_intervals >= TRANSMITTED_INTERVALS_MAX)
+    SpatialNegotiationData* data = &intervals[0];
+    int nIntervals = intervals.size ();
+    while (nIntervals >= TRANSMITTED_INTERVALS_MAX)
       {
 	comm.Send (data,
-		   sizeof (spatial_negotiation_data) / sizeof (int) * n_intervals,
+		   sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
 		   MPI::INT,
-		   dest_rank,
+		   destRank,
 		   0); //*fixme* tag
 	data += TRANSMITTED_INTERVALS_MAX;
-	n_intervals -= TRANSMITTED_INTERVALS_MAX;
+	nIntervals -= TRANSMITTED_INTERVALS_MAX;
       }
     comm.Send (data,
-	       sizeof (spatial_negotiation_data) / sizeof (int) * n_intervals,
+	       sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
 	       MPI::INT,
-	       dest_rank,
+	       destRank,
 	       0); //*fixme* tag
   }
 
 
   void
-  spatial_negotiator::receive (MPI::Comm& comm,
-			       int source_rank,
-			       negotiation_intervals& intervals)
+  SpatialNegotiator::receive (MPI::Comm& comm,
+			       int sourceRank,
+			       NegotiationIntervals& intervals)
   {
     MPI::Status status;
-    int n_received;
-    int next_pos = 0;
+    int nReceived;
+    int nextPos = 0;
     do
       {
-	intervals.resize (next_pos + TRANSMITTED_INTERVALS_MAX);
-	comm.Recv (&intervals[next_pos],
-		   sizeof (spatial_negotiation_data) / sizeof (int)
+	intervals.resize (nextPos + TRANSMITTED_INTERVALS_MAX);
+	comm.Recv (&intervals[nextPos],
+		   sizeof (SpatialNegotiationData) / sizeof (int)
 		   * TRANSMITTED_INTERVALS_MAX,
 		   MPI::INT,
-		   source_rank,
+		   sourceRank,
 		   0,
 		   status); //*fixme* tag
-	n_received = (status.Get_count (MPI::INT)
-		      / (sizeof (spatial_negotiation_data) / sizeof (int)));
-	next_pos += n_received;
+	nReceived = (status.Get_count (MPI::INT)
+		      / (sizeof (SpatialNegotiationData) / sizeof (int)));
+	nextPos += nReceived;
       }
-    while (n_received == TRANSMITTED_INTERVALS_MAX);
-    intervals.resize (next_pos);
+    while (nReceived == TRANSMITTED_INTERVALS_MAX);
+    intervals.resize (nextPos);
   }
 
 
   void
-  spatial_negotiator::all_to_all (std::vector<negotiation_intervals>& out,
-				  std::vector<negotiation_intervals>& in)
+  SpatialNegotiator::allToAll (std::vector<NegotiationIntervals>& out,
+				  std::vector<NegotiationIntervals>& in)
   {
-    if (out.size () != n_processes || in.size () != n_processes)
-      error ("internal error in spatial_negotiator::all_to_all ()");
-    in[local_rank] = out[local_rank];
-    for (int i = 0; i < local_rank; ++i)
+    if (out.size () != nProcesses || in.size () != nProcesses)
+      error ("internal error in SpatialNegotiator::allToAll ()");
+    in[localRank] = out[localRank];
+    for (int i = 0; i < localRank; ++i)
       receive (comm, i, in[i]);
-    for (int i = local_rank + 1; i < n_processes; ++i)
+    for (int i = localRank + 1; i < nProcesses; ++i)
       send (comm, i, out[i]);
-    for (int i = 0; i < local_rank; ++i)
+    for (int i = 0; i < localRank; ++i)
       send (comm, i, out[i]);
-    for (int i = local_rank + 1; i < n_processes; ++i)
+    for (int i = localRank + 1; i < nProcesses; ++i)
       receive (comm, i, in[i]);
   }
   
   
-  negotiation_iterator
-  spatial_output_negotiator::negotiate (MPI::Intracomm c,
+  NegotiationIterator
+  SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
 					MPI::Intercomm intercomm,
-					int remote_n_proc)
+					int remoteNProc)
   {
     comm = c;
-    n_processes = comm.Get_size ();
-    local_rank = comm.Get_rank ();
-    local.resize (n_processes);
-    remote.resize (remote_n_proc);
-    results.resize (n_processes);
+    nProcesses = comm.Get_size ();
+    localRank = comm.Get_rank ();
+    local.resize (nProcesses);
+    remote.resize (remoteNProc);
+    results.resize (nProcesses);
 
-    negotiate_width (intercomm);
-    negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
+    negotiateWidth (intercomm);
+    NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						       indices->end (),
 						       type,
-						       local_rank);
-    negotiation_iterator canonical_dist
-      = canonical_distribution (width, n_processes);
+						       localRank);
+    NegotiationIterator canonicalDist
+      = canonicalDistribution (width, nProcesses);
     //*fixme* rename results
-    intersect_to_buffers (mapped_dist, canonical_dist, results);
+    intersectToBuffers (mappedDist, canonicalDist, results);
 
     // Send to virtual connector
-    all_to_all (results, local);
+    allToAll (results, local);
 
     // Receive from remote connector
-    for (int i = 0; i < remote_n_proc; ++i)
+    for (int i = 0; i < remoteNProc; ++i)
       receive (intercomm, i, remote[i]);
     
-    results.resize (remote_n_proc);
-    intersect_to_buffers (local, remote, results);
+    results.resize (remoteNProc);
+    intersectToBuffers (local, remote, results);
 
     // Send to remote connector
-    for (int i = 0; i < remote_n_proc; ++i)
+    for (int i = 0; i < remoteNProc; ++i)
       send (intercomm, i, results[i]);
     
-    results.resize (n_processes);
-    intersect_to_buffers (remote, local, results);
+    results.resize (nProcesses);
+    intersectToBuffers (remote, local, results);
 
     // Send back to real connector
-    all_to_all (results, local);
+    allToAll (results, local);
 
-    return negotiation_iterator (local);
+    return NegotiationIterator (local);
   }
   
   
-  negotiation_iterator
-  spatial_input_negotiator::negotiate (MPI::Intracomm c,
+  NegotiationIterator
+  SpatialInputNegotiator::negotiate (MPI::Intracomm c,
 				       MPI::Intercomm intercomm,
-				       int remote_n_proc)
+				       int remoteNProc)
   {
     comm = c;
-    n_processes = comm.Get_size ();
-    local_rank = comm.Get_rank ();
-    remote.resize (remote_n_proc);
+    nProcesses = comm.Get_size ();
+    localRank = comm.Get_rank ();
+    remote.resize (remoteNProc);
     
-    negotiate_width (intercomm);
-    negotiation_iterator mapped_dist = wrap_intervals (indices->begin (),
+    negotiateWidth (intercomm);
+    NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						       indices->end (),
 						       type,
-						       local_rank);
-    negotiation_iterator canonical_dist
-      = canonical_distribution (width, remote_n_proc);
+						       localRank);
+    NegotiationIterator canonicalDist
+      = canonicalDistribution (width, remoteNProc);
 
-    intersect_to_buffers (mapped_dist, canonical_dist, remote);
+    intersectToBuffers (mappedDist, canonicalDist, remote);
 
-    for (int i = 0; i < remote_n_proc; ++i)
+    for (int i = 0; i < remoteNProc; ++i)
       send (intercomm, i, remote[i]);
     
-    for (int i = 0; i < remote_n_proc; ++i)
+    for (int i = 0; i < remoteNProc; ++i)
       receive (intercomm, i, remote[i]);
     
-    return negotiation_iterator (remote);
+    return NegotiationIterator (remote);
   }
   
 }

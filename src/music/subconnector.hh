@@ -29,111 +29,111 @@
 namespace MUSIC {
 
   const int SPIKE_MSG = 1;
-  const int SPIKE_BUFFER_MAX = 10000 * sizeof (event);
+  const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
 
   // The subconnector is responsible for the local side of the
   // communication between two MPI processes, one for each port of a
   // port pair.  It is created in connector::connect ().
   
-  class subconnector {
+  class Subconnector {
   private:
   protected:
-    synchronizer* synch;
+    Synchronizer* synch;
     MPI::Intercomm intercomm;
-    int _remote_rank;
-    int _receiver_rank;
-    std::string _receiver_port_name;
+    int _remoteRank;
+    int _receiverRank;
+    std::string _receiverPortName;
   public:
-    subconnector () { }
-    subconnector (synchronizer* synch,
+    Subconnector () { }
+    Subconnector (Synchronizer* synch,
 		  MPI::Intercomm intercomm,
-		  int remote_rank,
-		  int receiver_rank,
-		  std::string receiver_port_name);
-    virtual ~subconnector ();
+		  int remoteRank,
+		  int receiverRank,
+		  std::string receiverPortName);
+    virtual ~Subconnector ();
     virtual void tick () = 0;
-    int remote_rank () const { return _remote_rank; }
-    int receiver_rank () const { return _receiver_rank; }
-    std::string receiver_port_name () const { return _receiver_port_name; }
+    int remoteRank () const { return _remoteRank; }
+    int receiverRank () const { return _receiverRank; }
+    std::string receiverPortName () const { return _receiverPortName; }
     void connect ();
   };
   
-  class output_subconnector : virtual public subconnector {
+  class OutputSubconnector : virtual public Subconnector {
   protected:
     FIBO _buffer;
   public:
-    output_subconnector (synchronizer* synch,
+    OutputSubconnector (Synchronizer* synch,
 			 MPI::Intercomm intercomm,
-			 int remote_rank,
-			 int receiver_rank,
-			 std::string receiver_port_name,
-			 int element_size);
+			 int remoteRank,
+			 int receiverRank,
+			 std::string receiverPortName,
+			 int elementSize);
     FIBO* buffer () { return &_buffer; }
     void send ();
-    int start_idx ();
-    int end_idx ();
+    int startIdx ();
+    int endIdx ();
   };
   
-  class input_subconnector : virtual public subconnector {
+  class InputSubconnector : virtual public Subconnector {
   public:
-    input_subconnector ();
+    InputSubconnector ();
   };
 
-  class cont_output_subconnector : public output_subconnector {
+  class ContOutputSubconnector : public OutputSubconnector {
   public:
     void mark ();
   };
   
-  class cont_input_subconnector : public input_subconnector {
+  class ContInputSubconnector : public InputSubconnector {
   };
 
-  class event_subconnector : virtual public subconnector {
+  class EventSubconnector : virtual public Subconnector {
   public:
-    event_subconnector ();
+    EventSubconnector ();
   };
   
-  class event_output_subconnector : public output_subconnector {
+  class EventOutputSubconnector : public OutputSubconnector {
   public:
-    event_output_subconnector (synchronizer* _synch,
+    EventOutputSubconnector (Synchronizer* _synch,
 			       MPI::Intercomm _intercomm,
-			       int remote_rank,
-			       std::string _receiver_port_name);
+			       int remoteRank,
+			       std::string _receiverPortName);
     void tick ();
     void send ();
   };
   
-  class event_input_subconnector : public input_subconnector {
+  class EventInputSubconnector : public InputSubconnector {
   public:
-    event_input_subconnector (synchronizer* synch,
+    EventInputSubconnector (Synchronizer* synch,
 			      MPI::Intercomm intercomm,
-			      int remote_rank,
-			      int receiver_rank,
-			      std::string receiver_port_name);
+			      int remoteRank,
+			      int receiverRank,
+			      std::string receiverPortName);
     void tick ();
     virtual void receive () = 0;
   };
 
-  class event_input_subconnector_global : public event_input_subconnector {
-    event_handler_global_index* handle_event;
+  class EventInputSubconnectorGlobal : public EventInputSubconnector {
+    EventHandlerGlobalIndex* handleEvent;
   public:
-    event_input_subconnector_global (synchronizer* synch,
+    EventInputSubconnectorGlobal (Synchronizer* synch,
 				     MPI::Intercomm intercomm,
-				     int remote_rank,
-				     int receiver_rank,
-				     std::string receiver_port_name,
-				     event_handler_global_index* eh);
+				     int remoteRank,
+				     int receiverRank,
+				     std::string receiverPortName,
+				     EventHandlerGlobalIndex* eh);
     void receive ();
   };
 
-  class event_input_subconnector_local : public event_input_subconnector {
-    event_handler_local_index* handle_event;
+  class EventInputSubconnectorLocal : public EventInputSubconnector {
+    EventHandlerLocalIndex* handleEvent;
   public:
-    event_input_subconnector_local (synchronizer* synch,
+    EventInputSubconnectorLocal (Synchronizer* synch,
 				    MPI::Intercomm intercomm,
-				    int remote_rank,
-				    int receiver_rank,
-				    std::string receiver_port_name,
-				    event_handler_local_index* eh);
+				    int remoteRank,
+				    int receiverRank,
+				    std::string receiverPortName,
+				    EventHandlerLocalIndex* eh);
     void receive ();
   };
 

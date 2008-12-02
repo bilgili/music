@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2008 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 namespace MUSIC {
   
-  parser::parser (std::string s)
+  Parser::Parser (std::string s)
     : in (new std::istringstream (s))
   {
   
@@ -31,7 +31,7 @@ namespace MUSIC {
 
   
   void
-  parser::ignore_whitespace ()
+  Parser::ignoreWhitespace ()
   {
     while (isspace (in->peek ()))
       in->ignore ();
@@ -39,7 +39,7 @@ namespace MUSIC {
 
   
   void
-  parser::parse_string (std::ostringstream& arg, char delim)
+  Parser::parseString (std::ostringstream& arg, char delim)
   {
     while (true)
       {
@@ -66,7 +66,7 @@ namespace MUSIC {
 
   
   std::string
-  parser::next_arg ()
+  Parser::nextArg ()
   {
     std::ostringstream arg;
     while (true)
@@ -82,7 +82,7 @@ namespace MUSIC {
 	    continue;
 	  case '\'':
 	  case '"':
-	    parse_string (arg, c);
+	    parseString (arg, c);
 	    continue;
 	  case ' ':
 	  case '\t':
@@ -96,29 +96,29 @@ namespace MUSIC {
 
   
   char **
-  parse_args (std::string cmd,
+  parseArgs (std::string cmd,
 	      std::string argstring,
 	      int* argc)
   {
-    parser in (argstring);
+    Parser in (argstring);
     std::vector<std::string> args;
     args.push_back (cmd);
-    in.ignore_whitespace ();
+    in.ignoreWhitespace ();
 
     while (! in.eof ())
-      args.push_back (in.next_arg ());
+      args.push_back (in.nextArg ());
 
-    int nargs = args.size ();
-    char** result = new char*[nargs + 1];
-    for (int i = 0; i < nargs; ++i)
+    int nArgs = args.size ();
+    char** result = new char*[nArgs + 1];
+    for (int i = 0; i < nArgs; ++i)
       {
 	int len = args[i].length ();
 	result[i] = new char[len + 1];
 	args[i].copy (result[i], len);
 	result[i][len] = '\0';
       }
-    result[nargs] = 0;
-    *argc = nargs;
+    result[nArgs] = 0;
+    *argc = nArgs;
     return result;
   }
 

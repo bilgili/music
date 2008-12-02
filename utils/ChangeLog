@@ -1,3 +1,7 @@
+2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Switch to CamelCase.
+	
 2008-11-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am: Added eventcounter.

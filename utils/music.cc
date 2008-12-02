@@ -52,7 +52,7 @@ using std::ifstream;
 #endif
 
 int
-get_rank (int argc, char *argv[])
+getRank (int argc, char *argv[])
 {
 #ifdef BGL
   BGLPersonality p;
@@ -87,12 +87,12 @@ get_rank (int argc, char *argv[])
 
 #ifdef MPICH
 std::string
-get_shared_dir ()
+getSharedDir ()
 {
   std::ostringstream dirname;
-  char* music_shared_dir = getenv ("MUSIC_SHARED_DIR");
-  if (music_shared_dir)
-    dirname << music_shared_dir;
+  char* musicSharedDir = getenv ("MUSIC_SHARED_DIR");
+  if (musicSharedDir)
+    dirname << musicSharedDir;
   else
     {
       char* home = getenv ("HOME");
@@ -104,11 +104,11 @@ get_shared_dir ()
 
 
 std::istream*
-get_config (int rank, int argc, char** argv)
+getConfig (int rank, int argc, char** argv)
 {
 #ifdef MPICH
   std::ostringstream fname;
-  fname << get_shared_dir () << "/.musicconf";
+  fname << getSharedDir () << "/.musicconf";
   std::string confname;
   if (rank == 0)
     {
@@ -145,11 +145,11 @@ usage (int rank)
 
 
 void
-launch (MUSIC::configuration* config, char** argv)
+launch (MUSIC::Configuration* config, char** argv)
 {
   string binary;
   config->lookup ("binary", &binary);
-  config->write_env ();
+  config->writeEnv ();
   string wd;
   if (config->lookup ("wd", &wd))
     chdir (wd.c_str ()); //*fixme* error checking
@@ -164,12 +164,12 @@ launch (MUSIC::configuration* config, char** argv)
 int
 main (int argc, char *argv[])
 {
-  int rank = get_rank (argc, argv);
+  int rank = getRank (argc, argv);
 
   opterr = 0; // handle errors ourselves
   while (1)
     {
-      static struct option long_options[] =
+      static struct option longOptions[] =
 	{
 	  {"help",    no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
@@ -178,7 +178,7 @@ main (int argc, char *argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+h", long_options, &option_index);
+      int c = getopt_long (argc, argv, "+h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -196,15 +196,15 @@ main (int argc, char *argv[])
 	}
     }
 
-  std::istream* config_file = get_config (rank, argc, argv);
+  std::istream* configFile = getConfig (rank, argc, argv);
 
-  if (!config_file)
+  if (!configFile)
     {
       if (rank == 0)
 	std::cerr << "Couldn't open config file " << argv[1] << std::endl;
       exit (1);
     }
-  MUSIC::application_mapper map (config_file, rank);
+  MUSIC::ApplicationMapper map (configFile, rank);
   
   launch (map.config (), argv);
 

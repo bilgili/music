@@ -1,9 +1,9 @@
 /* This file is part of the skol suite.
-   Copyright (C) 2005 Mikael Djurfeldt
+   Copyright (C) 2005, 2008 Mikael Djurfeldt
 
    The skol suite is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2, or (at
+   published by the Free Software Foundation; either version 3, or (at
    your option) any later version.
 
    The skol suite is distributed in the hope that it will be useful,
@@ -26,26 +26,26 @@
 using std::numeric_limits;
 
 bool
-datafile::at_header_line ()
+Datafile::atHeaderLine ()
 {
   return peek () == '#';
 }
 
 void
-datafile::ignore_line ()
+Datafile::ignoreLine ()
 {
   ignore (numeric_limits<int>::max (), '\n');
 }
 
 void
-datafile::ignore_whitespace ()
+Datafile::ignoreWhitespace ()
 {
   while (isspace (peek ()))
     ignore ();
 }
 
 bool
-datafile::scan_line (const char* pattern)
+Datafile::scanLine (const char* pattern)
 {
   const char* p = pattern;
   while (*p != '\0')
@@ -65,11 +65,11 @@ datafile::scan_line (const char* pattern)
 }
 
 bool
-datafile::read (const char* pattern, int& x)
+Datafile::read (const char* pattern, int& x)
 {
   seekg (0);
-  while (at_header_line ())
-    if (scan_line (pattern))
+  while (atHeaderLine ())
+    if (scanLine (pattern))
       {
 	*this >> x;
 	return true;
@@ -78,11 +78,11 @@ datafile::read (const char* pattern, int& x)
 }
 
 bool
-datafile::read (const char* pattern, double& x)
+Datafile::read (const char* pattern, double& x)
 {
   seekg (0);
-  while (at_header_line ())
-    if (scan_line (pattern))
+  while (atHeaderLine ())
+    if (scanLine (pattern))
       {
 	*this >> x;
 	return true;
@@ -91,9 +91,9 @@ datafile::read (const char* pattern, double& x)
 }
 
 void
-datafile::skip_header ()
+Datafile::skipHeader ()
 {
-  ignore_whitespace ();
-  while (at_header_line ())
-    ignore_line ();
+  ignoreWhitespace ();
+  while (atHeaderLine ())
+    ignoreLine ();
 }

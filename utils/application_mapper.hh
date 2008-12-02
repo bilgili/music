@@ -27,18 +27,18 @@
 
 namespace MUSIC {
 
-  class application_mapper {
-    std::map<std::string, MUSIC::configuration*> configs;
-    application_map* _applications;
-    connectivity* _connectivity_map;
-    std::string selected_name;
-    void map_sections (rude::Config* cfile);
-    void map_applications ();
-    void select_application (int rank);
-    void map_connectivity (rude::Config* cfile);
+  class ApplicationMapper {
+    std::map<std::string, MUSIC::Configuration*> configs;
+    ApplicationMap* _applications;
+    Connectivity* _connectivityMap;
+    std::string selectedName;
+    void mapSections (rude::Config* cfile);
+    void mapApplications ();
+    void selectApplication (int rank);
+    void mapConnectivity (rude::Config* cfile);
   public:
-    application_mapper (std::istream* config_file, int rank);
-    MUSIC::configuration* config ();
+    ApplicationMapper (std::istream* configFile, int rank);
+    MUSIC::Configuration* config ();
   };
 
 }

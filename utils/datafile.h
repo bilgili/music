@@ -1,9 +1,9 @@
 /* This file is part of the skol suite.
-   Copyright (C) 2005 Mikael Djurfeldt
+   Copyright (C) 2005, 2008 Mikael Djurfeldt
 
    The skol suite is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as
-   published by the Free Software Foundation; either version 2, or (at
+   published by the Free Software Foundation; either version 3, or (at
    your option) any later version.
 
    The skol suite is distributed in the hope that it will be useful,
@@ -22,17 +22,17 @@
 #include <string>
 #include <fstream>
 
-class datafile : public std::ifstream {
+class Datafile : public std::ifstream {
  protected:
-  bool at_header_line ();
-  bool scan_line (const char* pattern);
+  bool atHeaderLine ();
+  bool scanLine (const char* pattern);
  public:
-  datafile (std::string filename) : std::ifstream (filename.data ()) { }
-  void ignore_line ();
-  void ignore_whitespace ();
+  Datafile (std::string filename) : std::ifstream (filename.data ()) { }
+  void ignoreLine ();
+  void ignoreWhitespace ();
   bool read (const char*, int& x);
   bool read (const char*, double& x);
-  void skip_header ();
+  void skipHeader ();
 };
 #define DATAFILE_H
 #endif

@@ -50,17 +50,17 @@ usage (int rank)
   exit (1);
 }
 
-std::vector<MUSIC::event> event_buffer;
+std::vector<MUSIC::Event> eventBuffer;
 
-class my_event_handler_global : public MUSIC::event_handler_global_index {
+class MyEventHandlerGlobal : public MUSIC::EventHandlerGlobalIndex {
 public:
-  void operator () (double t, MUSIC::global_index id)
+  void operator () (double t, MUSIC::GlobalIndex id)
   {
-    event_buffer.push_back (MUSIC::event (t, id));
+    eventBuffer.push_back (MUSIC::Event (t, id));
   }
 };
 
-int n_units;
+int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 string units;
 
@@ -70,7 +70,7 @@ getargs (int rank, int argc, char* argv[])
   opterr = 0; // handle errors ourselves
   while (1)
     {
-      static struct option long_options[] =
+      static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
 	  {"help",      no_argument,       0, 'h'},
@@ -80,7 +80,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:i:h", long_options, &option_index);
+      int c = getopt_long (argc, argv, "+t:m:i:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -104,13 +104,13 @@ getargs (int rank, int argc, char* argv[])
   if (argc != optind + 2)
     usage (rank);
 
-  n_units = atoi (argv[optind]);
+  nUnits = atoi (argv[optind]);
   units = argv[optind + 1];
 }
 
 void
-map_output (MUSIC::event_output_port* out,
-	    int n_processes,
+mapOutput (MUSIC::EventOutputPort* out,
+	    int nProcesses,
 	    int rank,
 	    std::string fname)
 {
@@ -123,62 +123,62 @@ map_output (MUSIC::event_output_port* out,
     }
 
   // First count the integers
-  int n_units = 0;
+  int nUnits = 0;
   int id;
   while (unitfile >> id)
-    ++n_units;
+    ++nUnits;
   unitfile.close ();
-  int n_units_per_process = n_units / n_processes;
-  int n_local_units = n_units_per_process;
-  int rest = n_units % n_processes;
-  int first_id = n_units_per_process * rank;
+  int nUnitsPerProcess = nUnits / nProcesses;
+  int nLocalUnits = nUnitsPerProcess;
+  int rest = nUnits % nProcesses;
+  int firstId = nUnitsPerProcess * rank;
   if (rank < rest)
     {
-      first_id += rank;
-      n_local_units += 1;
+      firstId += rank;
+      nLocalUnits += 1;
     }
   else
-    first_id += rest;
+    firstId += rest;
   // Now read in our selection
-  n_units = 0;
+  nUnits = 0;
   unitfile.open (fname.c_str ());
-  while (n_units < first_id)
+  while (nUnits < firstId)
     {
       unitfile >> id;
-      ++n_units;
+      ++nUnits;
     }
-  n_units = 0;
-  std::vector<MUSIC::global_index> units;
-  while (n_units < n_local_units)
+  nUnits = 0;
+  std::vector<MUSIC::GlobalIndex> units;
+  while (nUnits < nLocalUnits)
     {
       unitfile >> id;
       units.push_back (id);
-      ++n_units;
+      ++nUnits;
     }
   unitfile.close ();
-  MUSIC::permutation_index indices (&units.front (), units.size ());
+  MUSIC::PermutationIndex indices (&units.front (), units.size ());
 
-  out->map (&indices, MUSIC::index::GLOBAL);
+  out->map (&indices, MUSIC::Index::GLOBAL);
 }
 
 void
-map_input (MUSIC::event_input_port* in,
-	   int n_processes,
+mapInput (MUSIC::EventInputPort* in,
+	   int nProcesses,
 	   int rank,
-	   my_event_handler_global& evhandler)
+	   MyEventHandlerGlobal& evhandler)
 {
-  int n_units_per_process = n_units / n_processes;
-  int n_local_units = n_units_per_process;
-  int rest = n_units % n_processes;
-  int first_id = n_units_per_process * rank;
+  int nUnitsPerProcess = nUnits / nProcesses;
+  int nLocalUnits = nUnitsPerProcess;
+  int rest = nUnits % nProcesses;
+  int firstId = nUnitsPerProcess * rank;
   if (rank < rest)
     {
-      first_id += rank;
-      n_local_units += 1;
+      firstId += rank;
+      nLocalUnits += 1;
     }
   else
-    first_id += rest;
-  MUSIC::linear_index indices (first_id, n_local_units);
+    firstId += rest;
+  MUSIC::LinearIndex indices (firstId, nLocalUnits);
 
   in->map (&indices, &evhandler, 0.0);
 }
@@ -186,54 +186,54 @@ map_input (MUSIC::event_input_port* in,
 int
 main (int argc, char *argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
   MPI::Intracomm comm = setup->communicator ();
-  int n_processes = comm.Get_size ();
+  int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
   
   getargs (rank, argc, argv);
 
-  MUSIC::event_input_port* in = setup->publish_event_input ("in");
-  if (!in->is_connected ())
+  MUSIC::EventInputPort* in = setup->publishEventInput ("in");
+  if (!in->isConnected ())
     {
       if (rank == 0)
 	std::cerr << "eventselect port in is not connected" << std::endl;
       exit (1);
     }
 
-  MUSIC::event_output_port* out = setup->publish_event_output ("out");
-  if (!out->is_connected ())
+  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  if (!out->isConnected ())
     {
       if (rank == 0)
 	std::cerr << "eventselect port out is not connected" << std::endl;
       exit (1);
     }
 
-  map_output (out, n_processes, rank, units);
+  mapOutput (out, nProcesses, rank, units);
 
-  my_event_handler_global evhandler_global;
+  MyEventHandlerGlobal evhandlerGlobal;
 
-  map_input (in, n_processes, rank, evhandler_global);
+  mapInput (in, nProcesses, rank, evhandlerGlobal);
   
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, timestep);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
   double time = runtime->time ();
   while (time < stoptime)
     {
-      event_buffer.clear ();
+      eventBuffer.clear ();
       // Retrieve data
       runtime->tick ();
       
-      sort (event_buffer.begin (), event_buffer.end ());
-      for (std::vector<MUSIC::event>::iterator i = event_buffer.begin ();
-	   i != event_buffer.end ();
+      sort (eventBuffer.begin (), eventBuffer.end ());
+      for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
+	   i != eventBuffer.end ();
 	   ++i)
 	// Send data (*fixme* assumes that non-mapped id:s will be discarded)
-	out->insert_event (i->t, MUSIC::global_index (i->id));
+	out->insertEvent (i->t, MUSIC::GlobalIndex (i->id));
 
       time = runtime->time ();
     }

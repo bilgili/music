@@ -79,7 +79,7 @@ void VisualiseNeurons::run(int argc, char **argv) {
   objTable_.push_back(this);
 
   // Init music
-  setup_ = new MUSIC::setup(argc, argv);
+  setup_ = new MUSIC::Setup(argc, argv);
   MPI::Intracomm comm = setup_->communicator();
   rank_ = comm.Get_rank(); 
 
@@ -102,10 +102,10 @@ void VisualiseNeurons::run(int argc, char **argv) {
 
   readConfigFile(confFile_);
 
-  MUSIC::event_input_port* evport = setup_->publish_event_input("plot");
+  MUSIC::EventInputPort* evport = setup_->publishEventInput("plot");
 
 
-  if (!evport->is_connected()) {
+  if (!evport->isConnected()) {
     if (rank_ == 0)
       std::cerr << "eventlog port is not connected" << std::endl;
     exit (1);
@@ -118,7 +118,7 @@ void VisualiseNeurons::run(int argc, char **argv) {
   }
 
 
-  MUSIC::linear_index indexmap(0, evport->width());
+  MUSIC::LinearIndex indexmap(0, evport->width());
   evport->map (&indexmap, this, 0.0);
 
   double stoptime;
@@ -305,7 +305,7 @@ void VisualiseNeurons::rotateTimer() {
 
 }
 
-void VisualiseNeurons::operator () (double t, MUSIC::global_index id) {
+void VisualiseNeurons::operator () (double t, MUSIC::GlobalIndex id) {
   // For now: just print out incoming events
   //std::cout << "Event " << id << " detected at " << t 
   //          << " (vis time = " << time_ << ")" <<  std::endl;
@@ -452,7 +452,7 @@ void* VisualiseNeurons::runMusic(void *arg) {
 
     // Reason for this current setup is that we want to start
     // the GLUT-loop as fast as possible, to get something on screen.
-    vn->runtime_ = new MUSIC::runtime (vn->setup_, vn->dt_);
+    vn->runtime_ = new MUSIC::Runtime (vn->setup_, vn->dt_);
 
   }
 
@@ -493,7 +493,7 @@ void VisualiseNeurons::readConfigFile(string filename) {
 
   std::cout << "Reading : " << filename << std::endl;
 
-  datafile in(filename);
+  Datafile in(filename);
 
   if (!in) {
     std::cerr << "eventsource: could not open "

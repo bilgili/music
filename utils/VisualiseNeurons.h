@@ -24,7 +24,7 @@
 #define PI 3.141592653589793
 
 
-class VisualiseNeurons : public MUSIC::event_handler_global_index {
+class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
 
  public:
   VisualiseNeurons() {
@@ -50,7 +50,7 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void finalize();
 
   // Event handler for incomming spikes
-  void operator () ( double t, MUSIC::global_index id );
+  void operator () ( double t, MUSIC::GlobalIndex id );
 
   void display();
   void rotateTimer();
@@ -81,8 +81,8 @@ class VisualiseNeurons : public MUSIC::event_handler_global_index {
   void getArgs(int argc, char* argv[]);
   void printHelp();
 
-  MUSIC::setup* setup_;     // ONLY to be used during setup phase
-  MUSIC::runtime* runtime_; // Music runtime object
+  MUSIC::Setup* setup_;     // ONLY to be used during setup phase
+  MUSIC::Runtime* runtime_; // Music runtime object
   
   GLuint neuronList_;  // OpenGL list for drawing object
 

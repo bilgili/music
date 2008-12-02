@@ -54,7 +54,7 @@ usage (int rank)
   exit (1);
 }
 
-int n_units;
+int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 double freq = DEFAULT_FREQUENCY;
 string imaptype = "linear";
@@ -66,7 +66,7 @@ getargs (int rank, int argc, char* argv[])
   opterr = 0; // handle errors ourselves
   while (1)
     {
-      static struct option long_options[] =
+      static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
 	  {"frequency", required_argument, 0, 'f'},
@@ -79,7 +79,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:f:m:i:h", long_options, &option_index);
+      int c = getopt_long (argc, argv, "+t:f:m:i:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -122,7 +122,7 @@ getargs (int rank, int argc, char* argv[])
   if (argc != optind + 1)
     usage (rank);
 
-  n_units = atoi (argv[optind]);
+  nUnits = atoi (argv[optind]);
 }
 
 double
@@ -134,90 +134,90 @@ negexp (double m)
 int
 main (int argc, char *argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
   MPI::Intracomm comm = setup->communicator ();
-  int n_processes = comm.Get_size ();
+  int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
   
   getargs (rank, argc, argv);
 
-  MUSIC::event_output_port* out = setup->publish_event_output ("out");
-  if (!out->is_connected ())
+  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  if (!out->isConnected ())
     {
       if (rank == 0)
 	std::cerr << "eventgenerator port is not connected" << std::endl;
       exit (1);
     }
 
-  MUSIC::index::type type;
+  MUSIC::Index::Type type;
   if (indextype == "global")
-    type = MUSIC::index::GLOBAL;
+    type = MUSIC::Index::GLOBAL;
   else
-    type = MUSIC::index::LOCAL;
+    type = MUSIC::Index::LOCAL;
   
-  std::vector<MUSIC::global_index> ids;
-  std::vector<double> next_spike;
+  std::vector<MUSIC::GlobalIndex> ids;
+  std::vector<double> nextSpike;
   
   if (imaptype == "linear")
     {
-      int n_units_per_process = n_units / n_processes;
-      int n_local_units = n_units_per_process;
-      int rest = n_units % n_processes;
-      int first_id = n_units_per_process * rank;
+      int nUnitsPerProcess = nUnits / nProcesses;
+      int nLocalUnits = nUnitsPerProcess;
+      int rest = nUnits % nProcesses;
+      int firstId = nUnitsPerProcess * rank;
       if (rank < rest)
 	{
-	  first_id += rank;
-	  n_local_units += 1;
+	  firstId += rank;
+	  nLocalUnits += 1;
 	}
       else
-	first_id += rest;
-      for (int i = 0; i < n_local_units; ++i)
-	ids.push_back (first_id + i);
-      MUSIC::linear_index indices (first_id, n_local_units);
+	firstId += rest;
+      for (int i = 0; i < nLocalUnits; ++i)
+	ids.push_back (firstId + i);
+      MUSIC::LinearIndex indices (firstId, nLocalUnits);
       
       out->map (&indices, type);
     }
   else
     {
-      for (int i = rank; i < n_units; i += n_processes)
+      for (int i = rank; i < nUnits; i += nProcesses)
 	ids.push_back (i);
-      MUSIC::permutation_index indices (&ids.front (), ids.size ());
+      MUSIC::PermutationIndex indices (&ids.front (), ids.size ());
       out->map (&indices, type);
     }
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, timestep);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
   double m = 1.0 / freq;
   for (int i = 0; i < ids.size (); ++i)
-    next_spike.push_back (negexp (m));
+    nextSpike.push_back (negexp (m));
 
   double time = runtime->time ();
   while (time < stoptime)
     {
-      double next_time = time + timestep;
+      double nextTime = time + timestep;
 
-      if (type == MUSIC::index::GLOBAL)
+      if (type == MUSIC::Index::GLOBAL)
 	{
 	  for (int i = 0; i < ids.size (); ++i)
-	    while (next_spike[i] < next_time)
+	    while (nextSpike[i] < nextTime)
 	      {
-		out->insert_event (next_spike[i],
-				   MUSIC::global_index (ids[i]));
-		next_spike[i] += negexp (m);
+		out->insertEvent (nextSpike[i],
+				   MUSIC::GlobalIndex (ids[i]));
+		nextSpike[i] += negexp (m);
 	      }
 	}
       else
 	{
 	  for (int i = 0; i < ids.size (); ++i)
-	    while (next_spike[i] < next_time)
+	    while (nextSpike[i] < nextTime)
 	      {
-		out->insert_event (next_spike[i],
-				   MUSIC::local_index (i));
-		next_spike[i] += negexp (m);
+		out->insertEvent (nextSpike[i],
+				   MUSIC::LocalIndex (i));
+		nextSpike[i] += negexp (m);
 	      }
 	}
       

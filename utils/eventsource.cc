@@ -52,7 +52,7 @@ usage (int rank)
   exit (1);
 }
 
-int n_units;
+int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 string imaptype = "linear";
 string indextype = "global";
@@ -65,7 +65,7 @@ getargs (int rank, int argc, char* argv[])
   opterr = 0; // handle errors ourselves
   while (1)
     {
-      static struct option long_options[] =
+      static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
 	  {"imaptype",  required_argument, 0, 'm'},
@@ -77,7 +77,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:i:h", long_options, &option_index);
+      int c = getopt_long (argc, argv, "+t:m:i:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -117,7 +117,7 @@ getargs (int rank, int argc, char* argv[])
   if (argc < optind + 2 || argc > optind + 3)
     usage (rank);
 
-  n_units = atoi (argv[optind]);
+  nUnits = atoi (argv[optind]);
   prefix = argv[optind + 1];
   if (argc == optind + 3)
     suffix = argv[optind + 2];
@@ -126,51 +126,51 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
   MPI::Intracomm comm = setup->communicator ();
-  int n_processes = comm.Get_size ();
+  int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
   
   getargs (rank, argc, argv);
 
-  MUSIC::event_output_port* out = setup->publish_event_output ("out");
-  if (!out->is_connected ())
+  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  if (!out->isConnected ())
     {
       if (rank == 0)
 	std::cerr << "eventsource port is not connected" << std::endl;
       exit (1);
     }
 
-  MUSIC::index::type type;
+  MUSIC::Index::Type type;
   if (indextype == "global")
-    type = MUSIC::index::GLOBAL;
+    type = MUSIC::Index::GLOBAL;
   else
-    type = MUSIC::index::LOCAL;
+    type = MUSIC::Index::LOCAL;
   
   if (imaptype == "linear")
     {
-      int n_units_per_process = n_units / n_processes;
-      int n_local_units = n_units_per_process;
-      int rest = n_units % n_processes;
-      int first_id = n_units_per_process * rank;
+      int nUnitsPerProcess = nUnits / nProcesses;
+      int nLocalUnits = nUnitsPerProcess;
+      int rest = nUnits % nProcesses;
+      int firstId = nUnitsPerProcess * rank;
       if (rank < rest)
 	{
-	  first_id += rank;
-	  n_local_units += 1;
+	  firstId += rank;
+	  nLocalUnits += 1;
 	}
       else
-	first_id += rest;
-      MUSIC::linear_index indices (first_id, n_local_units);
+	firstId += rest;
+      MUSIC::LinearIndex indices (firstId, nLocalUnits);
       
       out->map (&indices, type);
     }
   else
     {
-      std::vector<MUSIC::global_index> v;
-      for (int i = rank; i < n_units; i += n_processes)
+      std::vector<MUSIC::GlobalIndex> v;
+      for (int i = rank; i < nUnits; i += nProcesses)
 	v.push_back (i);
-      MUSIC::permutation_index indices (&v.front (), v.size ());
+      MUSIC::PermutationIndex indices (&v.front (), v.size ());
       out->map (&indices, type);
     }
 
@@ -179,7 +179,7 @@ main (int argc, char *argv[])
 
   std::ostringstream spikefile;
   spikefile << prefix << rank << suffix;
-  datafile in (spikefile.str ());
+  Datafile in (spikefile.str ());
   if (!in)
     {
       std::cerr << "eventsource: could not open "
@@ -187,23 +187,23 @@ main (int argc, char *argv[])
       abort ();      
     }
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, timestep);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
-  in.skip_header ();
+  in.skipHeader ();
   int id;
   double t;
   in >> t >> id;
-  bool more_spikes = !in.eof ();
+  bool moreSpikes = !in.eof ();
   
   double time = runtime->time ();
   while (time < stoptime)
     {
-      double next_time = time + timestep;
-      while (more_spikes && t < next_time)
+      double nextTime = time + timestep;
+      while (moreSpikes && t < nextTime)
 	{
-	  out->insert_event (t, MUSIC::global_index (id));
+	  out->insertEvent (t, MUSIC::GlobalIndex (id));
 	  in >> t >> id;
-	  more_spikes = !in.eof ();
+	  moreSpikes = !in.eof ();
 	}
       // Make data available for other programs
       runtime->tick ();

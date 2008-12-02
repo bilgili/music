@@ -27,39 +27,39 @@ namespace MUSIC {
 
   // This is where we parse the configuration file
   // *fixme* Should check here that obligatory parameters exists
-  application_mapper::application_mapper (std::istream* config_file, int rank)
+  ApplicationMapper::ApplicationMapper (std::istream* configFile, int rank)
   {
     rude::Config* cfile = new rude::Config ();
-    cfile->load (*config_file);
+    cfile->load (*configFile);
 
-    map_sections (cfile);
-    map_applications ();
-    select_application (rank);
-    map_connectivity (cfile);
+    mapSections (cfile);
+    mapApplications ();
+    selectApplication (rank);
+    mapConnectivity (cfile);
   }
 
 
   void
-  application_mapper::map_sections (rude::Config* cfile)
+  ApplicationMapper::mapSections (rude::Config* cfile)
   {
-    MUSIC::configuration* def_config = 0;
-    int n_sections = cfile->getNumSections ();
-    for (int s = 0; s < n_sections; ++s)
+    MUSIC::Configuration* defConfig = 0;
+    int nSections = cfile->getNumSections ();
+    for (int s = 0; s < nSections; ++s)
       {
 	const char* name = cfile->getSectionNameAt (s);
 	cfile->setSection (name);
-	MUSIC::configuration* config
-	  = new MUSIC::configuration (name, s - 1, def_config);
+	MUSIC::Configuration* config
+	  = new MUSIC::Configuration (name, s - 1, defConfig);
 
-	int n_members = cfile->getNumDataMembers ();
-	for (int m = 0; m < n_members; ++m)
+	int nMembers = cfile->getNumDataMembers ();
+	for (int m = 0; m < nMembers; ++m)
 	  {
 	    const char* name = cfile->getDataNameAt (m);
 	    config->insert (name, cfile->getStringValue (name));
 	  }
 
 	if (s == 0)
-	  def_config = config;
+	  defConfig = config;
 	else
 	  configs.insert (std::make_pair (name, config));
       }
@@ -67,11 +67,11 @@ namespace MUSIC {
 
 
   void
-  application_mapper::map_applications ()
+  ApplicationMapper::mapApplications ()
   {
-    _applications = new application_map ();
+    _applications = new ApplicationMap ();
     int leader = 0;
-    std::map<std::string, MUSIC::configuration*>::iterator config;
+    std::map<std::string, MUSIC::Configuration*>::iterator config;
     for (config = configs.begin (); config != configs.end (); ++config)
       {
 	int np;
@@ -83,99 +83,99 @@ namespace MUSIC {
 
 
   void
-  application_mapper::select_application (int rank)
+  ApplicationMapper::selectApplication (int rank)
   {
-    int rank_end = 0;
-    application_map::iterator ai;
+    int rankEnd = 0;
+    ApplicationMap::iterator ai;
     for (ai = _applications->begin (); ai != _applications->end (); ++ai)
       {
-	rank_end += ai->n_proc ();
-	if (rank < rank_end)
+	rankEnd += ai->nProc ();
+	if (rank < rankEnd)
 	  {
-	    selected_name = ai->name ();
-	    MUSIC_LOG ("rank " << rank << " mapped as " << selected_name);
+	    selectedName = ai->name ();
+	    MUSIC_LOG ("rank " << rank << " mapped as " << selectedName);
 	    return;
 	  }
       }
-    error ("internal error in application_mapper::select_application");
+    error ("internal error in ApplicationMapper::selectApplication");
   }
 
 
   void
-  application_mapper::map_connectivity (rude::Config* cfile)
+  ApplicationMapper::mapConnectivity (rude::Config* cfile)
   {
-    _connectivity_map = new connectivity ();
-    int n_sections = cfile->getNumSections ();
-    for (int s = 0; s < n_sections; ++s)
+    _connectivityMap = new Connectivity ();
+    int nSections = cfile->getNumSections ();
+    for (int s = 0; s < nSections; ++s)
       {
-	std::string sec_name (cfile->getSectionNameAt (s));
-	cfile->setSection (sec_name.c_str ());
+	std::string secName (cfile->getSectionNameAt (s));
+	cfile->setSection (secName.c_str ());
 
-	int n_connections = cfile->getNumSourceDestMembers ();
-	for (int c = 0; c < n_connections; ++c)
+	int nConnections = cfile->getNumSourceDestMembers ();
+	for (int c = 0; c < nConnections; ++c)
 	  {
-	    std::string sender_app (cfile->getSrcAppAt (c));
-	    std::string sender_port (cfile->getSrcObjAt (c));
-	    std::string receiver_app (cfile->getDestAppAt (c));
-	    std::string receiver_port (cfile->getDestObjAt (c));
+	    std::string senderApp (cfile->getSrcAppAt (c));
+	    std::string senderPort (cfile->getSrcObjAt (c));
+	    std::string receiverApp (cfile->getDestAppAt (c));
+	    std::string receiverPort (cfile->getDestObjAt (c));
 	    std::string width (cfile->getWidthAt (c));
 	  
-	    if (sender_app == "")
-	      if (sec_name == "")
-		error ("sender application not specified for output port " + sender_port);
+	    if (senderApp == "")
+	      if (secName == "")
+		error ("sender application not specified for output port " + senderPort);
 	      else
-		sender_app = sec_name;
-	    if (receiver_app == "")
-	      if (sec_name == "")
-		error ("receiver application not specified for input port " + receiver_port);
+		senderApp = secName;
+	    if (receiverApp == "")
+	      if (secName == "")
+		error ("receiver application not specified for input port " + receiverPort);
 	      else
-		receiver_app = sec_name;
-	    if (sender_app == receiver_app)
-	      error ("port " + sender_port + " of application " + sender_app + " connected to the same application");
+		receiverApp = secName;
+	    if (senderApp == receiverApp)
+	      error ("port " + senderPort + " of application " + senderApp + " connected to the same application");
 	  
-	    connectivity_info::port_direction dir;
-	    application_info* remote_info;
-	    if (selected_name == sender_app)
+	    ConnectivityInfo::PortDirection dir;
+	    ApplicationInfo* remoteInfo;
+	    if (selectedName == senderApp)
 	      {
-		dir = connectivity_info::OUTPUT;
-		remote_info = _applications->lookup (receiver_app);
+		dir = ConnectivityInfo::OUTPUT;
+		remoteInfo = _applications->lookup (receiverApp);
 	      }
-	    else if (selected_name == receiver_app)
+	    else if (selectedName == receiverApp)
 	      {
-		dir = connectivity_info::INPUT;
-		remote_info = _applications->lookup (sender_app);
+		dir = ConnectivityInfo::INPUT;
+		remoteInfo = _applications->lookup (senderApp);
 	      }
 	    else
 	      continue;
 	    int w;
 	    if (width == "")
-	      w = connectivity_info::NO_WIDTH;
+	      w = ConnectivityInfo::NO_WIDTH;
 	    else
 	      { //*fixme*
 		std::istringstream ws (width);
 		if (!(ws >> w))
 		  error ("could not interpret width");
 	      }
-	    _connectivity_map->add (dir == connectivity_info::OUTPUT
-				    ? sender_port
-				    : receiver_port,
+	    _connectivityMap->add (dir == ConnectivityInfo::OUTPUT
+				    ? senderPort
+				    : receiverPort,
 				    dir,
 				    w,
-				    receiver_app,
-				    receiver_port,
-				    remote_info->leader (),
-				    remote_info->n_proc ());
+				    receiverApp,
+				    receiverPort,
+				    remoteInfo->leader (),
+				    remoteInfo->nProc ());
 	  }
       }
   }
 
 
-  MUSIC::configuration*
-  application_mapper::config ()
+  MUSIC::Configuration*
+  ApplicationMapper::config ()
   {
-    configuration* config = configs[selected_name];
-    config->set_applications (_applications);
-    config->set_connectivity_map (_connectivity_map);
+    Configuration* config = configs[selectedName];
+    config->setApplications (_applications);
+    config->setConnectivityMap (_connectivityMap);
     return config;
   }
 

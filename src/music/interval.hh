@@ -20,12 +20,12 @@
 
 namespace MUSIC {
 
-  class interval {
+  class Interval {
     int _begin;
     int _end;
   public:
-    interval () { }
-    interval (int b, int e) : _begin (b), _end (e) { }
+    Interval () { }
+    Interval (int b, int e) : _begin (b), _end (e) { }
     int begin () const { return _begin; }
     int end () const { return _end; }
   };

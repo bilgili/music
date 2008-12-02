@@ -45,12 +45,12 @@ namespace MUSIC {
     operator int () const { return id; }
   };
 
-  class IndexInterval : public interval {
+  class IndexInterval : public Interval {
     LocalIndex _local;
   public:
     IndexInterval () { }
     IndexInterval (GlobalIndex b, GlobalIndex e, LocalIndex l)
-      : interval (b, e), _local (l) { }
+      : Interval (b, e), _local (l) { }
     LocalIndex local () const { return _local; }
     void setLocal (int l) { _local = l; }
   };

@@ -13,28 +13,28 @@ main (int argc, char* argv[])
 {
   int width = atoi (argv[1]); // command line arg gives width
 
-  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
-  MUSIC::cont_output_port* wavedata = setup->publish_cont_output ("wavedata");
+  MUSIC::ContOutputPort* wavedata = setup->publishContOutput ("wavedata");
 
   comm = setup->communicator ();
-  int n_processes = comm.Get_size (); // how many processes are there?
+  int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();        // which process am I?
   // For clarity, assume that width is a multiple of n_processes
-  int n_local_vars = width / n_processes;
-  data = new double[n_local_vars];
+  int nLocalVars = width / nProcesses;
+  data = new double[nLocalVars];
     
   // Declare what data we have to export
-  MUSIC::array_data dmap (data,
+  MUSIC::ArrayData dmap (data,
 			  MPI::DOUBLE,
-			  rank * n_local_vars,
-			  n_local_vars);
+			  rank * nLocalVars,
+			  nLocalVars);
   wavedata->map (&dmap);
   
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, TIMESTEP);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
 
   double time = runtime->time ();
   while (time < stoptime)
@@ -44,12 +44,12 @@ main (int argc, char* argv[])
 	  // Generate original data on master node
 	  int i;
 
-	  for (i = 0; i < n_local_vars; ++i)
+	  for (i = 0; i < nLocalVars; ++i)
 	    data[i] = sin (2 * M_PI * time * i);
 	}
 
       // Broadcast these data out to all nodes
-      comm.Bcast (data, n_local_vars, MPI::DOUBLE, 0);
+      comm.Bcast (data, nLocalVars, MPI::DOUBLE, 0);
 
       // Make data available for other programs
       runtime->tick ();

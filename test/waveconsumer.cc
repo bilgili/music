@@ -11,37 +11,37 @@ double* data;
 int
 main (int args, char* argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (args, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (args, argv);
 
-  MUSIC::cont_input_port* wavedata = setup->publish_cont_input ("wavedata");
+  MUSIC::ContInputPort* wavedata = setup->publishContInput ("wavedata");
 
   comm = setup->communicator ();
-  int n_processes = comm.Get_size (); // how many processes are there?
+  int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();        // which process am I?
   int width;
-  if (wavedata->has_width ())
+  if (wavedata->hasWidth ())
     width = wavedata->width ();
   else
     comm.Abort (1);
 
   // For clarity, assume that width is a multiple of n_processes
-  int n_local_vars = width / n_processes;
-  data = new double[n_local_vars];
+  int nLocalVars = width / nProcesses;
+  data = new double[nLocalVars];
   std::ostringstream filename;
   filename << argv[1] << rank << ".out";
   std::ofstream file (filename.str ().data ());
     
   // Declare where in memory to put data
-  MUSIC::array_data dmap (data,
+  MUSIC::ArrayData dmap (data,
 			  MPI::DOUBLE,
-			  rank * n_local_vars,
-			  n_local_vars);
+			  rank * nLocalVars,
+			  nLocalVars);
   wavedata->map (&dmap);
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, TIMESTEP);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
 
   double time = runtime->time ();
   while (time < stoptime)
@@ -50,7 +50,7 @@ main (int args, char* argv[])
       runtime->tick ();
 
       // Dump to file
-      for (int i = 0; i < n_local_vars; ++i)
+      for (int i = 0; i < nLocalVars; ++i)
 	file << data[i];
       file << std::endl;
 

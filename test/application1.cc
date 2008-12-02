@@ -20,13 +20,13 @@ main (int nargs, char* argv[])
   double time;
   int rank;
 
-  MUSIC::setup* setup = new MUSIC::setup (nargs, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (nargs, argv);
 
   MPI::Intracomm comm = setup->communicator ();
   
   rank = comm.Get_rank ();
 
-  MUSIC::runtime* runtime = new MUSIC::runtime (setup, 0.1);
+  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, 0.1);
 
   for (time = 0.0; time < 1.0; time += 0.1) {
     if (rank == 0) {

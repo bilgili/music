@@ -227,16 +227,16 @@ directly in the API.
   named by the application and provided with information about the
   datatype (continuous data, spike events, messages) and mapping onto
   different processors.  Ports are either
-  \lstinline|input_ports|\index{input port} or
-  \lstinline|output_ports|\index{output port}.
+  \lstinline|InputPort|s\index{input port} or
+  \lstinline|OutputPort|s\index{output port}.
 
 \item[connection] During the setup phase, MUSIC connects pairs of
   ports together to form \emph{connections}\index{connection}.  During
   the runtime phase, data is transferred over the connection from the
   producer of the data to the consumer.  While an
-  \lstinline|input_port| can have only one connection, an
-  \lstinline|output_port| can be connected to multiple
-  \lstinline|input_ports|.
+  \lstinline|InputPort| can have only one connection, an
+  \lstinline|OutputPort| can be connected to multiple
+  \lstinline|InputPort|s.
 \pagebreak
 \item[data map] A data map\index{data map} denotes the information on
   where data actually resides within the application.  This is
@@ -319,7 +319,7 @@ applications, is executed in three distinct phases:
   different MPI implementations.
 
   Technically, the launch phase begins when \texttt{mpirun} launches
-  the MUSIC binary and ends when the setup object constructor
+  the MUSIC binary and ends when the Setup object constructor
   returns.  (See further description below.)
 
 \item[\textbf{Setup}]\index{setup phase} is the phase when all
@@ -330,7 +330,7 @@ applications, is executed in three distinct phases:
   communicated via the common configuration file.  At the end of the
   setup phase, MUSIC will establish all connections.
 
-  The setup phase begins when the setup object has been created and
+  The setup phase begins when the Setup object has been created and
   ends when the runtime object constructor returns.
 
 \item[\textbf{Runtime}]\index{runtime phase} is the phase when
@@ -344,16 +344,16 @@ applications, is executed in three distinct phases:
 
 From the application programmers point of view, these phases are
 clearly separated through the use of two main components of the
-MUSIC interface: the \emph{setup} and the \emph{runtime} object.  The
+MUSIC interface: the \emph{Setup} and the \emph{Runtime} object.  The
 launch phase is not visible for the application since it handles the
 situation before the application starts.
 
 When the application initializes MUSIC at the beginning of execution
-it receives a specific \emph{setup object}.  This object gives access
+it receives a specific \emph{Setup object}.  This object gives access
 to the functionality relevant during the setup phase via its methods.
 When done with the setup, the application program makes the transition
-to the runtime phase by passing the setup object as an argument to the
-\emph{runtime object} constructor which destroys the setup object.
+to the runtime phase by passing the Setup object as an argument to the
+\emph{runtime object} constructor which destroys the Setup object.
 The runtime object provides methods relevant during the runtime phase
 of execution.
 
@@ -383,20 +383,20 @@ The MUSIC library is informed about the relationship between global
 and local indices and how data is stored in memory during the setup
 phase.  Two abstractions are used to carry this information:
 
-The \lstinline|index_map| maps local indices to global indices.  That
-is, the \lstinline|index_map| tells which parts of a distributed data
+The \lstinline|IndexMap| maps local indices to global indices.  That
+is, the \lstinline|IndexMap| tells which parts of a distributed data
 array are handled by the local process and how the data elements are
 locally ordered.
 
-The \lstinline|data_map| encapsulates how a port accesses its data.
-The \lstinline|data_map| contains an \lstinline|index_map|.  While an
+The \lstinline|DataMap| encapsulates how a port accesses its data.
+The \lstinline|DataMap| contains an \lstinline|IndexMap|.  While an
 index map is a mapping between two kinds of indices, the data map also
 contains information about where in memory data resides, how it is
 structured, and, the type of the data elements.  The type is used for
 marshalling when running on a heterogeneous cluster.
 
 During setup every process of the application individually provides
-the port with a \lstinline|data_map| (or an \lstinline|index_map| in
+the port with a \lstinline|DataMap| (or an \lstinline|IndexMap| in
 the case of event ports).
 
 \begin{figure}
@@ -564,7 +564,7 @@ participate in a multi-simulation.
 \begin{enumerate}
 \item \textbf{Initiate MUSIC}\index{initiate MUSIC}
 
-  This is done by calling the \lstinline!setup! function.
+  This is done by calling the \lstinline!Setup! function.
 \item \textbf{Create ports}
 
   Data to be imported and exported is identified by creating named
@@ -707,7 +707,7 @@ object oriented and all communication with the library is performed
 via instance methods of different classes of objects.  Appendix
 \ref{app:cint} presents an alternative C interface.  The most common
 way of passing objects as arguments in MUSIC is via pointers.  The
-only exception is the setup constructor.  The convention regarding
+only exception is the Setup constructor.  The convention regarding
 memory management is that the caller should make sure that objects
 exist in memory during the entire execution of the method, and is also
 responsible for the deallocation of objects afterwards.
@@ -745,14 +745,14 @@ its own error handler which has the same behavior as
 \subsection{The setup constructor}
 
 Each application initializes the MUSIC library through a call to the
-setup constructor\index{setup}.  This constructor, in turn, calls
+Setup constructor\index{setup}.  This constructor, in turn, calls
 \lstinline|MPI::Init|\index{MPI::Init}\index{init} to initialize
-MPI\index{initialize MPI}.  The setup constructor creates the setup
+MPI\index{initialize MPI}.  The Setup constructor creates the Setup
 object through which the application can retrieve configuration
 information, get an application wide communicator, and setup ports.
 
-\begin{head}{setup}
-  setup::setup (int& argc, char**& argv)
+\begin{head}{Setup}
+  Setup::Setup (int& argc, char**& argv)
 \end{head}
 \begin{parameters}
   \lstinline|argc| &%
@@ -769,7 +769,7 @@ provided by the arguments to \lstinline|main|.
 \begin{code}{Initializing MUSIC}
 int main (int argc, char *argv[])
 {
-  MUSIC::setup* setup = new MUSIC::setup (argc, argv);
+  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
 
   /* parse arguments */
   /* rest of program */
@@ -793,7 +793,7 @@ the setup object through a call to the \lstinline|communicator|
 method.\index{communicator}
 
 \begin{head}{communicator}
-  MPI::Intracomm setup::communicator ()
+  MPI::Intracomm Setup::communicator ()
 \end{head}
 \begin{parameters}
   \emph{return value} & the application wide communicator \\
@@ -839,27 +839,27 @@ ports) of data flows.  Output and input ports are distinct classes.
 Ports are further subdivided into distinct classes depending on
 whether they handle continuous data, event data or messages.
 
-\index{publish\_output}\index{publish\_input}
-\begin{head}{publish_cont_output,publish_cont_input,
-            ,publish_event_output,publish_event_input,
-            ,publish_message_output,publish_message_input}
-  cont_output_port*
-  setup::publish_cont_output (string id)
+\index{publish output}\index{publish input}
+\begin{head}{publishContOutput,publishContInput,
+            ,publishEventOutput,publishEventInput,
+            ,publishMessageOutput,publishMessageInput}
+  ContOutputPort*
+  Setup::publishContOutput (string id)
 
-  cont_input_port*
-  setup::publish_cont_input (string id)
+  ContInputPort*
+  Setup::publishContInput (string id)
 
-  event_output_port*
-  setup::publish_event_output (string id)
+  EventOutputPort*
+  Setup::publishEventOutput (string id)
 
-  event_input_port*
-  setup::publish_event_input (string id)
+  EventInputPort*
+  Setup::publishEventInput (string id)
 
-  message_output_port*
-  setup::publish_message_output (string id)
+  MessageOutputPort*
+  Setup::publishMessageOutput (string id)
 
-  message_input_port*
-  setup::publish_message_input (string id)
+  MessageInputPort*
+  Setup::publishMessageInput (string id)
 \end{head}
 \begin{parameters}
   \lstinline|id| & port name \\
@@ -875,8 +875,8 @@ specified and, if so, what width it has.  A port becomes mapped when
 its method \lstinline|map| is called.
 
 \begin{code}{Creating an unmapped port}
-cont_output_port* out =
-   setup->publish_cont_output ("out");
+ContOutputPort* out =
+   setup->publishContOutput ("out");
 \end{code}
 
 \subsection{General port methods}
@@ -886,13 +886,13 @@ has a width specified, and, if so, what that width is.
 
 \subsubsection{Port connectivity}
 
-The method \lstinline|is_connected| is used to check if the user has
+The method \lstinline|isConnected| is used to check if the user has
 specified a connection of this port to another port in the
 configuration file.
 
-\index{is\_connected}\index{connected port}
-\begin{head}{is_connected}
-  bool port::is_connected ()
+\index{isConnected}\index{connected port}
+\begin{head}{isConnected}
+  bool Port::isConnected ()
 \end{head}
 \begin{parameters}
   \emph{return value} & \lstinline|true| only if connected\\
@@ -906,10 +906,10 @@ membrane potentials from a certain population of cells, but don't want
 to waste resources if no one is listening.
 
 \begin{code}{Optional handling of ports}
-cont_output_port* out =
-   setup->publish_cont_output ("Vm");
+ContOutputPort* out =
+   setup->publishContOutput ("Vm");
 /* map port only if anyone is listening */
-if (out->is_connected ())
+if (out->isConnected ())
   /* allocate application resources and map port */
 \end{code}
 
@@ -920,14 +920,14 @@ The width of a port\index{port width}, that is the number of data
 elements transferred in parallel from a cont port or the largest
 possible id of an event port $+$ 1, can be specified in the
 configuration file.  This should be thought of as a request for a
-given width.  Applications can use the method \lstinline|has_width| to
+given width.  Applications can use the method \lstinline|hasWidth| to
 determine if a width has been specified and retrieve it using
 \lstinline|width|.  Message ports do not have width.
 
 \pagebreak
-\index{has\_width}
-\begin{head}{has_width}
-  bool port::has_width ()
+\index{hasWidth}
+\begin{head}{hasWidth}
+  bool Port::hasWidth ()
 \end{head}
 \begin{parameters}
   \emph{return value} & \lstinline|true| only if port width has been
@@ -936,7 +936,7 @@ determine if a width has been specified and retrieve it using
 
 \index{width}
 \begin{head}{width}
-  int port::width ()
+  int Port::width ()
 \end{head}
 \begin{parameters}
   \emph{return value} & port width \\
@@ -947,7 +947,7 @@ determine if a width has been specified and retrieve it using
   typical usage would be a general purpose post-processing tool which
   receives information from an ongoing simulation.  Such a tool can
   publish a number of optional input ports and then use
-  \lstinline|is_connected| and \lstinline|width| to adapt its internal
+  \lstinline|isConnected| and \lstinline|width| to adapt its internal
   processing depending on what kind of data source it is actually
   connected to.  See example \ref{code:adaptivewidth}.
 \end{rationale}
@@ -957,17 +957,17 @@ determine if a width has been specified and retrieve it using
 {
   ...
   /* Publishing a port of adaptive width */
-  double* state_vars;
-  MUSIC::cont_input_port* in =
-     setup->publish_cont_input ("in");
-  if (!in->has_width ())
+  double* stateVars;
+  MUSIC::ContInputPort* in =
+     setup->publishContInput ("in");
+  if (!in->hasWidth ())
     /* report error */
   else
     {
       int size = in->width ();
-      /* for clarity we assume that n_elements
+      /* for clarity we assume that nElements
          is a multiple of size */
-      int n_local = n_elements / size;
+      int nLocal = nElements / size;
       /* example continues as in next example */
       ...
       
@@ -985,24 +985,24 @@ by mapping it.  Cont ports transfer data from or to memory during
 In addition, the marshalling (conversion between different bit level
 representations) performed on heterogeneous clusters requires
 information about the data type being transferred.  This information
-is captured by the data map argument \lstinline|dmap|.  The
-\lstinline|data_map| type is described in section \ref{sec:datamap}
+is captured by the data map argument \lstinline|dMap|.  The
+\lstinline|DataMap| type is described in section \ref{sec:datamap}
 below.
 
 \index{map}\index{mapping cont ports}
 \begin{head}{map}
-  void cont_output_port::map (data_map* dmap,
-                              int max_buffered)
+  void ContOutputPort::map (DataMap* dMap,
+                            int maxBuffered)
 
-  void cont_input_port::map (data_map* dmap,
-                             double delay,
-                             int max_buffered,
-                             bool interpolate)
+  void ContInputPort::map (DataMap* dMap,
+                           double delay,
+                           int maxBuffered,
+                           bool interpolate)
 \end{head}
 \begin{parameters}
-  \lstinline|dmap| & the data map associated with the port \\
+  \lstinline|dMap| & the data map associated with the port \\
   \lstinline|delay| & delay of data arrival in simulation time (s) \\
-  \lstinline|max_buffered| & maximal amount of data buffered (ticks)
+  \lstinline|maxBuffered| & maximal amount of data buffered (ticks)
   \\
   \lstinline|interpolate| & enable interpolation (boolean) \\
 \end{parameters}
@@ -1019,12 +1019,12 @@ Buffering data in output and input ports gives more efficient
 communication since data can be sent fewer times in larger packets.
 By default MUSIC buffers some reasonable amount of data.  In certain
 situations it is necessary to be careful about memory usage.  Using
-the optional argument \lstinline|max_buffered| the application can
+the optional argument \lstinline|maxBuffered| the application can
 give MUSIC a bound on how much data to buffer.  MUSIC decides how much
-data to buffer based on the lowest \lstinline|max_buffered| parameter
+data to buffer based on the lowest \lstinline|maxBuffered| parameter
 given when mapping each of a set of connected ports and on latency
 considerations when applications are connected in loops.  A
-\lstinline|max_buffered| value of \(N\) ticks means: don't buffer more
+\lstinline|maxBuffered| value of \(N\) ticks means: don't buffer more
 data than is sufficient for communicating at every \(N\)\,th tick.
 
 When the optional argument \lstinline|interpolate| is
@@ -1041,15 +1041,15 @@ closest according to simulation time.
   ...
   int size = comm.Get_size ();
   int rank = comm.Get_rank ();
-  /* for clarity we assume that n_elements
+  /* for clarity we assume that nElements
      is a multiple of size */
-  int n_local = n_elements / size;
-  double* state_vars = new double[n_local];
-  MUSIC::cont_input_port* out =
-     setup->publish_cont_output ("out");
-  MUSIC::array_data dmap (state_vars, MPI::DOUBLE,
-                          rank * n_local, n_local);
-  out->map (&dmap);
+  int nLocal = nElements / size;
+  double* stateVars = new double[nLocal];
+  MUSIC::ContInputPort* out =
+     setup->publishContOutput ("out");
+  MUSIC::ArrayData dMap (stateVars, MPI::DOUBLE,
+                         rank * nLocal, nLocal);
+  out->map (&dMap);
   ...
 }
 \end{code}
@@ -1060,23 +1060,23 @@ closest according to simulation time.
 
 \index{map}\index{mapping event ports}
 \begin{head}{map}
-  void event_output_port::map (index_map* indices,
-                               int max_buffered)
+  void EventOutputPort::map (IndexMap* indices,
+                             int maxBuffered)
 
-  void event_input_port::map (index_map* indices,
-                              event_handler* handle_event,
-                              double acc_latency,
-                              int max_buffered)
+  void EventInputPort::map (IndexMap* indices,
+                            EventHandler* handleEvent,
+                            double accLatency,
+                            int maxBuffered)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & the index map associated with the port \\
-  \lstinline|handle_event| & a user-defined event handler \\
-  \lstinline|acc_latency| & acceptable latency for incoming data (s) \\
-  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+  \lstinline|handleEvent| & a user-defined event handler \\
+  \lstinline|accLatency| & acceptable latency for incoming data (s) \\
+  \lstinline|maxBuffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
 Since event ports don't access data the same way as cont ports, they
-do not require a full \lstinline|data_map|.  Events are communicated
+do not require a full \lstinline|DataMap|.  Events are communicated
 to the application through an \emph{event handler}\index{event
 handler}.  The event handler is called by MUSIC when the application
 calls \lstinline|tick|.  It is called once for every spike delivered.
@@ -1086,9 +1086,9 @@ framework assumes that handling and delivery of delayed spikes occurs
 on the receiver side.  In such a case, the receiver may allow MUSIC to
 deliver a spike event later than its time stamp according to local
 time.  The maximal acceptable latency is specified through the
-\lstinline|acc_latency|\index{acc\_latency} argument.
+\lstinline|accLatency|\index{accLatency} argument.
 
-The optional argument \lstinline|max_buffered|\index{max\_buffered}
+The optional argument \lstinline|maxBuffered|\index{maxBuffered}
 has a similar meaning as for cont ports above but the actual amount
 of data buffered is, in this case, not deterministic since it is
 dependent on spike rate.
@@ -1098,11 +1098,11 @@ dependent on spike rate.
 \index{sending events}
 
 The sender registers events for transmission by calling the method
-\lstinline|insert_event|.
+\lstinline|insertEvent|.
 
-\index{insert\_event}
-\begin{head}{insert_event}
-  void event_output_port::insert_event (double t, int id)
+\index{insertEvent}
+\begin{head}{insertEvent}
+  void EventOutputPort::insertEvent (double t, int id)
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
@@ -1110,7 +1110,7 @@ The sender registers events for transmission by calling the method
 \end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
-the user-specified \lstinline|event_handler| on the receiver side no
+the user-specified \lstinline|EventHandler| on the receiver side no
 later that the acceptable latency relative to receiver local time.
 The time \lstinline|t| must be between the simulation time of the last
 tick and that of the next.
@@ -1119,9 +1119,9 @@ tick and that of the next.
 \subsubsection{Receiving events}
 \index{receiving events}
 
-\index{event\_handler}
-\begin{head}{event_handler,operator}
-  class event_handler {
+\index{EventHandler}
+\begin{head}{EventHandler,operator}
+  class EventHandler {
   public:
     virtual void operator () (double t, int id) = 0;
   };
@@ -1132,7 +1132,7 @@ tick and that of the next.
 \end{parameters}
 
 Event handlers are called by event input ports to deliver events.  The
-application is supposed to customize \lstinline|event_handler| by
+application is supposed to customize \lstinline|EventHandler| by
 subclassing it.
 
 
@@ -1143,21 +1143,21 @@ Message ports behave similarly to event ports in that messages are
 sent and delivered using similar mechanisms, but while events are
 routed between processes based on event id, messages are routed to all
 processes on the receiver side which have provided a
-\lstinline|message_handler| to \lstinline|map|.  All arguments to
+\lstinline|MessageHandler| to \lstinline|map|.  All arguments to
 \lstinline|map| for message ports are optional.
 
 \index{map}\index{mapping message ports}
 \begin{head}{map}
-  void message_output_port::map (int max_buffered)
+  void MessageOutputPort::map (int maxBuffered)
 
-  void message_input_port::map (message_handler* handler,
-                                double acc_latency,
-                                int max_buffered)
+  void MessageInputPort::map (MessageHandler* handler,
+                              double accLatency,
+                              int maxBuffered)
 \end{head}
 \begin{parameters}
   \lstinline|handler| & a user-defined message handler \\
-  \lstinline|accept_latency| & acceptable latency for incoming data (s) \\
-  \lstinline|max_buffered| & maximal amount of data buffered (ticks) \\
+  \lstinline|accLatency| & acceptable latency for incoming data (s) \\
+  \lstinline|maxBuffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
 
@@ -1166,13 +1166,13 @@ processes on the receiver side which have provided a
 \index{sending messages}
 
 The sender registers a message for transmission by calling the method\\
-\lstinline|insert_message|.
+\lstinline|insertMessage|.
 
-\index{insert\_message}
-\begin{head}{insert_message}
-  void message_output_port::insert_message (double t,
-                                            void* msg,
-                                            size_t size)
+\index{insertMessage}
+\begin{head}{insertMessage}
+  void MessageOutputPort::insertMessage (double t,
+                                         void* msg,
+                                         size_t size)
 \end{head}
 \begin{parameters}
   \lstinline|t| & time stamp (s) \\
@@ -1181,14 +1181,14 @@ The sender registers a message for transmission by calling the method\\
 \end{parameters}
 
 MUSIC will deliver this message through a call to the user-specified \\
-\lstinline|message_handler| on the receiver side no later than
-\lstinline|acc_latency| with regard to the time stamp.
+\lstinline|MessageHandler| on the receiver side no later than
+\lstinline|accLatency| with regard to the time stamp.
 
 \begin{code}{Sending a message}
 {
   ...
   char m[] = "string to send";
-  port->insert_message (runtime->time (), m, sizeof (m));
+  port->insertMessage (runtime->time (), m, sizeof (m));
   ...
 }
 \end{code}
@@ -1197,8 +1197,8 @@ MUSIC will deliver this message through a call to the user-specified \\
 \subsubsection{Receiving messages}
 \index{receiving messages}
 
-\begin{head}{message_handler,operator}
-  class message_handler {
+\begin{head}{MessageHandler,operator}
+  class MessageHandler {
   public:
     virtual void operator () (double t,
                               void* msg,
@@ -1213,43 +1213,43 @@ MUSIC will deliver this message through a call to the user-specified \\
 
 Message handlers are called by message input ports to deliver
 messages.  The application is supposed to customize
-\lstinline|message_handler| by subclassing.  It is recommended that
+\lstinline|MessageHandler| by subclassing.  It is recommended that
 messages are text strings with the syntax of the interpreter language
 of the receiving application, and that these text strings originate
 from a user-specified configuration file read by the sending
 application.
 
-The message given to the \lstinline|message_handler| is deallocated by
+The message given to the \lstinline|MessageHandler| is deallocated by
 the MUSIC library.
 
 
 \subsection{Index maps}
 \index{index maps}
 
-An \lstinline|index_map| is a mapping from local data element indices to
-global. An index map instance thus holds information of which global
+An \lstinline|IndexMap| is a mapping from local data element indices to
+global.  An index map instance thus holds information of which global
 indices belong to the local MPI process and of their order with regard
 to local index.  MUSIC implements two subclasses of
-\lstinline|index_map|: \lstinline|permutation_index| and
-\lstinline|linear_index|.  The most general form is
-\lstinline|permutation_index| which allows for an arbitrary mapping.
+\lstinline|IndexMap|: \lstinline|PermutationIndex| and
+\lstinline|LinearIndex|.  The most general form is
+\lstinline|PermutationIndex| which allows for an arbitrary mapping.
 
-\index{permutation\_index}
-\begin{head}{permutation_index}
-  permutation_index::permutation_index (int* indices,
-                                        int size)
+\index{PermutationIndex}
+\begin{head}{PermutationIndex}
+  PermutationIndex::PermutationIndex (int* indices,
+                                      int size)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & vector of global indices \\
   \lstinline|size| & number of global indices \\
 \end{parameters}
 
-\index{linear\_index}
-\begin{head}{linear_index}
-  linear_index::linear_index (int baseindex, int size)
+\index{LinearIndex}
+\begin{head}{LinearIndex}
+  LinearIndex::LinearIndex (int baseIndex, int size)
 \end{head}
 \begin{parameters}
-  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|baseIndex| & global index of first local element \\
   \lstinline|size| & number of contiguous global indices \\
 \end{parameters}
 
@@ -1274,17 +1274,17 @@ by the process in local order.
 \label{sec:datamap}
 \index{data maps}
 
-A \lstinline|data_map| encapsulates how a port accesses its data.
+A \lstinline|DataMap| encapsulates how a port accesses its data.
 While an index map is a mapping between two kinds of indices, the data
 map also contains information about where in memory data resides, how
 it is structured, and, the type of the data elements.
-\lstinline|array_data| is a subclass of \lstinline|data_map| which
+\lstinline|ArrayData| is a subclass of \lstinline|DataMap| which
 describes arrays of data elements.  See example \ref{code:mapping}.
 
-\index{array\_data}
-\begin{head}{array_data}
-  array_data::array_data (void* buffer, MPI_Datatype type,
-                          index_map* map)
+\index{ArrayData}
+\begin{head}{ArrayData}
+  ArrayData::ArrayData (void* buffer, MPI_Datatype type,
+                        IndexMap* map)
 \end{head}
 \begin{parameters}
   \lstinline|buffer| & data memory location \\
@@ -1297,16 +1297,16 @@ form of the array data map constructor which also creates a linear
 index map:
 
 \pagebreak
-\begin{head}{array_data}
-  array_data::array_data (void* buffer,
-                          MPI_Datatype type,
-                          int  baseindex,
-                          int size)
+\begin{head}{ArrayData}
+  ArrayData::ArrayData (void* buffer,
+                        MPI_Datatype type,
+                        int  baseIndex,
+                        int size)
 \end{head}
 \begin{parameters}
   \lstinline|buffer|    & data memory location \\
   \lstinline|type|	& data type \\
-  \lstinline|baseindex| & global index of first local element \\
+  \lstinline|baseIndex| & global index of first local element \\
   \lstinline|size|      & number of contiguous global indices \\
 \end{parameters}
 
@@ -1319,11 +1319,11 @@ queried using the method \lstinline|config|.
 
 \index{config}
 \begin{head}{config}
-  bool setup::config (string name, string* result)
+  bool Setup::config (string name, string* result)
 
-  bool setup::config (string name, int* result)
+  bool Setup::config (string name, int* result)
 
-  bool setup::config (string name, double* result)
+  bool Setup::config (string name, double* result)
 \end{head}
 \begin{parameters}
   \lstinline|name|     & variable name \\
@@ -1349,15 +1349,15 @@ if (!config ("gKCa", &gKCa))
 \subsection{The runtime constructor}
 
 \begin{head}{runtime}
-  runtime::runtime (setup* s, double h)
+  Runtime::Runtime (Setup* s, double h)
 \end{head}
 \begin{parameters}
-  \lstinline|s| & pointer to the setup object \\
+  \lstinline|s| & pointer to the Setup object \\
   \lstinline|h| & simulated time elapsed between each tick (s) \\
 \end{parameters}
 
 Creation of the runtime object marks the transition from the setup to
-the runtime phase.  The runtime object constructor destroys the setup
+the runtime phase.  The runtime object constructor destroys the Setup
 object, effectively making it impossible to create new ports.  All
 data structures which have been associated with ports during mapping
 must be initialized to some suitable start value at the time of the
@@ -1365,9 +1365,9 @@ call to the runtime constructor.  These values are used during early
 data transfers of data sampled at negative values of simulation time
 and, thus, not available.
 
-\begin{code}{runtime}
+\begin{code}{Runtime}
 ...
-MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+MUSIC::Runtime runtime = MUSIC::Runtime (setup, stepSize);
 ...
 \end{code}
 
@@ -1406,14 +1406,14 @@ MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
 \index{tick}
 
 \begin{head}{tick}
-  void runtime::tick ()
+  void Runtime::tick ()
 \end{head}
 \begin{parameters}
 \end{parameters}
 
 The tick function must be called at regular intervals in simulation
 time.  The application chooses the interval as a parameter to the
-\lstinline|runtime| constructor, normally based on the time step used
+\lstinline|Runtime| constructor, normally based on the time step used
 in the application.  The \lstinline|tick| function is typically called
 in the main simulation loop of each application.  Different
 applications may use different tick-intervals and MUSIC will ensure
@@ -1443,7 +1443,7 @@ The method \lstinline|time| returns local time in seconds.
 
 \index{time}
 \begin{head}{time}
-  double runtime::time ()
+  double Runtime::time ()
 \end{head}
 \begin{parameters}
   \emph{return value} & local time (s) \\
@@ -1474,7 +1474,7 @@ MPI::Finalize with the destruction of the MUSIC runtime object.
 
 \begin{code}{}
 ...
-MUSIC::runtime runtime = MUSIC::runtime (setup, stepsize);
+MUSIC::Runtime runtime = MUSIC::Runtime (setup, stepSize);
 ...
 delete runtime;
 \end{code}
@@ -1511,7 +1511,7 @@ perform the mapping.
 Communication of spikes will use event ports. Function calls are used
 to send and receive individual spike events.  Sending of spikes is
 relatively straightforward, since the only thing needed is to add a
-call to the method \lstinline|insert_event| at the location where
+call to the method \lstinline|insertEvent| at the location where
 spikes are normally detected in the program.  Receiving spikes
 requires more administration, since the spikes can be received earlier
 than when they should reach their destination compartment.  It is
@@ -1584,7 +1584,7 @@ operations.
 \subsection{Initiate MUSIC}\index{initiate MUSIC}
 
 The idea here is to replace the call to \lstinline|MPI:Init| with a
-call to the \lstinline|MUSIC:setup| constructor.  The setup
+call to the \lstinline|MUSIC:Setup| constructor.  The Setup
 constructor calls \lstinline|MPI:Init| for the application.
 
 The application will have to replace all uses of the global
@@ -1597,7 +1597,7 @@ There should be no need to link an application differently when it is
 used together with other applications in a MUSIC setting compared to
 when it is used in a stand-alone setting.  In order to support
 ``standard'' operation for the application,
-\lstinline|setup::communicator ()|, therefore, will return
+\lstinline|Setup::communicator ()|, therefore, will return
 \lstinline|MPI::COMM_WORLD| if the job is started directly with
 \lstinline|mpirun| instead of with the MUSIC launcher.
 
@@ -1605,7 +1605,7 @@ when it is used in a stand-alone setting.  In order to support
 
 \subsection{Initiate the runtime phase}
 
-Creating the runtime object will implicitly call the \lstinline|setup|
+Creating the runtime object will implicitly call the \lstinline|Setup|
 object destructor to ensure that the application will no longer be
 able to change the communication pattern.  At this stage, MUSIC can
 build the plan for communication between different processes.
@@ -1655,9 +1655,9 @@ counterparts using a few translation rules:
 
 \begin{enumerate}
 \item All identifiers have the prefix \lstinline|MUSIC_|.
-\item Constructors translate to \lstinline|create_| followed by the
+\item Constructors translate to \lstinline|create| followed by the
   class name.
-\item Destructors translate to \lstinline|destroy_| followed by the
+\item Destructors translate to \lstinline|destroy| followed by the
   class name.
 \item Methods translate to class name followed by method name.
 \item References translate to pointers.

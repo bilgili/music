@@ -42,57 +42,62 @@ Connection(e, d, 60)
 # Search for loops
 
 def depthFirst(x, path):
-    # Search path to detect loop
-    for cIndex, c in enumerate(path):
-        if c.pre is x:
-            loop = path[cIndex:]
+    if x.inPath:
+        # Search path to detect beginning of loop
+        for cIndex, c in enumerate(path):
+            if c.pre is x:
+                loop = path[cIndex:]
 
-            print('Found loop', [c.name for c in loop])
+        print('Found loop', [c.name for c in loop])
 
-            # Compute how much headroom we have for buffering
-            totalDelay = 0
-            for c in loop:
-                totalDelay += c.latency - c.pre.stepSize
+        # Compute how much headroom we have for buffering
+        totalDelay = 0
+        for c in loop:
+            totalDelay += c.latency - c.pre.stepSize
 
-            # If negative we will not be able to make it in time
-            # around the loop even without any extra buffering
-            if totalDelay < 0:
-                print('Too short latency (%g) around loop: ' % -totalDelay)
-                print([c.name for c in loop])
-                return False
+        # If negative we will not be able to make it in time
+        # around the loop even without any extra buffering
+        if totalDelay < 0:
+            print('Too short latency (%g) around loop: ' % -totalDelay)
+            print([c.name for c in loop])
+            return False
 
-            # Distribute totalDelay as allowed buffering uniformly over loop
-            # (we could do better by considering constraints form other loops)
-            bufDelay = totalDelay / len(loop)
-            for c in loop:
-                c.allowedBuffer = min(c.allowedBuffer,
-                                      bufDelay // c.pre.stepSize)
+        # Distribute totalDelay as allowed buffering uniformly over loop
+        # (we could do better by considering constraints form other loops)
+        bufDelay = totalDelay / len(loop)
+        for c in loop:
+            c.allowedBuffer = min(c.allowedBuffer,
+                                  bufDelay // c.pre.stepSize)
 
-            # Calculate and print out debug info
-            print('Distributing delays',
-                  [(c.name,
-                    bufDelay // c.pre.stepSize,
-                    c.allowedBuffer)
-                   for c in loop])
+        # Calculate and print out debug info
+        print('Distributing delays',
+              [(c.name,
+                bufDelay // c.pre.stepSize,
+                c.allowedBuffer)
+               for c in loop])
 
-            totalBufferedDelay = 0
-            for c in loop:
-                totalBufferedDelay += c.latency - c.pre.stepSize*c.allowedBuffer
-            print('Total buffered delay', totalBufferedDelay)
+        totalBufferedDelay = 0
+        for c in loop:
+            totalBufferedDelay += c.latency - c.pre.stepSize*c.allowedBuffer
+        print('Total buffered delay', totalBufferedDelay)
 
-            return True
+        return True
 
     # Mark as processed (remove from main loop forest)
     x.visited = True
+    x.inPath = True
 
     # Recurse in depth-first order
     for c in x.connections:
         depthFirst(c.post, path+[c])
 
+    x.inPath = False
+
 
 def findLoops(nodeList):
     for x in nodeList:
         x.visited = False
+        x.inPath = False
 
     # Do depth-first traversal of forest
     for x in nodeList:

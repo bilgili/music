@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,14 +65,14 @@ namespace MUSIC {
 
   class OutputRedistributionPort : OutputPort {
   protected:
-    SpatialOutputNegotiator* negotiator;
+    SpatialOutputNegotiator* spatialNegotiator;
   public:
     void setupCleanup ();
   };
 
   class InputRedistributionPort : OutputPort {
   protected:
-    SpatialInputNegotiator* negotiator;
+    SpatialInputNegotiator* spatialNegotiator;
   public:
     void setupCleanup ();
   };

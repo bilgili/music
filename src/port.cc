@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -81,14 +81,14 @@ namespace MUSIC {
   void
   OutputRedistributionPort::setupCleanup ()
   {
-    delete negotiator;
+    delete spatialNegotiator;
   }
   
   
   void
   InputRedistributionPort::setupCleanup ()
   {
-    delete negotiator;
+    delete spatialNegotiator;
   }
   
   
@@ -164,13 +164,13 @@ namespace MUSIC {
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = _ConnectivityInfo->connections ();
-    negotiator = new SpatialOutputNegotiator (indices, type);
+    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
 	 ++info)
       // Create connector
       _setup->addConnector (new EventOutputConnector (*info,
-							 negotiator,
+							 spatialNegotiator,
 							 maxBuffered,
 							 comm,
 							 router));
@@ -278,9 +278,9 @@ namespace MUSIC {
     PortConnectorInfo portConnections
       = _ConnectivityInfo->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
-    negotiator = new SpatialInputNegotiator (indices, type);
+    spatialNegotiator = new SpatialInputNegotiator (indices, type);
     _setup->addConnector (new EventInputConnector (*info,
-						      negotiator,
+						      spatialNegotiator,
 						      handleEvent,
 						      type,
 						      accLatency,

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@
 namespace MUSIC {
 
   Connector::Connector (ConnectorInfo _info,
-			SpatialNegotiator* _negotiator,
+			SpatialNegotiator* _spatialNegotiator,
 			MPI::Intracomm c)
     : info (_info),
-      negotiator (_negotiator),
+      spatialNegotiator (_spatialNegotiator),
       comm (c)
   {
   }
@@ -190,20 +190,20 @@ namespace MUSIC {
 
 
   EventConnector::EventConnector (ConnectorInfo _info,
-				    SpatialNegotiator* _negotiator,
+				    SpatialNegotiator* _spatialNegotiator,
 				    MPI::Intracomm c)
-    : Connector (_info, _negotiator, c)
+    : Connector (_info, _spatialNegotiator, c)
   {
   }
   
 
   EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
-						  SpatialOutputNegotiator* _negotiator,
+						  SpatialOutputNegotiator* _spatialNegotiator,
 						  int maxBuffered,
 						  MPI::Intracomm comm,
 						  EventRouter& _router)
-    : Connector (connInfo, _negotiator, comm),
-      EventConnector (connInfo, _negotiator, comm),
+    : Connector (connInfo, _spatialNegotiator, comm),
+      EventConnector (connInfo, _spatialNegotiator, comm),
       router (_router)
   {
   }
@@ -216,9 +216,9 @@ namespace MUSIC {
   {
     std::map<int, EventOutputSubconnector*> subconnectors;
     MPI::Intercomm intercomm = createIntercomm ();
-    for (NegotiationIterator i = negotiator->negotiate (comm,
-							 intercomm,
-							 info.nProcesses ());
+    for (NegotiationIterator i = spatialNegotiator->negotiate (comm,
+							intercomm,
+							info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
@@ -247,14 +247,14 @@ namespace MUSIC {
 
   
   EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
-						SpatialInputNegotiator* negotiator,
+						SpatialInputNegotiator* spatialNegotiator,
 						EventHandlerPtr _handleEvent,
 						Index::Type _type,
 						double accLatency,
 						int maxBuffered,
 						MPI::Intracomm comm)
-    : Connector (connInfo, negotiator, comm),
-      EventConnector (connInfo, negotiator, comm),
+    : Connector (connInfo, spatialNegotiator, comm),
+      EventConnector (connInfo, spatialNegotiator, comm),
       handleEvent (_handleEvent),
       type (_type)
   {
@@ -269,7 +269,7 @@ namespace MUSIC {
     std::map<int, EventInputSubconnector*> subconnectors;
     MPI::Intercomm intercomm = createIntercomm ();
     int receiverRank = intercomm.Get_rank ();
-    for (NegotiationIterator i = negotiator->negotiate (comm,
+    for (NegotiationIterator i = spatialNegotiator->negotiate (comm,
 							 intercomm,
 							 info.nProcesses ());
 	 !i.end ();

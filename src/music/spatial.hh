@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ namespace MUSIC {
   };
   
 
-  // The spatial_negotiator negotiates with the remote application how
+  // The SpatialNegotiator negotiates with the remote application how
   // to redistribute data over a port pair.  This is done using the
   // algorithm described in Djurfeldt and Ekeberg (2009) with memory
   // complexity O (N / P) where N is the port width and P is the

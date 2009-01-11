@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,13 +45,13 @@ namespace MUSIC {
   class Connector {
   protected:
     ConnectorInfo info;
-    SpatialNegotiator* negotiator;
+    SpatialNegotiator* spatialNegotiator;
     MPI::Intracomm comm;
     Synchronizer synch;
   public:
     Connector () { }
     Connector (ConnectorInfo _info,
-	       SpatialNegotiator* _negotiator,
+	       SpatialNegotiator* _spatialNegotiator,
 	       MPI::Intracomm c);
     std::string receiverAppName () const
     { return info.receiverAppName (); }
@@ -129,7 +129,7 @@ namespace MUSIC {
   class EventConnector : virtual public Connector {
   public:
     EventConnector (ConnectorInfo info,
-		     SpatialNegotiator* negotiator,
+		     SpatialNegotiator* spatialNegotiator,
 		     MPI::Intracomm c);
   };
   
@@ -138,7 +138,7 @@ namespace MUSIC {
     void send ();
   public:
     EventOutputConnector (ConnectorInfo connInfo,
-			    SpatialOutputNegotiator* negotiator,
+			    SpatialOutputNegotiator* spatialNegotiator,
 			    int maxBuffered,
 			    MPI::Intracomm comm,
 			    EventRouter& router);
@@ -154,7 +154,7 @@ namespace MUSIC {
     Index::Type type;
   public:
     EventInputConnector (ConnectorInfo connInfo,
-			   SpatialInputNegotiator* negotiator,
+			   SpatialInputNegotiator* spatialNegotiator,
 			   EventHandlerPtr handleEvent,
 			   Index::Type type,
 			   double accLatency,

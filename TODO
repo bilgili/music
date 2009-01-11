@@ -1,10 +1,41 @@
-* Allow different time steps
+* Implement pairwise communication of timing parameters between
 
-* Join intervals at spatial negotiation.
-
-* Implement mark function in FIBO
+* Implement syncronizer algorithm
 
 * Buffering schedule in synchronizer
+
+Continuous data
+
+* Investigate what needs to be done
+
+Before delivery
+
+* Communicate timing parameters between group leaders
+
+* Run loop detection algorithm in group leaders
+
+* Distribute timing constraint data to all ranks
+
+* Manual
+
+* Documentation strings
+
+After delivery
+
+* Debian packaging
+
+Optional
+  
+* Improve all error reporting (giving more informative messages with names etc)
+
+* Set flags with options to the music utility and transmit them to the
+  applications so that library behavior can be controlled.  E.g.,
+  print out run statistics, such as part of time spent in tick() when
+  deleting runtime.
+
+* Option for music launcer to get map over rank allocations
+
+* Join intervals at spatial negotiation.
 
 * Move all MPI implementation dependent code into a subdirectory
   mpidep.  This directory should also contain a test binary which is
@@ -13,11 +44,6 @@
 * Write piecewise_linear_index and derive linear_index and
   permutation_index from it.
 
-* Improve all error reporting (giving more informative messages with names etc)
+Obscure
 
-* Option for music launcer to get map over rank allocations
-
-* Set flags with options to the music utility and transmit them to the
-  applications so that library behavior can be controlled.  E.g.,
-  print out run statistics, such as part of time spent in tick() when
-  deleting runtime.
+* Implement mark function in FIBO

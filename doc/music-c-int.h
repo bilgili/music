@@ -94,12 +94,12 @@ MUSIC_ArrayData *MUSIC_createArrayData (void *buffer,
 					MPI_Datatype type,
 					void *map);
 
-/* Exception: MUSIC_create_linear_array_data corresponds to
-   c++ music::array_data::array_data (..., ..., ..., ...) */
+/* Exception: MUSIC_createLinearArrayData corresponds to
+   c++ music::ArrayData::ArrayData (..., ..., ..., ...) */
 
 MUSIC_ArrayData *MUSIC_createLinearArrayData (void *buffer,
 					      MPI_Datatype type,
-					      int base_index,
+					      int baseIndex,
 					      int size);
 
 void MUSIC_destroyArrayData (MUSIC_ArrayData *arrayData);

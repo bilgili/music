@@ -27,24 +27,24 @@ extern "C" {
 
 /* Setup */
 
-MUSICSetup *
-MUSICCreateSetup (int *argc, char ***argv)
+MUSIC_Setup *
+MUSIC_createSetup (int *argc, char ***argv)
 {
-  return (MUSICSetup *) new MUSIC::Setup (*argc, *argv);
+  return (MUSIC_Setup *) new MUSIC::Setup (*argc, *argv);
 }
 
 
-MUSICSetup *
-MUSICCreateSetupThread (int *argc, char ***argv, int required, int *provided)
+MUSIC_Setup *
+MUSIC_createSetupThread (int *argc, char ***argv, int required, int *provided)
 {
-  return (MUSICSetup *) new MUSIC::Setup (*argc, *argv, required, provided);
+  return (MUSIC_Setup *) new MUSIC::Setup (*argc, *argv, required, provided);
 }
 
 
 /* Communicators */
 
 MPI_Comm
-MUSICSetupCommunicatorGlue (MUSICSetup *setup)
+MUSIC_setupCommunicatorGlue (MUSIC_Setup *setup)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
   return (MPI_Comm) cxxSetup->communicator ();
@@ -53,91 +53,91 @@ MUSICSetupCommunicatorGlue (MUSICSetup *setup)
 
 /* Port creation */
 
-MUSICContOutputPort *
-MUSICPublishContOutput (MUSICSetup *setup, char *id)
+MUSIC_ContOutputPort *
+MUSIC_publishContOutput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICContOutputPort *) cxxSetup->publishContOutput (id);
+  return (MUSIC_ContOutputPort *) cxxSetup->publishContOutput (id);
 }
 
 
-MUSICContInputPort *
-MUSICPublishContInput (MUSICSetup *setup, char *id)
+MUSIC_ContInputPort *
+MUSIC_publishContInput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICContInputPort *) cxxSetup->publishContInput(id);
+  return (MUSIC_ContInputPort *) cxxSetup->publishContInput(id);
 }
 
 
-MUSICEventOutputPort *
-MUSICPublishEventOutput (MUSICSetup *setup, char *id)
+MUSIC_EventOutputPort *
+MUSIC_publishEventOutput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICEventOutputPort *) cxxSetup->publishEventOutput(id);
+  return (MUSIC_EventOutputPort *) cxxSetup->publishEventOutput(id);
 }
 
 
-MUSICEventInputPort *
-MUSICPublishEventInput (MUSICSetup *setup, char *id)
+MUSIC_EventInputPort *
+MUSIC_publishEventInput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICEventInputPort *) cxxSetup->publishEventInput(id);
+  return (MUSIC_EventInputPort *) cxxSetup->publishEventInput(id);
 }
 
 
-MUSICMessageOutputPort *
-MUSICPublishMessageOutput (MUSICSetup *setup, char *id)
+MUSIC_MessageOutputPort *
+MUSIC_publishMessageOutput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICMessageOutputPort *) cxxSetup->publishMessageOutput(id);
+  return (MUSIC_MessageOutputPort *) cxxSetup->publishMessageOutput(id);
 }
 
 
-MUSICMessageInputPort *
-MUSICPublishMessageInput (MUSICSetup *setup, char *id)
+MUSIC_MessageInputPort *
+MUSIC_publishMessageInput (MUSIC_Setup *setup, char *id)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICMessageInputPort *) cxxSetup->publishMessageInput(id);
+  return (MUSIC_MessageInputPort *) cxxSetup->publishMessageInput(id);
 }
 
 
 void
-MUSICDestroyContOutput (MUSICContOutputPort* Port)
+MUSIC_destroyContOutput (MUSIC_ContOutputPort* Port)
 {
   delete (MUSIC::ContOutputPort *) Port;
 }
 
 
 void
-MUSICDestroyContInput (MUSICContInputPort* Port)
+MUSIC_destroyContInput (MUSIC_ContInputPort* Port)
 {
   delete (MUSIC::ContInputPort *) Port;
 }
 
 
 void
-MUSICDestroyEventOutput (MUSICEventOutputPort* Port)
+MUSIC_destroyEventOutput (MUSIC_EventOutputPort* Port)
 {
   delete (MUSIC::EventOutputPort *) Port;
 }
 
 
 void
-MUSICDestroyEventInput (MUSICEventInputPort* Port)
+MUSIC_destroyEventInput (MUSIC_EventInputPort* Port)
 {
   delete (MUSIC::EventInputPort *) Port;
 }
 
 
 void
-MUSICDestroyMessageOutput (MUSICMessageOutputPort* Port)
+MUSIC_destroyMessageOutput (MUSIC_MessageOutputPort* Port)
 {
   delete (MUSIC::MessageOutputPort *) Port;
 }
 
 
 void
-MUSICDestroyMessageInput (MUSICMessageInputPort* Port)
+MUSIC_destroyMessageInput (MUSIC_MessageInputPort* Port)
 {
   delete (MUSIC::MessageInputPort *) Port;
 }
@@ -146,7 +146,7 @@ MUSICDestroyMessageInput (MUSICMessageInputPort* Port)
 /* General port methods */
 
 int
-MUSICContOutputPortIsConnected (MUSICContOutputPort *Port)
+MUSIC_ContOutputPort_isConnected (MUSIC_ContOutputPort *Port)
 {
   MUSIC::ContOutputPort* cxxPort = (MUSIC::ContOutputPort *) Port;
   return cxxPort->isConnected ();
@@ -154,7 +154,7 @@ MUSICContOutputPortIsConnected (MUSICContOutputPort *Port)
 
 
 int
-MUSICContInputPortIsConnected (MUSICContInputPort *Port)
+MUSIC_ContInputPort_isConnected (MUSIC_ContInputPort *Port)
 {
   MUSIC::ContInputPort* cxxPort = (MUSIC::ContInputPort *) Port;
   return cxxPort->isConnected ();
@@ -162,7 +162,7 @@ MUSICContInputPortIsConnected (MUSICContInputPort *Port)
 
 
 int
-MUSICEventOutputPortIsConnected (MUSICEventOutputPort *Port)
+MUSIC_EventOutputPort_isConnected (MUSIC_EventOutputPort *Port)
 {
   MUSIC::EventOutputPort* cxxPort = (MUSIC::EventOutputPort *) Port;
   return cxxPort->isConnected ();
@@ -170,7 +170,7 @@ MUSICEventOutputPortIsConnected (MUSICEventOutputPort *Port)
 
 
 int
-MUSICEventInputPortIsConnected (MUSICEventInputPort *Port)
+MUSIC_EventInputPort_isConnected (MUSIC_EventInputPort *Port)
 {
   MUSIC::EventInputPort* cxxPort = (MUSIC::EventInputPort *) Port;
   return cxxPort->isConnected ();
@@ -178,7 +178,7 @@ MUSICEventInputPortIsConnected (MUSICEventInputPort *Port)
 
 
 int
-MUSICMessageOutputPortIsConnected (MUSICMessageOutputPort *Port)
+MUSIC_MessageOutputPort_isConnected (MUSIC_MessageOutputPort *Port)
 {
   MUSIC::MessageOutputPort* cxxPort = (MUSIC::MessageOutputPort *) Port;
   return cxxPort->isConnected ();
@@ -186,7 +186,7 @@ MUSICMessageOutputPortIsConnected (MUSICMessageOutputPort *Port)
 
 
 int
-MUSICMessageInputPortIsConnected (MUSICMessageInputPort *Port)
+MUSIC_MessageInputPort_isConnected (MUSIC_MessageInputPort *Port)
 {
   MUSIC::MessageInputPort* cxxPort = (MUSIC::MessageInputPort *) Port;
   return cxxPort->isConnected ();
@@ -194,7 +194,7 @@ MUSICMessageInputPortIsConnected (MUSICMessageInputPort *Port)
 
 
 int
-MUSICContOutputPortHasWidth (MUSICContOutputPort *Port)
+MUSIC_ContOutputPort_hasWidth (MUSIC_ContOutputPort *Port)
 {
   MUSIC::ContOutputPort* cxxPort = (MUSIC::ContOutputPort *) Port;
   return cxxPort->hasWidth ();
@@ -202,7 +202,7 @@ MUSICContOutputPortHasWidth (MUSICContOutputPort *Port)
 
 
 int
-MUSICContInputPortHasWidth (MUSICContInputPort *Port)
+MUSIC_ContInputPort_hasWidth (MUSIC_ContInputPort *Port)
 {
   MUSIC::ContInputPort* cxxPort = (MUSIC::ContInputPort *) Port;
   return cxxPort->hasWidth ();
@@ -210,7 +210,7 @@ MUSICContInputPortHasWidth (MUSICContInputPort *Port)
 
 
 int
-MUSICEventOutputPortHasWidth (MUSICEventOutputPort *Port)
+MUSIC_EventOutputPort_hasWidth (MUSIC_EventOutputPort *Port)
 {
   MUSIC::EventOutputPort* cxxPort = (MUSIC::EventOutputPort *) Port;
   return cxxPort->hasWidth ();
@@ -218,7 +218,7 @@ MUSICEventOutputPortHasWidth (MUSICEventOutputPort *Port)
 
 
 int
-MUSICEventInputPortHasWidth (MUSICEventInputPort *Port)
+MUSIC_EventInputPort_hasWidth (MUSIC_EventInputPort *Port)
 {
   MUSIC::EventInputPort* cxxPort = (MUSIC::EventInputPort *) Port;
   return cxxPort->hasWidth ();
@@ -226,7 +226,7 @@ MUSICEventInputPortHasWidth (MUSICEventInputPort *Port)
 
 
 int
-MUSICContOutputPortWidth (MUSICContOutputPort *Port)
+MUSIC_ContOutputPort_width (MUSIC_ContOutputPort *Port)
 {
   MUSIC::ContOutputPort* cxxPort = (MUSIC::ContOutputPort *) Port;
   return cxxPort->width ();
@@ -234,7 +234,7 @@ MUSICContOutputPortWidth (MUSICContOutputPort *Port)
 
 
 int
-MUSICContInputPortWidth (MUSICContInputPort *Port)
+MUSIC_ContInputPort_width (MUSIC_ContInputPort *Port)
 {
   MUSIC::ContInputPort* cxxPort = (MUSIC::ContInputPort *) Port;
   return cxxPort->width ();
@@ -242,7 +242,7 @@ MUSICContInputPortWidth (MUSICContInputPort *Port)
 
 
 int
-MUSICEventOutputPortWidth (MUSICEventOutputPort *Port)
+MUSIC_EventOutputPort_width (MUSIC_EventOutputPort *Port)
 {
   MUSIC::EventOutputPort* cxxPort = (MUSIC::EventOutputPort *) Port;
   return cxxPort->width ();
@@ -250,7 +250,7 @@ MUSICEventOutputPortWidth (MUSICEventOutputPort *Port)
 
 
 int
-MUSICEventInputPortWidth (MUSICEventInputPort *Port)
+MUSIC_EventInputPort_width (MUSIC_EventInputPort *Port)
 {
   MUSIC::EventInputPort* cxxPort = (MUSIC::EventInputPort *) Port;
   return cxxPort->width ();
@@ -262,9 +262,9 @@ MUSICEventInputPortWidth (MUSICEventInputPort *Port)
 /* No arguments are optional. */
 
 void
-MUSICContOutputPortMap (MUSICContOutputPort *Port,
-			    MUSICContData *dmap,
-			    int maxBuffered)
+MUSIC_ContOutputPort_map (MUSIC_ContOutputPort *Port,
+			  MUSIC_ContData *dmap,
+			  int maxBuffered)
 {
   MUSIC::ContOutputPort* cxxPort = (MUSIC::ContOutputPort *) Port;
   MUSIC::ContData* cxxDmap = (MUSIC::ContData *) dmap;
@@ -273,11 +273,11 @@ MUSICContOutputPortMap (MUSICContOutputPort *Port,
 
 
 void
-MUSICContInputPortMap (MUSICContInputPort *Port,
-			   MUSICContData *dmap,
-			   double delay,
-			   int maxBuffered,
-			   int interpolate)
+MUSIC_ContInputPort_map (MUSIC_ContInputPort *Port,
+			 MUSIC_ContData *dmap,
+			 double delay,
+			 int maxBuffered,
+			 int interpolate)
 {
   MUSIC::ContInputPort* cxxPort = (MUSIC::ContInputPort *) Port;
   MUSIC::ContData* cxxDmap = (MUSIC::ContData *) dmap;
@@ -286,9 +286,9 @@ MUSICContInputPortMap (MUSICContInputPort *Port,
 
 
 void
-MUSICEventOutputPortMapGlobalIndex (MUSICEventOutputPort *Port,
-					  MUSICIndexMap *indices,
-					  int maxBuffered)
+MUSIC_EventOutputPort_mapGlobalIndex (MUSIC_EventOutputPort *Port,
+				      MUSIC_IndexMap *indices,
+				      int maxBuffered)
 {
   MUSIC::EventOutputPort* cxxPort = (MUSIC::EventOutputPort *) Port;
   MUSIC::IndexMap* cxxIndices = (MUSIC::IndexMap *) indices;
@@ -297,9 +297,9 @@ MUSICEventOutputPortMapGlobalIndex (MUSICEventOutputPort *Port,
 
 
 void
-MUSICEventOutputPortMapLocalIndex (MUSICEventOutputPort *Port,
-					  MUSICIndexMap *indices,
-					  int maxBuffered)
+MUSIC_EventOutputPort_mapLocalIndex (MUSIC_EventOutputPort *Port,
+				     MUSIC_IndexMap *indices,
+				     int maxBuffered)
 {
   MUSIC::EventOutputPort* cxxPort = (MUSIC::EventOutputPort *) Port;
   MUSIC::IndexMap* cxxIndices = (MUSIC::IndexMap *) indices;
@@ -307,14 +307,14 @@ MUSICEventOutputPortMapLocalIndex (MUSICEventOutputPort *Port,
 }
 
 
-typedef void MUSICEventHandler (double t, int id);
+typedef void MUSIC_EventHandler (double t, int id);
 
 void
-MUSICEventInputPortMapGlobalIndex (MUSICEventInputPort *Port,
-					 MUSICIndexMap *indices,
-					 MUSICEventHandler *handleEvent,
-					 double accLatency,
-					 int maxBuffered)
+MUSIC_EventInputPort_mapGlobalIndex (MUSIC_EventInputPort *Port,
+				     MUSIC_IndexMap *indices,
+				     MUSIC_EventHandler *handleEvent,
+				     double accLatency,
+				     int maxBuffered)
 {
   MUSIC::EventInputPort* cxxPort = (MUSIC::EventInputPort *) Port;
   MUSIC::IndexMap* cxxIndices = (MUSIC::IndexMap *) indices;
@@ -325,11 +325,11 @@ MUSICEventInputPortMapGlobalIndex (MUSICEventInputPort *Port,
 
 
 void
-MUSICEventInputPortMapLocalIndex (MUSICEventInputPort *Port,
-					 MUSICIndexMap *indices,
-					 MUSICEventHandler *handleEvent,
-					 double accLatency,
-					 int maxBuffered)
+MUSIC_EventInputPort_mapLocalIndex (MUSIC_EventInputPort *Port,
+				    MUSIC_IndexMap *indices,
+				    MUSIC_EventHandler *handleEvent,
+				    double accLatency,
+				    int maxBuffered)
 {
   MUSIC::EventInputPort* cxxPort = (MUSIC::EventInputPort *) Port;
   MUSIC::IndexMap* cxxIndices = (MUSIC::IndexMap *) indices;
@@ -340,21 +340,21 @@ MUSICEventInputPortMapLocalIndex (MUSICEventInputPort *Port,
 
 
 void
-MUSICMessageOutputPortMap (MUSICMessageOutputPort *Port,
-			       int maxBuffered)
+MUSIC_MessageOutputPort_map (MUSIC_MessageOutputPort *Port,
+			     int maxBuffered)
 {
   MUSIC::MessageOutputPort* cxxPort = (MUSIC::MessageOutputPort *) Port;
   cxxPort->map (maxBuffered);
 }
 
 
-typedef void MUSICMessageHandler (double t, void *msg, size_t size);
+typedef void MUSIC_MessageHandler (double t, void *msg, size_t size);
 
 void
-MUSICMessageInputPortMap (MUSICMessageInputPort *Port,
-			      MUSICMessageHandler *handleMessage,
-			      double accLatency,
-			      int maxBuffered)
+MUSIC_MessageInputPort_map (MUSIC_MessageInputPort *Port,
+			    MUSIC_MessageHandler *handleMessage,
+			    double accLatency,
+			    int maxBuffered)
 {
   MUSIC::MessageInputPort* cxxPort = (MUSIC::MessageInputPort *) Port;
   MUSIC::MessageHandler* cxxHandleMessage = (MUSIC::MessageHandler *) handleMessage;
@@ -364,34 +364,34 @@ MUSICMessageInputPortMap (MUSICMessageInputPort *Port,
 
 /* Index maps */
 
-MUSICPermutationIndex *
-MUSICCreatePermutationIndex (int *indices,
-				int size)
+MUSIC_PermutationIndex *
+MUSIC_createPermutationIndex (int *indices,
+			      int size)
 {
   void* data = static_cast<void*> (indices);
-  return (MUSICPermutationIndex *)
+  return (MUSIC_PermutationIndex *)
     new MUSIC::PermutationIndex (static_cast<MUSIC::GlobalIndex*> (data),
 				  size);
 }
 
 
 void
-MUSICDestroyPermutationIndex (MUSICPermutationIndex *Index)
+MUSIC_destroyPermutationIndex (MUSIC_PermutationIndex *Index)
 {
   delete (MUSIC::PermutationIndex *) Index;
 }
 
 
-MUSICLinearIndex *
-MUSICCreateLinearIndex (int baseIndex,
-			   int size)
+MUSIC_LinearIndex *
+MUSIC_createLinearIndex (int baseIndex,
+			 int size)
 {
-  return (MUSICLinearIndex *) new MUSIC::LinearIndex (baseIndex, size);
+  return (MUSIC_LinearIndex *) new MUSIC::LinearIndex (baseIndex, size);
 }
 
 
 void
-MUSICDestroyLinearIndex (MUSICLinearIndex *Index)
+MUSIC_destroyLinearIndex (MUSIC_LinearIndex *Index)
 {
   delete (MUSIC::LinearIndex *) Index;
 }
@@ -401,30 +401,30 @@ MUSICDestroyLinearIndex (MUSICLinearIndex *Index)
 
 /* Exception: The map argument can take any type of index map. */
 
-MUSICArrayData *
-MUSICCreateArrayData (void *buffer,
-			 MPI_Datatype type,
-			 void *map)
+MUSIC_ArrayData *
+MUSIC_createArrayData (void *buffer,
+		       MPI_Datatype type,
+		       void *map)
 {
   MUSIC::IndexMap* cxxMap = (MUSIC::IndexMap *) map;
-  return (MUSICArrayData *) new MUSIC::ArrayData (buffer, type, cxxMap);
+  return (MUSIC_ArrayData *) new MUSIC::ArrayData (buffer, type, cxxMap);
 }
 
 
-/* Exception: MUSIC_create_linear_array_data corresponds to
-   c++ music::array_data::array_data (..., ..., ..., ...) */
+/* Exception: MUSIC_createLinearArrayData corresponds to
+   c++ MUSIC::ArrayData::ArrayData (..., ..., ..., ...) */
 
-MUSICArrayData *
-MUSICCreateLinearArrayData (void *buffer,
-				MPI_Datatype type,
-				int baseIndex,
-				int size)
+MUSIC_ArrayData *
+MUSIC_createLinearArrayData (void *buffer,
+			     MPI_Datatype type,
+			     int baseIndex,
+			     int size)
 {
 }
 
 
 void
-MUSICDestroyArrayData (MUSICArrayData *ArrayData)
+MUSIC_destroyArrayData (MUSIC_ArrayData *ArrayData)
 {
   delete (MUSIC::ArrayData *) ArrayData;
 }
@@ -437,10 +437,10 @@ MUSICDestroyArrayData (MUSICArrayData *ArrayData)
    Result is terminated by \0 unless longer than maxlen - 1 */
 
 int
-MUSICConfigString (MUSICSetup *setup,
-		     char *name,
-		     char *result,
-		     size_t maxlen)
+MUSIC_configString (MUSIC_Setup *setup,
+		    char *name,
+		    char *result,
+		    size_t maxlen)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
   std::string cxxResult;
@@ -451,7 +451,7 @@ MUSICConfigString (MUSICSetup *setup,
 
 
 int
-MUSICConfigInt (MUSICSetup *setup, char *name, int *result)
+MUSIC_configInt (MUSIC_Setup *setup, char *name, int *result)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
   return cxxSetup->config (string(name), result);
@@ -459,7 +459,7 @@ MUSICConfigInt (MUSICSetup *setup, char *name, int *result)
 
 
 int
-MUSICConfigDouble (MUSICSetup *setup, char *name, double *result)
+MUSIC_configDouble (MUSIC_Setup *setup, char *name, double *result)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
   return cxxSetup->config (string(name), result);
@@ -468,16 +468,16 @@ MUSICConfigDouble (MUSICSetup *setup, char *name, double *result)
 
 /* Runtime */
 
-MUSICRuntime *
-MUSICCreateRuntime (MUSICSetup *setup, double h)
+MUSIC_Runtime *
+MUSIC_createRuntime (MUSIC_Setup *setup, double h)
 {
   MUSIC::Setup* cxxSetup = (MUSIC::Setup *) setup;
-  return (MUSICRuntime *) new MUSIC::Runtime (cxxSetup, h);
+  return (MUSIC_Runtime *) new MUSIC::Runtime (cxxSetup, h);
 }
 
 
 void
-MUSICTick (MUSICRuntime *runtime)
+MUSIC_tick (MUSIC_Runtime *runtime)
 {
   MUSIC::Runtime* cxxRuntime = (MUSIC::Runtime *) runtime;
   cxxRuntime->tick ();
@@ -485,7 +485,7 @@ MUSICTick (MUSICRuntime *runtime)
 
 
 double
-MUSICTime (MUSICRuntime *runtime)
+MUSIC_time (MUSIC_Runtime *runtime)
 {
   MUSIC::Runtime* cxxRuntime = (MUSIC::Runtime *) runtime;
   return cxxRuntime->time ();
@@ -495,7 +495,7 @@ MUSICTime (MUSICRuntime *runtime)
 /* Finalization */
 
 void
-MUSICDestroyRuntime (MUSICRuntime *runtime)
+MUSIC_destroyRuntime (MUSIC_Runtime *runtime)
 {
   MUSIC::Runtime* cxxRuntime = (MUSIC::Runtime *) runtime;
   delete cxxRuntime;

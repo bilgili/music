@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,13 +18,38 @@
 
 #ifndef MUSIC_SYNCHRONIZER_HH
 
+#include <music/clock.hh>
+
 namespace MUSIC {
 
   class Synchronizer {
+  protected:
+    Clock* localTime;
+    Clock nextSend;
+    Clock nextReceive;
+    int latency;
+    int maxBuffered;
+    bool _communicate;
+    void nextCommunication ();
   public:
+    void setLocalTime (Clock* lt) { localTime = lt; }
+    void setMaxBuffered (int m) { maxBuffered = m; }
+    void setAccLatency (int l) { latency = l; }
     bool sample ();
     bool mark ();
     bool communicate ();
+  };
+
+
+  class OutputSynchronizer : public Synchronizer {
+  public:
+    void tick ();
+  };
+
+
+  class InputSynchronizer : public Synchronizer {
+  public:
+    void tick ();
   };
 
 }

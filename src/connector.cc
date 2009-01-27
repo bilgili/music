@@ -42,6 +42,26 @@ namespace MUSIC {
 				  0); //*fixme* tag
   }
 
+
+  void
+  OutputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+  
+  void
+  InputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
   
   void
   ContConnector::swapBuffers (contDataT*& b1, contDataT*& b2)
@@ -198,10 +218,9 @@ namespace MUSIC {
   
 
   EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
-						  SpatialOutputNegotiator* _spatialNegotiator,
-						  int maxBuffered,
-						  MPI::Intracomm comm,
-						  EventRouter& _router)
+					      SpatialOutputNegotiator* _spatialNegotiator,
+					      MPI::Intracomm comm,
+					      EventRouter& _router)
     : Connector (connInfo, _spatialNegotiator, comm),
       EventConnector (connInfo, _spatialNegotiator, comm),
       router (_router)
@@ -216,9 +235,10 @@ namespace MUSIC {
   {
     std::map<int, EventOutputSubconnector*> subconnectors;
     MPI::Intercomm intercomm = createIntercomm ();
-    for (NegotiationIterator i = spatialNegotiator->negotiate (comm,
-							intercomm,
-							info.nProcesses ());
+    for (NegotiationIterator i
+	   = spatialNegotiator->negotiate (comm,
+					   intercomm,
+					   info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
@@ -247,12 +267,10 @@ namespace MUSIC {
 
   
   EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
-						SpatialInputNegotiator* spatialNegotiator,
-						EventHandlerPtr _handleEvent,
-						Index::Type _type,
-						double accLatency,
-						int maxBuffered,
-						MPI::Intracomm comm)
+					    SpatialInputNegotiator* spatialNegotiator,
+					    EventHandlerPtr _handleEvent,
+					    Index::Type _type,
+					    MPI::Intracomm comm)
     : Connector (connInfo, spatialNegotiator, comm),
       EventConnector (connInfo, spatialNegotiator, comm),
       handleEvent (_handleEvent),

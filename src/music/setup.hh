@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #include <music/cont_data.hh>
 #include <music/configuration.hh>
 #include <music/connector.hh>
+#include <music/temporal.hh>
 
 using std::string;
 
@@ -41,6 +42,7 @@ namespace MUSIC {
     MPI::Intracomm comm;
     std::vector<Port*> _ports;
     std::vector<Connector*> _connectors;
+    TemporalNegotiator* _temporalNegotiator;
 
   public:
     Setup (int& argc, char**& argv);
@@ -98,6 +100,8 @@ namespace MUSIC {
     }
     
     void addConnector (Connector* c);
+
+    TemporalNegotiator* temporalNegotiator () { return _temporalNegotiator; }
     
   };
   

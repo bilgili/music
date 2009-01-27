@@ -47,7 +47,6 @@ namespace MUSIC {
     ConnectorInfo info;
     SpatialNegotiator* spatialNegotiator;
     MPI::Intracomm comm;
-    Synchronizer synch;
   public:
     Connector () { }
     Connector (ConnectorInfo _info,
@@ -61,17 +60,23 @@ namespace MUSIC {
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 			 std::vector<InputSubconnector*>& isubconn) { }
+    virtual void tick (bool& requestCommunication) = 0;
   };
 
   class OutputConnector : virtual public Connector {
+  protected:
+    OutputSynchronizer synch;
   public:
-#if 0
-    std::vector<OutputSubconnector*> subconnectors;
-#endif
+    OutputSynchronizer* synchronizer () { return &synch; }
+    void tick (bool& requestCommunication);
   };
   
   class InputConnector : virtual public Connector {
   protected:
+    InputSynchronizer synch;
+  public:
+    InputSynchronizer* synchronizer () { return &synch; }
+    void tick (bool& requestCommunication);
   };
 
   class ContConnector : virtual public Connector {
@@ -85,18 +90,19 @@ namespace MUSIC {
     contDataT* sample;
   };
   
-  class ContOutputConnector : public ContConnector, OutputConnector {
+  class ContOutputConnector : public ContConnector, public OutputConnector {
   public:
     void send ();
   };
   
-  class ContInputConnector : public ContConnector, InputConnector {
+  class ContInputConnector : public ContConnector, public InputConnector {
   protected:
     void receive ();
   public:
   };
   
-  class FastContOutputConnector : public ContOutputConnector, FastConnector {
+  class FastContOutputConnector : public ContOutputConnector,
+				  public FastConnector {
     void interpolateTo (int start, int end, contDataT* data);
     void interpolateToBuffers ();
     void applicationTo (contDataT* data);
@@ -119,7 +125,8 @@ namespace MUSIC {
     void tick ();
   };
   
-  class FastContInputConnector : public ContInputConnector, FastConnector {
+  class FastContInputConnector : public ContInputConnector,
+				 public FastConnector {
     void buffersTo (contDataT* data);
     void interpolateToApplication ();
   public:
@@ -138,12 +145,11 @@ namespace MUSIC {
     void send ();
   public:
     EventOutputConnector (ConnectorInfo connInfo,
-			    SpatialOutputNegotiator* spatialNegotiator,
-			    int maxBuffered,
-			    MPI::Intracomm comm,
-			    EventRouter& router);
+			  SpatialOutputNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  EventRouter& router);
     void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			      std::vector<InputSubconnector*>& isubconn);
+			     std::vector<InputSubconnector*>& isubconn);
     void tick ();
   };
   
@@ -154,14 +160,12 @@ namespace MUSIC {
     Index::Type type;
   public:
     EventInputConnector (ConnectorInfo connInfo,
-			   SpatialInputNegotiator* spatialNegotiator,
-			   EventHandlerPtr handleEvent,
-			   Index::Type type,
-			   double accLatency,
-			   int maxBuffered,
-			   MPI::Intracomm comm);
+			 SpatialInputNegotiator* spatialNegotiator,
+			 EventHandlerPtr handleEvent,
+			 Index::Type type,
+			 MPI::Intracomm comm);
     void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			      std::vector<InputSubconnector*>& isubconn);
+			     std::vector<InputSubconnector*>& isubconn);
   };
   
 }

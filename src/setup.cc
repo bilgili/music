@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -86,6 +86,7 @@ namespace MUSIC {
 	string args;
 	_config->lookup ("args", &args);
 	argv = parseArgs (binary, args, &argc);
+	_temporalNegotiator = new TemporalNegotiator (this);
       }
     else
       {

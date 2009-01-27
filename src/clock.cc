@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,24 +21,31 @@
 namespace MUSIC {
 
   Clock::Clock (double tb, double h)
-    : timebase (tb)
+    : timebase_ (tb)
   {
-    state = 0;
-    _tickInterval = (unsigned long long) (h / tb + 0.5);
+    state_ = 0;
+    tickInterval_ = (unsigned long long) (h / tb + 0.5);
   }
 
   
   void
   Clock::tick ()
   {
-    state += _tickInterval;
+    state_ += tickInterval_;
+  }
+  
+
+  void
+  Clock::ticks (int n)
+  {
+    state_ += n * tickInterval_;
   }
   
 
   double
   Clock::time ()
   {
-    return timebase * state;
+    return timebase_ * state_;
   }
   
 }

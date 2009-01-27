@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,11 +39,13 @@ namespace MUSIC {
     comm = s->communicator ();
     if (s->launchedByMusic ())
       {
+	// Take over connectors from setup object
+	connectors = s->connectors ();
 	MUSIC_LOG ("spatial negotiation");
 	spatialNegotiation (s);
 	buildTables (s);
 	buildSchedule (comm.Get_rank ());
-	temporalNegotiation (s, timebase, localTime.tickInterval ());
+	temporalNegotiation (s, localTime);
       }
     delete s;
   }
@@ -96,7 +98,6 @@ namespace MUSIC {
     // Let each connector pair setup their inter-communicators
     // and create all required subconnectors.
 
-    std::vector<Connector*>* connectors = s->connectors ();
     // This ordering is necessary so that both sender and receiver
     // in each pair sets up communication at the same point in time
     //
@@ -177,11 +178,11 @@ namespace MUSIC {
 
   
   void
-  Runtime::temporalNegotiation (Setup* s, double timebase, ClockStateT ti)
+  Runtime::temporalNegotiation (Setup* s, Clock& localTime)
   {
     // Temporal negotiation is done globally by a serial algorithm
     // which yields the same result in each process
-    TemporalNegotiator negotiator (s, timebase, ti);
+    s->temporalNegotiator ()->negotiate (localTime);
   }
 
 
@@ -202,10 +203,19 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
-    // Loop through the schedule of connectors
-    std::vector<Subconnector*>::iterator c;
-    for (c = schedule.begin (); c != schedule.end (); ++c)
-      (*c)->tick ();
+    bool requestCommunication = false;
+    
+    std::vector<Connector*>::iterator c;
+    for (c = connectors->begin (); c != connectors->end (); ++c)
+      (*c)->tick (requestCommunication);
+
+    if (requestCommunication)
+      {
+	// Loop through the schedule of subconnectors
+	std::vector<Subconnector*>::iterator c;
+	for (c = schedule.begin (); c != schedule.end (); ++c)
+	  (*c)->tick ();//*fixme* rename subconnector tick to doCommunicate?
+      }
     
     localTime.tick ();
   }

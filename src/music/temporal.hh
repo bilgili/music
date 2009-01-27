@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,25 +18,81 @@
 
 #ifndef MUSIC_TEMPORAL_HH
 
-#include <music/index_map.hh>
 #include <music/clock.hh>
 
 namespace MUSIC {
 
   class Setup;
 
-  class TemporalNegotiationData {
-    IndexInterval _interval;
-    int _rank;
+  class OutputConnection {
+  private:
+    OutputConnector* connector_;
+    int maxBuffered_;
   public:
-    TemporalNegotiationData (IndexInterval i, int r)
-      : _interval (i), _rank (r) { }
+    OutputConnection (OutputConnector* connector, int maxBuffered)
+      : connector_ (connector), maxBuffered_ (maxBuffered) { }
+    OutputConnector* connector () { return connector_; }
+    int maxBuffered () { return maxBuffered_; }
+  };
+  
+  class InputConnection {
+  private:
+    InputConnector* connector_;
+    int maxBuffered_;
+    int accLatency_;
+  public:
+    InputConnection (InputConnector* connector, int maxBuffered, int accLatency)
+      : connector_ (connector),
+	maxBuffered_ (maxBuffered),
+	accLatency_ (accLatency) { }
+    InputConnector* connector () { return connector_; }
+    int maxBuffered () { return maxBuffered_; }
+    int accLatency () { return accLatency_; }
+  };
+  
+  class ConnectionDescriptor {
+  public:
+    int remoteNode;
+    int maxBuffered;
+    int accLatency;
+  };
+  
+  class TemporalNegotiationData {
+  public:
+    double timeBase;
+    ClockStateT tickInterval;
+    int nOutConnections;
+    int nInConnections;
+    ConnectionDescriptor connection[0];
+  };
+
+  class TemporalNegotiationNode {
+    TemporalNegotiationData* negotiationData;
   };
 
   class TemporalNegotiator {
+    Setup* setup_;
+    int applicationRank;
+    std::vector<OutputConnection> outputConnections;
+    std::vector<InputConnection> inputConnections;
+    std::vector<TemporalNegotiationNode> nodes;
+    TemporalNegotiationData* negotiationBuffer;
+    TemporalNegotiationData* negotiationData;
   public:
-    TemporalNegotiator (Setup* s, double timebase, ClockStateT ti);
-    void negotiate () { };
+    TemporalNegotiator (Setup* setup);
+    void addConnection (OutputConnector* connector, int maxBuffered);
+    void addConnection (InputConnector* connector,
+			int maxBuffered,
+			int accLatency);
+    bool isLeader ();
+    void collectNegotiationData (double timebase, ClockStateT ti);
+    void communicateNegotiationData ();
+    void combineParameters ();
+    void loopAlgorithm ();
+    void broadcastNegotiationData ();
+    void receiveNegotiationData ();
+    void distributeNegotiationData (Clock& localTime);
+    void negotiate (Clock& localTime);
   };
 
 }

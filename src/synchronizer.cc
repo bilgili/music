@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,30 @@
 
 namespace MUSIC {
 
+  void
+  Synchronizer::nextCommunication ()
+  {
+#if 0
+    // Advance receive time as much as possible
+    // still ensuring that oldest data arrives in time
+    ClockStateT limit
+      = nextSend.integerTime () + latency - nextReceive.tickInterval ();
+    while (nextReceive.integerTime () <= limit)
+      nextReceive.tick ();
+    // Advance send time to match receive time
+    limit = nextReceive.integerTime () + nextReceive.tickInterval () - latency;
+    int bCount = 0;
+    while (nextSend.integerTime () <= limit)
+      {
+	nextSend.tick ();
+	++bCount;
+      }
+    // Advance send time according to precalculated buffer
+    if (bCount < maxBuffered)
+      nextSend.ticks (maxBuffered - bCount);
+#endif
+  }
+
 bool
 Synchronizer::sample ()
 {
@@ -37,7 +61,29 @@ Synchronizer::mark ()
 bool
 Synchronizer::communicate ()
 {
-  return true;
+  return _communicate;
 }
 
+
+void
+OutputSynchronizer::tick ()
+{
+  if (*localTime > nextSend)
+    nextCommunication ();
+  _communicate = *localTime == nextSend;
+}
+
+  
+void
+InputSynchronizer::tick ()
+{
+  if (*localTime > nextReceive)
+    nextCommunication ();
+#if 0
+  _communicate = *localTime == nextReceive;
+#else
+  _communicate = true;
+#endif
+}
+  
 }

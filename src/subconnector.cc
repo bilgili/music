@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,11 +49,11 @@ namespace MUSIC {
 
 
   OutputSubconnector::OutputSubconnector (Synchronizer* synch,
-					    MPI::Intercomm intercomm,
-					    int remoteRank,
-					    int receiverRank,
-					    std::string receiverPortName,
-					    int elementSize)
+					  MPI::Intercomm intercomm,
+					  int remoteRank,
+					  int receiverRank,
+					  std::string receiverPortName,
+					  int elementSize)
     : Subconnector (synch,
 		    intercomm,
 		    remoteRank,
@@ -102,20 +102,20 @@ namespace MUSIC {
 
 
   EventOutputSubconnector::EventOutputSubconnector (Synchronizer* _synch,
-							MPI::Intercomm _intercomm,
-							int remoteRank,
-							std::string _receiverPortName)
+						    MPI::Intercomm _intercomm,
+						    int remoteRank,
+						    std::string _receiverPortName)
     : Subconnector (_synch,
 		    _intercomm,
 		    remoteRank,
 		    remoteRank,
 		    _receiverPortName),
       OutputSubconnector (_synch,
-			   _intercomm,
-			   remoteRank,
-			   remoteRank, // receiver_rank same as remote rank
-			   _receiverPortName,
-			   sizeof (Event))
+			  _intercomm,
+			  remoteRank,
+			  remoteRank, // receiver_rank same as remote rank
+			  _receiverPortName,
+			  sizeof (Event))
   {
   }
   

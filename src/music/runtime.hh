@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ namespace MUSIC {
   private:
     MPI::Intracomm comm;
     Clock localTime;
+    std::vector<Connector*>* connectors;
     std::vector<OutputSubconnector*> outputSubconnectors;
     std::vector<InputSubconnector*> inputSubconnectors;
     std::vector<Subconnector*> schedule;
@@ -39,7 +40,7 @@ namespace MUSIC {
     void spatialNegotiation (Setup* s);
     void buildSchedule (int localRank);
     void buildTables (Setup* s);
-    void temporalNegotiation (Setup* s, double timebase, ClockStateT ti);
+    void temporalNegotiation (Setup* s, Clock& localTime);
   
   public:
     Runtime (Setup* s, double h);

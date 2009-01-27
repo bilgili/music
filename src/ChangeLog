@@ -1,3 +1,10 @@
+2009-01-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* clock.cc, connector.cc, music/clock.hh, music/connector.hh,
+	music/runtime.hh, music/setup.hh, music/synchronizer.hh,
+	music/temporal.hh, port.cc, runtime.cc, setup.cc, subconnector.cc,
+	synchronizer.cc, temporal.cc: First steps of the timing algorithm.
+
 2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Switch to CamelCase.

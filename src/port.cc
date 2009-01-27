@@ -157,8 +157,8 @@ namespace MUSIC {
   
   void
   EventOutputPort::mapImpl (IndexMap* indices,
-			       Index::Type type,
-			       int maxBuffered)
+			    Index::Type type,
+			    int maxBuffered)
   {
     MPI::Intracomm comm = _setup->communicator ();
     // Retrieve info about all remote connectors of this port
@@ -168,12 +168,16 @@ namespace MUSIC {
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
 	 ++info)
-      // Create connector
-      _setup->addConnector (new EventOutputConnector (*info,
-							 spatialNegotiator,
-							 maxBuffered,
-							 comm,
-							 router));
+      {
+	// Create connector
+	EventOutputConnector* connector
+	  = new EventOutputConnector (*info,
+				      spatialNegotiator,
+				      comm,
+				      router);
+	_setup->temporalNegotiator ()->addConnection (connector, maxBuffered);
+	_setup->addConnector (connector);
+      }
   }
 
 
@@ -200,39 +204,39 @@ namespace MUSIC {
   
   void
   EventInputPort::map (IndexMap* indices,
-			 EventHandlerGlobalIndex* handleEvent,
-			 double accLatency)
+		       EventHandlerGlobalIndex* handleEvent,
+		       double accLatency)
   {
     assertInput ();
     int maxBuffered = 0;
     mapImpl (indices,
-	      Index::GLOBAL,
-	      EventHandlerPtr (handleEvent),
-	      accLatency,
-	      maxBuffered);
+	     Index::GLOBAL,
+	     EventHandlerPtr (handleEvent),
+	     accLatency,
+	     maxBuffered);
   }
 
   
   void
   EventInputPort::map (IndexMap* indices,
-			 EventHandlerLocalIndex* handleEvent,
-			 double accLatency)
+		       EventHandlerLocalIndex* handleEvent,
+		       double accLatency)
   {
     assertInput ();
     int maxBuffered = 0;
     mapImpl (indices,
-	      Index::LOCAL,
-	      EventHandlerPtr (handleEvent),
-	      accLatency,
-	      maxBuffered);
+	     Index::LOCAL,
+	     EventHandlerPtr (handleEvent),
+	     accLatency,
+	     maxBuffered);
   }
 
   
   void
   EventInputPort::map (IndexMap* indices,
-			 EventHandlerGlobalIndex* handleEvent,
-			 double accLatency,
-			 int maxBuffered)
+		       EventHandlerGlobalIndex* handleEvent,
+		       double accLatency,
+		       int maxBuffered)
   {
     assertInput ();
     if (maxBuffered <= 0)
@@ -240,18 +244,18 @@ namespace MUSIC {
 	error ("EventInputPort::map: maxBuffered should be a positive integer");
       }
     mapImpl (indices,
-	      Index::GLOBAL,
-	      EventHandlerPtr (handleEvent),
-	      accLatency,
-	      maxBuffered);
+	     Index::GLOBAL,
+	     EventHandlerPtr (handleEvent),
+	     accLatency,
+	     maxBuffered);
   }
 
   
   void
   EventInputPort::map (IndexMap* indices,
-			 EventHandlerLocalIndex* handleEvent,
-			 double accLatency,
-			 int maxBuffered)
+		       EventHandlerLocalIndex* handleEvent,
+		       double accLatency,
+		       int maxBuffered)
   {
     assertInput ();
     if (maxBuffered <= 0)
@@ -259,19 +263,19 @@ namespace MUSIC {
 	error ("EventInputPort::map: maxBuffered should be a positive integer");
       }
     mapImpl (indices,
-	      Index::LOCAL,
-	      EventHandlerPtr (handleEvent),
-	      accLatency,
-	      maxBuffered);
+	     Index::LOCAL,
+	     EventHandlerPtr (handleEvent),
+	     accLatency,
+	     maxBuffered);
   }
 
   
   void
   EventInputPort::mapImpl (IndexMap* indices,
-			      Index::Type type,
-			      EventHandlerPtr handleEvent,
-			      double accLatency,
-			      int maxBuffered)
+			   Index::Type type,
+			   EventHandlerPtr handleEvent,
+			   double accLatency,
+			   int maxBuffered)
   {
     MPI::Intracomm comm = _setup->communicator ();
     // Retrieve info about all remote connectors of this port
@@ -279,13 +283,16 @@ namespace MUSIC {
       = _ConnectivityInfo->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
-    _setup->addConnector (new EventInputConnector (*info,
-						      spatialNegotiator,
-						      handleEvent,
-						      type,
-						      accLatency,
-						      maxBuffered,
-						      comm));
+    EventInputConnector* connector
+      = new EventInputConnector (*info,
+				 spatialNegotiator,
+				 handleEvent,
+				 type,
+				 comm);
+    _setup->temporalNegotiator ()->addConnection (connector,
+						  maxBuffered,
+						  accLatency);
+    _setup->addConnector (connector);
   }
 
   

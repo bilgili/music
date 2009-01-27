@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,22 +22,28 @@
 
 namespace MUSIC {
 
+  // ClockStateT may be negative due to calculations in Synchronizer
 #ifdef MUSIC_HAVE_LONG_LONG
-  typedef unsigned long long ClockStateT;
+  typedef long long ClockStateT;
 #else
 #error 64-bit clocks without long long not yet implemented
 #endif
   
   class Clock {
-    ClockStateT state;
-    ClockStateT _tickInterval;
-    double timebase;
+    ClockStateT state_;
+    ClockStateT tickInterval_;
+    double timebase_;
   public:
     Clock () { };
     Clock (double tb, double h);
     void tick ();
-    ClockStateT tickInterval () { return _tickInterval; }
+    void ticks (int n);
+    ClockStateT tickInterval () { return tickInterval_; }
+    double timebase () { return timebase_; }
     double time ();
+    ClockStateT integerTime () { return state_; }
+    bool operator> (const Clock& ref) const { return state_ > ref.state_; }
+    bool operator== (const Clock& ref) const { return state_ == ref.state_; }
   };
 
 }

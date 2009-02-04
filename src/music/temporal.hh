@@ -53,8 +53,10 @@ namespace MUSIC {
   class ConnectionDescriptor {
   public:
     int remoteNode;
+    int receiverPort;
     int maxBuffered;
     int accLatency;
+    ClockStateT remoteTickInterval;
   };
   
   class TemporalNegotiationData {
@@ -63,28 +65,38 @@ namespace MUSIC {
     ClockStateT tickInterval;
     int nOutConnections;
     int nInConnections;
+    int recNamesSize;
     ConnectionDescriptor connection[0];
-  };
-
-  class TemporalNegotiationNode {
-    TemporalNegotiationData* negotiationData;
   };
 
   class TemporalNegotiator {
     Setup* setup_;
-    int applicationRank;
+    MPI::Intracomm negotiationComm;
+    std::map<int, int> leaderToNode;
+    int nApplications; // initialized by createNegotiationCommunicator
+    int nLocalConnections;
+    int localNode;
     std::vector<OutputConnection> outputConnections;
     std::vector<InputConnection> inputConnections;
-    std::vector<TemporalNegotiationNode> nodes;
+    std::vector<TemporalNegotiationData*> nodes;
     TemporalNegotiationData* negotiationBuffer;
     TemporalNegotiationData* negotiationData;
+    int negotiationDataSize (int nConnections);
+    int negotiationDataSize (int nBlock, int nConnections);
+    TemporalNegotiationData* allocNegotiationData (int nBlocks,
+						   int nConnections);
+    void freeNegotiationData (TemporalNegotiationData*);
+    ConnectionDescriptor* findInputConnection (int node, int port);
+    bool isLeader ();
+    bool hasPeers ();
   public:
     TemporalNegotiator (Setup* setup);
+    ~TemporalNegotiator ();
     void addConnection (OutputConnector* connector, int maxBuffered);
     void addConnection (InputConnector* connector,
 			int maxBuffered,
 			int accLatency);
-    bool isLeader ();
+    void createNegotiationCommunicator ();
     void collectNegotiationData (double timebase, ClockStateT ti);
     void communicateNegotiationData ();
     void combineParameters ();

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,21 +27,25 @@ namespace MUSIC {
   class ConnectorInfo {
     std::string _recApp;
     std::string _recPort;
+    int _recCode;
     int _remoteLeader;
     int _nProc;
   public:
     ConnectorInfo () { }
     ConnectorInfo (std::string recApp,
-		    std::string recName,
-		    int rLeader,
-		    int nProc)
+		   std::string recName,
+		   int recCode,
+		   int rLeader,
+		   int nProc)
       : _recApp (recApp),
 	_recPort (recName),
+	_recCode (recCode),
 	_remoteLeader (rLeader),
 	_nProc (nProc)
     { }
     std::string receiverAppName () const { return _recApp; }
     std::string receiverPortName () const { return _recPort; }
+    int receiverPortCode () const { return _recCode; }
     int remoteLeader () const { return _remoteLeader; }
     int nProcesses () const { return _nProc; } //*fixme* "remote" in name
   };
@@ -65,9 +69,10 @@ namespace MUSIC {
     int width () { return _width; } // NO_WIDTH if no width specified
     PortConnectorInfo connections () { return _portConnections; }
     void addConnection (std::string recApp,
-			 std::string recName,
-			 int rLeader,
-			 int nProc);
+			std::string recName,
+			int recCode,
+			int rLeader,
+			int nProc);
   };
 
   
@@ -84,6 +89,7 @@ namespace MUSIC {
 	      int width,
 	      std::string recApp,
 	      std::string recPort,
+	      int recPortCode,
 	      int remoteLeader,
 	      int remoteNProc);
     ConnectivityInfo* info (std::string portName);

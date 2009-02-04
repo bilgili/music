@@ -21,10 +21,17 @@
 namespace MUSIC {
 
   Clock::Clock (double tb, double h)
-    : timebase_ (tb)
+  {
+    configure (tb, h / tb + 0.5);
+  }
+
+
+  void
+  Clock::configure (double tb, ClockStateT ti)
   {
     state_ = 0;
-    tickInterval_ = (unsigned long long) (h / tb + 0.5);
+    timebase_ = tb;
+    tickInterval_ = ti;
   }
 
   

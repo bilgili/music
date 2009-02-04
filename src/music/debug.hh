@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
 #ifndef MUSIC_DEBUG_HH
 
 #ifdef MUSIC_DEBUG
-#include <mpi.h>
+#include <mpi.h> // Must be included first on BG/L
 #include <iostream>
 
-#define MUSIC_LOG(X) (std::cerr << X << std::endl)
+#define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
 #define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cerr << X << std::endl; }
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
 #else

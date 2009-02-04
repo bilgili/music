@@ -23,7 +23,11 @@
 namespace MUSIC {
 
   class Synchronizer {
+#if 1
+  public:
+#else
   protected:
+#endif
     Clock* localTime;
     Clock nextSend;
     Clock nextReceive;
@@ -32,7 +36,9 @@ namespace MUSIC {
     bool _communicate;
     void nextCommunication ();
   public:
-    void setLocalTime (Clock* lt) { localTime = lt; }
+    void setLocalTime (Clock* lt);
+    void setSenderTickInterval (ClockStateT ti);
+    void setReceiverTickInterval (ClockStateT ti);
     void setMaxBuffered (int m) { maxBuffered = m; }
     void setAccLatency (int l) { latency = l; }
     bool sample ();

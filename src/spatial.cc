@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -106,7 +106,9 @@ namespace MUSIC {
 	w = i->end ();
     // Now take maximum over all processes
     std::vector<int> m (nProcesses);
+    MUSIC_LOG ("before Allgather");
     comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
+    MUSIC_LOG ("after Allgather");
     for (int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];

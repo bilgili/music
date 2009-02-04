@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -104,6 +104,8 @@ namespace MUSIC {
   void
   ApplicationMapper::mapConnectivity (rude::Config* cfile)
   {
+    std::map<std::string, int> receiverPortCodes;
+    int nextPortCode = 0;
     _connectivityMap = new Connectivity ();
     int nSections = cfile->getNumSections ();
     for (int s = 0; s < nSections; ++s)
@@ -119,7 +121,7 @@ namespace MUSIC {
 	    std::string receiverApp (cfile->getDestAppAt (c));
 	    std::string receiverPort (cfile->getDestObjAt (c));
 	    std::string width (cfile->getWidthAt (c));
-	  
+
 	    if (senderApp == "")
 	      if (secName == "")
 		error ("sender application not specified for output port " + senderPort);
@@ -156,15 +158,28 @@ namespace MUSIC {
 		if (!(ws >> w))
 		  error ("could not interpret width");
 	      }
+
+	    std::map<std::string, int>::iterator pos
+	      = receiverPortCodes.find (receiverPort);
+	    int portCode;
+	    if (pos == receiverPortCodes.end ())
+	      {
+		portCode = nextPortCode++;
+		receiverPortCodes.insert (std::make_pair (receiverPort,
+							  portCode));
+	      }
+	    else
+	      portCode = pos->second;
 	    _connectivityMap->add (dir == ConnectivityInfo::OUTPUT
-				    ? senderPort
-				    : receiverPort,
-				    dir,
-				    w,
-				    receiverApp,
-				    receiverPort,
-				    remoteInfo->leader (),
-				    remoteInfo->nProc ());
+				   ? senderPort
+				   : receiverPort,
+				   dir,
+				   w,
+				   receiverApp,
+				   receiverPort,
+				   portCode,
+				   remoteInfo->leader (),
+				   remoteInfo->nProc ());
 	  }
       }
   }

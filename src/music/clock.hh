@@ -36,9 +36,11 @@ namespace MUSIC {
   public:
     Clock () { };
     Clock (double tb, double h);
+    void configure (double tb, ClockStateT ti);
     void tick ();
     void ticks (int n);
     ClockStateT tickInterval () { return tickInterval_; }
+    void setTickInterval (ClockStateT ti) { tickInterval_ = ti; }
     double timebase () { return timebase_; }
     double time ();
     ClockStateT integerTime () { return state_; }

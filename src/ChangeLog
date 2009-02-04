@@ -1,3 +1,12 @@
+2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* clock.cc, connectivity.cc, connector.cc, music/clock.hh,
+	music/connectivity.hh, music/connector.hh, music/debug.hh,
+	music/runtime.hh, music/setup.hh, music/synchronizer.hh,
+	music/temporal.hh, runtime.cc, setup.cc, spatial.cc,
+	synchronizer.cc, temporal.cc: Timing for applications with
+	different inter-tick-intervals may now work.
+
 2009-01-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* clock.cc, connector.cc, music/clock.hh, music/connector.hh,

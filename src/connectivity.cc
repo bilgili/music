@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,14 +27,16 @@ namespace MUSIC {
 
   void
   ConnectivityInfo::addConnection (std::string recApp,
-				     std::string recName,
-				     int rLeader,
-				     int nProc)
+				   std::string recName,
+				   int recCode,
+				   int rLeader,
+				   int nProc)
   {
     _portConnections.push_back (ConnectorInfo (recApp,
-						 recName,
-						 rLeader,
-						 nProc));
+					       recName,
+					       recCode,
+					       rLeader,
+					       nProc));
   }
 
 
@@ -50,6 +52,7 @@ namespace MUSIC {
 		     int width,
 		     std::string recApp,
 		     std::string recPort,
+		     int recPortCode,
 		     int remoteLeader,
 		     int remoteNProc)
   {
@@ -72,7 +75,11 @@ namespace MUSIC {
 	if (info->direction () != dir)
 	  error ("port " + localPort + " used both as output and input");
       }
-    info->addConnection (recApp, recPort, remoteLeader, remoteNProc);
+    info->addConnection (recApp,
+			 recPort,
+			 recPortCode,
+			 remoteLeader,
+			 remoteNProc);
   }
 
 
@@ -135,6 +142,7 @@ namespace MUSIC {
 	  {
 	    out << ':' << c->receiverAppName ();
 	    out << ':' << c->receiverPortName ();
+	    out << ':' << c->receiverPortCode ();
 	    out << ':' << c->remoteLeader ();
 	    out << ':' << c->nProcesses ();
 	  }
@@ -169,12 +177,30 @@ namespace MUSIC {
 	    in.ignore ();
 	    std::string recPort = IOUtils::read (in);
 	    in.ignore ();
+	    int recPortCode;
+	    in >> recPortCode;
+	    in.ignore ();
 	    int rLeader;
 	    in >> rLeader;
 	    in.ignore ();
 	    int nProc;
 	    in >> nProc;
-	    add (portName, pdir, width, recApp, recPort, rLeader, nProc);
+	    add (portName,
+		 pdir,
+		 width,
+		 recApp,
+		 recPort,
+		 recPortCode,
+		 rLeader,
+		 nProc);
+	    MUSIC_LOG ("add (portName = " << portName
+		       << ", pdir = " << pdir
+		       << ", width = " << width
+		       << ", recApp = " << recApp
+		       << ", recPort = " << recPort
+		       << ", rLeader = " << rLeader
+		       << ", nProc = " << nProc
+		       << ")");
 	  }
       }
   }

@@ -41,7 +41,7 @@ namespace MUSIC {
     Configuration* _config;
     MPI::Intracomm comm;
     std::vector<Port*> _ports;
-    std::vector<Connector*> _connectors;
+    std::vector<Connector*>* connectors_;
     TemporalNegotiator* _temporalNegotiator;
 
   public:
@@ -58,6 +58,8 @@ namespace MUSIC {
     MPI::Intracomm communicator ();
 
     ConnectivityInfo* portConnectivity (const std::string localName);
+
+    ApplicationMap* applicationMap ();
 
     //*fixme* unused
     bool isConnected (const std::string localName);
@@ -96,7 +98,7 @@ namespace MUSIC {
     
     std::vector<Connector*>* connectors ()
     {
-      return &_connectors;
+      return connectors_;
     }
     
     void addConnector (Connector* c);

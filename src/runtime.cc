@@ -45,7 +45,37 @@ namespace MUSIC {
 	spatialNegotiation (s);
 	buildTables (s);
 	buildSchedule (comm.Get_rank ());
+	MUSIC_LOG ("temporal negotiation");
 	temporalNegotiation (s, localTime);
+#if 0
+	rank = MPI::COMM_WORLD.Get_rank ();
+	Connector* conn = *connectors->begin ();
+	int latency, maxBuffered;
+	if (rank == 0)
+	  {
+	    OutputConnector* oconn = dynamic_cast<OutputConnector*> (conn);
+	    OutputSynchronizer* synch = oconn->synchronizer ();
+	    latency = synch->latency;
+	    maxBuffered = synch->maxBuffered;
+	    sendClock = &synch->nextSend;
+	    receiveClock = &synch->nextReceive;
+	    MUSIC_LOG ("rank " << rank
+		       << ": latency = " << latency
+		       << ", maxBuffered = " << maxBuffered);
+	  }
+	else
+	  {
+	    InputConnector* oconn = dynamic_cast<InputConnector*> (conn);
+	    InputSynchronizer* synch = oconn->synchronizer ();
+	    latency = synch->latency;
+	    maxBuffered = synch->maxBuffered;
+	    sendClock = &synch->nextSend;
+	    receiveClock = &synch->nextReceive;
+	    MUSIC_LOG ("rank " << rank
+		       << ": latency = " << latency
+		       << ", maxBuffered = " << maxBuffered);
+	  }
+#endif
       }
     delete s;
   }
@@ -203,6 +233,10 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
+    MUSIC_LOG ("rank " << rank
+	       << ": time = " << localTime.time ()
+	       << ", nextSend = " << sendClock->time ()
+	       << ", nextReceive = " << receiveClock->time ());
     bool requestCommunication = false;
     
     std::vector<Connector*>::iterator c;

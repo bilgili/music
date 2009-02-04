@@ -47,7 +47,6 @@ namespace MUSIC {
   {
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
-#error hej
 #else
     // Only C version provided in libmpich
     MPI_Init_thread (&argc, &argv, required, provided);
@@ -81,11 +80,13 @@ namespace MUSIC {
       {
 	// launched by the music utility
 	comm = MPI::COMM_WORLD.Split (_config->color (), myRank);
+	MUSIC_LOG (comm.Get_rank () << ": " << comm);
 	string binary;
 	_config->lookup ("binary", &binary);
 	string args;
 	_config->lookup ("args", &args);
 	argv = parseArgs (binary, args, &argc);
+	connectors_ = new std::vector<Connector*>; // destoyed by runtime
 	_temporalNegotiator = new TemporalNegotiator (this);
       }
     else
@@ -107,6 +108,13 @@ namespace MUSIC {
   Setup::portConnectivity (const std::string localName)
   {
     return _config->connectivityMap ()->info (localName);
+  }
+
+
+  ApplicationMap*
+  Setup::applicationMap ()
+  {
+    return _config->applications ();
   }
 
 
@@ -195,7 +203,7 @@ namespace MUSIC {
   
   void Setup::addConnector (Connector* c)
   {
-    _connectors.push_back (c);
+    connectors_->push_back (c);
   }
 
 }

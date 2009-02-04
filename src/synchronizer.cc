@@ -23,7 +23,6 @@ namespace MUSIC {
   void
   Synchronizer::nextCommunication ()
   {
-#if 0
     // Advance receive time as much as possible
     // still ensuring that oldest data arrives in time
     ClockStateT limit
@@ -41,49 +40,64 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered)
       nextSend.ticks (maxBuffered - bCount);
-#endif
   }
 
-bool
-Synchronizer::sample ()
-{
-  return true;
-}
+  void
+  Synchronizer::setLocalTime (Clock* lt)
+  {
+    localTime = lt;
+    nextSend.configure (localTime->timebase (), localTime->tickInterval ());
+    nextReceive.configure (localTime->timebase (), localTime->tickInterval ());
+  }
+
+  void
+  Synchronizer::setSenderTickInterval (ClockStateT ti)
+  {
+    nextSend.setTickInterval (ti);
+  }
+  
+  void
+  Synchronizer::setReceiverTickInterval (ClockStateT ti)
+  {
+    nextReceive.setTickInterval (ti);
+  }
+  
+  bool
+  Synchronizer::sample ()
+  {
+    return true;
+  }
 
 
-bool
-Synchronizer::mark ()
-{
-  return true;
-}
+  bool
+  Synchronizer::mark ()
+  {
+    return true;
+  }
 
 
-bool
-Synchronizer::communicate ()
-{
-  return _communicate;
-}
+  bool
+  Synchronizer::communicate ()
+  {
+    return _communicate;
+  }
 
 
-void
-OutputSynchronizer::tick ()
-{
-  if (*localTime > nextSend)
-    nextCommunication ();
-  _communicate = *localTime == nextSend;
-}
+  void
+  OutputSynchronizer::tick ()
+  {
+    if (*localTime > nextSend)
+      nextCommunication ();
+    _communicate = *localTime == nextSend;
+  }
 
   
-void
-InputSynchronizer::tick ()
-{
-  if (*localTime > nextReceive)
-    nextCommunication ();
-#if 0
-  _communicate = *localTime == nextReceive;
-#else
-  _communicate = true;
-#endif
-}
+  void
+  InputSynchronizer::tick ()
+  {
+    if (*localTime > nextReceive)
+      nextCommunication ();
+    _communicate = *localTime == nextReceive;
+  }
   
 }

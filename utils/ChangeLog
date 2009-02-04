@@ -1,3 +1,8 @@
+2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application_mapper.cc (ApplicationMapper::mapConnectivity):
+	Compute and propagate a unique "port code" for each port name.
+
 2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Switch to CamelCase.

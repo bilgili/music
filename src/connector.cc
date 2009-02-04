@@ -36,6 +36,8 @@ namespace MUSIC {
   MPI::Intercomm
   Connector::createIntercomm ()
   {
+    MUSIC_LOG (comm.Get_rank () << ": " << comm);
+    MUSIC_LOG (comm.Get_rank () << ": remote = " << info.remoteLeader ());
     return comm.Create_intercomm (0,
 				  MPI::COMM_WORLD, //*fixme* recursive?
 				  info.remoteLeader (),

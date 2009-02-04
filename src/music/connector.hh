@@ -56,6 +56,10 @@ namespace MUSIC {
     { return info.receiverAppName (); }
     std::string receiverPortName () const
     { return info.receiverPortName (); }
+    int receiverPortCode () const
+    { return info.receiverPortCode (); }
+    int remoteLeader () const
+    { return info.remoteLeader (); }
     MPI::Intercomm createIntercomm ();
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,

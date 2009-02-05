@@ -31,10 +31,7 @@ namespace MUSIC {
   Runtime::Runtime (Setup* s, double h)
   {
     // Setup the MUSIC clock
-    double timebase;
-    if (!s->config ("timebase", &timebase))
-      timebase = 1e-9;		// default timebase
-    localTime = Clock (timebase, h);
+    localTime = Clock (s->timebase (), h);
     
     comm = s->communicator ();
     if (s->launchedByMusic ())

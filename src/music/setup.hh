@@ -43,6 +43,7 @@ namespace MUSIC {
     std::vector<Port*> _ports;
     std::vector<Connector*>* connectors_;
     TemporalNegotiator* _temporalNegotiator;
+    double timebase_;
 
   public:
     Setup (int& argc, char**& argv);
@@ -50,6 +51,8 @@ namespace MUSIC {
     Setup (int& argc, char**& argv, int required, int* provided);
 
     virtual ~Setup ();
+
+    double timebase () { return timebase_; }
 
     bool launchedByMusic ();
 

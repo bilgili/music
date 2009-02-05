@@ -18,6 +18,8 @@
 
 #ifndef MUSIC_TEMPORAL_HH
 
+#define DEFAULT_PACKET_SIZE 64000
+
 #include <music/clock.hh>
 
 namespace MUSIC {
@@ -39,15 +41,17 @@ namespace MUSIC {
   private:
     InputConnector* connector_;
     int maxBuffered_;
-    int accLatency_;
+    ClockStateT accLatency_;
   public:
-    InputConnection (InputConnector* connector, int maxBuffered, int accLatency)
+    InputConnection (InputConnector* connector,
+		     int maxBuffered,
+		     ClockStateT accLatency)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered),
 	accLatency_ (accLatency) { }
     InputConnector* connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
-    int accLatency () { return accLatency_; }
+    ClockStateT accLatency () { return accLatency_; }
   };
   
   class ConnectionDescriptor {
@@ -55,7 +59,7 @@ namespace MUSIC {
     int remoteNode;
     int receiverPort;
     int maxBuffered;
-    int accLatency;
+    ClockStateT accLatency;
     ClockStateT remoteTickInterval;
   };
   
@@ -95,9 +99,9 @@ namespace MUSIC {
     void addConnection (OutputConnector* connector, int maxBuffered);
     void addConnection (InputConnector* connector,
 			int maxBuffered,
-			int accLatency);
+			double accLatency);
     void createNegotiationCommunicator ();
-    void collectNegotiationData (double timebase, ClockStateT ti);
+    void collectNegotiationData (ClockStateT ti);
     void communicateNegotiationData ();
     void combineParameters ();
     void loopAlgorithm ();

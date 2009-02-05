@@ -49,11 +49,12 @@ namespace MUSIC {
   void
   TemporalNegotiator::addConnection (InputConnector* connector,
 				     int maxBuffered,
-				     int accLatency)
+				     double accLatency)
   {
+    ClockStateT integerLatency = accLatency / setup_->timebase () + 0.5;
     inputConnections.push_back (InputConnection (connector,
 						 maxBuffered,
-						 accLatency));
+						 integerLatency));
   }
 
 
@@ -125,7 +126,7 @@ namespace MUSIC {
 
 
   void
-  TemporalNegotiator::collectNegotiationData (double timebase, ClockStateT ti)
+  TemporalNegotiator::collectNegotiationData (ClockStateT ti)
   {
     int nOut = outputConnections.size ();
     int nIn = inputConnections.size ();
@@ -134,7 +135,7 @@ namespace MUSIC {
 	       << ", nOut = " << nOut
 	       << ", nIn = " << nIn);
     negotiationData = allocNegotiationData (1, nLocalConnections);
-    negotiationData->timeBase = timebase;
+    negotiationData->timeBase = setup_->timebase ();
     negotiationData->tickInterval = ti;
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
@@ -306,8 +307,7 @@ namespace MUSIC {
     createNegotiationCommunicator ();
     if (isLeader ())
       {
-	collectNegotiationData (localTime.timebase (),
-				localTime.tickInterval ());
+	collectNegotiationData (localTime.tickInterval ());
 	communicateNegotiationData ();
 	combineParameters ();
 	loopAlgorithm ();

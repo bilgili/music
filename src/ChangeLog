@@ -1,5 +1,9 @@
 2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/setup.hh, music/synchronizer.hh, music/temporal.hh,
+	runtime.cc, setup.cc, temporal.cc: Bugfix: Convert accLatency to
+	ClockStateT.
+
 	* clock.cc, connectivity.cc, connector.cc, music/clock.hh,
 	music/connectivity.hh, music/connector.hh, music/debug.hh,
 	music/runtime.hh, music/setup.hh, music/synchronizer.hh,

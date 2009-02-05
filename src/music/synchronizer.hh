@@ -31,7 +31,7 @@ namespace MUSIC {
     Clock* localTime;
     Clock nextSend;
     Clock nextReceive;
-    int latency;
+    ClockStateT latency;
     int maxBuffered;
     bool _communicate;
     void nextCommunication ();
@@ -40,7 +40,7 @@ namespace MUSIC {
     void setSenderTickInterval (ClockStateT ti);
     void setReceiverTickInterval (ClockStateT ti);
     void setMaxBuffered (int m) { maxBuffered = m; }
-    void setAccLatency (int l) { latency = l; }
+    void setAccLatency (ClockStateT l) { latency = l; }
     bool sample ();
     bool mark ();
     bool communicate ();

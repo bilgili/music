@@ -81,6 +81,8 @@ namespace MUSIC {
 	// launched by the music utility
 	comm = MPI::COMM_WORLD.Split (_config->color (), myRank);
 	MUSIC_LOG (comm.Get_rank () << ": " << comm);
+	if (!config ("timebase", &timebase_))
+	  timebase_ = 1e-9;		// default timebase
 	string binary;
 	_config->lookup ("binary", &binary);
 	string args;

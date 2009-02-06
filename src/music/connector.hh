@@ -63,7 +63,7 @@ namespace MUSIC {
     MPI::Intercomm createIntercomm ();
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			 std::vector<InputSubconnector*>& isubconn) { }
+			std::vector<InputSubconnector*>& isubconn) { }
     virtual void tick (bool& requestCommunication) = 0;
   };
 
@@ -140,8 +140,8 @@ namespace MUSIC {
   class EventConnector : virtual public Connector {
   public:
     EventConnector (ConnectorInfo info,
-		     SpatialNegotiator* spatialNegotiator,
-		     MPI::Intracomm c);
+		    SpatialNegotiator* spatialNegotiator,
+		    MPI::Intracomm c);
   };
   
   class EventOutputConnector : public OutputConnector, public EventConnector {

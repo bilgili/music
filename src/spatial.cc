@@ -97,22 +97,29 @@ namespace MUSIC {
   void
   SpatialNegotiator::negotiateWidth ()
   {
-    // First determine local least upper bound
-    int w = -1;
+    // First determine local least upper bound and width
+    int u = -1;
+    int w = 0;
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      if (i->end () > w)
-	w = i->end ();
+      {
+	if (i->end () > u)
+	  u = i->end ();
+	w += i->end () - i->begin ();
+      }
     // Now take maximum over all processes
     std::vector<int> m (nProcesses);
-    MUSIC_LOG ("before Allgather");
+    comm.Allgather (&u, 1, MPI::INT, &m[0], 1, MPI::INT);
+    for (int i = 0; i < nProcesses; ++i)
+      if (m[i] > u)
+	u = m[i];
+    width = u;
     comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
-    MUSIC_LOG ("after Allgather");
     for (int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];
-    width = w;
+    maxLocalWidth_ = w;
   }
 
   

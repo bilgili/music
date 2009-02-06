@@ -136,7 +136,7 @@ namespace MUSIC {
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
     assertOutput ();
-    int maxBuffered = 0;
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices, type, maxBuffered);
   }
 
@@ -175,7 +175,9 @@ namespace MUSIC {
 				      spatialNegotiator,
 				      comm,
 				      router);
-	_setup->temporalNegotiator ()->addConnection (connector, maxBuffered);
+	_setup->temporalNegotiator ()->addConnection (connector,
+						      maxBuffered,
+						      sizeof (Event));
 	_setup->addConnector (connector);
       }
   }
@@ -208,7 +210,7 @@ namespace MUSIC {
 		       double accLatency)
   {
     assertInput ();
-    int maxBuffered = 0;
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
 	     Index::GLOBAL,
 	     EventHandlerPtr (handleEvent),
@@ -223,7 +225,7 @@ namespace MUSIC {
 		       double accLatency)
   {
     assertInput ();
-    int maxBuffered = 0;
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
 	     Index::LOCAL,
 	     EventHandlerPtr (handleEvent),

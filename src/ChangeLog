@@ -1,3 +1,10 @@
+2009-02-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/spatial.hh, music/synchronizer.hh,
+	music/temporal.hh, port.cc, spatial.cc, synchronizer.cc,
+	temporal.cc: Compute default maxBuffered value based on
+	temporal.hh:DEFAULT_PACKET_SIZE.
+
 2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/setup.hh, music/synchronizer.hh, music/temporal.hh,

@@ -130,11 +130,13 @@ namespace MUSIC {
     Index::Type type;
     std::vector<NegotiationIntervals> remote;
     int width;
+    int maxLocalWidth_;
     int localRank;
     int nProcesses;
   public:
     SpatialNegotiator (IndexMap* indices, Index::Type type);
     void negotiateWidth ();
+    int maxLocalWidth () { return maxLocalWidth_; }
     NegotiationIterator wrapIntervals (IndexMap::iterator beg,
 				       IndexMap::iterator end,
 				       Index::Type type,

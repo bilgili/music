@@ -40,10 +40,12 @@ namespace MUSIC {
 
   void
   TemporalNegotiator::addConnection (OutputConnector* connector,
-				     int maxBuffered)
+				     int maxBuffered,
+				     int elementSize)
   {
     outputConnections.push_back (OutputConnection (connector,
-						   maxBuffered));
+						   maxBuffered,
+						   elementSize));
   }
   
   void
@@ -125,6 +127,27 @@ namespace MUSIC {
   }
 
 
+  int
+  TemporalNegotiator::computeDefaultMaxBuffered (int maxLocalWidth,
+						 int eventSize,
+						 ClockStateT tickInterval,
+						 double timebase)
+  {
+    int res;
+    if (eventSize == 0)
+      // continuous data
+      res = DEFAULT_PACKET_SIZE / maxLocalWidth;
+    else
+      // event data
+      res = (DEFAULT_PACKET_SIZE
+	     / (EVENT_FREQUENCY_ESTIMATE
+		* maxLocalWidth * eventSize * timebase * tickInterval));
+    if (res < 1)
+      res = 1;
+    return res;
+  }
+
+  
   void
   TemporalNegotiator::collectNegotiationData (ClockStateT ti)
   {
@@ -141,22 +164,29 @@ namespace MUSIC {
     negotiationData->nInConnections = inputConnections.size ();
     for (int i = 0; i < nOut; ++i)
       {
-	int remote = outputConnections[i].connector ()->remoteLeader ();
+	OutputConnector* connector = outputConnections[i].connector ();
+	int remote = connector->remoteLeader ();
 	negotiationData->connection[i].remoteNode = leaderToNode[remote];
 	negotiationData->connection[i].receiverPort
-	  = outputConnections[i].connector ()->receiverPortCode ();
+	  = connector->receiverPortCode ();
 	negotiationData->connection[i].maxBuffered
 	  = outputConnections[i].maxBuffered ();
+	negotiationData->connection[i].defaultMaxBuffered
+	  = computeDefaultMaxBuffered (connector->maxLocalWidth (),
+				       outputConnections[i].elementSize (),
+				       ti,
+				       setup_->timebase ());
 	negotiationData->connection[i].accLatency = 0;
       }
     for (int i = 0; i < nIn; ++i)
       {
 	int remote = inputConnections[i].connector ()->remoteLeader ();
 	negotiationData->connection[nOut + i].remoteNode = leaderToNode[remote];
-	negotiationData->connection[i].receiverPort
+	negotiationData->connection[nOut + i].receiverPort
 	  = inputConnections[i].connector ()->receiverPortCode ();
 	negotiationData->connection[nOut + i].maxBuffered
 	  = inputConnections[i].maxBuffered ();
+	negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
 	negotiationData->connection[nOut + i].accLatency
 	  = inputConnections[i].accLatency ();
       }
@@ -224,14 +254,29 @@ namespace MUSIC {
 	  ConnectionDescriptor* out = &nodes[o]->connection[c];
 	  int i = out->remoteNode;
 	  ConnectionDescriptor* in = findInputConnection (i, out->receiverPort);
+	  
 	  // maxBuffered
-	  ClockStateT inMaxBufferedTime
-	    = in->maxBuffered * nodes[i]->tickInterval;
-	  int inMaxBuffered = inMaxBufferedTime / nodes[o]->tickInterval;
-	  if (inMaxBuffered < out->maxBuffered)
-	    out->maxBuffered = inMaxBuffered;
+
+	  // check defaults
+	  if (out->maxBuffered == MAX_BUFFERED_NO_VALUE
+	      && in->maxBuffered == MAX_BUFFERED_NO_VALUE)
+	    out->maxBuffered = out->defaultMaxBuffered;
+	  else if (in->maxBuffered != MAX_BUFFERED_NO_VALUE)
+	    {
+	      // convert to sender side ticks
+	      ClockStateT inMaxBufferedTime
+		= in->maxBuffered * nodes[i]->tickInterval;
+	      int inMaxBuffered = inMaxBufferedTime / nodes[o]->tickInterval;
+	      // take min maxBuffered
+	      if (inMaxBuffered < out->maxBuffered)
+		out->maxBuffered = inMaxBuffered;
+	    }
+	  // store maxBuffered in sender units
+	  in->maxBuffered = out->maxBuffered;
+	  
 	  // accLatency
 	  out->accLatency = in->accLatency;
+	  
 	  // remoteTickInterval
 	  out->remoteTickInterval = nodes[i]->tickInterval;
 	  in->remoteTickInterval = nodes[o]->tickInterval;

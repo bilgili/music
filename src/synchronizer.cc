@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh" // Must be included first on BG/L
+
 #include "music/synchronizer.hh"
 
 namespace MUSIC {
@@ -42,6 +45,7 @@ namespace MUSIC {
       nextSend.ticks (maxBuffered - bCount);
   }
 
+  
   void
   Synchronizer::setLocalTime (Clock* lt)
   {
@@ -50,17 +54,28 @@ namespace MUSIC {
     nextReceive.configure (localTime->timebase (), localTime->tickInterval ());
   }
 
+  
   void
   Synchronizer::setSenderTickInterval (ClockStateT ti)
   {
     nextSend.setTickInterval (ti);
   }
+
   
   void
   Synchronizer::setReceiverTickInterval (ClockStateT ti)
   {
     nextReceive.setTickInterval (ti);
   }
+
+  
+  void
+  Synchronizer::setMaxBuffered (int m)
+  {
+    MUSIC_LOG ("maxBuffered set to " << m);
+    maxBuffered = m - 1;
+  }
+
   
   bool
   Synchronizer::sample ()

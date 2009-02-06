@@ -18,7 +18,9 @@
 
 #ifndef MUSIC_TEMPORAL_HH
 
+#define MAX_BUFFERED_NO_VALUE 0
 #define DEFAULT_PACKET_SIZE 64000
+#define EVENT_FREQUENCY_ESTIMATE 10.0
 
 #include <music/clock.hh>
 
@@ -30,11 +32,17 @@ namespace MUSIC {
   private:
     OutputConnector* connector_;
     int maxBuffered_;
+    int elementSize_;
   public:
-    OutputConnection (OutputConnector* connector, int maxBuffered)
-      : connector_ (connector), maxBuffered_ (maxBuffered) { }
+    OutputConnection (OutputConnector* connector,
+		      int maxBuffered,
+		      int elementSize)
+      : connector_ (connector),
+	maxBuffered_ (maxBuffered),
+	elementSize_ (elementSize) { }
     OutputConnector* connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
+    int elementSize () { return elementSize_; }
   };
   
   class InputConnection {
@@ -59,6 +67,7 @@ namespace MUSIC {
     int remoteNode;
     int receiverPort;
     int maxBuffered;
+    int defaultMaxBuffered; // not used for input connections
     ClockStateT accLatency;
     ClockStateT remoteTickInterval;
   };
@@ -87,6 +96,10 @@ namespace MUSIC {
     TemporalNegotiationData* negotiationData;
     int negotiationDataSize (int nConnections);
     int negotiationDataSize (int nBlock, int nConnections);
+    int computeDefaultMaxBuffered (int maxLocalWidth,
+				   int eventSize,
+				   ClockStateT tickInterval,
+				   double timebase);
     TemporalNegotiationData* allocNegotiationData (int nBlocks,
 						   int nConnections);
     void freeNegotiationData (TemporalNegotiationData*);
@@ -96,7 +109,9 @@ namespace MUSIC {
   public:
     TemporalNegotiator (Setup* setup);
     ~TemporalNegotiator ();
-    void addConnection (OutputConnector* connector, int maxBuffered);
+    void addConnection (OutputConnector* connector,
+			int maxBuffered,
+			int elementSize);
     void addConnection (InputConnector* connector,
 			int maxBuffered,
 			double accLatency);

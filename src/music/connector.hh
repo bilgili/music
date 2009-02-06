@@ -60,6 +60,7 @@ namespace MUSIC {
     { return info.receiverPortCode (); }
     int remoteLeader () const
     { return info.remoteLeader (); }
+    int maxLocalWidth () { return spatialNegotiator->maxLocalWidth (); }
     MPI::Intercomm createIntercomm ();
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,

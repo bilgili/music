@@ -73,6 +73,7 @@ namespace MUSIC {
 		       << ", maxBuffered = " << maxBuffered);
 	  }
 #endif
+	initialize ();
       }
     delete s;
   }
@@ -221,8 +222,27 @@ namespace MUSIC {
 
 
   void
+  Runtime::initialize ()
+  {
+    std::vector<Connector*>::iterator c;
+    for (c = connectors->begin (); c != connectors->end (); ++c)
+      (*c)->initialize ();
+  }
+
+  
+  void
   Runtime::finalize ()
   {
+    bool dataStillFlowing;
+    do
+      {
+	dataStillFlowing = false;
+	std::vector<Subconnector*>::iterator c;
+	for (c = schedule.begin (); c != schedule.end (); ++c)
+	  (*c)->flush (dataStillFlowing);
+      }
+    while (dataStillFlowing);
+    
     MPI::Finalize ();
   }
 

@@ -46,12 +46,26 @@ namespace MUSIC {
 
 
   void
+  OutputConnector::initialize ()
+  {
+    synch.initialize ();
+  }
+
+  
+  void
   OutputConnector::tick (bool& requestCommunication)
   {
     synch.tick ();
     // Only assign requestCommunication if true
     if (synch.communicate ())
       requestCommunication = true;
+  }
+
+  
+  void
+  InputConnector::initialize ()
+  {
+    synch.initialize ();
   }
 
   

@@ -65,6 +65,7 @@ namespace MUSIC {
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 			std::vector<InputSubconnector*>& isubconn) { }
+    virtual void initialize () = 0;
     virtual void tick (bool& requestCommunication) = 0;
   };
 
@@ -73,6 +74,7 @@ namespace MUSIC {
     OutputSynchronizer synch;
   public:
     OutputSynchronizer* synchronizer () { return &synch; }
+    void initialize ();
     void tick (bool& requestCommunication);
   };
   
@@ -81,6 +83,7 @@ namespace MUSIC {
     InputSynchronizer synch;
   public:
     InputSynchronizer* synchronizer () { return &synch; }
+    void initialize ();
     void tick (bool& requestCommunication);
   };
 

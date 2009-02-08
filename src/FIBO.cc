@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,13 @@ namespace MUSIC {
     size = elementSize * nInitial;
     buffer.resize (size);
     insertion = 0;
+  }
+
+
+  bool
+  FIBO::isEmpty ()
+  {
+    return insertion == 0;
   }
 
   

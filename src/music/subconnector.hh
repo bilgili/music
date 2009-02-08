@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ namespace MUSIC {
 		  std::string receiverPortName);
     virtual ~Subconnector ();
     virtual void tick () = 0;
+    virtual void flush (bool& dataStillFlowing) = 0;
     int remoteRank () const { return _remoteRank; }
     int receiverRank () const { return _receiverRank; }
     std::string receiverPortName () const { return _receiverPortName; }
@@ -63,11 +64,11 @@ namespace MUSIC {
     FIBO _buffer;
   public:
     OutputSubconnector (Synchronizer* synch,
-			 MPI::Intercomm intercomm,
-			 int remoteRank,
-			 int receiverRank,
-			 std::string receiverPortName,
-			 int elementSize);
+			MPI::Intercomm intercomm,
+			int remoteRank,
+			int receiverRank,
+			std::string receiverPortName,
+			int elementSize);
     FIBO* buffer () { return &_buffer; }
     void send ();
     int startIdx ();
@@ -75,8 +76,8 @@ namespace MUSIC {
   };
   
   class InputSubconnector : virtual public Subconnector {
-  public:
-    InputSubconnector ();
+  protected:
+    bool flushed;
   };
 
   class ContOutputSubconnector : public OutputSubconnector {
@@ -88,53 +89,61 @@ namespace MUSIC {
   };
 
   class EventSubconnector : virtual public Subconnector {
-  public:
-    EventSubconnector ();
+  protected:
+    static const int FLUSH_MARK = -1;
   };
   
-  class EventOutputSubconnector : public OutputSubconnector {
+  class EventOutputSubconnector : public OutputSubconnector,
+				  public EventSubconnector {
   public:
     EventOutputSubconnector (Synchronizer* _synch,
-			       MPI::Intercomm _intercomm,
-			       int remoteRank,
-			       std::string _receiverPortName);
+			     MPI::Intercomm _intercomm,
+			     int remoteRank,
+			     std::string _receiverPortName);
     void tick ();
     void send ();
+    void flush (bool& dataStillFlowing);
   };
   
-  class EventInputSubconnector : public InputSubconnector {
+  class EventInputSubconnector : public InputSubconnector,
+				 public EventSubconnector {
   public:
     EventInputSubconnector (Synchronizer* synch,
-			      MPI::Intercomm intercomm,
-			      int remoteRank,
-			      int receiverRank,
-			      std::string receiverPortName);
+			    MPI::Intercomm intercomm,
+			    int remoteRank,
+			    int receiverRank,
+			    std::string receiverPortName);
     void tick ();
     virtual void receive () = 0;
+    virtual void flush (bool& dataStillFlowing);
   };
 
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
+    static EventHandlerGlobalIndexDummy dummyHandler;
   public:
     EventInputSubconnectorGlobal (Synchronizer* synch,
-				     MPI::Intercomm intercomm,
-				     int remoteRank,
-				     int receiverRank,
-				     std::string receiverPortName,
-				     EventHandlerGlobalIndex* eh);
+				  MPI::Intercomm intercomm,
+				  int remoteRank,
+				  int receiverRank,
+				  std::string receiverPortName,
+				  EventHandlerGlobalIndex* eh);
     void receive ();
+    void flush (bool& dataStillFlowing);
   };
 
   class EventInputSubconnectorLocal : public EventInputSubconnector {
     EventHandlerLocalIndex* handleEvent;
+    static EventHandlerLocalIndexDummy dummyHandler;
   public:
     EventInputSubconnectorLocal (Synchronizer* synch,
-				    MPI::Intercomm intercomm,
-				    int remoteRank,
-				    int receiverRank,
-				    std::string receiverPortName,
-				    EventHandlerLocalIndex* eh);
+				 MPI::Intercomm intercomm,
+				 int remoteRank,
+				 int receiverRank,
+				 std::string receiverPortName,
+				 EventHandlerLocalIndex* eh);
     void receive ();
+    void flush (bool& dataStillFlowing);
   };
 
 }

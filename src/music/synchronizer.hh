@@ -42,6 +42,7 @@ namespace MUSIC {
     // algorithm expects *extra* buffered ticks so we subtract 1
     void setMaxBuffered (int m);
     void setAccLatency (ClockStateT l) { latency = l; }
+    void initialize ();
     bool sample ();
     bool mark ();
     bool communicate ();

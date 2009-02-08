@@ -1,3 +1,10 @@
+2009-02-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* FIBO.cc, connector.cc, music/FIBO.hh, music/connector.hh,
+	music/event.hh, music/runtime.hh, music/subconnector.hh,
+	music/synchronizer.hh, runtime.cc, subconnector.cc,
+	synchronizer.cc: Flush buffers at MUSIC::finalize.
+
 2009-02-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/connector.hh, music/spatial.hh, music/synchronizer.hh,

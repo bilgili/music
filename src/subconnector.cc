@@ -84,17 +84,6 @@ namespace MUSIC {
   }
 
   
-  InputSubconnector::InputSubconnector ()
-  {
-  }
-
-
-  EventSubconnector::EventSubconnector ()
-  {
-    
-  }
-  
-
   void
   ContOutputSubconnector::mark ()
   {
@@ -148,6 +137,23 @@ namespace MUSIC {
       }
     intercomm.Send (buffer, size, MPI::BYTE, _remoteRank, SPIKE_MSG);
   }
+
+  
+  void
+  EventOutputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!_buffer.isEmpty ())
+      {
+	send ();
+	dataStillFlowing = true;
+      }
+    else
+      {
+	Event* e = static_cast<Event*> (_buffer.insert ());
+	e->id = FLUSH_MARK;
+	send ();
+      }
+  }
   
 
   EventInputSubconnector::EventInputSubconnector (Synchronizer* synch,
@@ -185,6 +191,10 @@ namespace MUSIC {
   {
   }
 
+
+  EventHandlerGlobalIndexDummy
+  EventInputSubconnectorGlobal::dummyHandler;
+
   
   EventInputSubconnectorLocal::EventInputSubconnectorLocal
   (Synchronizer* synch,
@@ -208,10 +218,14 @@ namespace MUSIC {
   }
 
   
+  EventHandlerLocalIndexDummy
+  EventInputSubconnectorLocal::dummyHandler;
+
+  
   void
   EventInputSubconnector::tick ()
   {
-    if (synch->communicate ())
+    if (!flushed && synch->communicate ())
       receive ();    
   }
 
@@ -231,9 +245,14 @@ namespace MUSIC {
 			_remoteRank,
 			SPIKE_MSG,
 			status);
+	Event* ev = (Event*) data;
+	if (ev[0].id == FLUSH_MARK)
+	  {
+	    flushed = true;
+	    return;
+	  }
 	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
-	Event* ev = (Event*) data;
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
       }
@@ -255,13 +274,46 @@ namespace MUSIC {
 			_remoteRank,
 			SPIKE_MSG,
 			status);
+	Event* ev = (Event*) data;
+	if (ev[0].id == FLUSH_MARK)
+	  {
+	    flushed = true;
+	    return;
+	  }
 	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
-	Event* ev = (Event*) data;
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
       }
     while (size == SPIKE_BUFFER_MAX);
   }
 
+
+  void
+  EventInputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!flushed)
+      {
+	receive ();
+	if (!flushed)
+	  dataStillFlowing = true;
+      }
+  }
+
+  
+  void
+  EventInputSubconnectorGlobal::flush (bool& dataStillFlowing)
+  {
+    handleEvent = &dummyHandler;
+    EventInputSubconnector::flush (dataStillFlowing);
+  }
+
+  
+  void
+  EventInputSubconnectorLocal::flush (bool& dataStillFlowing)
+  {
+    handleEvent = &dummyHandler;
+    EventInputSubconnector::flush (dataStillFlowing);
+  }
+  
 }

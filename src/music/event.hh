@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,6 +47,11 @@ namespace MUSIC {
     virtual void operator () (double t, GlobalIndex id) = 0;
   };
   
+  class EventHandlerGlobalIndexDummy : public EventHandlerGlobalIndex {
+  public:
+    virtual void operator () (double t, GlobalIndex id) { };
+  };
+  
   class EventHandlerGlobalIndexProxy
     : public EventHandlerGlobalIndex {
     void (*eventHandler) (double t, int id);
@@ -63,6 +68,11 @@ namespace MUSIC {
   class EventHandlerLocalIndex {
   public:
     virtual void operator () (double t, LocalIndex id) = 0;
+  };
+
+  class EventHandlerLocalIndexDummy : public EventHandlerLocalIndex {
+  public:
+    virtual void operator () (double t, LocalIndex id) { };
   };
 
   class EventHandlerLocalIndexProxy

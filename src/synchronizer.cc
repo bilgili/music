@@ -43,6 +43,8 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered)
       nextSend.ticks (maxBuffered - bCount);
+    MUSIC_LOG ("next send at " << nextSend.time ()
+	       << ", next receive at " << nextReceive.time ());
   }
 
   
@@ -74,6 +76,13 @@ namespace MUSIC {
   {
     MUSIC_LOG ("maxBuffered set to " << m);
     maxBuffered = m - 1;
+  }
+
+
+  void
+  Synchronizer::initialize ()
+  {
+    nextCommunication ();
   }
 
   

@@ -1,3 +1,11 @@
+2009-02-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* error.cc, music/error.hh (error0): Report errors only from MPI
+	process rank 0.
+
+	* music/temporal.hh, temporal.cc: Implemented distribution of
+	allowed buffering using a loop detection algorithm.
+
 2009-02-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* FIBO.cc, connector.cc, music/FIBO.hh, music/connector.hh,

@@ -74,13 +74,17 @@ namespace MUSIC {
   
   class TemporalNegotiationData {
   public:
-    double timeBase;
+    double timebase;
     ClockStateT tickInterval;
     int nOutConnections;
     int nInConnections;
     int recNamesSize;
     ConnectionDescriptor connection[0];
   };
+
+  class ApplicationNode;
+
+  class Connection;
 
   class TemporalNegotiator {
     Setup* setup_;
@@ -89,9 +93,10 @@ namespace MUSIC {
     int nApplications; // initialized by createNegotiationCommunicator
     int nLocalConnections;
     int localNode;
+    double timebase;
     std::vector<OutputConnection> outputConnections;
     std::vector<InputConnection> inputConnections;
-    std::vector<TemporalNegotiationData*> nodes;
+    std::vector<ApplicationNode> nodes;
     TemporalNegotiationData* negotiationBuffer;
     TemporalNegotiationData* negotiationData;
     int negotiationDataSize (int nConnections);
@@ -106,9 +111,13 @@ namespace MUSIC {
     ConnectionDescriptor* findInputConnection (int node, int port);
     bool isLeader ();
     bool hasPeers ();
+    void depthFirst (ApplicationNode& x,
+		     std::vector<Connection>& path);
   public:
     TemporalNegotiator (Setup* setup);
     ~TemporalNegotiator ();
+    Setup* setup () { return setup_; }
+    ApplicationNode& applicationNode (int i) { return nodes[i]; }
     void addConnection (OutputConnector* connector,
 			int maxBuffered,
 			int elementSize);
@@ -124,6 +133,49 @@ namespace MUSIC {
     void receiveNegotiationData ();
     void distributeNegotiationData (Clock& localTime);
     void negotiate (Clock& localTime);
+  };
+
+  class Connection {
+    ApplicationNode* pre_;
+    ApplicationNode* post_;
+    ConnectionDescriptor* connection_;
+  public:
+    Connection (ApplicationNode& pre,
+		ApplicationNode& post,
+		ConnectionDescriptor& descr)
+      : pre_ (&pre), post_ (&post), connection_ (&descr) { }
+    ApplicationNode& pre () { return *pre_; }
+    ApplicationNode& post () { return *post_; }
+    ClockStateT latency () { return connection_->accLatency;}
+    int allowedBuffer () { return connection_->maxBuffered; }
+    void setAllowedBuffer (int a) { connection_->maxBuffered = a; }
+  };
+
+  class ApplicationNode {
+    TemporalNegotiator* negotiator_;
+    int index;
+  public:
+    ApplicationNode (TemporalNegotiator* negotiator,
+		     int i,
+		     TemporalNegotiationData* data_)
+      : negotiator_ (negotiator), index (i), data (data_)
+    {
+      visited = false;
+      inPath = false;
+    }
+    TemporalNegotiationData* data;
+    bool visited;
+    bool inPath;
+    std::string name ();
+    ClockStateT tickInterval () { return data->tickInterval; }
+    int nConnections () { return data->nOutConnections; }
+    Connection connection (int c)
+    {
+      ConnectionDescriptor& descr = data->connection[c];
+      return Connection (*this,
+			 negotiator_->applicationNode (descr.remoteNode),
+			 descr);
+    };
   };
 
 }

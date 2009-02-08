@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 INCF
+ *  Copyright (C) 2007, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,10 @@
 
 namespace MUSIC {
 
+  void error ();
+  void hang ();
   void error (std::string msg);
+  void error0 (std::string msg);
   
 }
 

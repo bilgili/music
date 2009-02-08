@@ -158,7 +158,7 @@ namespace MUSIC {
 	       << ", nOut = " << nOut
 	       << ", nIn = " << nIn);
     negotiationData = allocNegotiationData (1, nLocalConnections);
-    negotiationData->timeBase = setup_->timebase ();
+    negotiationData->timebase = setup_->timebase ();
     negotiationData->tickInterval = ti;
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
@@ -217,7 +217,7 @@ namespace MUSIC {
 	TemporalNegotiationData* data =
 	  static_cast<TemporalNegotiationData*>
 	  (static_cast<void*> (memory + displacement));
-	nodes.push_back (data);
+	nodes.push_back (ApplicationNode (this, i, data));
 	displacement += receiveSize;
       }
     delete[] nConnections;
@@ -228,17 +228,18 @@ namespace MUSIC {
     delete[] displacements;
     delete[] receiveSizes;
     freeNegotiationData (negotiationData);
-    negotiationData = nodes[localNode];
+    negotiationData = nodes[localNode].data;
   }
 
 
   ConnectionDescriptor*
   TemporalNegotiator::findInputConnection (int node, int port)
   {
-    int nOut = nodes[node]->nOutConnections;
+    int nOut = nodes[node].data->nOutConnections;
     // Get address of first input ConnectionDescriptor
-    ConnectionDescriptor* inputDescriptors = &nodes[node]->connection[nOut];
-    for (int i = 0; i < nodes[node]->nInConnections; ++i)
+    ConnectionDescriptor* inputDescriptors
+      = &nodes[node].data->connection[nOut];
+    for (int i = 0; i < nodes[node].data->nInConnections; ++i)
       if (inputDescriptors[i].receiverPort == port)
 	return &inputDescriptors[i];
     error ("internal error in TemporalNegotiator::findInputConnection");
@@ -248,45 +249,118 @@ namespace MUSIC {
   void
   TemporalNegotiator::combineParameters ()
   {
+    double timebase = nodes[0].data->timebase;
     for (int o = 0; o < nApplications; ++o)
-      for (int c = 0; c < nodes[o]->nOutConnections; ++c)
-	{
-	  ConnectionDescriptor* out = &nodes[o]->connection[c];
-	  int i = out->remoteNode;
-	  ConnectionDescriptor* in = findInputConnection (i, out->receiverPort);
+      {
+	// check timebase
+	if (nodes[o].data->timebase != timebase)
+	  error0 ("applications don't use same timebase");
+	
+	for (int c = 0; c < nodes[o].data->nOutConnections; ++c)
+	  {
+	    ConnectionDescriptor* out = &nodes[o].data->connection[c];
+	    int i = out->remoteNode;
+	    ConnectionDescriptor* in = findInputConnection (i,
+							    out->receiverPort);
 	  
-	  // maxBuffered
+	    // maxBuffered
 
-	  // check defaults
-	  if (out->maxBuffered == MAX_BUFFERED_NO_VALUE
-	      && in->maxBuffered == MAX_BUFFERED_NO_VALUE)
-	    out->maxBuffered = out->defaultMaxBuffered;
-	  else if (in->maxBuffered != MAX_BUFFERED_NO_VALUE)
-	    {
-	      // convert to sender side ticks
-	      ClockStateT inMaxBufferedTime
-		= in->maxBuffered * nodes[i]->tickInterval;
-	      int inMaxBuffered = inMaxBufferedTime / nodes[o]->tickInterval;
-	      // take min maxBuffered
-	      if (inMaxBuffered < out->maxBuffered)
-		out->maxBuffered = inMaxBuffered;
-	    }
-	  // store maxBuffered in sender units
-	  in->maxBuffered = out->maxBuffered;
+	    // check defaults
+	    if (out->maxBuffered == MAX_BUFFERED_NO_VALUE
+		&& in->maxBuffered == MAX_BUFFERED_NO_VALUE)
+	      out->maxBuffered = out->defaultMaxBuffered;
+	    else if (in->maxBuffered != MAX_BUFFERED_NO_VALUE)
+	      {
+		// convert to sender side ticks
+		ClockStateT inMaxBufferedTime
+		  = in->maxBuffered * nodes[i].data->tickInterval;
+		int inMaxBuffered = (inMaxBufferedTime
+				     / nodes[o].data->tickInterval);
+		// take min maxBuffered
+		if (inMaxBuffered < out->maxBuffered)
+		  out->maxBuffered = inMaxBuffered;
+	      }
+	    // store maxBuffered in sender units
+	    in->maxBuffered = out->maxBuffered;
 	  
-	  // accLatency
-	  out->accLatency = in->accLatency;
+	    // accLatency
+	    out->accLatency = in->accLatency;
 	  
-	  // remoteTickInterval
-	  out->remoteTickInterval = nodes[i]->tickInterval;
-	  in->remoteTickInterval = nodes[o]->tickInterval;
-	}
+	    // remoteTickInterval
+	    out->remoteTickInterval = nodes[i].data->tickInterval;
+	    in->remoteTickInterval = nodes[o].data->tickInterval;
+	  }
+      }
   }
 
+
+  void
+  TemporalNegotiator::depthFirst (ApplicationNode& x,
+				  std::vector<Connection>& path)
+  {
+    if (x.inPath)
+      {
+	// Search path to detect beginning of loop
+	int loop;
+	for (loop = 0; &path[loop].pre () != &x; ++loop)
+	  ;
+
+	// Compute how much headroom we have for buffering
+	ClockStateT totalDelay = 0;
+	for (int c = loop; c < path.size (); ++c)
+	  totalDelay += path[c].latency () - path[c].pre ().tickInterval ();
+
+	// If negative we will not be able to make it in time
+        // around the loop even without any extra buffering
+        if (totalDelay < 0)
+	  {
+	    std::ostringstream ostr;
+            ostr << "too short latency (" << - timebase * totalDelay
+		 << " s) around loop: " << path[loop].pre ().name ();
+	    for (int c = loop + 1; c < path.size (); ++c)
+	      ostr << ", " << path[c].pre ().name ();
+	    error0 (ostr.str ());
+	  }
+
+        // Distribute totalDelay as allowed buffering uniformly over loop
+        // (we could do better by considering constraints form other loops)
+	int loopLength = path.size () - loop;
+        ClockStateT bufDelay = totalDelay / loopLength;
+        for (int c = 0; c < path.size (); ++c)
+	  {
+	    int allowedTicks = bufDelay / path[c].pre ().tickInterval ();
+	    path[c].setAllowedBuffer (std::min (path[c].allowedBuffer (),
+						allowedTicks));
+	  }
+
+        return;
+      }
+
+    // Mark as processed (remove from main loop forest)
+    x.visited = true;
+    x.inPath = true;
+
+    // Recurse in depth-first order
+    for (int c = 0; c < x.nConnections (); ++c)
+      {
+	path.push_back (x.connection (c));
+	depthFirst (x.connection (c).post (), path);
+	path.pop_back ();
+      }
+
+    x.inPath = false;
+  }
+  
   
   void
   TemporalNegotiator::loopAlgorithm ()
   {
+    std::vector<Connection> path;
+    for (std::vector<ApplicationNode>::iterator node = nodes.begin ();
+	 node != nodes.end ();
+	 ++node)
+      if (!node->visited)
+	depthFirst (*node, path);
   }
 
   
@@ -363,5 +437,13 @@ namespace MUSIC {
       receiveNegotiationData ();
     distributeNegotiationData (localTime);
   }
+
+
+  std::string
+  ApplicationNode::name ()
+  {
+    // only used for error messages
+    return (*negotiator_->setup ()->applicationMap ())[index].name ();
+  };
   
 }

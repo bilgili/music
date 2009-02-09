@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh" // Must be included first on BG/L
+
 #include "music/subconnector.hh"
 
 namespace MUSIC {
@@ -84,6 +87,12 @@ namespace MUSIC {
   }
 
   
+  InputSubconnector::InputSubconnector ()
+  {
+    flushed = false;
+  }
+
+
   void
   ContOutputSubconnector::mark ()
   {
@@ -144,6 +153,7 @@ namespace MUSIC {
   {
     if (!_buffer.isEmpty ())
       {
+	MUSIC_LOGR ("sending data remaining in buffers");
 	send ();
 	dataStillFlowing = true;
       }
@@ -157,15 +167,16 @@ namespace MUSIC {
   
 
   EventInputSubconnector::EventInputSubconnector (Synchronizer* synch,
-						      MPI::Intercomm intercomm,
-						      int remoteRank,
-						      int receiverRank,
-						      std::string receiverPortName)
+						  MPI::Intercomm intercomm,
+						  int remoteRank,
+						  int receiverRank,
+						  std::string receiverPortName)
     : Subconnector (synch,
 		    intercomm,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName)
+		    receiverPortName),
+      InputSubconnector ()
   {
   }
 
@@ -249,10 +260,12 @@ namespace MUSIC {
 	if (ev[0].id == FLUSH_MARK)
 	  {
 	    flushed = true;
+	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
+	MUSIC_LOGR ("received " << nEvents << "events");
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
       }
@@ -294,6 +307,7 @@ namespace MUSIC {
   {
     if (!flushed)
       {
+	MUSIC_LOGR ("receiving and throwing away data");
 	receive ();
 	if (!flushed)
 	  dataStillFlowing = true;

@@ -77,6 +77,7 @@ namespace MUSIC {
   
   class InputSubconnector : virtual public Subconnector {
   protected:
+    InputSubconnector ();
     bool flushed;
   };
 

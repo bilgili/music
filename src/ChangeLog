@@ -1,4 +1,7 @@
-2009-02-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
+2009-02-09  Mikael Djurfeldt  <mdj@lampetra.csc.kth.se>
+
+	* music/subconnector.hh,
+	subconnector.cc (InputSubconnector::flushed): Bugfix: Initialize.
 
 	* error.cc, music/error.hh (error0): Report errors only from MPI
 	process rank 0.

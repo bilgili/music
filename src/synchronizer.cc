@@ -43,8 +43,8 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered)
       nextSend.ticks (maxBuffered - bCount);
-    MUSIC_LOG ("next send at " << nextSend.time ()
-	       << ", next receive at " << nextReceive.time ());
+    MUSIC_LOGR ("next send at " << nextSend.time ()
+		<< ", next receive at " << nextReceive.time ());
   }
 
   
@@ -60,6 +60,7 @@ namespace MUSIC {
   void
   Synchronizer::setSenderTickInterval (ClockStateT ti)
   {
+    MUSIC_LOGR ("sender tick interval set to " << ti);
     nextSend.setTickInterval (ti);
   }
 
@@ -67,6 +68,7 @@ namespace MUSIC {
   void
   Synchronizer::setReceiverTickInterval (ClockStateT ti)
   {
+    MUSIC_LOGR ("receiver tick interval set to " << ti);
     nextReceive.setTickInterval (ti);
   }
 
@@ -74,7 +76,7 @@ namespace MUSIC {
   void
   Synchronizer::setMaxBuffered (int m)
   {
-    MUSIC_LOG ("maxBuffered set to " << m);
+    MUSIC_LOGR ("maxBuffered set to " << m);
     maxBuffered = m - 1;
   }
 

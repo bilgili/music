@@ -25,10 +25,12 @@
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
 #define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cerr << X << std::endl; }
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
+#define MUSIC_LOGR(X) { std::cerr << MPI::COMM_WORLD.Get_rank () << ": " << X << std::endl; }
 #else
 #define MUSIC_LOG(X)
 #define MUSIC_LOGN(N, X)
 #define MUSIC_LOG0(X)
+#define MUSIC_LOGR(X)
 #endif
 
 #define MUSIC_DEBUG_HH

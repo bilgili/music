@@ -1,8 +1,6 @@
-* Implement pairwise communication of timing parameters between
-
-* Implement syncronizer algorithm
-
 * Buffering schedule in synchronizer
+
+* TODO: cleanup constructor arguments in subconnector.cc
 
 Continuous data
 

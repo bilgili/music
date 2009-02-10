@@ -250,10 +250,6 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
-    MUSIC_LOG ("rank " << rank
-	       << ": time = " << localTime.time ()
-	       << ", nextSend = " << sendClock->time ()
-	       << ", nextReceive = " << receiveClock->time ());
     bool requestCommunication = false;
     
     std::vector<Connector*>::iterator c;

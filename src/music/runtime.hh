@@ -44,8 +44,6 @@ namespace MUSIC {
     void initialize ();
 
     int rank;
-    Clock* sendClock;
-    Clock* receiveClock;
   
   public:
     Runtime (Setup* s, double h);

@@ -23,6 +23,7 @@
 
 #include "../config.h"
 
+#include "music/error.hh"
 #include "application_mapper.hh"
 
 extern "C" {
@@ -76,7 +77,10 @@ getRank (int argc, char *argv[])
 #endif
 #ifdef OPENMPI
   char* vpid = getenv ("OMPI_MCA_ns_nds_vpid");
-  /*fixme* more error checking here */
+  if (vpid == NULL)
+    vpid = getenv ("OMPI_COMM_WORLD_RANK");
+  if (vpid == NULL)
+    MUSIC::error ("getRank: unable to determine process rank");
   std::istringstream iss (vpid);
   int rank;
   iss >> rank;
@@ -204,6 +208,7 @@ main (int argc, char *argv[])
 	std::cerr << "Couldn't open config file " << argv[1] << std::endl;
       exit (1);
     }
+
   MUSIC::ApplicationMapper map (configFile, rank);
   
   launch (map.config (), argv);

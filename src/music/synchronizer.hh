@@ -41,7 +41,7 @@ namespace MUSIC {
     void setReceiverTickInterval (ClockStateT ti);
     // algorithm expects *extra* buffered ticks so we subtract 1
     void setMaxBuffered (int m);
-    void setAccLatency (ClockStateT l) { latency = l; }
+    void setAccLatency (ClockStateT l);
     void initialize ();
     bool sample ();
     bool mark ();

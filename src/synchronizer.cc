@@ -60,7 +60,7 @@ namespace MUSIC {
   void
   Synchronizer::setSenderTickInterval (ClockStateT ti)
   {
-    MUSIC_LOGR ("sender tick interval set to " << ti);
+    MUSIC_LOGR ("sender tick interval set to " << nextSend.timebase () * ti);
     nextSend.setTickInterval (ti);
   }
 
@@ -68,7 +68,8 @@ namespace MUSIC {
   void
   Synchronizer::setReceiverTickInterval (ClockStateT ti)
   {
-    MUSIC_LOGR ("receiver tick interval set to " << ti);
+    MUSIC_LOGR ("receiver tick interval set to "
+		<< nextReceive.timebase () * ti);
     nextReceive.setTickInterval (ti);
   }
 
@@ -81,6 +82,14 @@ namespace MUSIC {
   }
 
 
+  void
+  Synchronizer::setAccLatency (ClockStateT l)
+  {
+    MUSIC_LOGR ("accLatency set to " << nextReceive.timebase () * l);
+    latency = l;
+  }
+
+  
   void
   Synchronizer::initialize ()
   {

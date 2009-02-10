@@ -1,6 +1,9 @@
+* Check that all administrative objects get deallocated at start of runtime
+  (for example TemporalNegotiator)
+
 * Buffering schedule in synchronizer
 
-* TODO: cleanup constructor arguments in subconnector.cc
+* cleanup constructor arguments in subconnector.cc
 
 Continuous data
 

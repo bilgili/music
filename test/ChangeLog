@@ -1,3 +1,7 @@
+2009-02-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Added options --acclatency and --maxbuffered.
+
 2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Switch to CamelCase.

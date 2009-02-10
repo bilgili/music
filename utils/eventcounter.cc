@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ usage (int rank)
 		<< "`eventcounter' receives spikes through a MUSIC input port" << std::endl
 		<< "and writes these to a set of files with names PREFIX RANK SUFFIX" << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
+		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
@@ -63,6 +64,7 @@ public:
 
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
+int    maxbuffered = 0;
 string imaptype = "linear";
 string prefix;
 string suffix = ".dat";
@@ -76,6 +78,7 @@ getargs (int rank, int argc, char* argv[])
       static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
+	  {"maxbuffered", required_argument, 0, 'b'},
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"help",      no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
@@ -84,7 +87,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+t:b:m:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -94,6 +97,9 @@ getargs (int rank, int argc, char* argv[])
 	{
 	case 't':
 	  timestep = atof (optarg); //*fixme* error checking
+	  continue;
+	case 'b':
+	  maxbuffered = atoi (optarg);
 	  continue;
 	case 'm':
 	  imaptype = optarg;
@@ -168,7 +174,10 @@ main (int argc, char *argv[])
 	firstId += rest;
       MUSIC::LinearIndex indices (firstId, nLocalUnits);
 
-      in->map (&indices, &evhandlerLocal, 0.0);
+      if (maxbuffered > 0)
+	in->map (&indices, &evhandlerLocal, 0.0, maxbuffered);
+      else
+	in->map (&indices, &evhandlerLocal, 0.0);
     }
   else
     {
@@ -177,7 +186,10 @@ main (int argc, char *argv[])
 	v.push_back (i);
       MUSIC::PermutationIndex indices (&v.front (), v.size ());
 
-      in->map (&indices, &evhandlerLocal, 0.0);
+      if (maxbuffered > 0)
+	in->map (&indices, &evhandlerLocal, 0.0, maxbuffered);
+      else
+	in->map (&indices, &evhandlerLocal, 0.0);
     }
 
   counters.resize (nUnits);

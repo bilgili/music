@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ usage (int rank)
 		<< "`eventsource' reads spikes from a set of files with names PREFIX RANK SUFFIX" << std::endl
 		<< "and propagates these spikes through a MUSIC output port." << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
+		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
@@ -52,8 +53,9 @@ usage (int rank)
   exit (1);
 }
 
-int nUnits;
+int    nUnits;
 double timestep = DEFAULT_TIMESTEP;
+int    maxbuffered = 0;
 string imaptype = "linear";
 string indextype = "global";
 string prefix;
@@ -67,17 +69,19 @@ getargs (int rank, int argc, char* argv[])
     {
       static struct option longOptions[] =
 	{
-	  {"timestep",  required_argument, 0, 't'},
-	  {"imaptype",  required_argument, 0, 'm'},
-	  {"indextype", required_argument, 0, 'i'},
-	  {"help",      no_argument,       0, 'h'},
+	  {"timestep",    required_argument, 0, 't'},
+	  {"maxbuffered", required_argument, 0, 'b'},
+	  {"imaptype",    required_argument, 0, 'm'},
+	  {"indextype",   required_argument, 0, 'i'},
+	  {"help",        no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:i:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+t:b:m:i:h",
+			   longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -87,6 +91,9 @@ getargs (int rank, int argc, char* argv[])
 	{
 	case 't':
 	  timestep = atof (optarg); //*fixme* error checking
+	  continue;
+	case 'b':
+	  maxbuffered = atoi (optarg);
 	  continue;
 	case 'm':
 	  imaptype = optarg;
@@ -162,8 +169,11 @@ main (int argc, char *argv[])
       else
 	firstId += rest;
       MUSIC::LinearIndex indices (firstId, nLocalUnits);
-      
-      out->map (&indices, type);
+
+      if (maxbuffered > 0)
+	out->map (&indices, type, maxbuffered);
+      else
+	out->map (&indices, type);
     }
   else
     {
@@ -171,7 +181,10 @@ main (int argc, char *argv[])
       for (int i = rank; i < nUnits; i += nProcesses)
 	v.push_back (i);
       MUSIC::PermutationIndex indices (&v.front (), v.size ());
-      out->map (&indices, type);
+      if (maxbuffered > 0)
+	out->map (&indices, type, maxbuffered);
+      else
+	out->map (&indices, type);
     }
 
   double stoptime;

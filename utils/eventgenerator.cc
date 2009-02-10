@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,10 +45,11 @@ usage (int rank)
       std::cerr << "Usage: eventgenerator [OPTION...] N_UNITS" << std::endl
 		<< "`eventgenerator' generates spikes from a Poisson distribution." << std::endl << std:: endl
 		<< "  -t, --timestep  TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
-		<< "  -f, --frequency FREQ average frequency (default " << DEFAULT_FREQUENCY << " Hz)" << std::endl
+		<< "  -b, --maxbuffered TICKS  maximal amount of data buffered" << std::endl
+		<< "  -f, --frequency FREQ     average frequency (default " << DEFAULT_FREQUENCY << " Hz)" << std::endl
 		<< "  -m, --imaptype  TYPE     linear (default) or roundrobin" << std::endl
-		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
-		<< "  -h, --help              print this help message" << std::endl << std::endl
+		<< "  -i, --indextype TYPE     global (default) or local" << std::endl
+		<< "  -h, --help               print this help message" << std::endl << std::endl
 		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
     }
   exit (1);
@@ -56,6 +57,7 @@ usage (int rank)
 
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
+int    maxbuffered = 0;
 double freq = DEFAULT_FREQUENCY;
 string imaptype = "linear";
 string indextype = "global";
@@ -69,6 +71,7 @@ getargs (int rank, int argc, char* argv[])
       static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
+	  {"maxbuffered", required_argument, 0, 'b'},
 	  {"frequency", required_argument, 0, 'f'},
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"indextype", required_argument, 0, 'i'},
@@ -79,7 +82,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:f:m:i:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+t:b:f:m:i:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -89,6 +92,9 @@ getargs (int rank, int argc, char* argv[])
 	{
 	case 't':
 	  timestep = atof (optarg); //*fixme* error checking
+	  continue;
+	case 'b':
+	  maxbuffered = atoi (optarg);
 	  continue;
 	case 'f':
 	  freq = atof (optarg); //*fixme* error checking
@@ -176,14 +182,20 @@ main (int argc, char *argv[])
 	ids.push_back (firstId + i);
       MUSIC::LinearIndex indices (firstId, nLocalUnits);
       
-      out->map (&indices, type);
+      if (maxbuffered > 0)
+	out->map (&indices, type, maxbuffered);
+      else
+	out->map (&indices, type);
     }
   else
     {
       for (int i = rank; i < nUnits; i += nProcesses)
 	ids.push_back (i);
       MUSIC::PermutationIndex indices (&ids.front (), ids.size ());
-      out->map (&indices, type);
+      if (maxbuffered > 0)
+	out->map (&indices, type, maxbuffered);
+      else
+	out->map (&indices, type);
     }
 
   double stoptime;

@@ -20,6 +20,8 @@ usage (int rank)
       std::cerr << "Usage: eventlogger [OPTION...]" << std::endl
 		<< "`eventlogger' logs spikes from a MUSIC port." << std::endl << std::endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
+		<< "  -l, --acclatency LATENCY acceptable data latency (s)" << std::endl
+		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
@@ -53,6 +55,8 @@ public:
 };
 
 double timestep = DEFAULT_TIMESTEP;
+double latency = 0.0;
+int    maxbuffered = 0;
 std::string imaptype = "linear";
 std::string indextype = "global";
 
@@ -70,6 +74,8 @@ main (int argc, char* argv[])
       static struct option longOptions[] =
 	{
 	  {"timestep",  required_argument, 0, 't'},
+	  {"acclatency", required_argument, 0, 'l'},
+	  {"maxbuffered", required_argument, 0, 'b'},
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"indextype", required_argument, 0, 'i'},
 	  {"help",      no_argument,       0, 'h'},
@@ -79,7 +85,7 @@ main (int argc, char* argv[])
       int optionIndex = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:m:i:h", longOptions, &optionIndex);
+      int c = getopt_long (argc, argv, "+t:l:b:m:i:h", longOptions, &optionIndex);
 
       /* detect the end of the options */
       if (c == -1)
@@ -89,6 +95,12 @@ main (int argc, char* argv[])
 	{
 	case 't':
 	  timestep = atof (optarg); //*fixme* error checking
+	  continue;
+	case 'l':
+	  latency = atof (optarg);
+	  continue;
+	case 'b':
+	  maxbuffered = atoi (optarg);
 	  continue;
 	case 'm':
 	  imaptype = optarg;
@@ -155,9 +167,15 @@ main (int argc, char* argv[])
       MUSIC::LinearIndex indexmap (firstId, nLocal);
       
       if (indextype == "global")
-	evport->map (&indexmap, &evhandlerGlobal, 0.0);
+	if (maxbuffered > 0)
+	  evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
+	else
+	  evport->map (&indexmap, &evhandlerGlobal, latency);
       else
-	evport->map (&indexmap, &evhandlerLocal, 0.0);
+	if (maxbuffered > 0)
+	  evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
+	else
+	  evport->map (&indexmap, &evhandlerLocal, latency);
     }
   else
     {
@@ -167,9 +185,15 @@ main (int argc, char* argv[])
       MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
       
       if (indextype == "global")
-	evport->map (&indexmap, &evhandlerGlobal, 0.0);
+	if (maxbuffered > 0)
+	  evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
+	else
+	  evport->map (&indexmap, &evhandlerGlobal, latency);
       else
-	evport->map (&indexmap, &evhandlerLocal, 0.0);
+	if (maxbuffered > 0)
+	  evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
+	else
+	  evport->map (&indexmap, &evhandlerLocal, latency);
     }
 
   double stoptime;

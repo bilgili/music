@@ -44,35 +44,6 @@ namespace MUSIC {
 	buildSchedule (comm.Get_rank ());
 	MUSIC_LOG ("temporal negotiation");
 	temporalNegotiation (s, localTime);
-#if 0
-	rank = MPI::COMM_WORLD.Get_rank ();
-	Connector* conn = *connectors->begin ();
-	int latency, maxBuffered;
-	if (rank == 0)
-	  {
-	    OutputConnector* oconn = dynamic_cast<OutputConnector*> (conn);
-	    OutputSynchronizer* synch = oconn->synchronizer ();
-	    latency = synch->latency;
-	    maxBuffered = synch->maxBuffered;
-	    sendClock = &synch->nextSend;
-	    receiveClock = &synch->nextReceive;
-	    MUSIC_LOG ("rank " << rank
-		       << ": latency = " << latency
-		       << ", maxBuffered = " << maxBuffered);
-	  }
-	else
-	  {
-	    InputConnector* oconn = dynamic_cast<InputConnector*> (conn);
-	    InputSynchronizer* synch = oconn->synchronizer ();
-	    latency = synch->latency;
-	    maxBuffered = synch->maxBuffered;
-	    sendClock = &synch->nextSend;
-	    receiveClock = &synch->nextReceive;
-	    MUSIC_LOG ("rank " << rank
-		       << ": latency = " << latency
-		       << ", maxBuffered = " << maxBuffered);
-	  }
-#endif
 	initialize ();
       }
     delete s;
@@ -136,6 +107,7 @@ namespace MUSIC {
     for (std::vector<Connector*>::iterator c = connectors->begin ();
 	 c != connectors->end ();
 	 ++c)
+      // negotiate and fill up vectors passed as arguments
       (*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
   }
 

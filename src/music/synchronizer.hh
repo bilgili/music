@@ -23,11 +23,7 @@
 namespace MUSIC {
 
   class Synchronizer {
-#if 1
-  public:
-#else
   protected:
-#endif
     Clock* localTime;
     Clock nextSend;
     Clock nextReceive;

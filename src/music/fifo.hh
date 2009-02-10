@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007 CSC, KTH
+ *  Copyright (C) 2007, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,18 +20,18 @@
 
 namespace MUSIC {
 
-template <class T>
-class fifo : public std::deque<T> {
-public:
-  // This interface and implementation allows for a later, more
-  // efficient implementation
-  T& insert ()
-  {
-    T dummy;
-    push_back (dummy);
-    return back ();
-  }
+  template <class T>
+  class fifo : public std::deque<T> {
+  public:
+    // This interface and implementation allows for a later, more
+    // efficient implementation
+    T& insert ()
+    {
+      T dummy;
+      push_back (dummy);
+      return back ();
+    }
   
-};
+  };
 
 }

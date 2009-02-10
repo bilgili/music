@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -110,9 +110,9 @@ getargs (int rank, int argc, char* argv[])
 
 void
 mapOutput (MUSIC::EventOutputPort* out,
-	    int nProcesses,
-	    int rank,
-	    std::string fname)
+	   int nProcesses,
+	   int rank,
+	   std::string fname)
 {
   std::ifstream unitfile (fname.c_str ());
   if (!unitfile)
@@ -163,9 +163,9 @@ mapOutput (MUSIC::EventOutputPort* out,
 
 void
 mapInput (MUSIC::EventInputPort* in,
-	   int nProcesses,
-	   int rank,
-	   MyEventHandlerGlobal& evhandler)
+	  int nProcesses,
+	  int rank,
+	  MyEventHandlerGlobal& evhandler)
 {
   int nUnitsPerProcess = nUnits / nProcesses;
   int nLocalUnits = nUnitsPerProcess;

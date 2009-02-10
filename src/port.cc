@@ -115,8 +115,8 @@ namespace MUSIC {
   
   void
   ContInputPort::map (DataMap* dmap,
-			int maxBuffered,
-			bool interpolate)
+		      int maxBuffered,
+		      bool interpolate)
   {
     assertInput ();
   }
@@ -124,9 +124,9 @@ namespace MUSIC {
   
   void
   ContInputPort::map (DataMap* dmap,
-			double delay,
-			int maxBuffered,
-			bool interpolate)
+		      double delay,
+		      int maxBuffered,
+		      bool interpolate)
   {
     assertInput ();
   }
@@ -143,8 +143,8 @@ namespace MUSIC {
   
   void
   EventOutputPort::map (IndexMap* indices,
-			  Index::Type type,
-			  int maxBuffered)
+			Index::Type type,
+			int maxBuffered)
   {
     assertOutput ();
     if (maxBuffered <= 0)
@@ -337,8 +337,8 @@ namespace MUSIC {
   
   void
   MessageInputPort::map (MessageHandler* handler,
-			   double accLatency,
-			   int maxBuffered)
+			 double accLatency,
+			 int maxBuffered)
   {
     assertOutput ();
   }

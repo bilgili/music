@@ -194,10 +194,10 @@ namespace MUSIC {
 		    receiverRank,
 		    receiverPortName),
       EventInputSubconnector (synch,
-				intercomm,
-				remoteRank,
-				receiverRank,
-				receiverPortName),
+			      intercomm,
+			      remoteRank,
+			      receiverRank,
+			      receiverPortName),
       handleEvent (eh)
   {
   }
@@ -220,10 +220,10 @@ namespace MUSIC {
 		    receiverRank,
 		    receiverPortName),
       EventInputSubconnector (synch,
-				intercomm,
-				remoteRank,
-				receiverRank,
-				receiverPortName),
+			      intercomm,
+			      remoteRank,
+			      receiverRank,
+			      receiverPortName),
       handleEvent (eh)
   {
   }

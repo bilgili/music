@@ -218,7 +218,7 @@ main (int argc, char *argv[])
 	    while (nextSpike[i] < nextTime)
 	      {
 		out->insertEvent (nextSpike[i],
-				   MUSIC::GlobalIndex (ids[i]));
+				  MUSIC::GlobalIndex (ids[i]));
 		nextSpike[i] += negexp (m);
 	      }
 	}
@@ -228,7 +228,7 @@ main (int argc, char *argv[])
 	    while (nextSpike[i] < nextTime)
 	      {
 		out->insertEvent (nextSpike[i],
-				   MUSIC::LocalIndex (i));
+				  MUSIC::LocalIndex (i));
 		nextSpike[i] += negexp (m);
 	      }
 	}

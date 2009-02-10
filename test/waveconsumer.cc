@@ -33,9 +33,9 @@ main (int args, char* argv[])
     
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
-			  MPI::DOUBLE,
-			  rank * nLocalVars,
-			  nLocalVars);
+			 MPI::DOUBLE,
+			 rank * nLocalVars,
+			 nLocalVars);
   wavedata->map (&dmap);
 
   double stoptime;

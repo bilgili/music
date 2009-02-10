@@ -212,8 +212,8 @@ namespace MUSIC {
     class GlobalWrapper : public Wrapper {
     public:
       GlobalWrapper (IndexMap::iterator beg,
-		      IndexMap::iterator end,
-		      int rank)
+		     IndexMap::iterator end,
+		     int rank)
 	: Wrapper (beg, end, rank)
       {
       }
@@ -232,8 +232,8 @@ namespace MUSIC {
     class LocalWrapper : public Wrapper {
     public:
       LocalWrapper (IndexMap::iterator beg,
-		     IndexMap::iterator end,
-		     int rank)
+		    IndexMap::iterator end,
+		    int rank)
 	: Wrapper (beg, end, rank)
       {
       }
@@ -284,7 +284,7 @@ namespace MUSIC {
 	 d != dest.end ();
 	 ++d)
       for (std::vector<NegotiationIntervals>::iterator s = source.begin ();
-	 s != source.end ();
+	   s != source.end ();
 	   ++s)
 	intersectToBuffers2 (*s, *d, buffers);
   }
@@ -332,18 +332,18 @@ namespace MUSIC {
 	    if (dest->end () < source->end ())
 	      {//*fixme* put inte helper function to get overview
 		SpatialNegotiationData d (dest->begin (),
-					    dest->end (),
-					    dest->local () - source->local (),
-					    source->rank ());
+					  dest->end (),
+					  dest->local () - source->local (),
+					  source->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
 	    else
 	      {
 		SpatialNegotiationData d (dest->begin (),
-					    source->end (),
-					    dest->local () - source->local (),
-					    source->rank ());
+					  source->end (),
+					  dest->local () - source->local (),
+					  source->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
@@ -354,18 +354,18 @@ namespace MUSIC {
 	    if (source->end () < dest->end ())
 	      {
 		SpatialNegotiationData d (source->begin (),
-					    source->end (),
-					    dest->local () - source->local (),
-					    source->rank ());
+					  source->end (),
+					  dest->local () - source->local (),
+					  source->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
 	    else
 	      {
 		SpatialNegotiationData d (source->begin (),
-					    dest->end (),
-					    dest->local () - source->local (),
-					    source->rank ());
+					  dest->end (),
+					  dest->local () - source->local (),
+					  source->rank ());
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
@@ -377,8 +377,8 @@ namespace MUSIC {
 
   void
   SpatialNegotiator::send (MPI::Comm& comm,
-			    int destRank,
-			    NegotiationIntervals& intervals)
+			   int destRank,
+			   NegotiationIntervals& intervals)
   {
     SpatialNegotiationData* data = &intervals[0];
     int nIntervals = intervals.size ();
@@ -402,8 +402,8 @@ namespace MUSIC {
 
   void
   SpatialNegotiator::receive (MPI::Comm& comm,
-			       int sourceRank,
-			       NegotiationIntervals& intervals)
+			      int sourceRank,
+			      NegotiationIntervals& intervals)
   {
     MPI::Status status;
     int nReceived;
@@ -419,7 +419,7 @@ namespace MUSIC {
 		   0,
 		   status); //*fixme* tag
 	nReceived = (status.Get_count (MPI::INT)
-		      / (sizeof (SpatialNegotiationData) / sizeof (int)));
+		     / (sizeof (SpatialNegotiationData) / sizeof (int)));
 	nextPos += nReceived;
       }
     while (nReceived == TRANSMITTED_INTERVALS_MAX);
@@ -429,7 +429,7 @@ namespace MUSIC {
 
   void
   SpatialNegotiator::allToAll (std::vector<NegotiationIntervals>& out,
-				  std::vector<NegotiationIntervals>& in)
+			       std::vector<NegotiationIntervals>& in)
   {
     if (out.size () != nProcesses || in.size () != nProcesses)
       error ("internal error in SpatialNegotiator::allToAll ()");
@@ -447,8 +447,8 @@ namespace MUSIC {
   
   NegotiationIterator
   SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
-					MPI::Intercomm intercomm,
-					int remoteNProc)
+				      MPI::Intercomm intercomm,
+				      int remoteNProc)
   {
     comm = c;
     nProcesses = comm.Get_size ();
@@ -459,9 +459,9 @@ namespace MUSIC {
 
     negotiateWidth (intercomm);
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
-						       indices->end (),
-						       type,
-						       localRank);
+						    indices->end (),
+						    type,
+						    localRank);
     NegotiationIterator canonicalDist
       = canonicalDistribution (width, nProcesses);
     //*fixme* rename results
@@ -493,8 +493,8 @@ namespace MUSIC {
   
   NegotiationIterator
   SpatialInputNegotiator::negotiate (MPI::Intracomm c,
-				       MPI::Intercomm intercomm,
-				       int remoteNProc)
+				     MPI::Intercomm intercomm,
+				     int remoteNProc)
   {
     comm = c;
     nProcesses = comm.Get_size ();
@@ -503,9 +503,9 @@ namespace MUSIC {
     
     negotiateWidth (intercomm);
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
-						       indices->end (),
-						       type,
-						       localRank);
+						    indices->end (),
+						    type,
+						    localRank);
     NegotiationIterator canonicalDist
       = canonicalDistribution (width, remoteNProc);
 

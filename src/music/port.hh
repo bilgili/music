@@ -106,7 +106,7 @@ namespace MUSIC {
 
   
   class EventOutputPort : public EventPort,
-			    public OutputRedistributionPort {
+			  public OutputRedistributionPort {
     EventRouter router;
   public:
     EventOutputPort (Setup* s, std::string id)
@@ -121,7 +121,7 @@ namespace MUSIC {
 
 
   class EventInputPort : public EventPort,
-			   public InputRedistributionPort {
+			 public InputRedistributionPort {
   public:
     EventInputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -140,10 +140,10 @@ namespace MUSIC {
 	      double accLatency,
 	      int maxBuffered);
     void mapImpl (IndexMap* indices,
-		   Index::Type type,
-		   EventHandlerPtr handleEvent,
-		   double accLatency,
-		   int maxBuffered);
+		  Index::Type type,
+		  EventHandlerPtr handleEvent,
+		  double accLatency,
+		  int maxBuffered);
     // Facilities to support the C interface
   public:
     EventHandlerGlobalIndexProxy*

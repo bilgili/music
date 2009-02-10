@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ namespace MUSIC {
     //*fixme* collapse where possible
     for (int i = 0; i < size; ++i)
       _indices.push_back (IndexInterval (indices[i],
-					  indices[i] + 1,
-					  indices[i] - i));
+					 indices[i] + 1,
+					 indices[i] - i));
     sort (_indices.begin (), _indices.end ());
   }
   

@@ -226,8 +226,8 @@ namespace MUSIC {
 
 
   EventConnector::EventConnector (ConnectorInfo _info,
-				    SpatialNegotiator* _spatialNegotiator,
-				    MPI::Intracomm c)
+				  SpatialNegotiator* _spatialNegotiator,
+				  MPI::Intracomm c)
     : Connector (_info, _spatialNegotiator, c)
   {
   }
@@ -266,9 +266,9 @@ namespace MUSIC {
 	else
 	  {
 	    subconn = new EventOutputSubconnector (&synch,
-						     intercomm,
-						     i->rank (),
-						     receiverPortName ());
+						   intercomm,
+						   i->rank (),
+						   receiverPortName ());
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    osubconn.push_back (subconn);
 	  }
@@ -304,8 +304,8 @@ namespace MUSIC {
     MPI::Intercomm intercomm = createIntercomm ();
     int receiverRank = intercomm.Get_rank ();
     for (NegotiationIterator i = spatialNegotiator->negotiate (comm,
-							 intercomm,
-							 info.nProcesses ());
+							       intercomm,
+							       info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
@@ -319,19 +319,19 @@ namespace MUSIC {
 	    if (type == Index::GLOBAL)
 	      subconn
 		= new EventInputSubconnectorGlobal (&synch,
-						       intercomm,
-						       i->rank (),
-						       receiverRank,
-						       receiverPortName (),
-						       handleEvent.global ());
+						    intercomm,
+						    i->rank (),
+						    receiverRank,
+						    receiverPortName (),
+						    handleEvent.global ());
 	    else
 	      subconn
 		= new EventInputSubconnectorLocal (&synch,
-						      intercomm,
-						      i->rank (),
-						      receiverRank,
-						      receiverPortName (),
-						      handleEvent.local ());
+						   intercomm,
+						   i->rank (),
+						   receiverRank,
+						   receiverPortName (),
+						   handleEvent.local ());
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    isubconn.push_back (subconn);
 	  }

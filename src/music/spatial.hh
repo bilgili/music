@@ -152,8 +152,8 @@ namespace MUSIC {
 			     std::vector<NegotiationIntervals>& dest,
 			     std::vector<NegotiationIntervals>& buffers);
     void intersectToBuffers (NegotiationIterator source,
-			       NegotiationIterator dest,
-			       std::vector<NegotiationIntervals>& buffers);
+			     NegotiationIterator dest,
+			     std::vector<NegotiationIntervals>& buffers);
   private:
     void intersectToBuffers2 (NegotiationIterator source,
 			      NegotiationIterator dest,

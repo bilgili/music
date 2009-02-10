@@ -1,6 +1,6 @@
 /*
  *  This file is distributed together with MUSIC.
- *  Copyright (C) 2008 Mikael Djurfeldt
+ *  Copyright (C) 2008, 2009 Mikael Djurfeldt
  *
  *  This interval tree implementation is free software; you can
  *  redistribute it and/or modify it under the terms of the GNU
@@ -104,9 +104,9 @@ namespace MUSIC {
   template<class PointType, class DataType>
   PointType
   IntervalTree<PointType, DataType>::build (std::vector<NodeType>& dest,
-					       int l,
-					       int r,
-					       int i)
+					    int l,
+					    int r,
+					    int i)
   {
     if (l < r) // sequence not empty
       {

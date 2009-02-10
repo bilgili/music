@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -97,8 +97,8 @@ namespace MUSIC {
   
   char **
   parseArgs (std::string cmd,
-	      std::string argstring,
-	      int* argc)
+	     std::string argstring,
+	     int* argc)
   {
     Parser in (argstring);
     std::vector<std::string> args;

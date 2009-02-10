@@ -26,9 +26,9 @@ main (int argc, char* argv[])
     
   // Declare what data we have to export
   MUSIC::ArrayData dmap (data,
-			  MPI::DOUBLE,
-			  rank * nLocalVars,
-			  nLocalVars);
+			 MPI::DOUBLE,
+			 rank * nLocalVars,
+			 nLocalVars);
   wavedata->map (&dmap);
   
   double stoptime;

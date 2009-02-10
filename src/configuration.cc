@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh" // Must be included first on BG/L
 
 extern "C" {
 #include <stdlib.h>
@@ -41,6 +44,7 @@ namespace MUSIC {
   {
     int nVars;
     char* configStr = getenv (configEnvVarName);
+    MUSIC_LOG0 ("config: " << configStr);
     if (configStr == NULL)
       {
 	_launchedByMusic = false;

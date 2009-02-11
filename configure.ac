@@ -190,6 +190,7 @@ AC_SUBST(OPTIONAL_UTILS)
 
 AC_CONFIG_FILES([
   Makefile
+  mpidep/Makefile
   src/Makefile
   src/music/music-config.hh
   test/Makefile

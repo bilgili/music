@@ -1,5 +1,12 @@
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music.cc: Moved mpi dependent code to ../mpidep/mpidep.cc.
+
+	* Makefile.am: Removed dependency on librudeconfig for all
+	utilities except the music launcher.
+
+	* Makefile.am (music_LDADD): Added dependency on libmpidep.a.
+
 	* music.cc: Test if ompi_comm_free exists instead of
 	ompi_comm_create which doesn't exist in OpenMPI 1.3.
 

@@ -1,5 +1,9 @@
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* mpidep: New directory for MPI dependent code.
+
+	* configure.ac: Generate mpidep/Makefile.
+
 	* configure.ac: Test if ompi_comm_free exists instead of
 	ompi_comm_create which doesn't exist in OpenMPI 1.3.
 

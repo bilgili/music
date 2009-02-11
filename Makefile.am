@@ -1,1 +1,1 @@
-SUBDIRS = src test rudeconfig utils
+SUBDIRS = mpidep src test rudeconfig utils

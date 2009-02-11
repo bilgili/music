@@ -1,3 +1,7 @@
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Changed librudeconfig.la to a noinst target.
+
 2008-08-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* src/ConfigImpl.cpp: #include <cstring>.

@@ -20,7 +20,7 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 #------------------------------------------------------------------------
-lib_LTLIBRARIES = librudeconfig.la 
+noinst_LTLIBRARIES = librudeconfig.la 
 librudeconfig_la_SOURCES = src/AbstractData.cpp \
 	src/Comment.cpp \
 	src/File.cpp \

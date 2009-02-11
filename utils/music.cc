@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ using std::ifstream;
 #ifdef HAVE_RTS_GET_PERSONALITY
 #define BGL
 #else
-#ifdef HAVE_OMPI_COMM_CREATE
+#ifdef HAVE_OMPI_COMM_FREE
 #define OPENMPI
 #else
 #define MPICH

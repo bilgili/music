@@ -1,5 +1,8 @@
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* configure.ac: Test if ompi_comm_free exists instead of
+	ompi_comm_create which doesn't exist in OpenMPI 1.3.
+
 	* configure.ac: Pass variables to be substituted one-by-one to
 	AC_SUBST.
 

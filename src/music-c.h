@@ -2,7 +2,7 @@
 
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 CSC, KTH
+ *  Copyright (C) 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ MUSIC_Setup *MUSIC_createSetupThread (int *argc,
 /* Communicators */
 
 #ifndef BUILDING_MUSIC_LIBRARY
-MPI_Intracomm MUSIC_Setup_communicator (MUSIC_Setup *setup);
+MPI_Comm MUSIC_setupCommunicator (MUSIC_Setup *setup);
 #endif
 
 /* Ports */

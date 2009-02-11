@@ -4,6 +4,8 @@
 
 /* Communicators */
 
+MPI_Comm MUSIC_setupCommunicatorGlue (MUSIC_Setup *setup);
+
 MPI_Comm
 MUSIC_setupCommunicator (MUSIC_Setup *setup)
 {

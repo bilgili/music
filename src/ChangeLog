@@ -1,3 +1,8 @@
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music-c.h, music-c-c.c, music-c.cc (MUSIC_setupCommunicator):
+	Declare properly and don't use MPI_Intracomm.
+
 2009-02-09  Mikael Djurfeldt  <mdj@lampetra.csc.kth.se>
 
 	* music/subconnector.hh,

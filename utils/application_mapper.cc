@@ -134,7 +134,26 @@ namespace MUSIC {
 		receiverApp = secName;
 	    if (senderApp == receiverApp)
 	      error ("port " + senderPort + " of application " + senderApp + " connected to the same application");
-	  
+
+	    // Generate a unique "port code" for each receiver port
+	    // name.  This will later be used during temporal
+	    // negotiation since it easier to communicate integers,
+	    // which have constant size, than strings.
+	    //
+	    // NOTE: This code must be executed in the same order in
+	    // all MPI processes.
+	    std::map<std::string, int>::iterator pos
+	      = receiverPortCodes.find (receiverPort);
+	    int portCode;
+	    if (pos == receiverPortCodes.end ())
+	      {
+		portCode = nextPortCode++;
+		receiverPortCodes.insert (std::make_pair (receiverPort,
+							  portCode));
+	      }
+	    else
+	      portCode = pos->second;
+
 	    ConnectivityInfo::PortDirection dir;
 	    ApplicationInfo* remoteInfo;
 	    if (selectedName == senderApp)
@@ -159,17 +178,6 @@ namespace MUSIC {
 		  error ("could not interpret width");
 	      }
 
-	    std::map<std::string, int>::iterator pos
-	      = receiverPortCodes.find (receiverPort);
-	    int portCode;
-	    if (pos == receiverPortCodes.end ())
-	      {
-		portCode = nextPortCode++;
-		receiverPortCodes.insert (std::make_pair (receiverPort,
-							  portCode));
-	      }
-	    else
-	      portCode = pos->second;
 	    _connectivityMap->add (dir == ConnectivityInfo::OUTPUT
 				   ? senderPort
 				   : receiverPort,

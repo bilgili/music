@@ -1,3 +1,9 @@
+2009-02-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application_mapper.cc (ApplicattionMapper::mapConnectivity):
+	Moved generation of port codes to a position which is treated
+	identically in all processes.
+
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music.cc: Moved mpi dependent code to ../mpidep/mpidep.cc.

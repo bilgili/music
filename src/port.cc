@@ -96,6 +96,8 @@ namespace MUSIC {
   ContOutputPort::map (DataMap* dmap)
   {
     assertOutput ();
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
+    mapImpl (dmap, maxBuffered);
   }
 
   
@@ -103,9 +105,41 @@ namespace MUSIC {
   ContOutputPort::map (DataMap* dmap, int maxBuffered)
   {
     assertOutput ();
+    if (maxBuffered <= 0)
+      {
+	error ("ContOutputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (dmap, maxBuffered);
   }
 
   
+  void
+  ContOutputPort::mapImpl (DataMap* dmap,
+			   int maxBuffered)
+  {
+    MPI::Intracomm comm = _setup->communicator ();
+    // Retrieve info about all remote connectors of this port
+    PortConnectorInfo portConnections
+      = _ConnectivityInfo->connections ();
+    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
+    for (PortConnectorInfo::iterator info = portConnections.begin ();
+	 info != portConnections.end ();
+	 ++info)
+      {
+	// Create connector
+	EventOutputConnector* connector
+	  = new ContOutputConnector (*info,
+				     spatialNegotiator,
+				     comm,
+				     distributor);
+	_setup->temporalNegotiator ()->addConnection (connector,
+						      maxBuffered,
+						      0);
+	_setup->addConnector (connector);
+      }
+  }
+
+
   void
   ContInputPort::map (DataMap* dmap, double delay, bool interpolate)
   {

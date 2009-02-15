@@ -81,6 +81,7 @@ namespace MUSIC {
   };
 
   class ContOutputPort : public ContPort, public OutputRedistributionPort {
+    void mapImpl (IndexMap* indices, int maxBuffered);
   public:
     ContOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -108,12 +109,12 @@ namespace MUSIC {
   class EventOutputPort : public EventPort,
 			  public OutputRedistributionPort {
     EventRouter router;
+    void mapImpl (IndexMap* indices, Index::Type type, int maxBuffered);
   public:
     EventOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
     void map (IndexMap* indices, Index::Type type);
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
-    void mapImpl (IndexMap* indices, Index::Type type, int maxBuffered);
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);

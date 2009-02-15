@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef EVENT_ROUTER_HH
+#ifndef MUSIC_EVENT_ROUTER_HH
 
 #include <vector>
 
@@ -68,5 +68,5 @@ namespace MUSIC {
     
 }
 
-#define EVENT_ROUTER_HH
+#define MUSIC_EVENT_ROUTER_HH
 #endif

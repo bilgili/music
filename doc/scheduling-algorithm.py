@@ -137,5 +137,28 @@ def simulate(c):
               % (c.name, sStart, s, s, r, r-sStart, c.latency))
 
 
+def simulate_sender(c):
+    s = 0
+    r = 0
+    bCount = 0
+
+    while s < 100:
+        sStart = s
+
+        # Advance receive time as much as possible
+        # still ensuring that oldest data arrives in time
+        while r + c.post.stepSize <= s + c.latency:
+            r += c.post.stepSize
+
+        # Advance send time to match receive time
+        if r + c.post.stepSize < s + c.latency and bCount >= c.allowedBuffer:
+            print('%s data from %d-%d, sent at %d, received at %d, latency %d (%d)'
+                  % (c.name, sStart, s, s, r, r-sStart, c.latency))
+            bCount = 0
+            
+        s += c.pre.stepSize
+        bCount += 1
+
+
 for c in Connection.all:
     simulate(c)

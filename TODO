@@ -21,6 +21,8 @@ Before delivery
 
 * Documentation strings
 
+* Document finalize ()
+
 After delivery
 
 * Debian packaging

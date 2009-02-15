@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,21 +29,21 @@ namespace MUSIC {
   class Configuration {
   private:
     static const char* const configEnvVarName;
-    bool _launchedByMusic;
-    std::string _applicationName;
-    int _color;
+    bool launchedByMusic_;
+    std::string applicationName_;
+    int color_;
     Configuration* defaultConfig;
-    ApplicationMap* _applications;
-    Connectivity* _connectivityMap;
+    ApplicationMap* applications_;
+    Connectivity* connectivityMap_;
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
   public:
     Configuration ();
     Configuration (std::string name, int color, Configuration* def);
     ~Configuration ();
-    bool launchedByMusic () { return _launchedByMusic; }
+    bool launchedByMusic () { return launchedByMusic_; }
     void writeEnv ();
-    int color () { return _color; };
+    int color () { return color_; };
     bool lookup (std::string name);
     bool lookup (std::string name, std::string* result);
     bool lookup (std::string name, int* result);

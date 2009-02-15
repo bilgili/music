@@ -33,7 +33,7 @@ namespace MUSIC {
 
   
   Configuration::Configuration (std::string name, int color, Configuration* def)
-    : _applicationName (name), _color (color), defaultConfig (def)
+    : applicationName_ (name), color_ (color), defaultConfig (def)
   {
     
   }
@@ -47,21 +47,21 @@ namespace MUSIC {
     MUSIC_LOG0 ("config: " << configStr);
     if (configStr == NULL)
       {
-	_launchedByMusic = false;
-	_applications = new ApplicationMap ();
-	_connectivityMap = new Connectivity ();
+	launchedByMusic_ = false;
+	applications_ = new ApplicationMap ();
+	connectivityMap_ = new Connectivity ();
       }
     else
       {
-	_launchedByMusic = true;
+	launchedByMusic_ = true;
 	std::istringstream env (configStr);
-	_applicationName = IOUtils::read (env);
+	applicationName_ = IOUtils::read (env);
 	env.ignore ();
-	env >> _color;
+	env >> color_;
 	env.ignore ();
-	_applications = new ApplicationMap (env);
+	applications_ = new ApplicationMap (env);
 	env.ignore ();
-	_connectivityMap = new Connectivity (env);
+	connectivityMap_ = new Connectivity (env);
 	// parse config string
 	while (!env.eof ())
 	  {
@@ -76,8 +76,8 @@ namespace MUSIC {
 
   Configuration::~Configuration ()
   {
-    delete _connectivityMap;
-    delete _applications;
+    delete connectivityMap_;
+    delete applications_;
   }
 
   
@@ -103,10 +103,10 @@ namespace MUSIC {
     //*fixme* generally make lexical structure more strict and make
     //sure that everything written can be consistently read back
     std::ostringstream env;
-    env << _applicationName << ':' << _color << ':';
-    _applications->write (env);
+    env << applicationName_ << ':' << color_ << ':';
+    applications_->write (env);
     env << ':';
-    _connectivityMap->write (env);
+    connectivityMap_->write (env);
     write (env, 0);
     defaultConfig->write (env, this);
     setenv (configEnvVarName, env.str ().c_str (), 1);
@@ -186,28 +186,28 @@ namespace MUSIC {
   ApplicationMap*
   Configuration::applications ()
   {
-    return _applications;
+    return applications_;
   }
 
   
   void
   Configuration::setApplications (ApplicationMap* a)
   {
-    _applications = a;
+    applications_ = a;
   }
 
   
   Connectivity*
   Configuration::connectivityMap ()
   {
-    return _connectivityMap;
+    return connectivityMap_;
   }
 
 
   void
   Configuration::setConnectivityMap (Connectivity* c)
   {
-    _connectivityMap = c;
+    connectivityMap_ = c;
   }
 
 }

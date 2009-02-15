@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,15 +28,15 @@
 namespace MUSIC {
 
   class EventRoutingData {
-    IndexInterval _interval;
+    IndexInterval interval_;
     FIBO* buffer;
   public:
     EventRoutingData () { }
     EventRoutingData (IndexInterval i, FIBO* b)
-      : _interval (i), buffer (b) { }
-    int begin () const { return _interval.begin (); }
-    int end () const { return _interval.end (); }
-    int offset () const { return _interval.local (); }
+      : interval_ (i), buffer (b) { }
+    int begin () const { return interval_.begin (); }
+    int end () const { return interval_.end (); }
+    int offset () const { return interval_.local (); }
     void insert (double t, int id) {
       Event* e = static_cast<Event*> (buffer->insert ());
       e->t = t;
@@ -48,13 +48,13 @@ namespace MUSIC {
   class EventRouter {
     class Inserter : public IntervalTree<int, EventRoutingData>::Action {
     protected:
-      double _t;
-      int _id;
+      double t_;
+      int id_;
     public:
-      Inserter (double t, int id) : _t (t), _id (id) { };
+      Inserter (double t, int id) : t_ (t), id_ (id) { };
       void operator() (EventRoutingData& data)
       {
-	data.insert (_t, _id - data.offset ());
+	data.insert (t_, id_ - data.offset ());
       }
     };
     

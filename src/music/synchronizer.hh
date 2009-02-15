@@ -29,7 +29,7 @@ namespace MUSIC {
     Clock nextReceive;
     ClockStateT latency;
     int maxBuffered;
-    bool _communicate;
+    bool communicate_;
     void nextCommunication ();
   public:
     void setLocalTime (Clock* lt);

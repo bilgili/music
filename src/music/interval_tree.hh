@@ -30,23 +30,23 @@ namespace MUSIC {
     static const int ROOT = 0;
 
     class NodeType {
-      PointType _maxEnd;
-      DataType _data;
+      PointType maxEnd_;
+      DataType data_;
     public:
-      NodeType () : _maxEnd (noNode ()) { }
-      NodeType (const DataType& d) : _maxEnd (noNode ()), _data (d) { }
+      NodeType () : maxEnd_ (noNode ()) { }
+      NodeType (const DataType& d) : maxEnd_ (noNode ()), data_ (d) { }
       NodeType (const PointType m, const DataType& d)
-	: _maxEnd (m), _data (d) { }
+	: maxEnd_ (m), data_ (d) { }
       static PointType noNode () {
 	return std::numeric_limits<PointType>::min ();
       }
       bool operator< (const NodeType& other) const {
 	return begin () < other.begin ();
       }
-      DataType& data () { return _data; }
-      PointType begin () const { return _data.begin (); }
-      PointType end () const { return _data.end (); }
-      PointType maxEnd () const { return _maxEnd; }
+      DataType& data () { return data_; }
+      PointType begin () const { return data_.begin (); }
+      PointType end () const { return data_.end (); }
+      PointType maxEnd () const { return maxEnd_; }
     };
 
     std::vector<NodeType> nodes;

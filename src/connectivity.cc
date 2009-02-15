@@ -32,7 +32,7 @@ namespace MUSIC {
 				   int rLeader,
 				   int nProc)
   {
-    _portConnections.push_back (ConnectorInfo (recApp,
+    portConnections_.push_back (ConnectorInfo (recApp,
 					       recName,
 					       recCode,
 					       rLeader,
@@ -62,16 +62,16 @@ namespace MUSIC {
     if (cmapInfo == connectivityMap.end ())
       {
 	MUSIC_LOG ("creating new entry for " << localPort);
-	int index = _connections.size ();
-	_connections.push_back (ConnectivityInfo (dir, width));
-	info = &_connections.back ();
+	int index = connections_.size ();
+	connections_.push_back (ConnectivityInfo (dir, width));
+	info = &connections_.back ();
 	MUSIC_LOG ("ci = " << info);
 	connectivityMap.insert (std::make_pair (localPort, index));
       }
     else
       {
 	MUSIC_LOG ("found old entry for " << localPort);
-	info = &_connections[cmapInfo->second];
+	info = &connections_[cmapInfo->second];
 	if (info->direction () != dir)
 	  error ("port " + localPort + " used both as output and input");
       }
@@ -91,7 +91,7 @@ namespace MUSIC {
     if (info == connectivityMap.end ())
       return NO_CONNECTIVITY;
     else
-      return &_connections[info->second];
+      return &connections_[info->second];
   }
 
 
@@ -105,21 +105,21 @@ namespace MUSIC {
   ConnectivityInfo::PortDirection
   Connectivity::direction (std::string portName)
   {
-    return _connections[connectivityMap[portName]].direction ();
+    return connections_[connectivityMap[portName]].direction ();
   }
 
   
   int
   Connectivity::width (std::string portName)
   {
-    return _connections[connectivityMap[portName]].width ();
+    return connections_[connectivityMap[portName]].width ();
   }
 
   
   PortConnectorInfo
   Connectivity::connections (std::string portName)
   {
-    return _connections[connectivityMap[portName]].connections ();
+    return connections_[connectivityMap[portName]].connections ();
   }
 
 
@@ -133,7 +133,7 @@ namespace MUSIC {
 	 ++i)
       {
 	out << ':' << i->first << ':';
-	ConnectivityInfo* ci = &_connections[i->second];
+	ConnectivityInfo* ci = &connections_[i->second];
 	out << ci->direction () << ':' << ci->width () << ':';
 	PortConnectorInfo conns = ci->connections ();
 	out << conns.size ();

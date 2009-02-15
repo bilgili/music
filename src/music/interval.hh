@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 namespace MUSIC {
 
   class Interval {
-    int _begin;
-    int _end;
+    int begin_;
+    int end_;
   public:
     Interval () { }
-    Interval (int b, int e) : _begin (b), _end (e) { }
-    int begin () const { return _begin; }
-    int end () const { return _end; }
+    Interval (int b, int e) : begin_ (b), end_ (e) { }
+    int begin () const { return begin_; }
+    int end () const { return end_; }
   };
 
 }

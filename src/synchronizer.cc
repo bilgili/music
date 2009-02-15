@@ -114,7 +114,7 @@ namespace MUSIC {
   bool
   Synchronizer::communicate ()
   {
-    return _communicate;
+    return communicate_;
   }
 
 
@@ -123,7 +123,7 @@ namespace MUSIC {
   {
     if (*localTime > nextSend)
       nextCommunication ();
-    _communicate = *localTime == nextSend;
+    communicate_ = *localTime == nextSend;
   }
 
   
@@ -132,7 +132,7 @@ namespace MUSIC {
   {
     if (*localTime > nextReceive)
       nextCommunication ();
-    _communicate = *localTime == nextReceive;
+    communicate_ = *localTime == nextReceive;
   }
   
 }

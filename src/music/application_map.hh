@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,15 +24,15 @@
 namespace MUSIC {
 
   class ApplicationInfo {
-    std::string _name;
-    int _leader;
-    int _nProc;
+    std::string name_;
+    int leader_;
+    int nProc_;
   public:
     ApplicationInfo (std::string name, int l, int n)
-      : _name (name), _leader (l), _nProc (n) { }
-    std::string name () { return _name; }
-    int leader () { return _leader; }
-    int nProc () { return _nProc; }
+      : name_ (name), leader_ (l), nProc_ (n) { }
+    std::string name () { return name_; }
+    int leader () { return leader_; }
+    int nProc () { return nProc_; }
   };
 
   

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 namespace MUSIC {
 
   class PermutationIndex : public IndexMap {
-    std::vector<IndexInterval> _indices;
+    std::vector<IndexInterval> indices_;
   public:
     class iterator : public IndexMap::IteratorImplementation {
       const IndexInterval* intervalPtr;

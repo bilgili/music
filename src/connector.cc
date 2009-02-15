@@ -23,11 +23,11 @@
 
 namespace MUSIC {
 
-  Connector::Connector (ConnectorInfo _info,
-			SpatialNegotiator* _spatialNegotiator,
+  Connector::Connector (ConnectorInfo info_,
+			SpatialNegotiator* spatialNegotiator_,
 			MPI::Intracomm c)
-    : info (_info),
-      spatialNegotiator (_spatialNegotiator),
+    : info (info_),
+      spatialNegotiator (spatialNegotiator_),
       comm (c)
   {
   }
@@ -225,21 +225,21 @@ namespace MUSIC {
   }
 
 
-  EventConnector::EventConnector (ConnectorInfo _info,
-				  SpatialNegotiator* _spatialNegotiator,
+  EventConnector::EventConnector (ConnectorInfo info_,
+				  SpatialNegotiator* spatialNegotiator_,
 				  MPI::Intracomm c)
-    : Connector (_info, _spatialNegotiator, c)
+    : Connector (info_, spatialNegotiator_, c)
   {
   }
   
 
   EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
-					      SpatialOutputNegotiator* _spatialNegotiator,
+					      SpatialOutputNegotiator* spatialNegotiator_,
 					      MPI::Intracomm comm,
-					      EventRouter& _router)
-    : Connector (connInfo, _spatialNegotiator, comm),
-      EventConnector (connInfo, _spatialNegotiator, comm),
-      router (_router)
+					      EventRouter& router_)
+    : Connector (connInfo, spatialNegotiator_, comm),
+      EventConnector (connInfo, spatialNegotiator_, comm),
+      router (router_)
   {
   }
 
@@ -284,13 +284,13 @@ namespace MUSIC {
   
   EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
 					    SpatialInputNegotiator* spatialNegotiator,
-					    EventHandlerPtr _handleEvent,
-					    Index::Type _type,
+					    EventHandlerPtr handleEvent_,
+					    Index::Type type_,
 					    MPI::Intracomm comm)
     : Connector (connInfo, spatialNegotiator, comm),
       EventConnector (connInfo, spatialNegotiator, comm),
-      handleEvent (_handleEvent),
-      type (_type)
+      handleEvent (handleEvent_),
+      type (type_)
   {
   }
 

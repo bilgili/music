@@ -33,7 +33,7 @@ usage (int rank)
 class MyEventHandlerGlobal : public MUSIC::EventHandlerGlobalIndex {
   int rank;
 public:
-  MyEventHandlerGlobal (int _rank) : rank (_rank) { }
+  MyEventHandlerGlobal (int rank_) : rank (rank_) { }
   void operator () (double t, MUSIC::GlobalIndex id)
   {
     // For now: just print out incoming events
@@ -45,7 +45,7 @@ public:
 class MyEventHandlerLocal: public MUSIC::EventHandlerLocalIndex {
   int rank;
 public:
-  MyEventHandlerLocal (int _rank) : rank (_rank) { }
+  MyEventHandlerLocal (int rank_) : rank (rank_) { }
   void operator () (double t, MUSIC::LocalIndex id)
   {
     // For now: just print out incoming events

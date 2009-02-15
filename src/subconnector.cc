@@ -23,16 +23,16 @@
 
 namespace MUSIC {
 
-  Subconnector::Subconnector (Synchronizer* _synch,
-			      MPI::Intercomm _intercomm,
+  Subconnector::Subconnector (Synchronizer* synch_,
+			      MPI::Intercomm intercomm_,
 			      int remoteRank,
 			      int receiverRank,
 			      std::string receiverPortName)
-    : synch (_synch),
-      intercomm (_intercomm),
-      _remoteRank (remoteRank),
-      _receiverRank (receiverRank),
-      _receiverPortName (receiverPortName)
+    : synch (synch_),
+      intercomm (intercomm_),
+      remoteRank_ (remoteRank),
+      receiverRank_ (receiverRank),
+      receiverPortName_ (receiverPortName)
   {
   }
 
@@ -46,7 +46,7 @@ namespace MUSIC {
   Subconnector::connect ()
   {
 #if 0
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << _localLeader << " and remote " << _remoteLeader << std::endl;
+    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << localLeader_ << " and remote " << remoteLeader_ << std::endl;
 #endif
   }
 
@@ -62,7 +62,7 @@ namespace MUSIC {
 		    remoteRank,
 		    receiverRank,
 		    receiverPortName),
-      _buffer (elementSize)
+      buffer_ (elementSize)
   {
   }
 
@@ -99,20 +99,20 @@ namespace MUSIC {
   }
 
 
-  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* _synch,
-						    MPI::Intercomm _intercomm,
+  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* synch_,
+						    MPI::Intercomm intercomm_,
 						    int remoteRank,
-						    std::string _receiverPortName)
-    : Subconnector (_synch,
-		    _intercomm,
+						    std::string receiverPortName_)
+    : Subconnector (synch_,
+		    intercomm_,
 		    remoteRank,
 		    remoteRank,
-		    _receiverPortName),
-      OutputSubconnector (_synch,
-			  _intercomm,
+		    receiverPortName_),
+      OutputSubconnector (synch_,
+			  intercomm_,
 			  remoteRank,
 			  remoteRank, // receiver_rank same as remote rank
-			  _receiverPortName,
+			  receiverPortName_,
 			  sizeof (Event))
   {
   }
@@ -131,7 +131,7 @@ namespace MUSIC {
   {
     void* data;
     int size;
-    _buffer.nextBlock (data, size);
+    buffer_.nextBlock (data, size);
     //*fixme* marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
@@ -139,19 +139,19 @@ namespace MUSIC {
 	intercomm.Send (buffer,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remoteRank,
+			remoteRank_,
 			SPIKE_MSG);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    intercomm.Send (buffer, size, MPI::BYTE, _remoteRank, SPIKE_MSG);
+    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
   }
 
   
   void
   EventOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!_buffer.isEmpty ())
+    if (!buffer_.isEmpty ())
       {
 	MUSIC_LOGR ("sending data remaining in buffers");
 	send ();
@@ -159,7 +159,7 @@ namespace MUSIC {
       }
     else
       {
-	Event* e = static_cast<Event*> (_buffer.insert ());
+	Event* e = static_cast<Event*> (buffer_.insert ());
 	e->id = FLUSH_MARK;
 	send ();
       }
@@ -253,7 +253,7 @@ namespace MUSIC {
 	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remoteRank,
+			remoteRank_,
 			SPIKE_MSG,
 			status);
 	Event* ev = (Event*) data;
@@ -284,7 +284,7 @@ namespace MUSIC {
 	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
-			_remoteRank,
+			remoteRank_,
 			SPIKE_MSG,
 			status);
 	Event* ev = (Event*) data;

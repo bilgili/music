@@ -40,9 +40,9 @@ namespace MUSIC {
   protected:
     Synchronizer* synch;
     MPI::Intercomm intercomm;
-    int _remoteRank;
-    int _receiverRank;
-    std::string _receiverPortName;
+    int remoteRank_;
+    int receiverRank_;
+    std::string receiverPortName_;
   public:
     Subconnector () { }
     Subconnector (Synchronizer* synch,
@@ -53,15 +53,15 @@ namespace MUSIC {
     virtual ~Subconnector ();
     virtual void tick () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
-    int remoteRank () const { return _remoteRank; }
-    int receiverRank () const { return _receiverRank; }
-    std::string receiverPortName () const { return _receiverPortName; }
+    int remoteRank () const { return remoteRank_; }
+    int receiverRank () const { return receiverRank_; }
+    std::string receiverPortName () const { return receiverPortName_; }
     void connect ();
   };
   
   class OutputSubconnector : virtual public Subconnector {
   protected:
-    FIBO _buffer;
+    FIBO buffer_;
   public:
     OutputSubconnector (Synchronizer* synch,
 			MPI::Intercomm intercomm,
@@ -69,7 +69,7 @@ namespace MUSIC {
 			int receiverRank,
 			std::string receiverPortName,
 			int elementSize);
-    FIBO* buffer () { return &_buffer; }
+    FIBO* buffer () { return &buffer_; }
     void send ();
     int startIdx ();
     int endIdx ();
@@ -97,10 +97,10 @@ namespace MUSIC {
   class EventOutputSubconnector : public OutputSubconnector,
 				  public EventSubconnector {
   public:
-    EventOutputSubconnector (Synchronizer* _synch,
-			     MPI::Intercomm _intercomm,
+    EventOutputSubconnector (Synchronizer* synch_,
+			     MPI::Intercomm intercomm_,
 			     int remoteRank,
-			     std::string _receiverPortName);
+			     std::string receiverPortName_);
     void tick ();
     void send ();
     void flush (bool& dataStillFlowing);

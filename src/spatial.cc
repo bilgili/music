@@ -28,8 +28,8 @@
 namespace MUSIC {
 
   NegotiationIterator::BufferTraversal::BufferTraversal
-  (std::vector<NegotiationIntervals>& _buffers)
-    : buffers (_buffers), buffer (0), interval (0)
+  (std::vector<NegotiationIntervals>& buffers_)
+    : buffers (buffers_), buffer (0), interval (0)
   {
     findInterval ();
   }
@@ -70,26 +70,26 @@ namespace MUSIC {
 
 
   NegotiationIterator::NegotiationIterator (Implementation* impl)
-    : _implementation (impl)
+    : implementation_ (impl)
   {
   }
 
 
   NegotiationIterator::NegotiationIterator (NegotiationIntervals& buffer)
-    : _implementation (new IntervalTraversal (buffer))
+    : implementation_ (new IntervalTraversal (buffer))
   {
   }
   
 
   NegotiationIterator::NegotiationIterator
   (std::vector<NegotiationIntervals>& buffers)
-    : _implementation (new BufferTraversal (buffers))
+    : implementation_ (new BufferTraversal (buffers))
   {
   }
   
 
-  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type _type)
-    : indices (ind->copy ()), type (_type)
+  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_)
+    : indices (ind->copy ()), type (type_)
   {
   }
 
@@ -193,19 +193,19 @@ namespace MUSIC {
 				    int rank)
   {
     class Wrapper : public NegotiationIterator::Implementation {
-      IndexMap::iterator _end;
+      IndexMap::iterator end_;
     protected:
       SpatialNegotiationData data;
       IndexMap::iterator i;
-      int _rank;
+      int rank_;
     public:
       Wrapper (IndexMap::iterator beg,
 	       IndexMap::iterator end,
 	       int rank)
-	: i (beg), _end (end), _rank (rank)
+	: i (beg), end_ (end), rank_ (rank)
       {
       }
-      bool end () { return i == _end; }
+      bool end () { return i == end_; }
       void operator++ () { ++i; }
     };
 
@@ -219,7 +219,7 @@ namespace MUSIC {
       }
       SpatialNegotiationData* dereference ()
       {
-	data = SpatialNegotiationData (*i, _rank);
+	data = SpatialNegotiationData (*i, rank_);
 	data.setLocal (0);
 	return &data;
       }
@@ -239,7 +239,7 @@ namespace MUSIC {
       }
       SpatialNegotiationData* dereference ()
       {
-	data = SpatialNegotiationData (*i, _rank);
+	data = SpatialNegotiationData (*i, rank_);
 	return &data;
       }
       Implementation* copy ()

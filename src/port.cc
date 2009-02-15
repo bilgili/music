@@ -23,17 +23,17 @@
 namespace MUSIC {
 
   Port::Port (Setup* s, std::string identifier)
-    : _setup (s)
+    : setup_ (s)
   {
-    _ConnectivityInfo = s->portConnectivity (identifier);
-    _setup->addPort (this);
+    ConnectivityInfo_ = s->portConnectivity (identifier);
+    setup_->addPort (this);
   }
 
 
   bool
   Port::isConnected ()
   {
-    return _ConnectivityInfo != Connectivity::NO_CONNECTIVITY;
+    return ConnectivityInfo_ != Connectivity::NO_CONNECTIVITY;
   }
 
 
@@ -42,7 +42,7 @@ namespace MUSIC {
   {
     if (!isConnected ())
       error ("attempt to map an unconnected port");
-    else if (_ConnectivityInfo->direction () != ConnectivityInfo::OUTPUT)
+    else if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
       error ("output port connected as input");
   }
 
@@ -52,7 +52,7 @@ namespace MUSIC {
   {
     if (!isConnected ())
       error ("attempt to map an unconnected port");
-    else if (_ConnectivityInfo->direction () != ConnectivityInfo::INPUT)
+    else if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
       error ("input port connected as output");
   }
 
@@ -62,7 +62,7 @@ namespace MUSIC {
   {
     if (!isConnected ())
       error ("attempt to ask for width of an unconnected port");
-    return _ConnectivityInfo->width () != ConnectivityInfo::NO_WIDTH;
+    return ConnectivityInfo_->width () != ConnectivityInfo::NO_WIDTH;
   }
 
 
@@ -71,7 +71,7 @@ namespace MUSIC {
   {
     if (!isConnected ())
       error ("attempt to ask for width of an unconnected port");
-    int w = _ConnectivityInfo->width ();
+    int w = ConnectivityInfo_->width ();
     if (w == ConnectivityInfo::NO_WIDTH)
       error ("width requested for port with unspecified width");
     return w;
@@ -160,10 +160,10 @@ namespace MUSIC {
 			    Index::Type type,
 			    int maxBuffered)
   {
-    MPI::Intracomm comm = _setup->communicator ();
+    MPI::Intracomm comm = setup_->communicator ();
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = _ConnectivityInfo->connections ();
+      = ConnectivityInfo_->connections ();
     spatialNegotiator = new SpatialOutputNegotiator (indices, type);
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
@@ -175,10 +175,10 @@ namespace MUSIC {
 				      spatialNegotiator,
 				      comm,
 				      router);
-	_setup->temporalNegotiator ()->addConnection (connector,
+	setup_->temporalNegotiator ()->addConnection (connector,
 						      maxBuffered,
 						      sizeof (Event));
-	_setup->addConnector (connector);
+	setup_->addConnector (connector);
       }
   }
 
@@ -279,10 +279,10 @@ namespace MUSIC {
 			   double accLatency,
 			   int maxBuffered)
   {
-    MPI::Intracomm comm = _setup->communicator ();
+    MPI::Intracomm comm = setup_->communicator ();
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = _ConnectivityInfo->connections ();
+      = ConnectivityInfo_->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
     EventInputConnector* connector
@@ -291,10 +291,10 @@ namespace MUSIC {
 				 handleEvent,
 				 type,
 				 comm);
-    _setup->temporalNegotiator ()->addConnection (connector,
+    setup_->temporalNegotiator ()->addConnection (connector,
 						  maxBuffered,
 						  accLatency);
-    _setup->addConnector (connector);
+    setup_->addConnector (connector);
   }
 
   

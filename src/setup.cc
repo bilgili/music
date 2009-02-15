@@ -57,8 +57,8 @@ namespace MUSIC {
 
   Setup::~Setup ()
   {
-    for (std::vector<Port*>::iterator i = _ports.begin ();
-	 i != _ports.end ();
+    for (std::vector<Port*>::iterator i = ports_.begin ();
+	 i != ports_.end ();
 	 ++i)
       (*i)->setupCleanup ();
   }
@@ -67,7 +67,7 @@ namespace MUSIC {
   bool
   Setup::launchedByMusic ()
   {
-    return _config->launchedByMusic ();
+    return config_->launchedByMusic ();
   }
 
   void
@@ -75,21 +75,21 @@ namespace MUSIC {
   {
     hang ();
     int myRank = MPI::COMM_WORLD.Get_rank ();
-    _config = new Configuration ();
+    config_ = new Configuration ();
     if (launchedByMusic ())
       {
 	// launched by the music utility
-	comm = MPI::COMM_WORLD.Split (_config->color (), myRank);
+	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
 	MUSIC_LOG (comm.Get_rank () << ": " << comm);
 	if (!config ("timebase", &timebase_))
 	  timebase_ = 1e-9;		// default timebase
 	string binary;
-	_config->lookup ("binary", &binary);
+	config_->lookup ("binary", &binary);
 	string args;
-	_config->lookup ("args", &args);
+	config_->lookup ("args", &args);
 	argv = parseArgs (binary, args, &argc);
 	connectors_ = new std::vector<Connector*>; // destoyed by runtime
-	_temporalNegotiator = new TemporalNegotiator (this);
+	temporalNegotiator_ = new TemporalNegotiator (this);
       }
     else
       {
@@ -109,63 +109,63 @@ namespace MUSIC {
   ConnectivityInfo*
   Setup::portConnectivity (const std::string localName)
   {
-    return _config->connectivityMap ()->info (localName);
+    return config_->connectivityMap ()->info (localName);
   }
 
 
   ApplicationMap*
   Setup::applicationMap ()
   {
-    return _config->applications ();
+    return config_->applications ();
   }
 
 
   bool
   Setup::isConnected (const std::string localName)
   {
-    return _config->connectivityMap ()->isConnected (localName);
+    return config_->connectivityMap ()->isConnected (localName);
   }
 
 
   ConnectivityInfo::PortDirection
   Setup::portDirection (const std::string localName)
   {
-    return _config->connectivityMap ()->direction (localName);
+    return config_->connectivityMap ()->direction (localName);
   }
 
 
   int
   Setup::portWidth (const std::string localName)
   {
-    return _config->connectivityMap ()->width (localName);
+    return config_->connectivityMap ()->width (localName);
   }
 
 
   PortConnectorInfo
   Setup::portConnections (const std::string localName)
   {
-    return _config->connectivityMap ()->connections (localName);
+    return config_->connectivityMap ()->connections (localName);
   }
 
 
   bool
   Setup::config (string var, string* result)
   {
-    return _config->lookup (var, result);
+    return config_->lookup (var, result);
   }
 
   
   bool
   Setup::config (string var, int* result)
   {
-    return _config->lookup (var, result);
+    return config_->lookup (var, result);
   }
 
   
   bool
   Setup::config (string var, double* result)
   {
-    return _config->lookup (var, result);
+    return config_->lookup (var, result);
   }
 
   
@@ -199,7 +199,7 @@ namespace MUSIC {
   
   void Setup::addPort (Port* p)
   {
-    _ports.push_back (p);
+    ports_.push_back (p);
   }
 
   

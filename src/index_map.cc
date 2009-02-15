@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,35 +23,35 @@ namespace MUSIC {
   const IndexInterval
   IndexMap::iterator::operator* ()
   {
-    return **_implementation;
+    return **implementation_;
   }
   
 
   const IndexInterval*
   IndexMap::iterator::operator-> ()
   {
-    return _implementation->dereference ();
+    return implementation_->dereference ();
   }
   
 
   bool
   IndexMap::iterator::operator== (const iterator& i) const
   {
-    return _implementation->isEqual (i.implementation ());
+    return implementation_->isEqual (i.implementation ());
   }
   
 
   bool
   IndexMap::iterator::operator!= (const iterator& i) const
   {
-    return !_implementation->isEqual (i.implementation ());
+    return !implementation_->isEqual (i.implementation ());
   }
   
 
   IndexMap::iterator&
   IndexMap::iterator::operator++ ()
   {
-    ++*_implementation;
+    ++*implementation_;
     return *this;
   }
 

@@ -34,15 +34,15 @@ namespace MUSIC {
     
     //*fixme* collapse where possible
     for (int i = 0; i < size; ++i)
-      _indices.push_back (IndexInterval (indices[i],
+      indices_.push_back (IndexInterval (indices[i],
 					 indices[i] + 1,
 					 indices[i] - i));
-    sort (_indices.begin (), _indices.end ());
+    sort (indices_.begin (), indices_.end ());
   }
   
 
   PermutationIndex::PermutationIndex (std::vector<IndexInterval>& indices)
-    : _indices (indices)
+    : indices_ (indices)
   {
   }
 
@@ -50,21 +50,21 @@ namespace MUSIC {
   IndexMap::iterator
   PermutationIndex::begin ()
   {
-    return IndexMap::iterator (new iterator (&_indices.front ()));
+    return IndexMap::iterator (new iterator (&indices_.front ()));
   }
 
   
   const IndexMap::iterator
   PermutationIndex::end () const
   {
-    return IndexMap::iterator (new iterator (&_indices.back () + 1));
+    return IndexMap::iterator (new iterator (&indices_.back () + 1));
   }
 
 
   IndexMap*
   PermutationIndex::copy ()
   {
-    return new PermutationIndex (_indices);
+    return new PermutationIndex (indices_);
   }
 
 }

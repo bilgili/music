@@ -38,11 +38,11 @@ namespace MUSIC {
   
   class Setup {
   private:
-    Configuration* _config;
+    Configuration* config_;
     MPI::Intracomm comm;
-    std::vector<Port*> _ports;
+    std::vector<Port*> ports_;
     std::vector<Connector*>* connectors_;
-    TemporalNegotiator* _temporalNegotiator;
+    TemporalNegotiator* temporalNegotiator_;
     double timebase_;
 
   public:
@@ -94,7 +94,7 @@ namespace MUSIC {
 
     std::vector<Port*>* ports ()
     {
-      return &_ports;
+      return &ports_;
     }    
 
     void addPort (Port* p);
@@ -106,7 +106,7 @@ namespace MUSIC {
     
     void addConnector (Connector* c);
 
-    TemporalNegotiator* temporalNegotiator () { return _temporalNegotiator; }
+    TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
     
   };
   

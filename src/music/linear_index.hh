@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,10 +23,10 @@
 namespace MUSIC {
 
   class LinearIndex : public IndexMap {
-    IndexInterval _interval;
+    IndexInterval interval_;
   public:
     class iterator : public IndexMap::IteratorImplementation {
-      LinearIndex* _indices;
+      LinearIndex* indices_;
     public:
       iterator (LinearIndex* li);
       virtual const IndexInterval operator* ();
@@ -35,7 +35,7 @@ namespace MUSIC {
       virtual void operator++ ();
       virtual IteratorImplementation* copy ()
       {
-	return new iterator (_indices);
+	return new iterator (indices_);
       }
     };
 

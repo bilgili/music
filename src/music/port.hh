@@ -34,8 +34,8 @@ namespace MUSIC {
 
   class Port {
   protected:
-    Setup* _setup;
-    ConnectivityInfo* _ConnectivityInfo;
+    Setup* setup_;
+    ConnectivityInfo* ConnectivityInfo_;
     void assertOutput ();
     void assertInput ();
   public:

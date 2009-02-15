@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,8 +29,8 @@ namespace MUSIC {
 
   class ApplicationMapper {
     std::map<std::string, MUSIC::Configuration*> configs;
-    ApplicationMap* _applications;
-    Connectivity* _connectivityMap;
+    ApplicationMap* applications_;
+    Connectivity* connectivityMap_;
     std::string selectedName;
     void mapSections (rude::Config* cfile);
     void mapApplications ();

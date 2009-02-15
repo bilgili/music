@@ -49,8 +49,8 @@ namespace MUSIC {
     MPI::Intracomm comm;
   public:
     Connector () { }
-    Connector (ConnectorInfo _info,
-	       SpatialNegotiator* _spatialNegotiator,
+    Connector (ConnectorInfo info_,
+	       SpatialNegotiator* spatialNegotiator_,
 	       MPI::Intracomm c);
     std::string receiverAppName () const
     { return info.receiverAppName (); }

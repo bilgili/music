@@ -25,11 +25,11 @@
 namespace MUSIC {
 
   class ConnectorInfo {
-    std::string _recApp;
-    std::string _recPort;
-    int _recCode;
-    int _remoteLeader;
-    int _nProc;
+    std::string recApp_;
+    std::string recPort_;
+    int recCode_;
+    int remoteLeader_;
+    int nProc_;
   public:
     ConnectorInfo () { }
     ConnectorInfo (std::string recApp,
@@ -37,17 +37,17 @@ namespace MUSIC {
 		   int recCode,
 		   int rLeader,
 		   int nProc)
-      : _recApp (recApp),
-	_recPort (recName),
-	_recCode (recCode),
-	_remoteLeader (rLeader),
-	_nProc (nProc)
+      : recApp_ (recApp),
+	recPort_ (recName),
+	recCode_ (recCode),
+	remoteLeader_ (rLeader),
+	nProc_ (nProc)
     { }
-    std::string receiverAppName () const { return _recApp; }
-    std::string receiverPortName () const { return _recPort; }
-    int receiverPortCode () const { return _recCode; }
-    int remoteLeader () const { return _remoteLeader; }
-    int nProcesses () const { return _nProc; } //*fixme* "remote" in name
+    std::string receiverAppName () const { return recApp_; }
+    std::string receiverPortName () const { return recPort_; }
+    int receiverPortCode () const { return recCode_; }
+    int remoteLeader () const { return remoteLeader_; }
+    int nProcesses () const { return nProc_; } //*fixme* "remote" in name
   };
 
 
@@ -59,15 +59,15 @@ namespace MUSIC {
     enum PortDirection { OUTPUT, INPUT };
     static const int NO_WIDTH = -1;
   private:
-    PortDirection _dir;
-    int _width;
-    PortConnectorInfo _portConnections;
+    PortDirection dir_;
+    int width_;
+    PortConnectorInfo portConnections_;
   public:
     ConnectivityInfo (PortDirection dir, int width)
-      : _dir (dir), _width (width) { }
-    PortDirection direction () { return _dir; }
-    int width () { return _width; } // NO_WIDTH if no width specified
-    PortConnectorInfo connections () { return _portConnections; }
+      : dir_ (dir), width_ (width) { }
+    PortDirection direction () { return dir_; }
+    int width () { return width_; } // NO_WIDTH if no width specified
+    PortConnectorInfo connections () { return portConnections_; }
     void addConnection (std::string recApp,
 			std::string recName,
 			int recCode,
@@ -77,7 +77,7 @@ namespace MUSIC {
 
   
   class Connectivity {
-    std::vector<ConnectivityInfo> _connections;
+    std::vector<ConnectivityInfo> connections_;
     std::map<std::string, int> connectivityMap;
     void read (std::istringstream& in);
   public:

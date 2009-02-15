@@ -29,20 +29,20 @@ namespace MUSIC {
   const int TRANSMITTED_INTERVALS_MAX = 10000;
 
   class SpatialNegotiationData {
-    IndexInterval _interval;
-    int _rank;
+    IndexInterval interval_;
+    int rank_;
   public:
     SpatialNegotiationData () { }
     SpatialNegotiationData (IndexInterval i, int r)
-      : _interval (i), _rank (r) { }
+      : interval_ (i), rank_ (r) { }
     SpatialNegotiationData (int b, int e, int l, int r)
-      : _interval (b, e, l), _rank (r) { }
-    const IndexInterval& interval () const { return _interval; }
-    int begin () const { return _interval.begin (); }
-    int end () const { return _interval.end (); }
-    int local () const { return _interval.local (); }
-    void setLocal (int l) { _interval.setLocal (l); }
-    int rank () const { return _rank; }
+      : interval_ (b, e, l), rank_ (r) { }
+    const IndexInterval& interval () const { return interval_; }
+    int begin () const { return interval_.begin (); }
+    int end () const { return interval_.end (); }
+    int local () const { return interval_.local (); }
+    void setLocal (int l) { interval_.setLocal (l); }
+    int rank () const { return rank_; }
   };
 
 
@@ -63,8 +63,8 @@ namespace MUSIC {
       NegotiationIntervals& buffer;
       int interval;
     public:
-      IntervalTraversal (NegotiationIntervals& _buffer)
-	: buffer (_buffer), interval (0) { }
+      IntervalTraversal (NegotiationIntervals& buffer_)
+	: buffer (buffer_), interval (0) { }
       bool end () { return interval == buffer.size (); }
       void operator++ () { ++interval; }
       SpatialNegotiationData* dereference () { return &buffer[interval]; }
@@ -85,34 +85,34 @@ namespace MUSIC {
     };
 
   private:
-    Implementation* _implementation;
+    Implementation* implementation_;
   public:
     NegotiationIterator (Implementation* impl);
     NegotiationIterator (NegotiationIntervals& buffer);
     NegotiationIterator (std::vector<NegotiationIntervals>& buffers);
     ~NegotiationIterator ()
     {
-      delete _implementation;
+      delete implementation_;
     }
     NegotiationIterator (const NegotiationIterator& i)
-      : _implementation (i._implementation->copy ())
+      : implementation_ (i.implementation_->copy ())
     {
     }
     const NegotiationIterator& operator= (const NegotiationIterator& i)
     {
-      delete _implementation;
-      _implementation = i._implementation->copy ();
+      delete implementation_;
+      implementation_ = i.implementation_->copy ();
       return *this;
     }
-    bool end () { return _implementation->end (); }
+    bool end () { return implementation_->end (); }
     NegotiationIterator& operator++ ()
     {
-      ++*_implementation;
+      ++*implementation_;
       return *this;
     };
     SpatialNegotiationData* operator-> ()
     {
-      return _implementation->dereference ();
+      return implementation_->dereference ();
     }
   };
   

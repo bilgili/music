@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 CSC, KTH
+ *  Copyright (C) 2007, 2008, 2009 CSC, KTH
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 namespace MUSIC {
   
   LinearIndex::iterator::iterator (LinearIndex* li)
-    : _indices (li)
+    : indices_ (li)
   {
   }
 
@@ -31,33 +31,33 @@ namespace MUSIC {
   const IndexInterval
   LinearIndex::iterator::operator* ()
   {
-    return _indices->_interval;
+    return indices_->interval_;
   }
 
 
   const IndexInterval*
   LinearIndex::iterator::dereference ()
   {
-    return &_indices->_interval;
+    return &indices_->interval_;
   }
 
 
   void
   LinearIndex::iterator::operator++ ()
   {
-    _indices = 0;
+    indices_ = 0;
   }
 
 
   bool
   LinearIndex::iterator::isEqual (IteratorImplementation* i) const
   {
-    return _indices == static_cast<iterator*> (i)->_indices;
+    return indices_ == static_cast<iterator*> (i)->indices_;
   }
   
   
   LinearIndex::LinearIndex (GlobalIndex baseindex, int size)
-    : _interval (baseindex, baseindex + size, static_cast<int> (baseindex))
+    : interval_ (baseindex, baseindex + size, static_cast<int> (baseindex))
   {
   }
 

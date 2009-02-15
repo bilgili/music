@@ -69,14 +69,14 @@ namespace MUSIC {
   void
   ApplicationMapper::mapApplications ()
   {
-    _applications = new ApplicationMap ();
+    applications_ = new ApplicationMap ();
     int leader = 0;
     std::map<std::string, MUSIC::Configuration*>::iterator config;
     for (config = configs.begin (); config != configs.end (); ++config)
       {
 	int np;
 	config->second->lookup ("np", &np);
-	_applications->add (config->first, leader, np);
+	applications_->add (config->first, leader, np);
 	leader += np;
       }
   }
@@ -87,7 +87,7 @@ namespace MUSIC {
   {
     int rankEnd = 0;
     ApplicationMap::iterator ai;
-    for (ai = _applications->begin (); ai != _applications->end (); ++ai)
+    for (ai = applications_->begin (); ai != applications_->end (); ++ai)
       {
 	rankEnd += ai->nProc ();
 	if (rank < rankEnd)
@@ -106,7 +106,7 @@ namespace MUSIC {
   {
     std::map<std::string, int> receiverPortCodes;
     int nextPortCode = 0;
-    _connectivityMap = new Connectivity ();
+    connectivityMap_ = new Connectivity ();
     int nSections = cfile->getNumSections ();
     for (int s = 0; s < nSections; ++s)
       {
@@ -159,12 +159,12 @@ namespace MUSIC {
 	    if (selectedName == senderApp)
 	      {
 		dir = ConnectivityInfo::OUTPUT;
-		remoteInfo = _applications->lookup (receiverApp);
+		remoteInfo = applications_->lookup (receiverApp);
 	      }
 	    else if (selectedName == receiverApp)
 	      {
 		dir = ConnectivityInfo::INPUT;
-		remoteInfo = _applications->lookup (senderApp);
+		remoteInfo = applications_->lookup (senderApp);
 	      }
 	    else
 	      continue;
@@ -178,7 +178,7 @@ namespace MUSIC {
 		  error ("could not interpret width");
 	      }
 
-	    _connectivityMap->add (dir == ConnectivityInfo::OUTPUT
+	    connectivityMap_->add (dir == ConnectivityInfo::OUTPUT
 				   ? senderPort
 				   : receiverPort,
 				   dir,
@@ -197,8 +197,8 @@ namespace MUSIC {
   ApplicationMapper::config ()
   {
     Configuration* config = configs[selectedName];
-    config->setApplications (_applications);
-    config->setConnectivityMap (_connectivityMap);
+    config->setApplications (applications_);
+    config->setConnectivityMap (connectivityMap_);
     return config;
   }
 

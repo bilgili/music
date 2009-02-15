@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008 INCF
+ *  Copyright (C) 2007, 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,13 +46,13 @@ namespace MUSIC {
   };
 
   class IndexInterval : public Interval {
-    LocalIndex _local;
+    LocalIndex local_;
   public:
     IndexInterval () { }
     IndexInterval (GlobalIndex b, GlobalIndex e, LocalIndex l)
-      : Interval (b, e), _local (l) { }
-    LocalIndex local () const { return _local; }
-    void setLocal (int l) { _local = l; }
+      : Interval (b, e), local_ (l) { }
+    LocalIndex local () const { return local_; }
+    void setLocal (int l) { local_ = l; }
   };
 
   class IndexMap {
@@ -68,27 +68,27 @@ namespace MUSIC {
 
     
     class iterator {
-      IteratorImplementation* _implementation;
+      IteratorImplementation* implementation_;
     public:
       iterator (IteratorImplementation* impl)
-	: _implementation (impl) { }
+	: implementation_ (impl) { }
       ~iterator ()
       {
-	delete _implementation;
+	delete implementation_;
       }
       iterator (const iterator& i)
-	: _implementation (i._implementation->copy ())
+	: implementation_ (i.implementation_->copy ())
       {
       }
       const iterator& operator= (const iterator& i)
       {
-	delete _implementation;
-	_implementation = i._implementation->copy ();
+	delete implementation_;
+	implementation_ = i.implementation_->copy ();
 	return *this;
       }
       IteratorImplementation* implementation () const
       {
-	return _implementation;
+	return implementation_;
       }
       const IndexInterval operator* ();
       const IndexInterval* operator-> ();

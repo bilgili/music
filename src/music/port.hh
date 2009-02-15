@@ -81,7 +81,7 @@ namespace MUSIC {
   };
 
   class ContOutputPort : public ContPort, public OutputRedistributionPort {
-    void mapImpl (IndexMap* indices, int maxBuffered);
+    void mapImpl (DataMap* indices, int maxBuffered);
   public:
     ContOutputPort (Setup* s, std::string id)
       : Port (s, id) { }

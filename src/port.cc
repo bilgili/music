@@ -117,10 +117,11 @@ namespace MUSIC {
   ContOutputPort::mapImpl (DataMap* dmap,
 			   int maxBuffered)
   {
-    MPI::Intracomm comm = _setup->communicator ();
+#if 0
+    MPI::Intracomm comm = setup_->communicator ();
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
-      = _ConnectivityInfo->connections ();
+      = ConnectivityInfo_->connections ();
     spatialNegotiator = new SpatialOutputNegotiator (indices, type);
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
@@ -132,11 +133,12 @@ namespace MUSIC {
 				     spatialNegotiator,
 				     comm,
 				     distributor);
-	_setup->temporalNegotiator ()->addConnection (connector,
+	setup_->temporalNegotiator ()->addConnection (connector,
 						      maxBuffered,
 						      0);
-	_setup->addConnector (connector);
+	setup_->addConnector (connector);
       }
+#endif
   }
 
 

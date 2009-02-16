@@ -76,6 +76,7 @@ namespace MUSIC {
     hang ();
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();
+    connectors_ = new std::vector<Connector*>; // destoyed by runtime
     if (launchedByMusic ())
       {
 	// launched by the music utility
@@ -88,7 +89,6 @@ namespace MUSIC {
 	string args;
 	config_->lookup ("args", &args);
 	argv = parseArgs (binary, args, &argc);
-	connectors_ = new std::vector<Connector*>; // destoyed by runtime
 	temporalNegotiator_ = new TemporalNegotiator (this);
       }
     else

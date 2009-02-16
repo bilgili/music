@@ -34,10 +34,10 @@ namespace MUSIC {
     localTime = Clock (s->timebase (), h);
     
     comm = s->communicator ();
+    connectors = s->connectors ();
     if (s->launchedByMusic ())
       {
 	// Take over connectors from setup object
-	connectors = s->connectors ();
 	MUSIC_LOG ("spatial negotiation");
 	spatialNegotiation (s);
 	buildTables (s);
@@ -62,6 +62,7 @@ namespace MUSIC {
 	 c != inputSubconnectors.end ();
 	 ++c)
       delete *c;
+    delete connectors;
   }
   
 

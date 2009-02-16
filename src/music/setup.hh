@@ -38,6 +38,7 @@ namespace MUSIC {
   
   class Setup {
   private:
+    static const double DEFAULT_TIMEBASE = 1e-9;
     Configuration* config_;
     MPI::Intracomm comm;
     std::vector<Port*> ports_;

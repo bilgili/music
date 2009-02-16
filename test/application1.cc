@@ -12,12 +12,11 @@
 
 
 double data[DATA_SIZE];
-
+double rbuf[DATA_SIZE];
 
 int
 main (int nargs, char* argv[])
 {
-  double time;
   int rank;
 
   MUSIC::Setup* setup = new MUSIC::Setup (nargs, argv);
@@ -28,7 +27,8 @@ main (int nargs, char* argv[])
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, 0.1);
 
-  for (time = 0.0; time < 1.0; time += 0.1) {
+  double time = runtime->time ();
+  while (time < 1.0) {
     if (rank == 0) {
       // Generate original data on master node
       int i;
@@ -38,10 +38,11 @@ main (int nargs, char* argv[])
     }
 
     comm.Scatter (data, DATA_SIZE, MPI_DOUBLE,
-		  data, DATA_SIZE, MPI_DOUBLE,
+		  rbuf, DATA_SIZE, MPI_DOUBLE,
 		  0);
 
     runtime->tick ();
+    time = runtime->time ();
   }
 
   runtime->finalize ();

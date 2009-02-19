@@ -30,6 +30,8 @@ usage (int rank)
   exit (1);
 }
 
+double apptime;
+
 class MyEventHandlerGlobal : public MUSIC::EventHandlerGlobalIndex {
   int rank;
 public:
@@ -38,7 +40,8 @@ public:
   {
     // For now: just print out incoming events
     std::cout << "Rank " << rank
-	      << ": Event " << id << " detected at " << t << std::endl;
+	      << ": Event (" << id << ", " << t
+	      << ") detected at " << apptime << std::endl;
   }
 };
 
@@ -50,7 +53,8 @@ public:
   {
     // For now: just print out incoming events
     std::cout << "Rank " << rank
-	      << ": Event " << id << " detected at " << t << std::endl;
+	      << ": Event (" << id << ", " << t
+	      << ") detected at " << apptime << std::endl;
   }
 };
 
@@ -202,13 +206,13 @@ main (int argc, char* argv[])
   // Run
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
-  double time = runtime->time ();
-  while (time < stoptime)
+  apptime = runtime->time ();
+  while (apptime < stoptime)
     {
       // Retrieve data from other program
       runtime->tick ();
 
-      time = runtime->time ();
+      apptime = runtime->time ();
     }
 
   runtime->finalize ();

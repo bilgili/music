@@ -1,3 +1,7 @@
+2009-02-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Log time of event as well as time of reception.
+
 2009-02-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventlogger.cc: Added options --acclatency and --maxbuffered.

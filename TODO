@@ -1,3 +1,6 @@
+* Use pass-by-reference ubstead of pass-by-value where possible
+  (especially for some strings)
+
 * Check that all administrative objects get deallocated at start of runtime
   (for example TemporalNegotiator)
 

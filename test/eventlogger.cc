@@ -137,7 +137,7 @@ main (int argc, char* argv[])
   if (!evport->isConnected ())
     {
       if (rank == 0)
-	std::cerr << "eventlog port is not connected" << std::endl;
+	std::cerr << "port `in' is not connected" << std::endl;
       exit (1);
     }
 
@@ -147,7 +147,7 @@ main (int argc, char* argv[])
     width = evport->width ();
   else
     {
-      std::cerr << "eventlog port width not specified in Configuration file" << std::endl;
+      std::cerr << "port width not specified in Configuration file" << std::endl;
       comm.Abort (1);
     }
 

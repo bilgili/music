@@ -84,13 +84,61 @@ namespace MUSIC {
     delete spatialNegotiator;
   }
   
-  
+
+  void
+  OutputRedistributionPort::mapImpl (IndexMap* indices,
+				     Index::Type type,
+				     int maxBuffered,
+				     int dataSize)
+  {
+    // Retrieve info about all remote connectors of this port
+    PortConnectorInfo portConnections
+      = ConnectivityInfo_->connections ();
+    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
+    for (PortConnectorInfo::iterator info = portConnections.begin ();
+	 info != portConnections.end ();
+	 ++info)
+      {
+	// Create connector
+	OutputConnector* connector = makeOutputConnector (*info);
+	setup_->temporalNegotiator ()->addConnection (connector,
+						      maxBuffered,
+						      dataSize);
+	setup_->addConnector (connector);
+      }
+  }
+
+
   void
   InputRedistributionPort::setupCleanup ()
   {
     delete spatialNegotiator;
   }
+
+  void
+  InputRedistributionPort::mapImpl (IndexMap* indices,
+				    Index::Type type,
+				    double accLatency,
+				    int maxBuffered)
+  {
+    // Retrieve info about all remote connectors of this port
+    PortConnectorInfo portConnections
+      = ConnectivityInfo_->connections ();
+    PortConnectorInfo::iterator info = portConnections.begin ();
+    spatialNegotiator = new SpatialInputNegotiator (indices, type);
+    InputConnector* connector = makeInputConnector (*info);
+    setup_->temporalNegotiator ()->addConnection (connector,
+						  maxBuffered,
+						  accLatency);
+    setup_->addConnector (connector);
+  }
+
   
+  /********************************************************************
+   *
+   * Cont Ports
+   *
+   ********************************************************************/
   
   void
   ContOutputPort::map (DataMap* dmap)
@@ -117,28 +165,28 @@ namespace MUSIC {
   ContOutputPort::mapImpl (DataMap* dmap,
 			   int maxBuffered)
   {
-#if 0
-    MPI::Intracomm comm = setup_->communicator ();
-    // Retrieve info about all remote connectors of this port
-    PortConnectorInfo portConnections
-      = ConnectivityInfo_->connections ();
-    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
-    for (PortConnectorInfo::iterator info = portConnections.begin ();
-	 info != portConnections.end ();
-	 ++info)
-      {
-	// Create connector
-	EventOutputConnector* connector
-	  = new ContOutputConnector (*info,
-				     spatialNegotiator,
-				     comm,
-				     distributor);
-	setup_->temporalNegotiator ()->addConnection (connector,
-						      maxBuffered,
-						      0);
-	setup_->addConnector (connector);
-      }
-#endif
+    sampler.configure (dmap);
+    OutputRedistributionPort::mapImpl (dmap->indexMap (),
+				       Index::LOCAL,
+				       maxBuffered,
+				       0);
+  }
+
+
+  OutputConnector*
+  ContOutputPort::makeOutputConnector (ConnectorInfo connInfo)
+  {
+    return new ContOutputConnector (connInfo,
+				    spatialNegotiator,
+				    setup_->communicator (),
+				    sampler);
+  }
+  
+  
+  void
+  ContOutputPort::tick ()
+  {
+    sampler.newSample ();
   }
 
 
@@ -146,6 +194,11 @@ namespace MUSIC {
   ContInputPort::map (DataMap* dmap, double delay, bool interpolate)
   {
     assertInput ();
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
+    mapImpl (dmap,
+	     delay,
+	     maxBuffered,
+	     interpolate);
   }
 
   
@@ -155,6 +208,10 @@ namespace MUSIC {
 		      bool interpolate)
   {
     assertInput ();
+    mapImpl (dmap,
+	     0.0,
+	     maxBuffered,
+	     interpolate);
   }
 
   
@@ -165,15 +222,51 @@ namespace MUSIC {
 		      bool interpolate)
   {
     assertInput ();
+    mapImpl (dmap,
+	     delay,
+	     maxBuffered,
+	     interpolate);
   }
 
+  
+  void
+  ContInputPort::mapImpl (DataMap* dmap,
+			  double delay,
+			  int maxBuffered,
+			  bool interpolate)
+  {
+    assertInput ();
+    interpolate_ = interpolate;
+    sampler.configure (dmap);
+    InputRedistributionPort::mapImpl (dmap->indexMap (),
+				      Index::LOCAL,
+				      delay,
+				      maxBuffered);
+  }
+
+  
+  InputConnector*
+  ContInputPort::makeInputConnector (ConnectorInfo connInfo)
+  {
+    return new ContInputConnector (connInfo,
+				   spatialNegotiator,
+				   setup_->communicator (),
+				   sampler);
+  }
+
+  
+  /********************************************************************
+   *
+   * Event Ports
+   *
+   ********************************************************************/
   
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
     assertOutput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
-    mapImpl (indices, type, maxBuffered);
+    mapImpl (indices, type, maxBuffered, sizeof (Event));
   }
 
   
@@ -187,38 +280,20 @@ namespace MUSIC {
       {
 	error ("EventOutputPort::map: maxBuffered should be a positive integer");
       }
-    mapImpl (indices, type, maxBuffered);
+    mapImpl (indices, type, maxBuffered, sizeof (Event));
   }
 
   
-  void
-  EventOutputPort::mapImpl (IndexMap* indices,
-			    Index::Type type,
-			    int maxBuffered)
+  OutputConnector*
+  EventOutputPort::makeOutputConnector (ConnectorInfo connInfo)
   {
-    MPI::Intracomm comm = setup_->communicator ();
-    // Retrieve info about all remote connectors of this port
-    PortConnectorInfo portConnections
-      = ConnectivityInfo_->connections ();
-    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
-    for (PortConnectorInfo::iterator info = portConnections.begin ();
-	 info != portConnections.end ();
-	 ++info)
-      {
-	// Create connector
-	EventOutputConnector* connector
-	  = new EventOutputConnector (*info,
-				      spatialNegotiator,
-				      comm,
-				      router);
-	setup_->temporalNegotiator ()->addConnection (connector,
-						      maxBuffered,
-						      sizeof (Event));
-	setup_->addConnector (connector);
-      }
+    return new EventOutputConnector (connInfo,
+				     spatialNegotiator,
+				     setup_->communicator (),
+				     router);
   }
-
-
+  
+  
   void
   EventOutputPort::buildTable ()
   {
@@ -315,22 +390,20 @@ namespace MUSIC {
 			   double accLatency,
 			   int maxBuffered)
   {
-    MPI::Intracomm comm = setup_->communicator ();
-    // Retrieve info about all remote connectors of this port
-    PortConnectorInfo portConnections
-      = ConnectivityInfo_->connections ();
-    PortConnectorInfo::iterator info = portConnections.begin ();
-    spatialNegotiator = new SpatialInputNegotiator (indices, type);
-    EventInputConnector* connector
-      = new EventInputConnector (*info,
-				 spatialNegotiator,
-				 handleEvent,
-				 type,
-				 comm);
-    setup_->temporalNegotiator ()->addConnection (connector,
-						  maxBuffered,
-						  accLatency);
-    setup_->addConnector (connector);
+    type_ = type;
+    handleEvent_ = handleEvent;
+    InputRedistributionPort::mapImpl (indices, type, accLatency, maxBuffered);
+  }
+
+  
+  InputConnector*
+  EventInputPort::makeInputConnector (ConnectorInfo connInfo)
+  {
+    return new EventInputConnector (connInfo,
+				    spatialNegotiator,
+				    handleEvent_,
+				    type_,
+				    setup_->communicator ());
   }
 
   
@@ -350,6 +423,12 @@ namespace MUSIC {
   }
   
 
+  /********************************************************************
+   *
+   * Message Ports
+   *
+   ********************************************************************/
+  
   void
   MessageOutputPort::map ()
   {

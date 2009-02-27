@@ -94,6 +94,7 @@ namespace MUSIC {
       EventHandlerLocalIndex* local;
     } ptr;
   public:
+    EventHandlerPtr () { }
     EventHandlerPtr (EventHandlerGlobalIndex* p) { ptr.global = p; }
     EventHandlerPtr (EventHandlerLocalIndex* p) { ptr.local = p; }
     EventHandlerGlobalIndex* global () { return ptr.global; }

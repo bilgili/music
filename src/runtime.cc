@@ -34,16 +34,21 @@ namespace MUSIC {
     localTime = Clock (s->timebase (), h);
     
     comm = s->communicator ();
+    // Take over connectors from setup object
     connectors = s->connectors ();
     if (s->launchedByMusic ())
       {
-	// Take over connectors from setup object
+	takeTickingPorts (s);
+	connectToPeers ();
+	specializeConnectors ();
 	MUSIC_LOG ("spatial negotiation");
-	spatialNegotiation (s);
+	spatialNegotiation ();
 	buildTables (s);
 	buildSchedule (comm.Get_rank ());
+	takePostCommunicators ();
 	MUSIC_LOG ("temporal negotiation");
 	temporalNegotiation (s, localTime);
+	// final initialization before simulation starts
 	initialize ();
       }
     delete s;
@@ -63,6 +68,33 @@ namespace MUSIC {
 	 ++c)
       delete *c;
     delete connectors;
+  }
+  
+
+  void
+  Runtime::takeTickingPorts (Setup* s)
+  {
+    std::vector<Port*>::iterator p;
+    for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
+      {
+	TickingPort* tp = dynamic_cast<TickingPort*> (*p);
+	if (tp != NULL)
+	  tickingPorts.push_back (tp);
+      }
+  }
+  
+
+  void
+  Runtime::takePostCommunicators ()
+  {
+    std::vector<Connector*>::iterator c;
+    for (c = connectors->begin (); c != connectors->end (); ++c)
+      {
+	PostCommunicationConnector* pc
+	  = dynamic_cast<PostCommunicationConnector*> (*c);
+	if (pc != NULL)
+	  postCommunication.push_back (pc);
+      }
   }
   
 
@@ -93,11 +125,8 @@ namespace MUSIC {
 
   
   void
-  Runtime::spatialNegotiation (Setup* s)
+  Runtime::connectToPeers ()
   {
-    // Let each connector pair setup their inter-communicators
-    // and create all required subconnectors.
-
     // This ordering is necessary so that both sender and receiver
     // in each pair sets up communication at the same point in time
     //
@@ -108,9 +137,34 @@ namespace MUSIC {
     for (std::vector<Connector*>::iterator c = connectors->begin ();
 	 c != connectors->end ();
 	 ++c)
+      (*c)->createIntercomm ();
+  }
+
+  
+  void
+  Runtime::specializeConnectors ()
+  {
+    for (std::vector<Connector*>::iterator c = connectors->begin ();
+	 c != connectors->end ();
+	 ++c)
+      *c = (*c)->specialize (localTime.tickInterval ());
+  }
+
+  
+  void
+  Runtime::spatialNegotiation ()
+  {
+    // Let each connector pair setup their inter-communicators
+    // and create all required subconnectors.
+
+    sort (connectors->begin (), connectors->end (), lessConnector);
+    for (std::vector<Connector*>::iterator c = connectors->begin ();
+	 c != connectors->end ();
+	 ++c)
       // negotiate and fill up vectors passed as arguments
       (*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
   }
+
 
   void
   Runtime::buildSchedule (int localRank)
@@ -164,6 +218,8 @@ namespace MUSIC {
       for (; c != inputSubconnectors.end (); ++c)
 	schedule.push_back (*c);
     }
+
+    //*fixme* could delete output/inputSubconnectors here
   }
 
   
@@ -223,20 +279,36 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
+    // ContPorts do some per-tick initialization here
+    std::vector<TickingPort*>::iterator p;
+    for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
+      (*p)->tick ();
+
+    // Check if any connector wants to communicate
     bool requestCommunication = false;
-    
+
     std::vector<Connector*>::iterator c;
     for (c = connectors->begin (); c != connectors->end (); ++c)
       (*c)->tick (requestCommunication);
 
+    // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
       {
 	// Loop through the schedule of subconnectors
-	std::vector<Subconnector*>::iterator c;
-	for (c = schedule.begin (); c != schedule.end (); ++c)
-	  (*c)->tick ();//*fixme* rename subconnector tick to doCommunicate?
+	for (std::vector<Subconnector*>::iterator s = schedule.begin ();
+	     s != schedule.end ();
+	     ++s)
+	  (*s)->tick ();//*fixme* rename subconnector tick to maybeCommunicate?
       }
-    
+
+    // ContInputConnectors write data to application here
+    for (std::vector<PostCommunicationConnector*>::iterator c
+	   = postCommunication.begin ();
+	 c != postCommunication.end ();
+	 ++c)
+      (*c)->postCommunication ();
+	
+    // Update local time
     localTime.tick ();
   }
 

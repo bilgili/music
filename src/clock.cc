@@ -20,6 +20,22 @@
 
 namespace MUSIC {
 
+  ClockState
+  ClockState::Serialized::deserialize ()
+  {
+    return (upper << 32) | lower;
+  }
+
+
+  ClockState::Serialized
+  ClockState::serialize ()
+  {
+    Serialized s;
+    s.upper = state >> 32;
+    s.lower = state & 0xffffffff;
+  }
+
+
   Clock::Clock (double tb, double h)
   {
     configure (tb, h / tb + 0.5);
@@ -27,7 +43,7 @@ namespace MUSIC {
 
 
   void
-  Clock::configure (double tb, ClockStateT ti)
+  Clock::configure (double tb, ClockState ti)
   {
     state_ = 0;
     timebase_ = tb;

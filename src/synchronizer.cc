@@ -28,12 +28,12 @@ namespace MUSIC {
   {
     // Advance receive time as much as possible
     // still ensuring that oldest data arrives in time
-    ClockStateT limit
-      = nextSend.integerTime () + latency - nextReceive.tickInterval ();
+    ClockState limit
+      = nextSend.integerTime () + latency_ - nextReceive.tickInterval ();
     while (nextReceive.integerTime () <= limit)
       nextReceive.tick ();
     // Advance send time to match receive time
-    limit = nextReceive.integerTime () + nextReceive.tickInterval () - latency;
+    limit = nextReceive.integerTime () + nextReceive.tickInterval () - latency_;
     int bCount = 0;
     while (nextSend.integerTime () <= limit)
       {
@@ -41,8 +41,8 @@ namespace MUSIC {
 	++bCount;
       }
     // Advance send time according to precalculated buffer
-    if (bCount < maxBuffered)
-      nextSend.ticks (maxBuffered - bCount);
+    if (bCount < maxBuffered_)
+      nextSend.ticks (maxBuffered_ - bCount);
     MUSIC_LOGR ("next send at " << nextSend.time ()
 		<< ", next receive at " << nextReceive.time ());
   }
@@ -58,7 +58,7 @@ namespace MUSIC {
 
   
   void
-  Synchronizer::setSenderTickInterval (ClockStateT ti)
+  Synchronizer::setSenderTickInterval (ClockState ti)
   {
     MUSIC_LOGR ("sender tick interval set to " << nextSend.timebase () * ti);
     nextSend.setTickInterval (ti);
@@ -66,7 +66,7 @@ namespace MUSIC {
 
   
   void
-  Synchronizer::setReceiverTickInterval (ClockStateT ti)
+  Synchronizer::setReceiverTickInterval (ClockState ti)
   {
     MUSIC_LOGR ("receiver tick interval set to "
 		<< nextReceive.timebase () * ti);
@@ -78,15 +78,15 @@ namespace MUSIC {
   Synchronizer::setMaxBuffered (int m)
   {
     MUSIC_LOGR ("maxBuffered set to " << m);
-    maxBuffered = m - 1;
+    maxBuffered_ = m - 1;
   }
 
 
   void
-  Synchronizer::setAccLatency (ClockStateT l)
+  Synchronizer::setAccLatency (ClockState l)
   {
     MUSIC_LOGR ("accLatency set to " << nextReceive.timebase () * l);
-    latency = l;
+    latency_ = l;
   }
 
   
@@ -97,20 +97,6 @@ namespace MUSIC {
   }
 
   
-  bool
-  Synchronizer::sample ()
-  {
-    return true;
-  }
-
-
-  bool
-  Synchronizer::mark ()
-  {
-    return true;
-  }
-
-
   bool
   Synchronizer::communicate ()
   {
@@ -133,6 +119,111 @@ namespace MUSIC {
     if (*localTime > nextReceive)
       nextCommunication ();
     communicate_ = *localTime == nextReceive;
+  }
+
+
+  // This function is only called when sender is remote
+  void
+  InterpolationSynchronizer::setSenderTickInterval (ClockState ti)
+  {
+    Synchronizer::setSenderTickInterval (ti);
+    remoteTime.configure (localTime->timebase (), ti);
+  }
+  
+  
+  // This function is only called when receiver is remote
+  void
+  InterpolationSynchronizer::setReceiverTickInterval (ClockState ti)
+  {
+    Synchronizer::setReceiverTickInterval (ti);
+    remoteTime.configure (localTime->timebase (), ti);
+  }
+  
+  
+  void
+  InterpolationSynchronizer::tick ()
+  {
+    /* The order of execution in Runtime::tick () is:
+     *
+     * 1. Port::tick ()
+     * 2. Connector::tick ()
+     *     =>  call of Synchronizer::sample ()
+     *         call of Synchronizer::tick ()
+     * 3. localTime.tick ()
+     *
+     * After the last sample at 1 localTime will be between remoteTime
+     * and remoteTime + localTime->tickInterval.  We trigger on this
+     * situation and forward remoteTime.
+     */ 
+    if (localTime->integerTime () >= remoteTime.integerTime ())
+      remoteTime.tick ();
+  }
+
+
+  bool
+  InterpolationOutputSynchronizer::sample ()
+  {
+    ClockState sampleWindowLow
+      = remoteTime.integerTime () - localTime->tickInterval ();
+    ClockState sampleWindowHigh
+      = remoteTime.integerTime () + localTime->tickInterval ();
+    return (sampleWindowLow <= localTime->integerTime ()
+	    && localTime->integerTime () < sampleWindowHigh);
+  }
+
+
+  bool
+  InterpolationOutputSynchronizer::interpolate ()
+  {
+    ClockState sampleWindowHigh
+      = remoteTime.integerTime () + localTime->tickInterval ();
+    return (remoteTime.integerTime () <= localTime->integerTime ()
+	    && localTime->integerTime () < sampleWindowHigh);
+  }
+
+
+  double
+  InterpolationOutputSynchronizer::interpolationCoefficient ()
+  {
+    ClockState prevSampleTime
+      = localTime->integerTime () - localTime->tickInterval ();
+    return ((double) (remoteTime.integerTime () - prevSampleTime)
+	    / (double) localTime->tickInterval ());
+  }
+
+
+  void
+  InterpolationOutputSynchronizer::tick ()
+  {
+    InterpolationSynchronizer::tick ();
+    OutputSynchronizer::tick ();
+  }
+
+  
+  bool
+  InterpolationInputSynchronizer::sample ()
+  {
+    ClockState sampleWindowLow
+      = remoteTime.integerTime () - localTime->tickInterval ();
+    return sampleWindowLow <= localTime->integerTime ();
+  }
+
+
+  double
+  InterpolationInputSynchronizer::interpolationCoefficient ()
+  {
+    ClockState prevSampleTime
+      = remoteTime.integerTime () - remoteTime.tickInterval ();
+    return ((double) (localTime->integerTime () - prevSampleTime)
+	    / (double) remoteTime.tickInterval ());
+  }
+
+
+  void
+  InterpolationInputSynchronizer::tick ()
+  {
+    InterpolationSynchronizer::tick ();
+    InputSynchronizer::tick ();
   }
   
 }

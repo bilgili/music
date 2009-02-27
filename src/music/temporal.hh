@@ -49,17 +49,17 @@ namespace MUSIC {
   private:
     InputConnector* connector_;
     int maxBuffered_;
-    ClockStateT accLatency_;
+    ClockState accLatency_;
   public:
     InputConnection (InputConnector* connector,
 		     int maxBuffered,
-		     ClockStateT accLatency)
+		     ClockState accLatency)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered),
 	accLatency_ (accLatency) { }
     InputConnector* connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
-    ClockStateT accLatency () { return accLatency_; }
+    ClockState accLatency () { return accLatency_; }
   };
   
   class ConnectionDescriptor {
@@ -68,14 +68,14 @@ namespace MUSIC {
     int receiverPort;
     int maxBuffered;
     int defaultMaxBuffered; // not used for input connections
-    ClockStateT accLatency;
-    ClockStateT remoteTickInterval;
+    ClockState accLatency;
+    ClockState remoteTickInterval;
   };
   
   class TemporalNegotiationData {
   public:
     double timebase;
-    ClockStateT tickInterval;
+    ClockState tickInterval;
     int nOutConnections;
     int nInConnections;
     int recNamesSize;
@@ -103,7 +103,7 @@ namespace MUSIC {
     int negotiationDataSize (int nBlock, int nConnections);
     int computeDefaultMaxBuffered (int maxLocalWidth,
 				   int eventSize,
-				   ClockStateT tickInterval,
+				   ClockState tickInterval,
 				   double timebase);
     TemporalNegotiationData* allocNegotiationData (int nBlocks,
 						   int nConnections);
@@ -125,7 +125,7 @@ namespace MUSIC {
 			int maxBuffered,
 			double accLatency);
     void createNegotiationCommunicator ();
-    void collectNegotiationData (ClockStateT ti);
+    void collectNegotiationData (ClockState ti);
     void communicateNegotiationData ();
     void combineParameters ();
     void loopAlgorithm ();
@@ -146,7 +146,7 @@ namespace MUSIC {
       : pre_ (&pre), post_ (&post), connection_ (&descr) { }
     ApplicationNode& pre () { return *pre_; }
     ApplicationNode& post () { return *post_; }
-    ClockStateT latency () { return connection_->accLatency;}
+    ClockState latency () { return connection_->accLatency;}
     int allowedBuffer () { return connection_->maxBuffered; }
     void setAllowedBuffer (int a) { connection_->maxBuffered = a; }
   };
@@ -167,7 +167,7 @@ namespace MUSIC {
     bool visited;
     bool inPath;
     std::string name ();
-    ClockStateT tickInterval () { return data->tickInterval; }
+    ClockState tickInterval () { return data->tickInterval; }
     int nConnections () { return data->nOutConnections; }
     Connection connection (int c)
     {

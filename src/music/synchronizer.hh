@@ -27,32 +27,60 @@ namespace MUSIC {
     Clock* localTime;
     Clock nextSend;
     Clock nextReceive;
-    ClockStateT latency;
-    int maxBuffered;
+    ClockState latency_;
+    int maxBuffered_;
     bool communicate_;
     void nextCommunication ();
   public:
     void setLocalTime (Clock* lt);
-    void setSenderTickInterval (ClockStateT ti);
-    void setReceiverTickInterval (ClockStateT ti);
+    virtual void setSenderTickInterval (ClockState ti);
+    virtual void setReceiverTickInterval (ClockState ti);
     // algorithm expects *extra* buffered ticks so we subtract 1
     void setMaxBuffered (int m);
-    void setAccLatency (ClockStateT l);
+    int allowedBuffered () { return maxBuffered_; }
+    void setAccLatency (ClockState l);
     void initialize ();
-    bool sample ();
-    bool mark ();
     bool communicate ();
   };
 
 
-  class OutputSynchronizer : public Synchronizer {
+  class OutputSynchronizer : virtual public Synchronizer {
   public:
     void tick ();
   };
 
 
-  class InputSynchronizer : public Synchronizer {
+  class InputSynchronizer : virtual public Synchronizer {
   public:
+    void tick ();
+  };
+
+
+  class InterpolationSynchronizer : virtual public Synchronizer {
+  protected:
+    Clock remoteTime;
+  public:
+    virtual void setSenderTickInterval (ClockState ti);
+    virtual void setReceiverTickInterval (ClockState ti);    
+    void tick ();
+  };
+
+
+  class InterpolationOutputSynchronizer : public InterpolationSynchronizer,
+					  public OutputSynchronizer {
+  public:
+    bool sample ();
+    bool interpolate ();
+    double interpolationCoefficient ();
+    void tick ();
+  };
+
+
+  class InterpolationInputSynchronizer : public InterpolationSynchronizer,
+					 public InputSynchronizer {
+  public:
+    bool sample ();
+    double interpolationCoefficient ();
     void tick ();
   };
 

@@ -24,6 +24,8 @@
 #include <music/index_map.hh>
 #include <music/event.hh>
 #include <music/message.hh>
+#include <music/connector.hh>
+#include <music/sampler.hh>
 #include <music/event_router.hh>
 #include <music/connectivity.hh>
 #include <music/spatial.hh>
@@ -53,43 +55,73 @@ namespace MUSIC {
   // correct receiver MPI process.  Examples are cont_ports and
   // event_ports.
   
-  class RedistributionPort : virtual public Port {
-  protected:
+  class RedistributionPort : public virtual Port {
   };
 
-  class OutputPort : virtual public Port {
+  // A ticking port is a port which needs to be updated at every tick ()
+
+  class TickingPort : public virtual Port {
+  public:
+    virtual void tick () = 0;
   };
 
-  class InputPort : virtual public Port {
+  class OutputPort : public virtual Port {
   };
 
-  class OutputRedistributionPort : OutputPort {
+  class InputPort : public virtual Port {
+  };
+
+  class OutputRedistributionPort : public OutputPort,
+				   public RedistributionPort {
   protected:
     SpatialOutputNegotiator* spatialNegotiator;
+    virtual OutputConnector* makeOutputConnector (ConnectorInfo connInfo) = 0;
+    virtual void mapImpl (IndexMap* indices,
+			  Index::Type type,
+			  int maxBuffered,
+			  int dataSize);
   public:
     void setupCleanup ();
   };
 
-  class InputRedistributionPort : OutputPort {
+  class InputRedistributionPort : public OutputPort,
+				  public RedistributionPort {
   protected:
     SpatialInputNegotiator* spatialNegotiator;
+    virtual InputConnector* makeInputConnector (ConnectorInfo connInfo) = 0;
+    void mapImpl (IndexMap* indices,
+		  Index::Type type,
+		  double accLatency,
+		  int maxBuffered);
   public:
     void setupCleanup ();
   };
 
-  class ContPort : public RedistributionPort {
+  class ContPort : virtual public Port {
+  protected:
+    Sampler sampler;
   };
 
-  class ContOutputPort : public ContPort, public OutputRedistributionPort {
+  class ContOutputPort : public ContPort,
+			 public OutputRedistributionPort,
+			 public TickingPort {
     void mapImpl (DataMap* indices, int maxBuffered);
+    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
   public:
     ContOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
     void map (DataMap* dmap);
     void map (DataMap* dmap, int maxBuffered);
+    void tick ();
   };
   
   class ContInputPort : public ContPort, public InputRedistributionPort {
+    bool interpolate_;
+    void mapImpl (DataMap* dmap,
+		  double delay,
+		  int maxBuffered,
+		  bool interpolate);
+    InputConnector* makeInputConnector (ConnectorInfo connInfo);
   public:
     ContInputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -102,19 +134,19 @@ namespace MUSIC {
   };
 
   
-  class EventPort : public RedistributionPort {
+  class EventPort : public virtual Port {
   };
 
   
   class EventOutputPort : public EventPort,
 			  public OutputRedistributionPort {
     EventRouter router;
-    void mapImpl (IndexMap* indices, Index::Type type, int maxBuffered);
   public:
     EventOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
     void map (IndexMap* indices, Index::Type type);
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
+    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
@@ -123,6 +155,9 @@ namespace MUSIC {
 
   class EventInputPort : public EventPort,
 			 public InputRedistributionPort {
+  private:
+    Index::Type type_;
+    EventHandlerPtr handleEvent_;
   public:
     EventInputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -140,11 +175,13 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
+  protected:
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  EventHandlerPtr handleEvent,
 		  double accLatency,
 		  int maxBuffered);
+    InputConnector* makeInputConnector (ConnectorInfo connInfo);
     // Facilities to support the C interface
   public:
     EventHandlerGlobalIndexProxy*
@@ -157,7 +194,7 @@ namespace MUSIC {
   };
 
 
-  class MessagePort : virtual public Port {
+  class MessagePort : public virtual Port {
   };
 
   class MessageOutputPort : public MessagePort, public OutputPort {

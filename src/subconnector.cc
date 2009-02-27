@@ -73,20 +73,6 @@ namespace MUSIC {
   }
 
   
-  int
-  OutputSubconnector::startIdx ()
-  {
-    return 0;
-  }
-
-  
-  int
-  OutputSubconnector::endIdx ()
-  {
-    return 0;
-  }
-
-  
   InputSubconnector::InputSubconnector ()
   {
     flushed = false;

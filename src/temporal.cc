@@ -53,7 +53,7 @@ namespace MUSIC {
 				     int maxBuffered,
 				     double accLatency)
   {
-    ClockStateT integerLatency = accLatency / setup_->timebase () + 0.5;
+    ClockState integerLatency = accLatency / setup_->timebase () + 0.5;
     inputConnections.push_back (InputConnection (connector,
 						 maxBuffered,
 						 integerLatency));
@@ -130,7 +130,7 @@ namespace MUSIC {
   int
   TemporalNegotiator::computeDefaultMaxBuffered (int maxLocalWidth,
 						 int eventSize,
-						 ClockStateT tickInterval,
+						 ClockState tickInterval,
 						 double timebase)
   {
     int res;
@@ -149,7 +149,7 @@ namespace MUSIC {
 
   
   void
-  TemporalNegotiator::collectNegotiationData (ClockStateT ti)
+  TemporalNegotiator::collectNegotiationData (ClockState ti)
   {
     int nOut = outputConnections.size ();
     int nIn = inputConnections.size ();
@@ -272,7 +272,7 @@ namespace MUSIC {
 	    else if (in->maxBuffered != MAX_BUFFERED_NO_VALUE)
 	      {
 		// convert to sender side ticks
-		ClockStateT inMaxBufferedTime
+		ClockState inMaxBufferedTime
 		  = in->maxBuffered * nodes[i].data->tickInterval;
 		int inMaxBuffered = (inMaxBufferedTime
 				     / nodes[o].data->tickInterval);
@@ -306,7 +306,7 @@ namespace MUSIC {
 	  ;
 
 	// Compute how much headroom we have for buffering
-	ClockStateT totalDelay = 0;
+	ClockState totalDelay = 0;
 	for (int c = loop; c < path.size (); ++c)
 	  totalDelay += path[c].latency () - path[c].pre ().tickInterval ();
 
@@ -325,7 +325,7 @@ namespace MUSIC {
         // Distribute totalDelay as allowed buffering uniformly over loop
         // (we could do better by considering constraints form other loops)
 	int loopLength = path.size () - loop;
-        ClockStateT bufDelay = totalDelay / loopLength;
+        ClockState bufDelay = totalDelay / loopLength;
         for (int c = 0; c < path.size (); ++c)
 	  {
 	    int allowedTicks = bufDelay / path[c].pre ().tickInterval ();
@@ -394,11 +394,12 @@ namespace MUSIC {
       {
 	int maxBuffered = negotiationData->connection[i].maxBuffered;
 	int accLatency = negotiationData->connection[i].accLatency;
-	ClockStateT remoteTickInterval
+	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;
-	OutputSynchronizer* synch
+	Synchronizer* synch
 	  = outputConnections[i].connector ()->synchronizer ();
 	synch->setLocalTime (&localTime);
+	// setReceiverTickInterval must be called *after* setLocalTime
 	synch->setReceiverTickInterval (remoteTickInterval);
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
@@ -408,11 +409,12 @@ namespace MUSIC {
       {
 	int maxBuffered = negotiationData->connection[nOut + i].maxBuffered;
 	int accLatency = negotiationData->connection[nOut + i].accLatency;
-	ClockStateT remoteTickInterval
+	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;
-	InputSynchronizer* synch
+	Synchronizer* synch
 	  = inputConnections[i].connector ()->synchronizer ();
 	synch->setLocalTime (&localTime);
+	// setSenderTickInterval must be called *after* setLocalTime
 	synch->setSenderTickInterval (remoteTickInterval);
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);

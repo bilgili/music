@@ -28,6 +28,8 @@ namespace MUSIC {
     Interval (int b, int e) : begin_ (b), end_ (e) { }
     int begin () const { return begin_; }
     int end () const { return end_; }
+    void setBegin (int begin) { begin_ = begin; }
+    void setEnd (int end) { end_ = end; }
   };
 
 }

@@ -94,6 +94,12 @@ namespace MUSIC {
   }
 
 
+  SpatialNegotiator::~SpatialNegotiator ()
+  {
+    delete indices;
+  }
+
+
   void
   SpatialNegotiator::negotiateWidth ()
   {

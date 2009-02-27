@@ -24,251 +24,55 @@
 namespace MUSIC {
 
   Connector::Connector (ConnectorInfo info_,
-			SpatialNegotiator* spatialNegotiator_,
+			SpatialNegotiator* spatialNegotiator,
 			MPI::Intracomm c)
     : info (info_),
-      spatialNegotiator (spatialNegotiator_),
+      spatialNegotiator_ (spatialNegotiator),
       comm (c)
   {
   }
 
+
+  bool
+  Connector::isLeader ()
+  {
+    return comm.Get_rank () == 0;
+  }
+
   
-  MPI::Intercomm
+  void
   Connector::createIntercomm ()
   {
     MUSIC_LOG (comm.Get_rank () << ": " << comm);
     MUSIC_LOG (comm.Get_rank () << ": remote = " << info.remoteLeader ());
-    return comm.Create_intercomm (0,
-				  MPI::COMM_WORLD, //*fixme* recursive?
-				  info.remoteLeader (),
-				  0); //*fixme* tag
+    intercomm = comm.Create_intercomm (0,
+				       MPI::COMM_WORLD, //*fixme* recursive?
+				       info.remoteLeader (),
+				       0); //*fixme* tag
   }
 
 
   void
-  OutputConnector::initialize ()
-  {
-    synch.initialize ();
-  }
-
-  
-  void
-  OutputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    // Only assign requestCommunication if true
-    if (synch.communicate ())
-      requestCommunication = true;
-  }
-
-  
-  void
-  InputConnector::initialize ()
-  {
-    synch.initialize ();
-  }
-
-  
-  void
-  InputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    // Only assign requestCommunication if true
-    if (synch.communicate ())
-      requestCommunication = true;
-  }
-
-  
-  void
-  ContConnector::swapBuffers (contDataT*& b1, contDataT*& b2)
-  {
-    contDataT* tmp;
-    tmp = b1;
-    b1 = b2;
-    b2 = tmp;
-  }
-  
-
-  void
-  ContInputConnector::receive ()
-  {
-  }
-
-  
-  void
-  FastContOutputConnector::interpolateTo (int start, int end, contDataT* data)
-  {
-  }
-  
-  
-  void
-  FastContOutputConnector::interpolateToBuffers ()
-  {
-#if 0
-    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
-    for (; i != subconnectors.end (); ++i)
-      {
-	contDataT* data = (contDataT*) (*i)->buffer.insert ();
-	interpolateTo ((*i)->startIdx (), (*i)->endIdx (), data);
-      }
-#endif
-  }
-
-  
-  void
-  FastContOutputConnector::mark ()
-  {
-#if 0
-    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
-    for (; i != subconnectors.end (); ++i)
-      {
-	ContOutputSubconnector* subcon = (ContOutputSubconnector*) *i;
-	subcon->buffer.mark ();
-      }
-#endif
-  }
-
-  
-  void
-  ContOutputConnector::send ()
-  {
-#if 0
-    std::vector<OutputSubconnector*>::iterator i = subconnectors.begin ();
-    for (; i != subconnectors.end (); ++i)
-      {
-	ContOutputSubconnector* subcon = (ContOutputSubconnector*) *i;
-	subcon->send ();
-      }
-#endif
-  }
-
-
-  void
-  FastContOutputConnector::applicationTo (contDataT* data)
-  {
-  }
-  
-  
-  void
-  SlowContInputConnector::toApplication ()
-  {
-  }
-
-  
-  void
-  FastContOutputConnector::tick ()
-  {
-    if (synch.sample ())
-      {
-	swapBuffers (prevSample, sample);
-	// data is copied into sections destined to different subconnectors
-	applicationTo (sample);
-	interpolateToBuffers ();
-      }
-    if (synch.mark ())
-      mark ();
-    if (synch.communicate ())
-      send ();
-  }
-
-
-  void
-  SlowContInputConnector::buffersToApplication ()
-  {
-  }
-
-  
-  void
-  SlowContInputConnector::tick ()
-  {
-    if (synch.communicate ())
-      receive ();
-    buffersToApplication ();
-  }
-
-
-  void
-  SlowContOutputConnector::applicationToBuffers ()
-  {
-  }
-
-  
-  void
-  SlowContOutputConnector::tick ()
-  {
-    applicationToBuffers ();
-    if (synch.communicate ())
-      send ();
-  }
-
-
-  void
-  FastContInputConnector::buffersTo (contDataT* data)
-  {
-  }
-
-  
-  void
-  FastContInputConnector::interpolateToApplication ()
-  {
-  }
-
-  
-  void
-  FastContInputConnector::tick ()
-  {
-    if (synch.communicate ())
-      receive ();
-    swapBuffers (prevSample, sample);
-    buffersTo (sample);
-    interpolateToApplication ();
-  }
-
-
-  EventConnector::EventConnector (ConnectorInfo info_,
-				  SpatialNegotiator* spatialNegotiator_,
-				  MPI::Intracomm c)
-    : Connector (info_, spatialNegotiator_, c)
-  {
-  }
-  
-
-  EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
-					      SpatialOutputNegotiator* spatialNegotiator_,
-					      MPI::Intracomm comm,
-					      EventRouter& router_)
-    : Connector (connInfo, spatialNegotiator_, comm),
-      EventConnector (connInfo, spatialNegotiator_, comm),
-      router (router_)
-  {
-  }
-
-  
-  void
-  EventOutputConnector::spatialNegotiation
+  OutputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
    std::vector<InputSubconnector*>& isubconn)
   {
-    std::map<int, EventOutputSubconnector*> subconnectors;
-    MPI::Intercomm intercomm = createIntercomm ();
+    std::map<int, OutputSubconnector*> subconnectors;
     for (NegotiationIterator i
-	   = spatialNegotiator->negotiate (comm,
+	   = spatialNegotiator_->negotiate (comm,
 					   intercomm,
 					   info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
-	std::map<int, EventOutputSubconnector*>::iterator c
+	std::map<int, OutputSubconnector*>::iterator c
 	  = subconnectors.find (i->rank ());
-	EventOutputSubconnector* subconn;
+	OutputSubconnector* subconn;
 	if (c != subconnectors.end ())
 	  subconn = c->second;
 	else
 	  {
-	    subconn = new EventOutputSubconnector (&synch,
-						   intercomm,
-						   i->rank (),
-						   receiverPortName ());
+	    subconn = makeOutputSubconnector (i->rank ());
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    osubconn.push_back (subconn);
 	  }
@@ -277,61 +81,32 @@ namespace MUSIC {
 		   << i->begin () << ", "
 		   << i->end () << ", "
 		   << i->local () << ") -> " << i->rank ());
-	router.insertRoutingInterval (i->interval (), subconn->buffer ());
+	addRoutingInterval (i->interval (), subconn);
       }
   }
 
-  
-  EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
-					    SpatialInputNegotiator* spatialNegotiator,
-					    EventHandlerPtr handleEvent_,
-					    Index::Type type_,
-					    MPI::Intracomm comm)
-    : Connector (connInfo, spatialNegotiator, comm),
-      EventConnector (connInfo, spatialNegotiator, comm),
-      handleEvent (handleEvent_),
-      type (type_)
-  {
-  }
 
-  
   void
-  EventInputConnector::spatialNegotiation
+  InputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
    std::vector<InputSubconnector*>& isubconn)
   {
-    std::map<int, EventInputSubconnector*> subconnectors;
-    MPI::Intercomm intercomm = createIntercomm ();
+    std::map<int, InputSubconnector*> subconnectors;
     int receiverRank = intercomm.Get_rank ();
-    for (NegotiationIterator i = spatialNegotiator->negotiate (comm,
-							       intercomm,
-							       info.nProcesses ());
+    for (NegotiationIterator i = spatialNegotiator_->negotiate (comm,
+								intercomm,
+								info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
-	std::map<int, EventInputSubconnector*>::iterator c
+	std::map<int, InputSubconnector*>::iterator c
 	  = subconnectors.find (i->rank ());
-	EventInputSubconnector* subconn;
+	InputSubconnector* subconn;
 	if (c != subconnectors.end ())
 	  subconn = c->second;
 	else
 	  {
-	    if (type == Index::GLOBAL)
-	      subconn
-		= new EventInputSubconnectorGlobal (&synch,
-						    intercomm,
-						    i->rank (),
-						    receiverRank,
-						    receiverPortName (),
-						    handleEvent.global ());
-	    else
-	      subconn
-		= new EventInputSubconnectorLocal (&synch,
-						   intercomm,
-						   i->rank (),
-						   receiverRank,
-						   receiverPortName (),
-						   handleEvent.local ());
+	    subconn = makeInputSubconnector (i->rank (), receiverRank);
 	    subconnectors.insert (std::make_pair (i->rank (), subconn));
 	    isubconn.push_back (subconn);
 	  }
@@ -341,6 +116,315 @@ namespace MUSIC {
 		   << i->end () << ", "
 		   << i->local () << ")");
       }
+  }
+
+
+  /********************************************************************
+   *
+   * Cont Connectors
+   *
+   ********************************************************************/
+
+  ClockState
+  ContConnector::remoteTickInterval (ClockState tickInterval)
+  {
+    ClockState::Serialized sRemoteTickInterval;
+    if (isLeader ())
+      {
+	// exchange tickInterval with peer leader
+	sRemoteTickInterval = tickInterval.serialize ();
+	intercomm.Sendrecv_replace (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG,
+				    0, 0, 0, 0); /*fixme* tags*/
+      }
+    // broadcast to peers
+    comm.Bcast (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG, 0);
+    return sRemoteTickInterval.deserialize ();
+  }
+
+  ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
+					    SpatialOutputNegotiator* spatialNegotiator,
+					    MPI::Intracomm comm,
+					    Sampler& sampler)
+    : Connector (connInfo, spatialNegotiator, comm),
+      ContConnector (sampler)
+  {
+  }
+
+  
+  Connector*
+  ContOutputConnector::specialize (ClockState tickInterval)
+  {
+    Connector* connector;
+    if (tickInterval < remoteTickInterval (tickInterval))
+      connector = new InterpolatingContOutputConnector (*this);
+    else
+      connector = new PlainContOutputConnector (*this);
+    delete this; // delete ourselves!!
+    return connector;
+  }
+
+  
+  void
+  ContOutputConnector::addRoutingInterval (IndexInterval i,
+					   OutputSubconnector* osubconn)
+  {
+    distributor_.addRoutingInterval (i, osubconn->buffer ());
+  }
+  
+  
+  PlainContOutputConnector::PlainContOutputConnector
+  (ContOutputConnector& connector)
+    : ContOutputConnector (connector)
+  {
+  }
+
+
+  void
+  PlainContOutputConnector::initialize ()
+  {
+    distributor_.configure (sampler_.dataMap ());
+    synch.initialize ();
+  }
+
+
+  void
+  PlainContOutputConnector::tick (bool& requestCommunication)
+  {
+    distributor_.distribute ();
+    synch.tick ();
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+
+  InterpolatingContOutputConnector::InterpolatingContOutputConnector
+  (ContOutputConnector& connector)
+    : ContOutputConnector (connector)
+  {
+  }
+
+
+  void
+  InterpolatingContOutputConnector::initialize ()
+  {
+    distributor_.configure (sampler_.interpolationDataMap ());
+    synch.initialize ();
+  }
+
+  
+  void
+  InterpolatingContOutputConnector::tick (bool& requestCommunication)
+  {
+    if (synch.sample ())
+      // sampling before and after time of receiver tick
+      sampler_.sample ();
+    if (synch.interpolate ())
+      {
+	sampler_.interpolate (synch.interpolationCoefficient ());
+	distributor_.distribute ();
+      }
+    synch.tick ();
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+
+  ContInputConnector::ContInputConnector (ConnectorInfo connInfo,
+					  SpatialInputNegotiator* spatialNegotiator,
+					  MPI::Intracomm comm,
+					  Sampler& sampler)
+    : Connector (connInfo, spatialNegotiator, comm),
+      ContConnector (sampler)
+  {
+  }
+
+  
+  Connector*
+  ContInputConnector::specialize (ClockState tickInterval)
+  {
+    Connector* connector;
+    if (tickInterval < remoteTickInterval (tickInterval))
+      connector = new InterpolatingContInputConnector (*this);
+    else
+      connector = new PlainContInputConnector (*this);
+    delete this; // delete ourselves!!
+    return connector;
+  }
+
+  
+  void
+  ContInputConnector::addRoutingInterval (IndexInterval i,
+					  InputSubconnector* isubconn)
+  {
+    collector_.addRoutingInterval (i, isubconn->buffer ());
+  }
+  
+  
+  PlainContInputConnector::PlainContInputConnector
+  (ContInputConnector& connector)
+    : ContInputConnector (connector)
+  {
+  }
+
+
+  void
+  PlainContInputConnector::initialize ()
+  {
+    collector_.configure (sampler_.dataMap (), synch.allowedBuffered ());
+    synch.initialize ();
+  }
+  
+
+  void
+  PlainContInputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+
+  void
+  PlainContInputConnector::postCommunication ()
+  {
+    // collect data from input buffers and write to application
+    collector_.collect ();
+  }
+
+
+  void
+  InterpolatingContInputConnector::initialize ()
+  {
+    collector_.configure (sampler_.interpolationDataMap (),
+			  synch.allowedBuffered ());
+    synch.initialize ();
+  }
+  
+
+  InterpolatingContInputConnector::InterpolatingContInputConnector
+  (ContInputConnector& connector)
+    : ContInputConnector (connector)
+  {
+  }
+
+
+  void
+  InterpolatingContInputConnector::tick (bool& requestCommunication)
+  {
+    sample = synch.sample ();
+    interpolationCoefficient = synch.interpolationCoefficient ();
+    synch.tick ();
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+
+  void
+  InterpolatingContInputConnector::postCommunication ()
+  {
+    if (sample)
+      collector_.collect (sampler_.insert ());
+    sampler_.interpolateToApplication (interpolationCoefficient);
+  }
+
+
+  /********************************************************************
+   *
+   * Event Connectors
+   *
+   ********************************************************************/
+  
+  EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
+					      SpatialOutputNegotiator* spatialNegotiator,
+					      MPI::Intracomm comm,
+					      EventRouter& router)
+    : Connector (connInfo, spatialNegotiator, comm),
+      router_ (router)
+  {
+  }
+
+  
+  void
+  EventOutputConnector::initialize ()
+  {
+    synch.initialize ();
+  }
+
+  
+  OutputSubconnector*
+  EventOutputConnector::makeOutputSubconnector (int remoteRank)
+  {
+    return new EventOutputSubconnector (&synch,
+					intercomm,
+					remoteRank,
+					receiverPortName ());
+  }
+
+
+  void
+  EventOutputConnector::addRoutingInterval (IndexInterval i,
+					    OutputSubconnector* osubconn)
+  {
+    router_.insertRoutingInterval (i, osubconn->buffer ());
+  }
+  
+  
+  void
+  EventOutputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+  
+  EventInputConnector::EventInputConnector (ConnectorInfo connInfo,
+					    SpatialInputNegotiator* spatialNegotiator,
+					    EventHandlerPtr handleEvent,
+					    Index::Type type,
+					    MPI::Intracomm comm)
+    : Connector (connInfo, spatialNegotiator, comm),
+      handleEvent_ (handleEvent),
+      type_ (type)
+  {
+  }
+
+  
+  void
+  EventInputConnector::initialize ()
+  {
+    synch.initialize ();
+  }
+
+  
+  InputSubconnector*
+  EventInputConnector::makeInputSubconnector (int remoteRank, int receiverRank)
+  {
+    if (type_ == Index::GLOBAL)
+      return new EventInputSubconnectorGlobal (&synch,
+					       intercomm,
+					       remoteRank,
+					       receiverRank,
+					       receiverPortName (),
+					       handleEvent_.global ());
+    else
+      return new EventInputSubconnectorLocal (&synch,
+					      intercomm,
+					      remoteRank,
+					      receiverRank,
+					      receiverPortName (),
+					      handleEvent_.local ());
+  }
+
+
+  void
+  EventInputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
   }
 
 }

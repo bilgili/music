@@ -1,4 +1,25 @@
+2009-02-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* ChangeLog, Makefile.am, music/FIBO.hh, music/array_data.hh,
+	music/clock.hh, music/connector.hh, music/data_map.hh,
+	music/event.hh, music/interval.hh, music/port.hh,
+	music/runtime.hh, music/spatial.hh, music/subconnector.hh,
+	music/synchronizer.hh, music/temporal.hh, FIBO.cc, array_data.cc,
+	clock.cc, connector.cc, port.cc, runtime.cc, spatial.cc,
+	subconnector.cc, synchronizer.cc, temporal.cc: Continous data port
+	framework.
+
+	* music/BIFO.hh, music/collector.hh, music/distributor.hh,
+	music/sampler.hh, BIFO.cc, collector.cc, distributor.cc,
+	sampler.cc: New files.
+	
 2009-02-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_SOURCES): Added distributor.cc,
+	music/distributor.cc, collector.cc, music/collector.hh.
+
+	* music/spatial.hh, spatial.cc: Added destructor which destroys
+	indices.
 
 	* setup.cc, runtime.cc: Pass connectors even if not launched using
 	the music utility.

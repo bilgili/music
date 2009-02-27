@@ -9,7 +9,8 @@ libmusic_la_SOURCES = \
 	setup.cc music/setup.hh \
 	error.cc music/error.hh music/debug.hh \
 	linear_index.cc music/linear_index.hh \
-	index_map.cc music/index_map.hh music/data_map.hh \
+	index_map.cc music/index_map.hh \
+	music/data_map.hh \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
 	application_map.cc music/application_map.hh \
@@ -19,12 +20,16 @@ libmusic_la_SOURCES = \
 	temporal.cc music/temporal.hh \
 	parse.cc music/parse.hh \
 	port.cc music/port.hh \
+	sampler.cc music/sampler.hh \
 	event_router.cc music/event_router.hh \
+	distributor.cc music/distributor.hh \
+	collector.cc music/collector.hh \
 	clock.cc music/clock.hh \
 	subconnector.cc music/subconnector.hh \
 	connector.cc music/connector.hh \
 	permutation_index.cc music/permutation_index.hh \
 	synchronizer.cc music/synchronizer.hh \
+	BIFO.cc music/BIFO.hh \
 	FIBO.cc music/FIBO.hh music/message.hh \
 	music/interval.hh music/interval_tree.hh
 
@@ -53,7 +58,9 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/debug.hh music/port.hh music/clock.hh \
 		       music/connector.hh music/subconnector.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
+		       music/sampler.hh music/BIFO.hh \
 		       music/FIBO.hh music/event_router.hh \
+		       music/collector.hh music/distributor.hh \
 		       music/cont_data.hh music/event.hh music/message.hh \
 		       music/message.hh music/music-config.hh
 

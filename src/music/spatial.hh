@@ -135,6 +135,7 @@ namespace MUSIC {
     int nProcesses;
   public:
     SpatialNegotiator (IndexMap* indices, Index::Type type);
+    ~SpatialNegotiator ();
     void negotiateWidth ();
     int maxLocalWidth () { return maxLocalWidth_; }
     NegotiationIterator wrapIntervals (IndexMap::iterator beg,

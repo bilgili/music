@@ -32,13 +32,19 @@ namespace MUSIC {
   private:
     MPI::Intracomm comm;
     Clock localTime;
+    std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*>* connectors;
     std::vector<OutputSubconnector*> outputSubconnectors;
     std::vector<InputSubconnector*> inputSubconnectors;
     std::vector<Subconnector*> schedule;
+    std::vector<PostCommunicationConnector*> postCommunication;
 
-    void spatialNegotiation (Setup* s);
+    void takeTickingPorts (Setup* s);
+    void connectToPeers ();
+    void specializeConnectors ();
+    void spatialNegotiation ();
     void buildSchedule (int localRank);
+    void takePostCommunicators ();
     void buildTables (Setup* s);
     void temporalNegotiation (Setup* s, Clock& localTime);
     void initialize ();

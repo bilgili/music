@@ -28,13 +28,14 @@
 #include <music/event.hh>
 #include <music/spatial.hh>
 #include <music/connectivity.hh>
+#include <music/sampler.hh>
+#include <music/collector.hh>
+#include <music/distributor.hh>
 #include <music/event_router.hh>
 
 #include <music/subconnector.hh>
 
 namespace MUSIC {
-
-  typedef char contDataT;
 
   // The connector is responsible for one side of the communication
   // between the ports of a port pair.  An output port can have
@@ -45,13 +46,15 @@ namespace MUSIC {
   class Connector {
   protected:
     ConnectorInfo info;
-    SpatialNegotiator* spatialNegotiator;
+    SpatialNegotiator* spatialNegotiator_;
     MPI::Intracomm comm;
+    MPI::Intercomm intercomm;
   public:
     Connector () { }
     Connector (ConnectorInfo info_,
 	       SpatialNegotiator* spatialNegotiator_,
 	       MPI::Intracomm c);
+    virtual Connector* specialize (ClockState tickInterval) { return this; }
     std::string receiverAppName () const
     { return info.receiverAppName (); }
     std::string receiverPortName () const
@@ -60,8 +63,10 @@ namespace MUSIC {
     { return info.receiverPortCode (); }
     int remoteLeader () const
     { return info.remoteLeader (); }
-    int maxLocalWidth () { return spatialNegotiator->maxLocalWidth (); }
-    MPI::Intercomm createIntercomm ();
+    int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
+    bool isLeader ();
+    virtual Synchronizer* synchronizer () = 0;
+    void createIntercomm ();
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 			std::vector<InputSubconnector*>& isubconn) { }
@@ -69,111 +74,154 @@ namespace MUSIC {
     virtual void tick (bool& requestCommunication) = 0;
   };
 
-  class OutputConnector : virtual public Connector {
-  protected:
-    OutputSynchronizer synch;
+  class PostCommunicationConnector : virtual public Connector {
   public:
-    OutputSynchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void tick (bool& requestCommunication);
+    virtual void postCommunication () = 0;    
+  };
+
+  class OutputConnector : virtual public Connector {
+  public:
+    virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
+				     std::vector<InputSubconnector*>& isubconn);
+    virtual void addRoutingInterval (IndexInterval i, OutputSubconnector* s)
+    { };
+    virtual OutputSubconnector* makeOutputSubconnector (int remoteRank)
+    { }; /*fixme* make pure */
   };
   
   class InputConnector : virtual public Connector {
-  protected:
-    InputSynchronizer synch;
   public:
-    InputSynchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void tick (bool& requestCommunication);
+    virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
+				     std::vector<InputSubconnector*>& isubconn);
+    virtual InputSubconnector* makeInputSubconnector (int remoteRank,
+						      int receiverRank)
+    { };
   };
 
   class ContConnector : virtual public Connector {
+  protected:
+    Sampler& sampler_;    
+    // We need to allocate instances of ContOutputConnector and
+    // ContInputConnector and, therefore need dummy versions of the
+    // following virtual functions:
+    virtual Synchronizer* synchronizer () { return NULL; };
+    virtual void initialize () { }
+    virtual void tick (bool&) { }
   public:
-    void swapBuffers (contDataT*& b1, contDataT*& b2);
+    ContConnector (Sampler& sampler) : sampler_ (sampler) { }
+    ClockState remoteTickInterval (ClockState tickInterval);
   };  
   
-  class FastConnector : virtual public Connector {
-  protected:
-    contDataT* prevSample;
-    contDataT* sample;
+  class InterpolatingConnector : virtual public Connector {
   };
   
   class ContOutputConnector : public ContConnector, public OutputConnector {
-  public:
-    void send ();
-  };
-  
-  class ContInputConnector : public ContConnector, public InputConnector {
   protected:
-    void receive ();
+    Distributor distributor_;
   public:
+    ContOutputConnector (ConnectorInfo connInfo,
+			 SpatialOutputNegotiator* spatialNegotiator,
+			 MPI::Intracomm comm,
+			 Sampler& sampler);
+    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
+    Connector* specialize (ClockState tickInterval);
   };
   
-  class FastContOutputConnector : public ContOutputConnector,
-				  public FastConnector {
-    void interpolateTo (int start, int end, contDataT* data);
-    void interpolateToBuffers ();
-    void applicationTo (contDataT* data);
-    void mark ();
+  class PlainContOutputConnector : public ContOutputConnector {
+    OutputSynchronizer synch;
   public:
-    void tick ();
+    PlainContOutputConnector (ContOutputConnector& connector);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
   };
   
-  class SlowContInputConnector : public ContInputConnector {
-  private:
-    void buffersToApplication ();
-    void toApplication ();
+  class InterpolatingContOutputConnector : public ContOutputConnector,
+					   public InterpolatingConnector {
+    InterpolationOutputSynchronizer synch;
   public:
-    void tick ();
+    InterpolatingContOutputConnector (ContOutputConnector& connector);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
   };
   
-  class SlowContOutputConnector : public ContOutputConnector {
-    void applicationToBuffers ();
+  class ContInputConnector : public ContConnector,
+			     public InputConnector,
+			     public PostCommunicationConnector {
+  protected:
+    Collector collector_;
   public:
-    void tick ();
+    ContInputConnector (ConnectorInfo connInfo,
+			SpatialInputNegotiator* spatialNegotiator,
+			MPI::Intracomm comm,
+			Sampler& sampler);
+    void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
+    Connector* specialize (ClockState tickInterval);
+    // We need to allocate instances of ContInputConnector and, therefore
+    // need dummy versions of the following virtual functions:
+    virtual void postCommunication () { }
   };
   
-  class FastContInputConnector : public ContInputConnector,
-				 public FastConnector {
-    void buffersTo (contDataT* data);
-    void interpolateToApplication ();
+  class PlainContInputConnector : public ContInputConnector {
+    InputSynchronizer synch;
   public:
-    void tick ();
+    PlainContInputConnector (ContInputConnector& connector);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
+    void postCommunication ();
+  };
+
+  class InterpolatingContInputConnector : public ContInputConnector,
+					  public InterpolatingConnector {
+    InterpolationInputSynchronizer synch;
+    bool sample;
+    double interpolationCoefficient;
+  public:
+    InterpolatingContInputConnector (ContInputConnector& connector);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
+    void postCommunication ();
   };
 
   class EventConnector : virtual public Connector {
-  public:
-    EventConnector (ConnectorInfo info,
-		    SpatialNegotiator* spatialNegotiator,
-		    MPI::Intracomm c);
   };
   
   class EventOutputConnector : public OutputConnector, public EventConnector {
-    EventRouter& router;
+  private:
+    OutputSynchronizer synch;
+    EventRouter& router_;
     void send ();
   public:
     EventOutputConnector (ConnectorInfo connInfo,
 			  SpatialOutputNegotiator* spatialNegotiator,
 			  MPI::Intracomm comm,
 			  EventRouter& router);
-    void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			     std::vector<InputSubconnector*>& isubconn);
-    void tick ();
+    OutputSubconnector* makeOutputSubconnector (int remoteRank);
+    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
   };
   
   class EventInputConnector : public InputConnector, public EventConnector {
     
   private:
-    EventHandlerPtr handleEvent;
-    Index::Type type;
+    InputSynchronizer synch;
+    EventHandlerPtr handleEvent_;
+    Index::Type type_;
   public:
     EventInputConnector (ConnectorInfo connInfo,
 			 SpatialInputNegotiator* spatialNegotiator,
 			 EventHandlerPtr handleEvent,
 			 Index::Type type,
 			 MPI::Intracomm comm);
-    void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			     std::vector<InputSubconnector*>& isubconn);
+    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
   };
   
 }

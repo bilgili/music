@@ -22,28 +22,53 @@
 
 namespace MUSIC {
 
-  // ClockStateT may be negative due to calculations in Synchronizer
+  // ClockState may be negative due to calculations in Synchronizer
+  class ClockState {
 #ifdef MUSIC_HAVE_LONG_LONG
-  typedef long long ClockStateT;
+    long long state;
 #else
 #error 64-bit clocks without long long not yet implemented
 #endif
+  public:
+    ClockState () { }
+    // The following operations should be defined in this header file
+    // so that they can be inlined by the compiler.
+    inline ClockState (const long long s) : state (s) { }
+    inline operator long long () const { return state; }
+    inline ClockState& operator+= (const ClockState& s)
+    {
+      state += s;
+      return *this;
+    }
+    class Serialized;
+    Serialized serialize ();
+    // The serialized representation of a ClockState is guaranteed to
+    // fit in two sequential long values
+    class Serialized {
+      friend Serialized ClockState::serialize ();
+      
+      signed long upper;
+      unsigned long lower;
+    public:
+      ClockState deserialize ();
+    };
+  };
   
   class Clock {
-    ClockStateT state_;
-    ClockStateT tickInterval_;
+    ClockState state_;
+    ClockState tickInterval_;
     double timebase_;
   public:
     Clock () { };
     Clock (double tb, double h);
-    void configure (double tb, ClockStateT ti);
+    void configure (double tb, ClockState ti);
     void tick ();
     void ticks (int n);
-    ClockStateT tickInterval () { return tickInterval_; }
-    void setTickInterval (ClockStateT ti) { tickInterval_ = ti; }
+    ClockState tickInterval () { return tickInterval_; }
+    void setTickInterval (ClockState ti) { tickInterval_ = ti; }
     double timebase () { return timebase_; }
     double time ();
-    ClockStateT integerTime () { return state_; }
+    ClockState integerTime () { return state_; }
     bool operator> (const Clock& ref) const { return state_ > ref.state_; }
     bool operator== (const Clock& ref) const { return state_ == ref.state_; }
   };

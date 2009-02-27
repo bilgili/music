@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,36 +16,28 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_FIBO_HH
+#ifndef MUSIC_BIFO_HH
 
 #include <vector>
 
+#include <music/FIBO.hh>
+
 namespace MUSIC {
 
-  class FIBO {
-  protected:
-    static const int nInitial = 10;
-    
-    std::vector<char> buffer;
-    int elementSize;
-    int size;
-    int current;
-
-    void grow (int newSize);
-    
+  class BIFO : public FIBO {
+  private:
+    int maxBlockSize_;
   public:
-    FIBO () { }
-    FIBO (int elementSize);
-    void configure (int elementSize);
-    bool isEmpty ();
+    BIFO () { }
+    BIFO (int elementSize, int maxBlockSize);
+    void configure (int elementSize, int maxBlockSize);
     //*fixme* return type
-    void* insert ();
-    void mark ();
-    void nextBlock (void*& data, int& size);
+    void* insertBlock ();
+    //void* next
   };
   
   
 }
 
-#define MUSIC_FIBO_HH
+#define MUSIC_BIFO_HH
 #endif

@@ -16,16 +16,32 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/linear_index.hh"
+
 #include "music/array_data.hh"
 
 namespace MUSIC {
   
-  ArrayData::ArrayData (void* buffer, MPI_Datatype type, IndexMap* map)
+  ArrayData::ArrayData (void* buffer, MPI::Datatype type, IndexMap* map)
+    : DataMap (buffer), type_ (type), indexMap_ (map->copy ())
   {
   }
-  
-  ArrayData::ArrayData (void* buffer, MPI_Datatype type, int baseIndex, int size)
+
+  ArrayData::~ArrayData ()
   {
+    delete indexMap_;
+  }
+  
+  ArrayData::ArrayData (void* buffer, MPI::Datatype type, int baseIndex, int size)
+  {
+    LinearIndex indexMap (baseIndex, size);
+    ArrayData (buffer, type, &indexMap);
+  }
+
+  DataMap*
+  ArrayData::copy ()
+  {
+    return new ArrayData (base (), type_, indexMap_);
   }
   
 }

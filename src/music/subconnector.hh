@@ -24,6 +24,7 @@
 
 #include <music/synchronizer.hh>
 #include <music/FIBO.hh>
+#include <music/BIFO.hh>
 #include <music/event.hh>
 
 namespace MUSIC {
@@ -71,14 +72,14 @@ namespace MUSIC {
 			int elementSize);
     FIBO* buffer () { return &buffer_; }
     void send ();
-    int startIdx ();
-    int endIdx ();
   };
   
   class InputSubconnector : virtual public Subconnector {
   protected:
     InputSubconnector ();
     bool flushed;
+  public:
+    virtual BIFO* buffer () { return NULL; }
   };
 
   class ContOutputSubconnector : public OutputSubconnector {
@@ -87,6 +88,10 @@ namespace MUSIC {
   };
   
   class ContInputSubconnector : public InputSubconnector {
+  protected:
+    BIFO buffer_;
+  public:
+    BIFO* buffer () { return &buffer_; }
   };
 
   class EventSubconnector : virtual public Subconnector {

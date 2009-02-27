@@ -16,6 +16,8 @@
 ** Did we promise Raphael some addition to the manual during one of
    our meetings?
 
+* error message if latency => > maxBuffered
+   
 * indexinterval::local --> offset
 
 * Use pass-by-reference ubstead of pass-by-value where possible

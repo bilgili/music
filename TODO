@@ -1,3 +1,23 @@
+* Manual:
+
+** Are all manual-related points in Hans Plesser's revision to the RFC
+   considered?
+
+** No, they are not: We need to document the usage of
+   runtime->finalize ().  (This is where MUSIC does flushes data and
+   calls MPI::Finalize ().  The flushing of data needs to be
+   documented.
+
+** Is the API described in the manual consistent with the header files?
+
+** Clearify usage of tick ().  What data from what time-step is sent
+   and received by which tick?
+
+** Did we promise Raphael some addition to the manual during one of
+   our meetings?
+
+* indexinterval::local --> offset
+
 * Use pass-by-reference ubstead of pass-by-value where possible
   (especially for some strings)
 
@@ -7,6 +27,8 @@
 * Buffering schedule in synchronizer
 
 * cleanup constructor arguments in subconnector.cc
+
+* marshalling, for example in temporal.cc
 
 Continuous data
 
@@ -19,8 +41,6 @@ Before delivery
 * Run loop detection algorithm in group leaders
 
 * Distribute timing constraint data to all ranks
-
-* Manual
 
 * Documentation strings
 

@@ -242,7 +242,7 @@ directly in the API.
   where data actually resides within the application.  This is
   typically stored internally in the port data structure.  Data to be
   transferred over a connection can be regarded as a large array
-  distributed over multiple processors. The data map tells on
+  distributed over multiple processors.  The data map tells on
   what processor each data element resides and how it should be
   accessed.
 
@@ -371,22 +371,24 @@ does MUSIC know which data to send where?
 
 In MUSIC, there are two views of the data to be communicated over a
 connection.  Data elements are enumerated differently according to
-these views.  MUSIC uses \emph{global indices}\index{global index} to
+these views.  MUSIC uses \emph{shared indices}\index{shared index} to
 enumerate the entire set of data to be sent over the connection while
-\emph{local indices}\index{local index} enumerate the subset of data
-which is stored in the memory of a particular MPI process.  Data does
-not need to be ordered in the same way according to the two views.
-For example, local data stored in an array may be associated with an
-arbitrary subset of global indices in an arbitrary order.
+\emph{application indices}\index{application index} enumerate the
+subset of data which is stored in the memory of a particular MPI
+process.  Data does not need to be ordered in the same way according
+to the two views.  For example, data stored in an array may be
+associated with an arbitrary subset of shared indices in an arbitrary
+order.  The application indices can be local for each MPI process, or
+global over the whole application.
 
-The MUSIC library is informed about the relationship between global
-and local indices and how data is stored in memory during the setup
+The MUSIC library is informed about the relationship between shared
+and application indices and how data is stored in memory during the setup
 phase.  Two abstractions are used to carry this information:
 
-The \lstinline|IndexMap| maps local indices to global indices.  That
-is, the \lstinline|IndexMap| tells which parts of a distributed data
-array are handled by the local process and how the data elements are
-locally ordered.
+The \lstinline|IndexMap| maps application indices to shared indices.
+That is, the \lstinline|IndexMap| tells which parts of a distributed
+data array are handled by the local process and how the data elements
+are locally ordered.
 
 The \lstinline|DataMap| encapsulates how a port accesses its data.
 The \lstinline|DataMap| contains an \lstinline|IndexMap|.  While an
@@ -453,25 +455,25 @@ delays\index{axonal delay}.
       \includegraphics[width=\textwidth]{figures/ticklogic}
       \caption[Timing of data transfer, slowdown]{\label{fig:timingshorter}
         Transfer of data when sender has a shorter
-        tick interval than the receiver}
+        tick interval than the receiver.}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
       \includegraphics[width=\textwidth]{figures/ticklogic2}
       \caption[Timing of data transfer, speedup]{\label{fig:timinglonger}
         Transfer of data when sender has a longer
-        tick interval than the receiver}
+        tick interval than the receiver.}
     \end{minipage}
   \end{center}
 \end{figure}
 
 Figures~\ref{fig:timingshorter} and \ref{fig:timinglonger} illustrate
-how MUSIC handles time when transferring continuous data over a connection.
-In figure~\ref{fig:timingshorter}, the sender application uses a
-shorter interval between the tick calls than the receiver.  The sender
-side uses values sampled at the tick points to interpolate a value
-corresponding to the point in time when the receiver makes its tick
-call.
+how MUSIC handles time when transferring continuous data over a
+connection.  In figure~\ref{fig:timingshorter}, the sender application
+uses a shorter tick interval than the receiver.  The sender side uses
+values sampled before time is advanced at the tick points to
+interpolate a value corresponding to the point in time when the
+receiver returns from its tick call.
 
 The dark middle area (labelled ``MPI'') is where the actual data
 transfer takes place.  MUSIC makes use of the fact that the receiving
@@ -513,8 +515,8 @@ to make schedules for communication loops.
   \begin{center}
     \includegraphics[width=0.7\textwidth]{figures/timeline}
     \caption[Timing of ticks]{\label{fig:timeline}
-      This figure illustrates how MUSIC can allow one application (A)
-      to execute ahead of another (B) when transferring continuous
+      This figure illustrates how MUSIC can allow one application (B)
+      to execute ahead of another (A) when transferring continuous
       data.  The receiver (B) has specified a delay on the input port
       which means that the value to be delivered at each tick (gray
       areas) corresponds to a simulated time in A (blue arrows) which
@@ -1061,25 +1063,36 @@ closest according to simulation time.
 \index{map}\index{mapping event ports}
 \begin{head}{map}
   void EventOutputPort::map (IndexMap* indices,
+                             Index::Type type,
                              int maxBuffered)
 
   void EventInputPort::map (IndexMap* indices,
+                            Index::Type type,
                             EventHandler* handleEvent,
                             double accLatency,
                             int maxBuffered)
 \end{head}
 \begin{parameters}
   \lstinline|indices| & the index map associated with the port \\
+  \lstinline|type| & the indexing type used (local or global) \\
   \lstinline|handleEvent| & a user-defined event handler \\
   \lstinline|accLatency| & acceptable latency for incoming data (s) \\
   \lstinline|maxBuffered| & maximal amount of data buffered (ticks) \\
 \end{parameters}
 
 Since event ports don't access data the same way as cont ports, they
-do not require a full \lstinline|DataMap|.  Events are communicated
-to the application through an \emph{event handler}\index{event
-handler}.  The event handler is called by MUSIC when the application
-calls \lstinline|tick|.  It is called once for every spike delivered.
+do not require a full \lstinline|DataMap|.  Instead, an
+\lstinline|IndexMap| is used to describe how indices in the
+application should be mapped to the common indexing shared by
+senders and receivers.  The applications indices can be local within
+each MPI process or global over the application as indicated by the
+\lstinline|type| parameters (\lstinline|Index::LOCAL| or
+\lstinline|Index::GLOBAL|).
+
+Events are communicated to the application through an \emph{event
+  handler}\index{event handler}.  The event handler is called by MUSIC
+when the application calls \lstinline|tick|.  It is called once for
+every spike event delivered.
 
 Some spiking neural network models include axonal delays.  The MUSIC
 framework assumes that handling and delivery of delayed spikes occurs
@@ -1102,38 +1115,50 @@ The sender registers events for transmission by calling the method
 
 \index{insertEvent}
 \begin{head}{insertEvent}
-  void EventOutputPort::insertEvent (double t, int id)
+  void EventOutputPort::insertEvent (double t, LocalIndex id)
+  void EventOutputPort::insertEvent (double t, GlobalIndex id)
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the sender local index \\
+  \lstinline|id| & the sender local or global index \\
 \end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
 the user-specified \lstinline|EventHandler| on the receiver side no
 later that the acceptable latency relative to receiver local time.
-The time \lstinline|t| must be between the simulation time of the last
-tick and that of the next.
+The time \lstinline|t| must be between the current simulation time
+and that after the next tick.
+
+The parameter \lstinline|id| should be converted from \lstinline|int|
+to \lstinline|LocalIndex| or \lstinline|GlobalIndex| to indicate what
+kind of indices are used in the application.
 
 
 \subsubsection{Receiving events}
 \index{receiving events}
 
 \index{EventHandler}
-\begin{head}{EventHandler,operator}
-  class EventHandler {
+\begin{head}{LocalEventHandler,GlobalEventHandler,operator}
+  class LocalEventHandler {
+  public:
+    virtual void operator () (double t, int id) = 0;
+  };
+
+  class GlobalEventHandler {
   public:
     virtual void operator () (double t, int id) = 0;
   };
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the receiver local index \\
+  \lstinline|id| & the receiver application index \\
 \end{parameters}
 
 Event handlers are called by event input ports to deliver events.  The
-application is supposed to customize \lstinline|EventHandler| by
-subclassing it.
+application is supposed to customize either
+\lstinline|LocalEventHandler| or \lstinline|GlobalEventHandler| by
+subclassing one of them (depending on the indexing
+scheme the application uses).
 
 
 \subsection{Mapping message ports}
@@ -1226,10 +1251,10 @@ the MUSIC library.
 \subsection{Index maps}
 \index{index maps}
 
-An \lstinline|IndexMap| is a mapping from local data element indices to
-global.  An index map instance thus holds information of which global
-indices belong to the local MPI process and of their order with regard
-to local index.  MUSIC implements two subclasses of
+An \lstinline|IndexMap| is a mapping from the applications data
+element indices to shared indices.  An index map instance thus
+holds information of which shared indices belong to the local MPI
+process and of their local order.  MUSIC implements two subclasses of
 \lstinline|IndexMap|: \lstinline|PermutationIndex| and
 \lstinline|LinearIndex|.  The most general form is
 \lstinline|PermutationIndex| which allows for an arbitrary mapping.
@@ -1240,8 +1265,8 @@ to local index.  MUSIC implements two subclasses of
                                       int size)
 \end{head}
 \begin{parameters}
-  \lstinline|indices| & vector of global indices \\
-  \lstinline|size| & number of global indices \\
+  \lstinline|indices| & vector of shared indices \\
+  \lstinline|size| & number of shared indices \\
 \end{parameters}
 
 \index{LinearIndex}
@@ -1249,8 +1274,8 @@ to local index.  MUSIC implements two subclasses of
   LinearIndex::LinearIndex (int baseIndex, int size)
 \end{head}
 \begin{parameters}
-  \lstinline|baseIndex| & global index of first local element \\
-  \lstinline|size| & number of contiguous global indices \\
+  \lstinline|baseIndex| & shared index of first application element \\
+  \lstinline|size| & number of contiguous indices in this process \\
 \end{parameters}
 
 When a cont output port is mapped it becomes associated with a set of
@@ -1267,8 +1292,8 @@ the receiver side.  In fact, sender and receiver may consist of
 different numbers of processes.
 
 Index maps are used in each MPI process to tell MUSIC how data is
-distributed and ordered by enumerating the global indices represented
-by the process in local order.
+distributed and ordered by enumerating the shared indices
+represented by the process in local order.
 
 \subsection{Data maps}
 \label{sec:datamap}
@@ -1306,8 +1331,8 @@ index map:
 \begin{parameters}
   \lstinline|buffer|    & data memory location \\
   \lstinline|type|	& data type \\
-  \lstinline|baseIndex| & global index of first local element \\
-  \lstinline|size|      & number of contiguous global indices \\
+  \lstinline|baseIndex| & shared index of first local element \\
+  \lstinline|size|      & number of contiguous indices in this process \\
 \end{parameters}
 
 
@@ -1353,7 +1378,7 @@ if (!config ("gKCa", &gKCa))
 \end{head}
 \begin{parameters}
   \lstinline|s| & pointer to the Setup object \\
-  \lstinline|h| & simulated time elapsed between each tick (s) \\
+  \lstinline|h| & simulated time increment at each tick (s) \\
 \end{parameters}
 
 Creation of the runtime object marks the transition from the setup to
@@ -1384,8 +1409,8 @@ MUSIC::Runtime runtime = MUSIC::Runtime (setup, stepSize);
 
 \begin{rationale}
   In order to create a deterministic schedule for buffering and data
-  transfer, we require that \lstinline|tick| is called at fixed
-  intervals in simulated time.  We realize that some applications may
+  transfer, we require that \lstinline|tick| increments simulated time
+  by a fixed amount each time.  We realize that some applications may
   use a variable time step\index{variable time step} for their
   numerical integrations, which may then make it harder to execute
   these tick calls at the right time.  However, allowing variable tick
@@ -1416,8 +1441,14 @@ time.  The application chooses the interval as a parameter to the
 \lstinline|Runtime| constructor, normally based on the time step used
 in the application.  The \lstinline|tick| function is typically called
 in the main simulation loop of each application.  Different
-applications may use different tick-intervals and MUSIC will ensure
+applications may use different tick intervals and MUSIC will ensure
 that time is incremented consistently throughout the multi-simulation.
+
+Before \lstinline|tick| is called, the application must ensure that
+all data mapped for output is valid.  At the \lstinline|tick| call,
+time is incremented and data mapped for input is updated to reflect
+the new time.  Further, installed event handlers will be called
+\emph{during} the \lstinline|tick| call to deliver events.
 
 The MUSIC library may, or may not, exchange data with other
 applications at the tick call.  The application must ensure that
@@ -1449,10 +1480,10 @@ The method \lstinline|time| returns local time in seconds.
   \emph{return value} & local time (s) \\
 \end{parameters}
 
-\lstinline|time| returns the local time of last \lstinline|tick|
-call.  Time starts at 0\,s.  While it is possible, and recommended, to
-let MUSIC keep track of time for the application, this is not
-required.
+\lstinline|time| returns the local time.  Time starts at 0\,s and is
+incremented at every \lstinline|tick| call.  While it is possible, and
+recommended, to let MUSIC keep track of time for the application, this
+is not required.
 
 \begin{rationale}
   To schedule data transfers, MUSIC needs to keep track of the
@@ -1467,17 +1498,21 @@ required.
 
 
 \subsection{Finalization}
-\index{finalize}
 
 An application supporting MUSIC should replace its call to
-MPI::Finalize with the destruction of the MUSIC runtime object.
+\lstinline|MPI::Finalize| with a call to \lstinline|MUSIC::finalize|.
 
-\begin{code}{}
-...
-MUSIC::Runtime runtime = MUSIC::Runtime (setup, stepSize);
-...
-delete runtime;
-\end{code}
+\index{finalize}
+\begin{head}{finalize}
+  void Runtime::finalize ()
+\end{head}
+\begin{parameters}
+\end{parameters}
+
+\lstinline|MUSIC::finalize| makes sure all internally buffered data is
+sent and finally calls \lstinline|MPI::Finalize|.  Note that this
+means that communication via MPI will not be possible afterwards.
+
 
 \chapter{Adapting Existing Applications}
 
@@ -1583,9 +1618,9 @@ operations.
 
 \subsection{Initiate MUSIC}\index{initiate MUSIC}
 
-The idea here is to replace the call to \lstinline|MPI:Init| with a
+The idea here is to replace the call to \lstinline|MPI::Init| with a
 call to the \lstinline|MUSIC:Setup| constructor.  The Setup
-constructor calls \lstinline|MPI:Init| for the application.
+constructor calls \lstinline|MPI::Init| for the application.
 
 The application will have to replace all uses of the global
 communicator \lstinline|MPI::COMM_WORLD| with the communicator
@@ -1613,8 +1648,8 @@ build the plan for communication between different processes.
 \subsection{Finalize MUSIC}\index{finalize}\index{terminate}
 
 The application should also replace its call to
-\lstinline|MPI::Finalize| by the destruction of the runtime object.
-The destructor method will internally call \lstinline|MPI::Finalize|.
+\lstinline|MPI::Finalize| by a call to \lstinline|MUSIC::finalize|.
+This will internally call \lstinline|MPI::Finalize|.
 
 \bibliographystyle{unsrtnat}
 \bibliography{music-rfc}

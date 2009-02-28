@@ -65,7 +65,6 @@ getargs (int rank, int argc, char* argv[])
 	{
 	  {"timestep",    required_argument, 0, 't'},
 	  {"maxbuffered", required_argument, 0, 'b'},
-	  {"indextype",   required_argument, 0, 'i'},
 	  {"help",        no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};

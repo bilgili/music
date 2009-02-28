@@ -115,7 +115,7 @@ main (int argc, char *argv[])
   for (int i; i < localwidth; ++i)
     dataarray[i] = rank * localwidth + i;
 
-  MUSIC::ContOutputPort* out = setup->publishContOutput ("clock");
+  MUSIC::ContOutputPort* out = setup->publishContOutput ("contdata");
   if (!out->isConnected ())
     {
       if (rank == 0)

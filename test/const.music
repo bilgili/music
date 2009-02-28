@@ -6,4 +6,4 @@ stoptime=1.0
 [to]
   np=1
   binary=/home/orjan/gitmusic/utils/contsink
-  from.clock -> to.contdata [5]
+  from.contdata -> to.contdata [5]

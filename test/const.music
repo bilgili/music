@@ -1,0 +1,9 @@
+stoptime=1.0
+[from]
+  np=1
+  binary=/home/orjan/gitmusic/utils/constsource
+  args=-n 5
+[to]
+  np=1
+  binary=/home/orjan/gitmusic/utils/contsink
+  from.clock -> to.contdata [5]

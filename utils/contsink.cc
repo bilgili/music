@@ -4,7 +4,7 @@
 
 #define TIMESTEP 0.01
 
-double data[1];
+double *data;
 
 int
 main (int args, char* argv[])
@@ -13,11 +13,14 @@ main (int args, char* argv[])
 
   MUSIC::ContInputPort* contdata = setup->publishContInput ("contdata");
 
+  int width = contdata->width ();
+  data = new double[width];
+
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
 			 MPI::DOUBLE,
 			 0,
-			 1);
+			 width);
   contdata->map (&dmap);
 
   double stoptime;
@@ -31,7 +34,9 @@ main (int args, char* argv[])
       // Retrieve data from other program
       runtime->tick ();
 
-      std::cout << data[0] << " at " << runtime->time () << std::endl;
+      for (int i; i < width; ++i)
+	std::cout << data[i] << " ";
+      std::cout << "at " << runtime->time () << std::endl;
     }
 
   runtime->finalize ();

@@ -4,7 +4,7 @@ ACLOCAL = $(top_srcdir)/aclocal.sh
 
 bin_PROGRAMS = music eventsource eventsink eventselect eventgenerator \
 	       eventcounter @OPTIONAL_UTILS@
-EXTRA_PROGRAMS = viewevents clocksource contsink
+EXTRA_PROGRAMS = viewevents clocksource contsink constsource
 
 music_SOURCES = music.cc application_mapper.cc application_mapper.hh
 music_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
@@ -41,6 +41,10 @@ clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 contsink_SOURCES = contsink.cc
 contsink_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
 contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+constsource_SOURCES = constsource.cc
+constsource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

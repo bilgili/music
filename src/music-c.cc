@@ -340,6 +340,14 @@ MUSIC_EventInputPort_mapLocalIndex (MUSIC_EventInputPort *Port,
 
 
 void
+MUSIC_MessageOutputPort_map_no_handler (MUSIC_MessageOutputPort *Port)
+{
+  MUSIC::MessageOutputPort* cxxPort = (MUSIC::MessageOutputPort *) Port;
+  cxxPort->map ();
+}
+
+
+void
 MUSIC_MessageOutputPort_map (MUSIC_MessageOutputPort *Port,
 			     int maxBuffered)
 {
@@ -357,7 +365,8 @@ MUSIC_MessageInputPort_map (MUSIC_MessageInputPort *Port,
 			    int maxBuffered)
 {
   MUSIC::MessageInputPort* cxxPort = (MUSIC::MessageInputPort *) Port;
-  MUSIC::MessageHandler* cxxHandleMessage = (MUSIC::MessageHandler *) handleMessage;
+  MUSIC::MessageHandlerGlobalIndexProxy* cxxHandleMessage =
+    cxxPort->allocMessageHandlerGlobalIndexProxy (handleMessage);
   cxxPort->map (cxxHandleMessage, accLatency, maxBuffered);
 }
 

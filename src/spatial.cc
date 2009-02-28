@@ -456,9 +456,13 @@ namespace MUSIC {
 				      MPI::Intercomm intercomm,
 				      int remoteNProc)
   {
+    MUSIC_LOG0 ("SpatialOutputNegotiator::negotiate");
     comm = c;
+    MUSIC_LOG0 ("o before Get_size");
     nProcesses = comm.Get_size ();
+    MUSIC_LOG0 ("o before Get_rank");
     localRank = comm.Get_rank ();
+    MUSIC_LOG0 ("o after Get_rank");
     local.resize (nProcesses);
     remote.resize (remoteNProc);
     results.resize (nProcesses);
@@ -502,9 +506,13 @@ namespace MUSIC {
 				     MPI::Intercomm intercomm,
 				     int remoteNProc)
   {
+    MUSIC_LOG0 ("SpatialInputNegotiator::negotiate");
     comm = c;
+    MUSIC_LOG0 ("i before Get_size");
     nProcesses = comm.Get_size ();
+    MUSIC_LOG0 ("i before Get_rank");
     localRank = comm.Get_rank ();
+    MUSIC_LOG0 ("i after Get_rank");
     remote.resize (remoteNProc);
     
     negotiateWidth (intercomm);

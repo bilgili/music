@@ -45,6 +45,7 @@ namespace MUSIC {
 
   class Connector {
   protected:
+  public:
     ConnectorInfo info;
     SpatialNegotiator* spatialNegotiator_;
     MPI::Intracomm comm;
@@ -218,6 +219,44 @@ namespace MUSIC {
 			 EventHandlerPtr handleEvent,
 			 Index::Type type,
 			 MPI::Intracomm comm);
+    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
+  };
+  
+  class MessageConnector : virtual public Connector {
+  };
+  
+  class MessageOutputConnector : public OutputConnector, public MessageConnector {
+  private:
+    OutputSynchronizer synch;
+    EventRouter& router_;
+    void send ();
+  public:
+    MessageOutputConnector (ConnectorInfo connInfo,
+			    SpatialOutputNegotiator* spatialNegotiator,
+			    MPI::Intracomm comm,
+			    EventRouter& router);
+    OutputSubconnector* makeOutputSubconnector (int remoteRank);
+    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+    void tick (bool& requestCommunication);
+  };
+  
+  class MessageInputConnector : public InputConnector, public MessageConnector {
+    
+  private:
+    InputSynchronizer synch;
+    MessageHandlerPtr handleMessage_;
+    Index::Type type_;
+  public:
+    MessageInputConnector (ConnectorInfo connInfo,
+			   SpatialInputNegotiator* spatialNegotiator,
+			   MessageHandlerPtr handleMessage,
+			   Index::Type type,
+			   MPI::Intracomm comm);
     InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();

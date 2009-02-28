@@ -195,18 +195,45 @@ namespace MUSIC {
 
 
   class MessagePort : public virtual Port {
+  protected:
+    int rank_;
+  public:
+    MessagePort (Setup* s);
   };
 
-  class MessageOutputPort : public MessagePort, public OutputPort {
+  class MessageOutputPort : public MessagePort,
+			    public OutputRedistributionPort {
+    EventRouter router;
   public:
+    MessageOutputPort (Setup* s, std::string id);
+    void buildTable ();
     void map ();
     void map (int maxBuffered);
+    void insertMessage (double t, void* msg, size_t size);
+  protected:
+    void mapImpl (int maxBuffered);
+    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
   };
 
-  class MessageInputPort : public MessagePort, public InputPort {
+  class MessageInputPort : public MessagePort,
+			   public InputRedistributionPort {
+  private:
+    MessageHandlerPtr handleMessage_;
   public:
-    void map (MessageHandler* handler, double accLatency = 0.0);
-    void map (MessageHandler* handler, double accLatency, int maxBuffered);
+    MessageInputPort (Setup* s, std::string id);
+    void map ();
+    void map (MessageHandlerGlobalIndex* handler, double accLatency = 0.0);
+    void map (MessageHandlerGlobalIndex* handler, double accLatency, int maxBuffered);
+  protected:
+    void mapImpl (MessageHandlerPtr handleEvent,
+		  double accLatency,
+		  int maxBuffered);
+    InputConnector* makeInputConnector (ConnectorInfo connInfo);
+  public:
+    MessageHandlerGlobalIndexProxy*
+    allocMessageHandlerGlobalIndexProxy (void (*) (double, void*, size_t));
+  private:
+    MessageHandlerGlobalIndexProxy cMessageHandlerGlobalIndex;
   };
 
 }

@@ -428,11 +428,26 @@ namespace MUSIC {
    * Message Ports
    *
    ********************************************************************/
+
+
+  MessagePort::MessagePort (Setup* s)
+    : rank_ (s->communicator ().Get_rank ())
+  {
+  }
+  
+  
+  MessageOutputPort::MessageOutputPort (Setup* s, std::string id)
+    : Port (s, id), MessagePort (s)
+  {
+  }
+
   
   void
   MessageOutputPort::map ()
   {
     assertOutput ();
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
+    mapImpl (maxBuffered);
   }
 
   
@@ -440,22 +455,116 @@ namespace MUSIC {
   MessageOutputPort::map (int maxBuffered)
   {
     assertOutput ();
+    if (maxBuffered <= 0)
+      {
+	error ("MessageOutputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (maxBuffered);
   }
 
   
   void
-  MessageInputPort::map (MessageHandler* handler, double accLatency)
+  MessageOutputPort::mapImpl (int maxBuffered)
   {
-    assertOutput ();
+    LinearIndex indices (rank_, 1);
+    OutputRedistributionPort::mapImpl (&indices,
+				       Index::GLOBAL,
+				       maxBuffered,
+				       1);
+  }
+  
+  
+  OutputConnector*
+  MessageOutputPort::makeOutputConnector (ConnectorInfo connInfo)
+  {
+    return new MessageOutputConnector (connInfo,
+				       spatialNegotiator,
+				       setup_->communicator (),
+				       router);
+  }
+  
+  
+  void
+  MessageOutputPort::buildTable ()
+  {
+    router.buildTable ();
   }
 
   
   void
-  MessageInputPort::map (MessageHandler* handler,
+  MessageOutputPort::insertMessage (double t, void* msg, size_t size)
+  {
+    router.insertEvent (t, GlobalIndex (rank_));
+  }
+
+  
+  MessageInputPort::MessageInputPort (Setup* s, std::string id)
+    : Port (s, id), MessagePort (s)
+  {
+  }
+
+  
+  void
+  MessageInputPort::map (MessageHandlerGlobalIndex* handleMessage,
+			 double accLatency)
+  {
+    assertInput ();
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
+    mapImpl (MessageHandlerPtr (handleMessage),
+	     accLatency,
+	     maxBuffered);
+  }
+
+  
+  void
+  MessageInputPort::map (MessageHandlerGlobalIndex* handleMessage,
 			 double accLatency,
 			 int maxBuffered)
   {
-    assertOutput ();
+    assertInput ();
+    if (maxBuffered <= 0)
+      {
+	error ("MessageInputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (MessageHandlerPtr (handleMessage),
+	     accLatency,
+	     maxBuffered);
   }
 
+  
+  void
+  MessageInputPort::mapImpl (MessageHandlerPtr handleMessage,
+			     double accLatency,
+			     int maxBuffered)
+  {
+    handleMessage_ = handleMessage;
+    LinearIndex indices (rank_, 1);
+    InputRedistributionPort::mapImpl (&indices,
+				      Index::GLOBAL,
+				      accLatency,
+				      maxBuffered);
+  }
+
+  
+  InputConnector*
+  MessageInputPort::makeInputConnector (ConnectorInfo connInfo)
+  {
+    return new MessageInputConnector (connInfo,
+				      spatialNegotiator,
+				      handleMessage_,
+				      Index::GLOBAL,
+				      setup_->communicator ());
+  }
+
+  
+  MessageHandlerGlobalIndexProxy*
+  MessageInputPort::allocMessageHandlerGlobalIndexProxy (void (*mh) (double,
+								     void*,
+								     size_t))
+  {
+    cMessageHandlerGlobalIndex = MessageHandlerGlobalIndexProxy (mh);
+    return &cMessageHandlerGlobalIndex;
+  }
+
+  
 }

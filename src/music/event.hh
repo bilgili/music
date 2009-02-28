@@ -30,18 +30,6 @@ namespace MUSIC {
     bool operator< (const Event& other) const { return t < other.t; }
   };
 
-#if 0
-  class EventFifo : public Fifo<Event> {
-  public:
-    void insert (int id, double t)
-    {
-      Event& s = Fifo<Event>::insert ();
-      s.id = id;
-      s.t = t;
-    }
-  };
-#endif
-
   class EventHandlerGlobalIndex {
   public:
     virtual void operator () (double t, GlobalIndex id) = 0;

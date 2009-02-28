@@ -426,4 +426,174 @@ namespace MUSIC {
     EventInputSubconnector::flush (dataStillFlowing);
   }
   
+  /********************************************************************
+   *
+   * Message Subconnectors
+   *
+   ********************************************************************/
+
+  MessageOutputSubconnector::MessageOutputSubconnector (Synchronizer* synch_,
+							MPI::Intercomm intercomm_,
+							int remoteRank,
+							std::string receiverPortName_)
+    : Subconnector (synch_,
+		    intercomm_,
+		    remoteRank,
+		    remoteRank,
+		    receiverPortName_),
+      OutputSubconnector (1)
+  {
+  }
+  
+
+  void
+  MessageOutputSubconnector::tick ()
+  {
+    if (synch->communicate ())
+      send ();
+  }
+
+
+  void
+  MessageOutputSubconnector::send ()
+  {
+    void* data;
+    int size;
+    buffer_.nextBlock (data, size);
+    //*fixme* marshalling
+    char* buffer = static_cast <char*> (data);
+    while (size >= SPIKE_BUFFER_MAX)
+      {
+	intercomm.Send (buffer,
+			SPIKE_BUFFER_MAX,
+			MPI::BYTE,
+			remoteRank_,
+			SPIKE_MSG);
+	buffer += SPIKE_BUFFER_MAX;
+	size -= SPIKE_BUFFER_MAX;
+      }
+    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+  }
+
+  
+  void
+  MessageOutputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!buffer_.isEmpty ())
+      {
+	MUSIC_LOGR ("sending data remaining in buffers");
+	send ();
+	dataStillFlowing = true;
+      }
+    else
+      {
+	Message* e = static_cast<Message*> (buffer_.insert ());
+	e->id = FLUSH_MARK;
+	send ();
+      }
+  }
+  
+
+  MessageInputSubconnector::MessageInputSubconnector (Synchronizer* synch,
+						      MPI::Intercomm intercomm,
+						      int remoteRank,
+						      int receiverRank,
+						      std::string receiverPortName)
+    : Subconnector (synch,
+		    intercomm,
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      InputSubconnector ()
+  {
+  }
+
+
+  MessageInputSubconnectorGlobal::MessageInputSubconnectorGlobal
+  (Synchronizer* synch,
+   MPI::Intercomm intercomm,
+   int remoteRank,
+   int receiverRank,
+   std::string receiverPortName,
+   MessageHandlerGlobalIndex* eh)
+    : Subconnector (synch,
+		    intercomm,
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      MessageInputSubconnector (synch,
+			      intercomm,
+			      remoteRank,
+			      receiverRank,
+			      receiverPortName),
+      handleMessage (eh)
+  {
+  }
+
+
+  MessageHandlerGlobalIndexDummy
+  MessageInputSubconnectorGlobal::dummyHandler;
+
+  
+  void
+  MessageInputSubconnector::tick ()
+  {
+    if (!flushed && synch->communicate ())
+      receive ();    
+  }
+
+
+  //*fixme* isolate difference between global and local
+  void
+  MessageInputSubconnectorGlobal::receive ()
+  {
+    char* data[SPIKE_BUFFER_MAX]; 
+    MPI::Status status;
+    int size;
+    do
+      {
+	intercomm.Recv (data,
+			SPIKE_BUFFER_MAX,
+			MPI::BYTE,
+			remoteRank_,
+			SPIKE_MSG,
+			status);
+	Message* ev = (Message*) data;
+	if (ev[0].id == FLUSH_MARK)
+	  {
+	    flushed = true;
+	    MUSIC_LOGR ("received flush message");
+	    return;
+	  }
+	size = status.Get_count (MPI::BYTE);
+	int nMessages = size / sizeof (Message);
+	MUSIC_LOGR ("received " << nMessages << "messages");
+	for (int i = 0; i < nMessages; ++i)
+	  (*handleMessage) (ev[i].t, ev[i].id);
+      }
+    while (size == SPIKE_BUFFER_MAX);
+  }
+
+
+  void
+  MessageInputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!flushed)
+      {
+	MUSIC_LOGR ("receiving and throwing away data");
+	receive ();
+	if (!flushed)
+	  dataStillFlowing = true;
+      }
+  }
+
+  
+  void
+  MessageInputSubconnectorGlobal::flush (bool& dataStillFlowing)
+  {
+    handleMessage = &dummyHandler;
+    MessageInputSubconnector::flush (dataStillFlowing);
+  }
+
+  
 }

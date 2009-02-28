@@ -46,7 +46,8 @@ namespace MUSIC {
     // fit in two sequential long values
     class Serialized {
       friend Serialized ClockState::serialize ();
-      
+
+    public:
       signed long upper;
       unsigned long lower;
     public:

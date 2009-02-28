@@ -127,6 +127,8 @@ void MUSIC_EventInputPort_mapLocalIndex (MUSIC_EventInputPort *port,
 					 double accLatency,
 					 int maxBuffered);
 
+void MUSIC_MessageOutputPort_map_no_handler (MUSIC_MessageOutputPort *port);
+
 void MUSIC_MessageOutputPort_map (MUSIC_MessageOutputPort *port,
 				  int maxBuffered);
 

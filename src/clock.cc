@@ -23,7 +23,7 @@ namespace MUSIC {
   ClockState
   ClockState::Serialized::deserialize ()
   {
-    return (upper << 32) | lower;
+    return (static_cast<long long> (upper) << 32) | lower;
   }
 
 
@@ -31,8 +31,9 @@ namespace MUSIC {
   ClockState::serialize ()
   {
     Serialized s;
-    s.upper = state >> 32;
+    s.upper = (state >> 32);
     s.lower = state & 0xffffffff;
+    return s;
   }
 
 

@@ -158,11 +158,20 @@ namespace MUSIC {
     // and create all required subconnectors.
 
     sort (connectors->begin (), connectors->end (), lessConnector);
+    int i = 0;
     for (std::vector<Connector*>::iterator c = connectors->begin ();
 	 c != connectors->end ();
 	 ++c)
-      // negotiate and fill up vectors passed as arguments
-      (*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
+      {
+	if (*c == 0)
+	  {
+	    std::cout << "connector " << i << " = 0" << std::endl;
+	    abort ();
+	  }
+	++i;
+	// negotiate and fill up vectors passed as arguments
+	(*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
+      }
   }
 
 

@@ -60,8 +60,8 @@ namespace MUSIC {
     std::map<int, OutputSubconnector*> subconnectors;
     for (NegotiationIterator i
 	   = spatialNegotiator_->negotiate (comm,
-					   intercomm,
-					   info.nProcesses ());
+					    intercomm,
+					    info.nProcesses ());
 	 !i.end ();
 	 ++i)
       {
@@ -184,7 +184,8 @@ namespace MUSIC {
   
   PlainContOutputConnector::PlainContOutputConnector
   (ContOutputConnector& connector)
-    : ContOutputConnector (connector)
+    : Connector (connector),
+      ContOutputConnector (connector)
   {
   }
 
@@ -209,7 +210,8 @@ namespace MUSIC {
 
   InterpolatingContOutputConnector::InterpolatingContOutputConnector
   (ContOutputConnector& connector)
-    : ContOutputConnector (connector)
+    : Connector (connector),
+      ContOutputConnector (connector)
   {
   }
 
@@ -283,7 +285,8 @@ namespace MUSIC {
   
   PlainContInputConnector::PlainContInputConnector
   (ContInputConnector& connector)
-    : ContInputConnector (connector)
+    :  Connector (connector),
+       ContInputConnector (connector)
   {
   }
 
@@ -324,7 +327,8 @@ namespace MUSIC {
 
   InterpolatingContInputConnector::InterpolatingContInputConnector
   (ContInputConnector& connector)
-    : ContInputConnector (connector)
+    : Connector (connector),
+      ContInputConnector (connector)
   {
   }
 
@@ -441,6 +445,98 @@ namespace MUSIC {
 
   void
   EventInputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+  /********************************************************************
+   *
+   * Message Connectors
+   *
+   ********************************************************************/
+  
+  MessageOutputConnector::MessageOutputConnector (ConnectorInfo connInfo,
+						  SpatialOutputNegotiator*
+						  spatialNegotiator,
+						  MPI::Intracomm comm,
+						  EventRouter& router)
+    : Connector (connInfo, spatialNegotiator, comm),
+      router_ (router)
+  {
+  }
+
+  
+  void
+  MessageOutputConnector::initialize ()
+  {
+    synch.initialize ();
+  }
+
+  
+  OutputSubconnector*
+  MessageOutputConnector::makeOutputSubconnector (int remoteRank)
+  {
+    return new MessageOutputSubconnector (&synch,
+					intercomm,
+					remoteRank,
+					receiverPortName ());
+  }
+
+
+  void
+  MessageOutputConnector::addRoutingInterval (IndexInterval i,
+					    OutputSubconnector* osubconn)
+  {
+    router_.insertRoutingInterval (i, osubconn->buffer ());
+  }
+  
+  
+  void
+  MessageOutputConnector::tick (bool& requestCommunication)
+  {
+    synch.tick ();
+    // Only assign requestCommunication if true
+    if (synch.communicate ())
+      requestCommunication = true;
+  }
+
+  
+  MessageInputConnector::MessageInputConnector (ConnectorInfo connInfo,
+					    SpatialInputNegotiator* spatialNegotiator,
+					    MessageHandlerPtr handleMessage,
+					    Index::Type type,
+					    MPI::Intracomm comm)
+    : Connector (connInfo, spatialNegotiator, comm),
+      handleMessage_ (handleMessage),
+      type_ (type)
+  {
+  }
+
+  
+  void
+  MessageInputConnector::initialize ()
+  {
+    synch.initialize ();
+  }
+
+  
+  InputSubconnector*
+  MessageInputConnector::makeInputSubconnector (int remoteRank, int receiverRank)
+  {
+    return new MessageInputSubconnectorGlobal (&synch,
+					       intercomm,
+					       remoteRank,
+					       receiverRank,
+					       receiverPortName (),
+					       handleMessage_.global ());
+  }
+
+
+  void
+  MessageInputConnector::tick (bool& requestCommunication)
   {
     synch.tick ();
     // Only assign requestCommunication if true

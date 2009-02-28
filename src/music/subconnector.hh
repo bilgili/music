@@ -26,6 +26,7 @@
 #include <music/FIBO.hh>
 #include <music/BIFO.hh>
 #include <music/event.hh>
+#include <music/message.hh>
 
 namespace MUSIC {
 
@@ -165,6 +166,50 @@ namespace MUSIC {
 				 int receiverRank,
 				 std::string receiverPortName,
 				 EventHandlerLocalIndex* eh);
+    void receive ();
+    void flush (bool& dataStillFlowing);
+  };
+
+  class MessageSubconnector : virtual public Subconnector {
+  protected:
+    static const int FLUSH_MARK = -1;
+  };
+  
+  class MessageOutputSubconnector : public OutputSubconnector,
+				  public MessageSubconnector {
+  public:
+    MessageOutputSubconnector (Synchronizer* synch_,
+			       MPI::Intercomm intercomm_,
+			       int remoteRank,
+			       std::string receiverPortName_);
+    void tick ();
+    void send ();
+    void flush (bool& dataStillFlowing);
+  };
+  
+  class MessageInputSubconnector : public InputSubconnector,
+				   public MessageSubconnector {
+  public:
+    MessageInputSubconnector (Synchronizer* synch,
+			      MPI::Intercomm intercomm,
+			      int remoteRank,
+			      int receiverRank,
+			      std::string receiverPortName);
+    void tick ();
+    virtual void receive () = 0;
+    virtual void flush (bool& dataStillFlowing);
+  };
+
+  class MessageInputSubconnectorGlobal : public MessageInputSubconnector {
+    MessageHandlerGlobalIndex* handleMessage;
+    static MessageHandlerGlobalIndexDummy dummyHandler;
+  public:
+    MessageInputSubconnectorGlobal (Synchronizer* synch,
+				    MPI::Intercomm intercomm,
+				    int remoteRank,
+				    int receiverRank,
+				    std::string receiverPortName,
+				    MessageHandlerGlobalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
   };

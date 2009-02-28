@@ -23,7 +23,7 @@
 namespace MUSIC {
 
   class FIBO {
-  protected:
+  private:
     static const int nInitial = 10;
     
     std::vector<char> buffer;
@@ -40,7 +40,6 @@ namespace MUSIC {
     bool isEmpty ();
     //*fixme* return type
     void* insert ();
-    void mark ();
     void nextBlock (void*& data, int& size);
   };
   

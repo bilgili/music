@@ -85,8 +85,7 @@ namespace MUSIC {
 				     std::vector<InputSubconnector*>& isubconn);
     virtual void addRoutingInterval (IndexInterval i, OutputSubconnector* s)
     { };
-    virtual OutputSubconnector* makeOutputSubconnector (int remoteRank)
-    { }; /*fixme* make pure */
+    virtual OutputSubconnector* makeOutputSubconnector (int remoteRank) = 0;
   };
   
   class InputConnector : virtual public Connector {
@@ -94,8 +93,7 @@ namespace MUSIC {
     virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 				     std::vector<InputSubconnector*>& isubconn);
     virtual InputSubconnector* makeInputSubconnector (int remoteRank,
-						      int receiverRank)
-    { };
+						      int receiverRank) = 0;
   };
 
   class ContConnector : virtual public Connector {
@@ -123,6 +121,7 @@ namespace MUSIC {
 			 SpatialOutputNegotiator* spatialNegotiator,
 			 MPI::Intracomm comm,
 			 Sampler& sampler);
+    OutputSubconnector* makeOutputSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Connector* specialize (ClockState tickInterval);
   };
@@ -156,6 +155,7 @@ namespace MUSIC {
 			SpatialInputNegotiator* spatialNegotiator,
 			MPI::Intracomm comm,
 			Sampler& sampler);
+    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
     void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
     Connector* specialize (ClockState tickInterval);
     // We need to allocate instances of ContInputConnector and, therefore

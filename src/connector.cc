@@ -151,6 +151,16 @@ namespace MUSIC {
   }
 
   
+  OutputSubconnector*
+  ContOutputConnector::makeOutputSubconnector (int remoteRank)
+  {
+    return new ContOutputSubconnector (synchronizer (),
+				       intercomm,
+				       remoteRank,
+				       receiverPortName ());
+  }
+  
+
   Connector*
   ContOutputConnector::specialize (ClockState tickInterval)
   {
@@ -239,6 +249,17 @@ namespace MUSIC {
   }
 
   
+  InputSubconnector*
+  ContInputConnector::makeInputSubconnector (int remoteRank, int receiverRank)
+  {
+    return new ContInputSubconnector (synchronizer (),
+				      intercomm,
+				      remoteRank,
+				      receiverRank,
+				      receiverPortName ());
+  }
+  
+
   Connector*
   ContInputConnector::specialize (ClockState tickInterval)
   {

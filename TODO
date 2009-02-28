@@ -30,7 +30,7 @@
 
 * cleanup constructor arguments in subconnector.cc
 
-* marshalling, for example in temporal.cc
+* marshalling, for example in temporal.cc, subconnector.cc
 
 Continuous data
 

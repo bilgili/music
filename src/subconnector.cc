@@ -51,24 +51,8 @@ namespace MUSIC {
   }
 
 
-  OutputSubconnector::OutputSubconnector (Synchronizer* synch,
-					  MPI::Intercomm intercomm,
-					  int remoteRank,
-					  int receiverRank,
-					  std::string receiverPortName,
-					  int elementSize)
-    : Subconnector (synch,
-		    intercomm,
-		    remoteRank,
-		    receiverRank,
-		    receiverPortName),
-      buffer_ (elementSize)
-  {
-  }
-
-  
-  void
-  OutputSubconnector::send ()
+  OutputSubconnector::OutputSubconnector (int elementSize)
+    : buffer_ (elementSize)
   {
   }
 
@@ -79,10 +63,141 @@ namespace MUSIC {
   }
 
 
-  void
-  ContOutputSubconnector::mark ()
+  /********************************************************************
+   *
+   * Cont Subconnectors
+   *
+   ********************************************************************/
+
+  ContOutputSubconnector::ContOutputSubconnector (Synchronizer* synch_,
+						  MPI::Intercomm intercomm_,
+						  int remoteRank,
+						  std::string receiverPortName_)
+    : Subconnector (synch_,
+		    intercomm_,
+		    remoteRank,
+		    remoteRank,
+		    receiverPortName_),
+      OutputSubconnector (0)
   {
   }
+  
+
+  void
+  ContOutputSubconnector::tick ()
+  {
+    if (synch->communicate ())
+      send ();
+  }
+
+
+  void
+  ContOutputSubconnector::send ()
+  {
+    void* data;
+    int size;
+    buffer_.nextBlock (data, size);
+    //*fixme* marshalling
+    char* buffer = static_cast <char*> (data);
+    while (size >= CONT_BUFFER_MAX)
+      {
+	intercomm.Send (buffer,
+			CONT_BUFFER_MAX,
+			MPI::BYTE,
+			remoteRank_,
+			CONT_MSG);
+	buffer += CONT_BUFFER_MAX;
+	size -= CONT_BUFFER_MAX;
+      }
+    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, CONT_MSG);
+  }
+
+  
+  void
+  ContOutputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!buffer_.isEmpty ())
+      {
+	MUSIC_LOGR ("sending data remaining in buffers");
+	send ();
+	dataStillFlowing = true;
+      }
+    else
+      {
+	char dummy;
+	intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);
+      }
+  }
+  
+
+  ContInputSubconnector::ContInputSubconnector (Synchronizer* synch,
+						MPI::Intercomm intercomm,
+						int remoteRank,
+						int receiverRank,
+						std::string receiverPortName)
+    : Subconnector (synch,
+		    intercomm,
+		    remoteRank,
+		    receiverRank,
+		    receiverPortName),
+      InputSubconnector ()
+  {
+  }
+
+
+  void
+  ContInputSubconnector::tick ()
+  {
+    if (!flushed && synch->communicate ())
+      receive ();    
+  }
+
+
+  void
+  ContInputSubconnector::receive ()
+  {
+    char* data = static_cast<char*> (buffer_.insertBlock ());
+    MPI::Status status;
+    int size;
+    do
+      {
+	intercomm.Recv (data,
+			CONT_BUFFER_MAX,
+			MPI::BYTE,
+			remoteRank_,
+			MPI::ANY_TAG,
+			status);
+	if (status.Get_tag () == FLUSH_MSG)
+	  {
+	    flushed = true;
+	    MUSIC_LOGR ("received flush message");
+	    return;
+	  }
+	size = status.Get_count (MPI::BYTE);
+	buffer_.trimBlock (size);
+      }
+    while (size == CONT_BUFFER_MAX);
+  }
+
+
+  void
+  ContInputSubconnector::flush (bool& dataStillFlowing)
+  {
+    if (!flushed)
+      {
+	MUSIC_LOGR ("receiving and throwing away data");
+	receive ();
+	if (!flushed)
+	  dataStillFlowing = true;
+      }
+  }
+
+  
+  /********************************************************************
+   *
+   * Event Subconnectors
+   *
+   ********************************************************************/
 
 
   EventOutputSubconnector::EventOutputSubconnector (Synchronizer* synch_,
@@ -94,12 +209,7 @@ namespace MUSIC {
 		    remoteRank,
 		    remoteRank,
 		    receiverPortName_),
-      OutputSubconnector (synch_,
-			  intercomm_,
-			  remoteRank,
-			  remoteRank, // receiver_rank same as remote rank
-			  receiverPortName_,
-			  sizeof (Event))
+      OutputSubconnector (sizeof (Event))
   {
   }
   

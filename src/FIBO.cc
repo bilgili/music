@@ -22,7 +22,8 @@ namespace MUSIC {
 
   FIBO::FIBO (int es)
   {
-    configure (es);
+    if (es > 0)
+      configure (es);
   }
 
   
@@ -43,7 +44,7 @@ namespace MUSIC {
   }
 
   
-  void *
+  void*
   FIBO::insert ()
   {
     if (current == size)
@@ -56,12 +57,6 @@ namespace MUSIC {
     return memory;
   }
   
-
-  void
-  FIBO::mark ()
-  {
-  }
-
 
   void
   FIBO::nextBlock (void*& data, int& size)

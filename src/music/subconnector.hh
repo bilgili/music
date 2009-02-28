@@ -30,7 +30,11 @@
 namespace MUSIC {
 
   const int SPIKE_MSG = 1;
+  const int CONT_MSG = 2;
+  const int MESSAGE_MSG = 3;
+  const int FLUSH_MSG = 4;
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
+  const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX;
 
   // The subconnector is responsible for the local side of the
   // communication between two MPI processes, one for each port of a
@@ -64,14 +68,8 @@ namespace MUSIC {
   protected:
     FIBO buffer_;
   public:
-    OutputSubconnector (Synchronizer* synch,
-			MPI::Intercomm intercomm,
-			int remoteRank,
-			int receiverRank,
-			std::string receiverPortName,
-			int elementSize);
+    OutputSubconnector (int elementSize);
     FIBO* buffer () { return &buffer_; }
-    void send ();
   };
   
   class InputSubconnector : virtual public Subconnector {
@@ -82,16 +80,35 @@ namespace MUSIC {
     virtual BIFO* buffer () { return NULL; }
   };
 
-  class ContOutputSubconnector : public OutputSubconnector {
-  public:
-    void mark ();
+  class ContSubconnector : virtual public Subconnector {
   };
   
-  class ContInputSubconnector : public InputSubconnector {
+  class ContOutputSubconnector : public OutputSubconnector,
+				 public ContSubconnector {
+  public:
+    ContOutputSubconnector (Synchronizer* synch_,
+			    MPI::Intercomm intercomm_,
+			    int remoteRank,
+			    std::string receiverPortName_);
+    void tick ();
+    void send ();
+    void flush (bool& dataStillFlowing);
+  };
+  
+  class ContInputSubconnector : public InputSubconnector,
+				public ContSubconnector {
   protected:
     BIFO buffer_;
   public:
+    ContInputSubconnector (Synchronizer* synch,
+			   MPI::Intercomm intercomm,
+			   int remoteRank,
+			   int receiverRank,
+			   std::string receiverPortName);
     BIFO* buffer () { return &buffer_; }
+    void tick ();
+    void receive ();
+    void flush (bool& dataStillFlowing);
   };
 
   class EventSubconnector : virtual public Subconnector {

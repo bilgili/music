@@ -24,16 +24,29 @@
 
 namespace MUSIC {
 
-  class BIFO : public FIBO {
+  class BIFO {
   private:
+    std::vector<char> buffer;
+    int elementSize_;
+    int size;			// size of buffer
+    int beginning;		// beginning of last block
+    int end;			// end of last block
+    int top;			// upper bound of valid data
+    int current;
+
+    void grow (int newSize);
+    
     int maxBlockSize_;
   public:
     BIFO () { }
     BIFO (int elementSize, int maxBlockSize);
     void configure (int elementSize, int maxBlockSize);
+    bool isEmpty ();
     //*fixme* return type
     void* insertBlock ();
-    //void* next
+    // size in bytes
+    void trimBlock (int size);
+    void* next ();
   };
   
   

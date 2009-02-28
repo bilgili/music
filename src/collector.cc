@@ -71,34 +71,35 @@ namespace MUSIC {
 	    i->setLength (length);
 	    size += length;
 	  }
-	buffer->configure (size, allowedBuffered_);
+	buffer->configure (size, size * allowedBuffered_);
       }
   }
 
 
   void
-  Collector::collect ()
+  Collector::collect (ContDataT* base)
   {
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
 	Intervals& intervals = b->second;
-	ContDataT* src = static_cast<ContDataT*> (dataMap->base ());
-	ContDataT* dest = static_cast<ContDataT*> (buffer->insert ());
+	ContDataT* src = static_cast<ContDataT*> (buffer->next ());
+	ContDataT* dest = static_cast<ContDataT*> (base);
 	int elementSize = dataMap->type ().Get_size ();
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)
 	  {
-	    memcpy (dest, src + i->begin (), i->length ());
+	    memcpy (dest + i->begin (), src, i->length ());
 	    dest += i->length ();
 	  }
       }
   }
 
   void
-  Collector::collect (ContDataT* base)
+  Collector::collect ()
   {
+    collect (static_cast<ContDataT*> (dataMap->base ()));
   }
 
 }

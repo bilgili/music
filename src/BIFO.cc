@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/error.hh"
+
 #include "music/BIFO.hh"
 
 namespace MUSIC {
@@ -25,12 +27,72 @@ namespace MUSIC {
     configure (es, maxBlockSize);
   }
 
-  
+
   void
-  BIFO::configure (int es, int maxBlockSize)
+  BIFO::configure (int elementSize, int maxBlockSize)
   {
-    FIBO::configure (es);
+    elementSize_ = elementSize;
     maxBlockSize_ = maxBlockSize;
+    size = maxBlockSize_;
+    buffer.resize (size);
+    current = 0;
+    beginning = 0;
+    end = 0;
+    top = 0;
   }
+
   
+  bool
+  BIFO::isEmpty ()
+  {
+    return current == end;
+  }
+
+  
+  void*
+  BIFO::insertBlock ()
+  {
+    if (current >= maxBlockSize_)
+      beginning = 0;
+    else
+      {
+	beginning = top;
+	if (beginning + maxBlockSize_ > size)
+	  grow (beginning + maxBlockSize_);
+      }
+    return static_cast<void*> (&buffer[beginning]);
+  }
+
+
+  void
+  BIFO::trimBlock (int size)
+  {
+    end = beginning + size;
+    if (end > size)
+      error ("BIFO buffer overflow");
+    if (beginning == top)
+      top = end;
+  }
+
+
+  void*
+  BIFO::next ()
+  {
+    if (isEmpty ())
+      error ("attempt to read from empty BIFO buffer");
+    if (current == top)
+      // wrap around
+      current = 0;
+    void* memory = static_cast<void*> (&buffer[current]);
+    current += elementSize_;
+    return memory;
+  }
+
+  void
+  BIFO::grow (int newSize)
+  {
+    size = newSize;
+    buffer.resize (size);
+  }
+    
 }

@@ -58,6 +58,7 @@ namespace MUSIC {
   void
   Sampler::sample ()
   {
+    
     if (!hasSampled)
       {
 	hasSampled = true;
@@ -68,6 +69,8 @@ namespace MUSIC {
   ContDataT*
   Sampler::insert ()
   {
+    swapBuffers (sample_, prevSample_);
+    return sample_;
   }
 
   

@@ -4,7 +4,7 @@ ACLOCAL = $(top_srcdir)/aclocal.sh
 
 bin_PROGRAMS = music eventsource eventsink eventselect eventgenerator \
 	       eventcounter @OPTIONAL_UTILS@
-EXTRA_PROGRAMS = viewevents
+EXTRA_PROGRAMS = viewevents clocksource contsink
 
 music_SOURCES = music.cc application_mapper.cc application_mapper.hh
 music_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
@@ -33,6 +33,14 @@ eventcounter_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
 viewevents_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
 viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU 
+
+clocksource_SOURCES = clocksource.cc
+clocksource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+contsink_SOURCES = contsink.cc
+contsink_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

@@ -34,8 +34,9 @@ namespace MUSIC {
   
   ArrayData::ArrayData (void* buffer, MPI::Datatype type, int baseIndex, int size)
   {
-    LinearIndex indexMap (baseIndex, size);
-    ArrayData (buffer, type, &indexMap);
+    base_ = buffer;
+    type_ = type;
+    indexMap_ = new LinearIndex (baseIndex, size);
   }
 
   DataMap*

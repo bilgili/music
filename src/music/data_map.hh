@@ -34,6 +34,7 @@ namespace MUSIC {
    */
 
   class DataMap {
+  protected:
     void* base_;
   public:
     DataMap () { };

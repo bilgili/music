@@ -237,7 +237,7 @@ directly in the API.
   \lstinline|InputPort| can have only one connection, an
   \lstinline|OutputPort| can be connected to multiple
   \lstinline|InputPort|s.
-\pagebreak
+
 \item[data map] A data map\index{data map} denotes the information on
   where data actually resides within the application.  This is
   typically stored internally in the port data structure.  Data to be
@@ -339,7 +339,7 @@ applications, is executed in three distinct phases:
   kept in order.
 
   The runtime phase begins when the runtime object has been created
-  and ends when the runtime object is destroyed.
+  and ends when its finalize method is called.
 \end{description}
 
 From the application programmers point of view, these phases are
@@ -542,7 +542,6 @@ of the cluster nodes.  The script may use a message port to alter a
 parameter or turn on a stimulus in an application at a certain point
 in time.
 
-\pagebreak
 Messages sent from any process on the sender side of the connection
 are routed to all processes on the receiver side which have announced
 there willingness to receive messages.  Contrary to ports for
@@ -640,7 +639,6 @@ takes the form of an assignment:
   \emph{varname} = \emph{value}
 \end{quote}
 
-\pagebreak
 The following variable names have special meaning to MUSIC:
 \begin{description}
   \item[binary] Pathname to application binary
@@ -868,7 +866,6 @@ whether they handle continuous data, event data or messages.
   \emph{return value} & an unmapped port \\
 \end{parameters}
 
-\pagebreak
 Ports have two stages in life: the \emph{unmapped} stage and the
 \emph{mapped} stage.  A port is unmapped when created.  The MUSIC
 configuration file specifies connections between ports.  It is
@@ -926,7 +923,6 @@ given width.  Applications can use the method \lstinline|hasWidth| to
 determine if a width has been specified and retrieve it using
 \lstinline|width|.  Message ports do not have width.
 
-\pagebreak
 \index{hasWidth}
 \begin{head}{hasWidth}
   bool Port::hasWidth ()
@@ -991,6 +987,7 @@ is captured by the data map argument \lstinline|dMap|.  The
 \lstinline|DataMap| type is described in section \ref{sec:datamap}
 below.
 
+\clearpage
 \index{map}\index{mapping cont ports}
 \begin{head}{map}
   void ContOutputPort::map (DataMap* dMap,
@@ -1035,7 +1032,6 @@ values delivered on the receiver side.  This is the default behavior.
 By passing \lstinline|false| this interpolation can be switched off in
 which case MUSIC selects the sample on the sender side which is
 closest according to simulation time.
-
 
 \clearpage
 \begin{code}{Mapping ports to internal data\label{code:mapping}}
@@ -1083,16 +1079,16 @@ closest according to simulation time.
 Since event ports don't access data the same way as cont ports, they
 do not require a full \lstinline|DataMap|.  Instead, an
 \lstinline|IndexMap| is used to describe how indices in the
-application should be mapped to the common indexing shared by
-senders and receivers.  The applications indices can be local within
+application should be mapped to the shared indices common for
+sender and receiver.  The applications indices can be local within
 each MPI process or global over the application as indicated by the
-\lstinline|type| parameters (\lstinline|Index::LOCAL| or
-\lstinline|Index::GLOBAL|).
+\lstinline|type| parameters (\lstinline|MUSIC::Index::LOCAL| or
+\lstinline|MUSIC::Index::GLOBAL|).
 
 Events are communicated to the application through an \emph{event
   handler}\index{event handler}.  The event handler is called by MUSIC
 when the application calls \lstinline|tick|.  It is called once for
-every spike event delivered.
+every event delivered.
 
 Some spiking neural network models include axonal delays.  The MUSIC
 framework assumes that handling and delivery of delayed spikes occurs
@@ -1106,7 +1102,7 @@ has a similar meaning as for cont ports above but the actual amount
 of data buffered is, in this case, not deterministic since it is
 dependent on spike rate.
 
-\pagebreak
+
 \subsubsection{Sending events}
 \index{sending events}
 
@@ -1120,7 +1116,7 @@ The sender registers events for transmission by calling the method
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the sender local or global index \\
+  \lstinline|id| & the application index of the event \\
 \end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
@@ -1151,7 +1147,7 @@ kind of indices are used in the application.
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the receiver application index \\
+  \lstinline|id| & the application index of the event \\
 \end{parameters}
 
 Event handlers are called by event input ports to deliver events.  The
@@ -1161,12 +1157,13 @@ subclassing one of them (depending on the indexing
 scheme the application uses).
 
 
+\clearpage
 \subsection{Mapping message ports}
 \index{message ports}
 
 Message ports behave similarly to event ports in that messages are
 sent and delivered using similar mechanisms, but while events are
-routed between processes based on event id, messages are routed to all
+routed between processes based on event indices, messages are routed to all
 processes on the receiver side which have provided a
 \lstinline|MessageHandler| to \lstinline|map|.  All arguments to
 \lstinline|map| for message ports are optional.
@@ -1186,7 +1183,6 @@ processes on the receiver side which have provided a
 \end{parameters}
 
 
-\pagebreak
 \subsubsection{Sending messages}
 \index{sending messages}
 
@@ -1218,7 +1214,7 @@ MUSIC will deliver this message through a call to the user-specified \\
 }
 \end{code}
 
-
+\pagebreak
 \subsubsection{Receiving messages}
 \index{receiving messages}
 
@@ -1321,7 +1317,6 @@ Since data organized in arrays is common, MUSIC provides a convenience
 form of the array data map constructor which also creates a linear
 index map:
 
-\pagebreak
 \begin{head}{ArrayData}
   ArrayData::ArrayData (void* buffer,
                         MPI_Datatype type,
@@ -1613,6 +1608,14 @@ the MPI operations of the application.  Still, we recommend that the
 application does not intersperse the tick calls with ongoing MPI
 operations.
 
+Since the simulation time is updated when \lstinline|tick| is called,
+this means that conceptually, time in not changing between these
+calls.  When sending continuous values this implies that the
+application must ensure that data arrays mapped for output are filled
+with values relevant for the time before the tick increment.  After
+the tick increment, data arrays mapped for input will be filled with
+data relevant for the time after the tick increment.
+
 
 \section{Initialization and Finalization}
 
@@ -1648,8 +1651,10 @@ build the plan for communication between different processes.
 \subsection{Finalize MUSIC}\index{finalize}\index{terminate}
 
 The application should also replace its call to
-\lstinline|MPI::Finalize| by a call to \lstinline|MUSIC::finalize|.
-This will internally call \lstinline|MPI::Finalize|.
+\lstinline|MPI::Finalize|, normally used to shut down communication,
+by a call to \lstinline|MUSIC::finalize|.  This will internally call
+\lstinline|MPI::Finalize| after having flushed all pending data from
+internal buffers.
 
 \bibliographystyle{unsrtnat}
 \bibliography{music-rfc}

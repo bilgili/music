@@ -45,6 +45,7 @@ usage (int rank)
 		<< "and writes these to a set of files with names PREFIX RANK SUFFIX" << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -d, --delay SECS        amount of delay" << std::endl
+		<< "  -b, --maxbuffer TICKS   maximal buffer" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
     }
@@ -52,18 +53,23 @@ usage (int rank)
 }
 
 std::vector<MUSIC::Event> eventBuffer;
+std::vector<MUSIC::Event> overflowBuffer;
+
+double timestep = DEFAULT_TIMESTEP;
+double delay = 0.0;
+int label = -1;
+int maxbuffered = 0;
 
 class MyEventHandler: public MUSIC::EventHandlerLocalIndex {
 public:
   void operator () (double t, MUSIC::LocalIndex id)
   {
-    eventBuffer.push_back (MUSIC::Event (t, id));
-    std::cout << "Got(" << t << ", " << id << ")" << std::endl;
+    eventBuffer.push_back (MUSIC::Event (t + delay, id));
+    std::cout << label << ":Got(" << id <<
+      ", " << t + delay << ")" << std::endl;
   }
 };
 
-double timestep = DEFAULT_TIMESTEP;
-double delay = 0.0;
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -75,6 +81,8 @@ getargs (int rank, int argc, char* argv[])
 	{
 	  {"timestep",  required_argument, 0, 't'},
 	  {"delay",     required_argument, 0, 'd'},
+	  {"label",     required_argument, 0, 'L'},
+	  {"maxbuffer", required_argument, 0, 'b'},
 	  {"help",      no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
@@ -82,7 +90,7 @@ getargs (int rank, int argc, char* argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:d:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+t:d:L:b:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -95,6 +103,12 @@ getargs (int rank, int argc, char* argv[])
 	  continue;
 	case 'd':
 	  delay = atof(optarg);
+	  continue;
+	case 'L':
+	  label = atoi(optarg);
+	  continue;
+	case 'b':
+	  maxbuffered = atoi(optarg);
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -155,11 +169,19 @@ main (int argc, char *argv[])
 
   MUSIC::LinearIndex indices (rank*localWidth, myWidth);
 
-  in->map (&indices, &evhandler, delay);
+  if (maxbuffered)
+    in->map (&indices, &evhandler, delay, maxbuffered);
+  else
+    in->map (&indices, &evhandler, delay);
+
   out->map (&indices, MUSIC::Index::LOCAL);
   if (aux->isConnected ())
-    aux->map (&indices, &evhandler, 0.0);
-
+    {
+      if (maxbuffered)
+	aux->map (&indices, &evhandler, 0.0, maxbuffered);
+      else
+	aux->map (&indices, &evhandler, 0.0);
+    }
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
@@ -167,19 +189,31 @@ main (int argc, char *argv[])
 
   for (; runtime->time () < stoptime; runtime->tick ())
     {
-      // Retrieve data from other program
-      runtime->tick ();
-      
       sort (eventBuffer.begin (), eventBuffer.end ());
       for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
 	   i != eventBuffer.end ();
 	   ++i)
 	{
-	  std::cout << "Sent(" << i->t << ", " << i->id << ")" << std::endl;
-
-	  out->insertEvent (i->t + delay, MUSIC::LocalIndex(i->id));
+	  if (i->t < runtime->time () + timestep)
+	    {
+	      std::cout << label << ":Sent(" << i->id << ", "
+			<< i->t << " @" << runtime->time ()
+			<< ")" << std::endl;
+	      out->insertEvent (i->t, MUSIC::LocalIndex(i->id));
+	    }
+	  else
+	    overflowBuffer.push_back (*i);
 	}
       eventBuffer.clear ();
+
+      for (std::vector<MUSIC::Event>::iterator i = overflowBuffer.begin ();
+	   i != overflowBuffer.end ();
+	   ++i)
+	eventBuffer.push_back (*i);
+      overflowBuffer.clear ();
+      
+      // Retrieve data from other program
+      runtime->tick ();
     }
 
   runtime->finalize ();

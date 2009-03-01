@@ -11,10 +11,10 @@ double* data;
 int
 main (int argc, char* argv[])
 {
-  int width = atoi (argv[1]); // command line arg gives width
-
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   
+  int width = atoi (argv[1]); // command line arg gives width
+
   MUSIC::ContOutputPort* wavedata = setup->publishContOutput ("wavedata");
 
   comm = setup->communicator ();

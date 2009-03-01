@@ -39,7 +39,6 @@ namespace MUSIC {
     int maxBlockSize_;
   public:
     BIFO () { }
-    BIFO (int elementSize, int maxBlockSize);
     void configure (int elementSize, int maxBlockSize);
     bool isEmpty ();
     //*fixme* return type

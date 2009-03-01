@@ -32,9 +32,12 @@ namespace MUSIC {
     delete indexMap_;
   }
   
-  ArrayData::ArrayData (void* buffer, MPI::Datatype type, int baseIndex, int size)
+  ArrayData::ArrayData (void* buffer,
+			MPI::Datatype type,
+			int baseIndex,
+			int size)
   {
-    base_ = buffer;
+    base_ = buffer; //*fixme*
     type_ = type;
     indexMap_ = new LinearIndex (baseIndex, size);
   }

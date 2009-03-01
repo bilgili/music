@@ -22,12 +22,6 @@
 
 namespace MUSIC {
 
-  BIFO::BIFO (int es, int maxBlockSize)
-  {
-    configure (es, maxBlockSize);
-  }
-
-
   void
   BIFO::configure (int elementSize, int maxBlockSize)
   {

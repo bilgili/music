@@ -17,9 +17,11 @@
  */
 
 //#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
+#include "music/error.hh"
 
 #include "music/connector.hh"
-#include "music/debug.hh"
 
 namespace MUSIC {
 
@@ -87,6 +89,15 @@ namespace MUSIC {
 
 
   void
+  OutputConnector::addRoutingInterval (IndexInterval i, OutputSubconnector* s)
+  {
+    error ("internal error: correct addRoutingInterval () not called");
+  };
+
+
+
+  //*fixme* code repetition (OutputConnector::spatialNegotiation)
+  void
   InputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
    std::vector<InputSubconnector*>& isubconn)
@@ -115,8 +126,16 @@ namespace MUSIC {
 		   << i->begin () << ", "
 		   << i->end () << ", "
 		   << i->local () << ")");
+	addRoutingInterval (i->interval (), subconn);
       }
   }
+
+
+  void
+  InputConnector::addRoutingInterval (IndexInterval i, InputSubconnector* s)
+  {
+    // Default: Do nothing
+  };
 
 
   /********************************************************************
@@ -285,6 +304,7 @@ namespace MUSIC {
   ContInputConnector::addRoutingInterval (IndexInterval i,
 					  InputSubconnector* isubconn)
   {
+    MUSIC_LOG ("ContInputConnector::addRoutingInterval");
     collector_.addRoutingInterval (i, isubconn->buffer ());
   }
   

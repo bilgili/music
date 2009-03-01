@@ -86,8 +86,7 @@ namespace MUSIC {
   public:
     virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 				     std::vector<InputSubconnector*>& isubconn);
-    virtual void addRoutingInterval (IndexInterval i, OutputSubconnector* s)
-    { };
+    virtual void addRoutingInterval (IndexInterval i, OutputSubconnector* s);
     virtual OutputSubconnector* makeOutputSubconnector (int remoteRank) = 0;
   };
   
@@ -95,6 +94,7 @@ namespace MUSIC {
   public:
     virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 				     std::vector<InputSubconnector*>& isubconn);
+    virtual void addRoutingInterval (IndexInterval i, InputSubconnector* s);
     virtual InputSubconnector* makeInputSubconnector (int remoteRank,
 						      int receiverRank) = 0;
   };

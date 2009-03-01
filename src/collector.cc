@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include <algorithm>
 
 #include "music/event.hh"
@@ -34,6 +37,7 @@ namespace MUSIC {
   void
   Collector::configure (DataMap* dmap, int allowedBuffered)
   {
+    MUSIC_LOG ("Collector::configure");
     dataMap = dmap;
     allowedBuffered_ = allowedBuffered;
   }
@@ -42,6 +46,7 @@ namespace MUSIC {
   void
   Collector::addRoutingInterval (IndexInterval interval, BIFO* buffer)
   {
+    MUSIC_LOG ("Collector::addRoutingInterval");
     BufferMap::iterator b = buffers.find (buffer);
     if (b == buffers.end ())
       {
@@ -56,17 +61,20 @@ namespace MUSIC {
   void
   Collector::initialize ()
   {
+    MUSIC_LOG ("Collector::initialize");
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
 	Intervals& intervals = b->second;
 	sort (intervals.begin (), intervals.end ());
 	int elementSize = dataMap->type ().Get_size ();
+	MUSIC_LOG ("elementSize = " << elementSize);
 	int size = 0;
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)
 	  {
+	    MUSIC_LOG ("len = " << i->length ());
 	    int length = elementSize * i->length ();
 	    i->setLength (length);
 	    size += length;

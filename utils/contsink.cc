@@ -34,7 +34,7 @@ main (int args, char* argv[])
       // Retrieve data from other program
       runtime->tick ();
 
-      for (int i; i < width; ++i)
+      for (int i = 0; i < width; ++i)
 	std::cout << data[i] << " ";
       std::cout << "at " << runtime->time () << std::endl;
     }

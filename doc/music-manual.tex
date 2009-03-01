@@ -471,9 +471,8 @@ Figures~\ref{fig:timingshorter} and \ref{fig:timinglonger} illustrate
 how MUSIC handles time when transferring continuous data over a
 connection.  In figure~\ref{fig:timingshorter}, the sender application
 uses a shorter tick interval than the receiver.  The sender side uses
-values sampled before time is advanced at the tick points to
-interpolate a value corresponding to the point in time when the
-receiver returns from its tick call.
+values sampled at the tick points to interpolate a value corresponding
+to the point in time when the receiver makes its tick call.
 
 The dark middle area (labelled ``MPI'') is where the actual data
 transfer takes place.  MUSIC makes use of the fact that the receiving
@@ -1122,8 +1121,8 @@ The sender registers events for transmission by calling the method
 MUSIC guarantees that this event will be delivered through a call to
 the user-specified \lstinline|EventHandler| on the receiver side no
 later that the acceptable latency relative to receiver local time.
-The time \lstinline|t| must be between the current simulation time
-and that after the next tick.
+The time \lstinline|t| must be between the simulation time of the last
+tick and that of the next.
 
 The parameter \lstinline|id| should be converted from \lstinline|int|
 to \lstinline|LocalIndex| or \lstinline|GlobalIndex| to indicate what
@@ -1608,13 +1607,13 @@ the MPI operations of the application.  Still, we recommend that the
 application does not intersperse the tick calls with ongoing MPI
 operations.
 
-Since the simulation time is updated when \lstinline|tick| is called,
-this means that conceptually, time in not changing between these
-calls.  When sending continuous values this implies that the
-application must ensure that data arrays mapped for output are filled
-with values relevant for the time before the tick increment.  After
-the tick increment, data arrays mapped for input will be filled with
-data relevant for the time after the tick increment.
+When sending continuous values the application must ensure that data
+arrays mapped for output are filled with values relevant for the time
+of the \emph{next} tick.  After the \lstinline|tick| call, data arrays
+mapped for input will be filled with imported data belonging to the
+same point in time.  Note that \lstinline|Runtime::time| is updated
+\emph{during} the \lstinline|tick| call to reflect the current
+simulation time.
 
 
 \section{Initialization and Finalization}

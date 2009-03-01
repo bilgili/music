@@ -10,7 +10,7 @@ extern "C" {
 #include <getopt.h>
 };
 
-#define DEFAULT_TIMESTEP 0.01
+#define DEFAULT_TIMESTEP 1e-2
 
 double *data;
 

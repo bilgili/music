@@ -29,8 +29,8 @@ namespace MUSIC {
 
   Collector::Interval::Interval (IndexInterval& interval)
   {
-    setBegin (interval.begin () - interval.local ());
-    setLength (interval.end () - interval.begin());
+    setBegin (interval.begin ());
+    setLength (interval.end () - interval.begin ());
   }
   
 
@@ -40,6 +40,27 @@ namespace MUSIC {
     MUSIC_LOG ("Collector::configure");
     dataMap = dmap;
     allowedBuffered_ = allowedBuffered;
+  }
+  
+
+  IntervalTree<int, IndexInterval>*
+  Collector::buildTree ()
+  {
+    IntervalTree<int, IndexInterval>* tree
+      = new IntervalTree<int, IndexInterval> ();
+    
+    IndexMap* indices = dataMap->indexMap ();
+    for (IndexMap::iterator i = indices->begin ();
+	 i != indices->end ();
+	 ++i)
+      {
+	MUSIC_LOG ("adding [" << i->begin () << ", " << i->end () << ") to tree");
+	tree->add (*i);
+      }
+
+    tree->build ();
+    
+    return tree;
   }
   
 
@@ -59,9 +80,22 @@ namespace MUSIC {
 
 
   void
+  Collector::IntervalCalculator::operator() (IndexInterval& indexInterval)
+  {
+    MUSIC_LOG ("action!");
+    interval_.setBegin (elementSize_
+			* (interval_.begin () - indexInterval.local ()));
+    interval_.setLength (elementSize_ * interval_.length ());
+    MUSIC_LOG ("end!");
+  }
+
+
+  void
   Collector::initialize ()
   {
     MUSIC_LOG ("Collector::initialize");
+    IntervalTree<int, IndexInterval>* tree = buildTree ();
+    
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
@@ -74,10 +108,10 @@ namespace MUSIC {
 	     i != intervals.end ();
 	     ++i)
 	  {
-	    MUSIC_LOG ("len = " << i->length ());
-	    int length = elementSize * i->length ();
-	    i->setLength (length);
-	    size += length;
+	    IntervalCalculator calculator (*i, elementSize);
+	    MUSIC_LOG ("searching for " << i->begin ());
+	    tree->search (i->begin (), &calculator);
+	    size += i->length ();
 	  }
 	buffer->configure (size, size * (allowedBuffered_ + 2));
       }
@@ -98,6 +132,9 @@ namespace MUSIC {
 	     i != intervals.end ();
 	     ++i)
 	  {
+	    MUSIC_LOGR ("dest = " << static_cast<void*> (dest)
+		       << ", begin = " << i->begin ()
+		       << ", length = " << i->length ());
 	    memcpy (dest + i->begin (), src, i->length ());
 	    dest += i->length ();
 	  }

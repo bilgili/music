@@ -167,7 +167,7 @@ namespace MUSIC {
   {
     sampler.configure (dmap);
     OutputRedistributionPort::mapImpl (dmap->indexMap (),
-				       Index::LOCAL,
+				       Index::GLOBAL,
 				       maxBuffered,
 				       0);
   }
@@ -239,7 +239,7 @@ namespace MUSIC {
     interpolate_ = interpolate;
     sampler.configure (dmap);
     InputRedistributionPort::mapImpl (dmap->indexMap (),
-				      Index::LOCAL,
+				      Index::GLOBAL,
 				      delay,
 				      maxBuffered);
   }

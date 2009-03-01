@@ -23,6 +23,7 @@
 
 #include <music/FIBO.hh>
 #include <music/data_map.hh>
+#include <music/interval_tree.hh>
 
 namespace MUSIC {
 
@@ -38,12 +39,23 @@ namespace MUSIC {
       int length () const { return end (); }
       void setLength (int length) { setEnd (length); }
     };
+
+    class IntervalCalculator : public IntervalTree<int, IndexInterval>::Action {
+      Interval& interval_;
+      int elementSize_;
+    public:
+      IntervalCalculator (Interval& interval, int elementSize)
+	: interval_ (interval), elementSize_ (elementSize) { };
+      void operator() (IndexInterval& indexInterval);
+    };
     
     typedef std::vector<Interval> Intervals;
     typedef std::map<FIBO*, Intervals> BufferMap;
 
     DataMap* dataMap;
     BufferMap buffers;
+
+    IntervalTree<int, IndexInterval>* buildTree ();
   public:
     // caller manages deallocation but guarantees existence
     void configure (DataMap* dmap);

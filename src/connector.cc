@@ -510,15 +510,15 @@ namespace MUSIC {
   MessageOutputConnector::makeOutputSubconnector (int remoteRank)
   {
     return new MessageOutputSubconnector (&synch,
-					intercomm,
-					remoteRank,
-					receiverPortName ());
+					  intercomm,
+					  remoteRank,
+					  receiverPortName ());
   }
 
 
   void
   MessageOutputConnector::addRoutingInterval (IndexInterval i,
-					    OutputSubconnector* osubconn)
+					      OutputSubconnector* osubconn)
   {
     router_.insertRoutingInterval (i, osubconn->buffer ());
   }
@@ -535,10 +535,10 @@ namespace MUSIC {
 
   
   MessageInputConnector::MessageInputConnector (ConnectorInfo connInfo,
-					    SpatialInputNegotiator* spatialNegotiator,
-					    MessageHandlerPtr handleMessage,
-					    Index::Type type,
-					    MPI::Intracomm comm)
+						SpatialInputNegotiator* spatialNegotiator,
+						MessageHandlerPtr handleMessage,
+						Index::Type type,
+						MPI::Intracomm comm)
     : Connector (connInfo, spatialNegotiator, comm),
       handleMessage_ (handleMessage),
       type_ (type)

@@ -29,9 +29,9 @@ namespace MUSIC {
     maxBlockSize_ = maxBlockSize;
     size = maxBlockSize_;
     buffer.resize (size);
-    current = 0;
     beginning = 0;
     end = 0;
+    current = 0;
     top = 0;
   }
 
@@ -42,15 +42,15 @@ namespace MUSIC {
     return current == end;
   }
 
-  
+
   void*
   BIFO::insertBlock ()
   {
-    if (current >= maxBlockSize_)
+    if (current <= end && current >= maxBlockSize_)
       beginning = 0;
     else
       {
-	beginning = top;
+	beginning = end;
 	if (beginning + maxBlockSize_ > size)
 	  grow (beginning + maxBlockSize_);
       }
@@ -66,7 +66,7 @@ namespace MUSIC {
 	end = beginning + blockSize;
 	if (end > size)
 	  error ("BIFO buffer overflow");
-	if (beginning == top)
+	if (current <= end)
 	  top = end;
       }
   }
@@ -78,8 +78,11 @@ namespace MUSIC {
     if (isEmpty ())
       error ("attempt to read from empty BIFO buffer");
     if (current == top)
-      // wrap around
-      current = 0;
+      {
+	// wrap around
+	current = 0;
+	top = end;
+      }
     void* memory = static_cast<void*> (&buffer[current]);
     current += elementSize_;
     return memory;

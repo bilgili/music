@@ -79,7 +79,7 @@ namespace MUSIC {
 	    i->setLength (length);
 	    size += length;
 	  }
-	buffer->configure (size, size * allowedBuffered_);
+	buffer->configure (size, size * (allowedBuffered_ + 1));
       }
   }
 

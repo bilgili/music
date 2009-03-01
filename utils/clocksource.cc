@@ -135,6 +135,8 @@ main (int argc, char *argv[])
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
+  dataarray[0] = -1;
+  
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
 

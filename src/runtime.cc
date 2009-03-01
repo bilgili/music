@@ -265,6 +265,8 @@ namespace MUSIC {
     std::vector<Connector*>::iterator c;
     for (c = connectors->begin (); c != connectors->end (); ++c)
       (*c)->initialize ();
+    tick ();
+    localTime.ticks (-1);
   }
 
   

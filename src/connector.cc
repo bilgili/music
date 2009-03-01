@@ -169,6 +169,7 @@ namespace MUSIC {
       connector = new InterpolatingContOutputConnector (*this);
     else
       connector = new PlainContOutputConnector (*this);
+    *ref_ = connector;
     delete this; // delete ourselves!!
     return connector;
   }
@@ -270,6 +271,7 @@ namespace MUSIC {
       connector = new InterpolatingContInputConnector (*this);
     else
       connector = new PlainContInputConnector (*this);
+    *ref_ = connector;
     delete this; // delete ourselves!!
     return connector;
   }

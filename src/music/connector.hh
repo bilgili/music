@@ -50,11 +50,13 @@ namespace MUSIC {
     SpatialNegotiator* spatialNegotiator_;
     MPI::Intracomm comm;
     MPI::Intercomm intercomm;
+    Connector** ref_;
   public:
     Connector () { }
     Connector (ConnectorInfo info_,
 	       SpatialNegotiator* spatialNegotiator_,
 	       MPI::Intracomm c);
+    void setRef (Connector** ref) { ref_ = ref; }
     virtual Connector* specialize (ClockState tickInterval) { return this; }
     std::string receiverAppName () const
     { return info.receiverAppName (); }

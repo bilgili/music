@@ -46,6 +46,7 @@ namespace MUSIC {
     outputConnections.push_back (OutputConnection (connector,
 						   maxBuffered,
 						   elementSize));
+    connector->setRef (&outputConnections.back ().connector ());
   }
   
   void
@@ -57,6 +58,7 @@ namespace MUSIC {
     inputConnections.push_back (InputConnection (connector,
 						 maxBuffered,
 						 integerLatency));
+    connector->setRef (&inputConnections.back ().connector ());
   }
 
 
@@ -164,7 +166,7 @@ namespace MUSIC {
     negotiationData->nInConnections = inputConnections.size ();
     for (int i = 0; i < nOut; ++i)
       {
-	OutputConnector* connector = outputConnections[i].connector ();
+	Connector* connector = outputConnections[i].connector ();
 	int remote = connector->remoteLeader ();
 	negotiationData->connection[i].remoteNode = leaderToNode[remote];
 	negotiationData->connection[i].receiverPort

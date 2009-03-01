@@ -30,34 +30,34 @@ namespace MUSIC {
 
   class OutputConnection {
   private:
-    OutputConnector* connector_;
+    Connector* connector_;
     int maxBuffered_;
     int elementSize_;
   public:
-    OutputConnection (OutputConnector* connector,
+    OutputConnection (Connector* connector,
 		      int maxBuffered,
 		      int elementSize)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered),
 	elementSize_ (elementSize) { }
-    OutputConnector* connector () { return connector_; }
+    Connector*& connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
     int elementSize () { return elementSize_; }
   };
   
   class InputConnection {
   private:
-    InputConnector* connector_;
+    Connector* connector_;
     int maxBuffered_;
     ClockState accLatency_;
   public:
-    InputConnection (InputConnector* connector,
+    InputConnection (Connector* connector,
 		     int maxBuffered,
 		     ClockState accLatency)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered),
 	accLatency_ (accLatency) { }
-    InputConnector* connector () { return connector_; }
+    Connector*& connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
     ClockState accLatency () { return accLatency_; }
   };

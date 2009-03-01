@@ -451,6 +451,13 @@ namespace MUSIC {
   }
   
   
+  SpatialOutputNegotiator::SpatialOutputNegotiator (IndexMap* indices,
+						    Index::Type type)
+      : SpatialNegotiator (indices, type)
+  {
+  }
+
+  
   NegotiationIterator
   SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
 				      MPI::Intercomm intercomm,
@@ -500,6 +507,13 @@ namespace MUSIC {
     return NegotiationIterator (local);
   }
   
+  
+  SpatialInputNegotiator::SpatialInputNegotiator (IndexMap* indices,
+						  Index::Type type)
+    : SpatialNegotiator (indices, type)
+  {
+  }
+
   
   NegotiationIterator
   SpatialInputNegotiator::negotiate (MPI::Intracomm c,

@@ -170,8 +170,7 @@ namespace MUSIC {
     std::vector<NegotiationIntervals> local;
     std::vector<NegotiationIntervals> results;
   public:
-    SpatialOutputNegotiator (IndexMap* indices, Index::Type type)
-      : SpatialNegotiator (indices, type) { }
+    SpatialOutputNegotiator (IndexMap* indices, Index::Type type);
     void negotiateWidth (MPI::Intercomm c);
     NegotiationIterator negotiate (MPI::Intracomm comm,
 				   MPI::Intercomm intercomm,
@@ -181,8 +180,7 @@ namespace MUSIC {
   
   class SpatialInputNegotiator : public SpatialNegotiator {
   public:
-    SpatialInputNegotiator (IndexMap* indices, Index::Type type)
-      : SpatialNegotiator (indices, type) { }
+    SpatialInputNegotiator (IndexMap* indices, Index::Type type);
     void negotiateWidth (MPI::Intercomm c);
     NegotiationIterator negotiate (MPI::Intracomm comm,
 				   MPI::Intercomm intercomm,

@@ -28,12 +28,9 @@ main (int args, char* argv[])
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
 
-  double time = runtime->time ();
-  while (time < stoptime)
-    {
-      // Retrieve data from other program
-      runtime->tick ();
 
+  for (; runtime->time () < stoptime; runtime->tick ())
+    {
       for (int i = 0; i < width; ++i)
 	std::cout << data[i] << " ";
       std::cout << "at " << runtime->time () << std::endl;

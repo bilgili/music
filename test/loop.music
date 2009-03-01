@@ -1,0 +1,19 @@
+np=1
+stoptime=1.0
+[A]
+  binary=/home/orjan/music/utils/eventdelay
+  args=-d 0.1
+[B]
+  binary=/home/orjan/music/utils/eventdelay
+  args=-d 0.1
+[from]
+  binary=/usr/local/bin/eventsource
+  args=-b 2 10 spikes
+[to]
+  binary=/usr/local/bin/eventlogger
+  args=-b 2
+
+from.out -> A.aux [10]
+A.out -> B.in [10]
+B.out -> A.in [10]
+B.out -> to.in [10]

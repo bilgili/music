@@ -59,9 +59,9 @@ namespace MUSIC {
 
 
   void
-  BIFO::trimBlock (int size)
+  BIFO::trimBlock (int blockSize)
   {
-    end = beginning + size;
+    end = beginning + blockSize;
     if (end > size)
       error ("BIFO buffer overflow");
     if (beginning == top)

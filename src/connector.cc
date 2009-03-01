@@ -188,6 +188,7 @@ namespace MUSIC {
     : Connector (connector),
       ContOutputConnector (connector)
   {
+    MUSIC_LOG ("PlainContOutputConnector");
   }
 
 
@@ -195,6 +196,7 @@ namespace MUSIC {
   PlainContOutputConnector::initialize ()
   {
     distributor_.configure (sampler_.dataMap ());
+    distributor_.initialize ();
     synch.initialize ();
   }
 
@@ -214,6 +216,7 @@ namespace MUSIC {
     : Connector (connector),
       ContOutputConnector (connector)
   {
+    MUSIC_LOG ("InterpolatingContOutputConnector");
   }
 
 
@@ -221,6 +224,7 @@ namespace MUSIC {
   InterpolatingContOutputConnector::initialize ()
   {
     distributor_.configure (sampler_.interpolationDataMap ());
+    distributor_.initialize ();
     synch.initialize ();
   }
 
@@ -290,6 +294,7 @@ namespace MUSIC {
     :  Connector (connector),
        ContInputConnector (connector)
   {
+    MUSIC_LOG ("PlainContInputConnector");
   }
 
 
@@ -297,6 +302,7 @@ namespace MUSIC {
   PlainContInputConnector::initialize ()
   {
     collector_.configure (sampler_.dataMap (), synch.allowedBuffered ());
+    collector_.initialize ();
     synch.initialize ();
   }
   
@@ -318,22 +324,24 @@ namespace MUSIC {
   }
 
 
-  void
-  InterpolatingContInputConnector::initialize ()
-  {
-    collector_.configure (sampler_.interpolationDataMap (),
-			  synch.allowedBuffered ());
-    synch.initialize ();
-  }
-  
-
   InterpolatingContInputConnector::InterpolatingContInputConnector
   (ContInputConnector& connector)
     : Connector (connector),
       ContInputConnector (connector)
   {
+    MUSIC_LOG ("InterpolatingContInputConnector");
   }
 
+
+  void
+  InterpolatingContInputConnector::initialize ()
+  {
+    collector_.configure (sampler_.interpolationDataMap (),
+			  synch.allowedBuffered ());
+    collector_.initialize ();
+    synch.initialize ();
+  }
+  
 
   void
   InterpolatingContInputConnector::tick (bool& requestCommunication)

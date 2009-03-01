@@ -29,10 +29,16 @@ namespace MUSIC {
     std::vector<char> buffer;
     int elementSize_;
     int size;			// size of buffer
+
+    // These two variables are used to insert data:
+    
     int beginning;		// beginning of last block
     int end;			// end of last block
-    int top;			// upper bound of valid data
+
+    // These two variables are used to read data:
+    
     int current;
+    int top;			// upper bound of valid data
 
     void grow (int newSize);
     

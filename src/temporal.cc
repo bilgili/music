@@ -52,12 +52,14 @@ namespace MUSIC {
   void
   TemporalNegotiator::addConnection (InputConnector* connector,
 				     int maxBuffered,
-				     double accLatency)
+				     double accLatency,
+				     bool interpolate)
   {
     ClockState integerLatency = accLatency / setup_->timebase () + 0.5;
     inputConnections.push_back (InputConnection (connector,
 						 maxBuffered,
-						 integerLatency));
+						 integerLatency,
+						 interpolate));
     connector->setRef (&inputConnections.back ().connector ());
   }
 
@@ -164,6 +166,7 @@ namespace MUSIC {
     negotiationData->tickInterval = ti;
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
+    
     for (int i = 0; i < nOut; ++i)
       {
 	Connector* connector = outputConnections[i].connector ();
@@ -180,6 +183,9 @@ namespace MUSIC {
 				       setup_->timebase ());
 	negotiationData->connection[i].accLatency = 0;
       }
+
+    ClockState maxDelay = 0;
+    
     for (int i = 0; i < nIn; ++i)
       {
 	int remote = inputConnections[i].connector ()->remoteLeader ();
@@ -191,7 +197,14 @@ namespace MUSIC {
 	negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
 	negotiationData->connection[nOut + i].accLatency
 	  = inputConnections[i].accLatency ();
+	negotiationData->connection[nOut + i].interpolate
+	  = inputConnections[i].interpolate ();
+
+	if (inputConnections[i].accLatency () > maxDelay)
+	  maxDelay = inputConnections[i].accLatency ();
       }
+
+    negotiationData->maxDelay = maxDelay;
   }
 
 
@@ -252,11 +265,16 @@ namespace MUSIC {
   TemporalNegotiator::combineParameters ()
   {
     double timebase = nodes[0].data->timebase;
+    ClockState maxDelay = 0;
     for (int o = 0; o < nApplications; ++o)
       {
 	// check timebase
 	if (nodes[o].data->timebase != timebase)
 	  error0 ("applications don't use same timebase");
+
+	// compute maxDelay
+	if (nodes[o].data->maxDelay > maxDelay)
+	  maxDelay = nodes[o].data->maxDelay;
 	
 	for (int c = 0; c < nodes[o].data->nOutConnections; ++c)
 	  {
@@ -287,12 +305,16 @@ namespace MUSIC {
 	  
 	    // accLatency
 	    out->accLatency = in->accLatency;
+
+	    // interpolate
+	    out->interpolate = in->interpolate;
 	  
 	    // remoteTickInterval
 	    out->remoteTickInterval = nodes[i].data->tickInterval;
 	    in->remoteTickInterval = nodes[o].data->tickInterval;
 	  }
       }
+    negotiationData->maxDelay = maxDelay;
   }
 
 
@@ -396,6 +418,7 @@ namespace MUSIC {
       {
 	int maxBuffered = negotiationData->connection[i].maxBuffered;
 	int accLatency = negotiationData->connection[i].accLatency;
+	bool interpolate = negotiationData->connection[i].interpolate;
 	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;
 	Synchronizer* synch
@@ -405,12 +428,14 @@ namespace MUSIC {
 	synch->setReceiverTickInterval (remoteTickInterval);
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
+	synch->setInterpolate (interpolate);
       }
     int nIn = negotiationData->nInConnections;
     for (int i = 0; i < nIn; ++i)
       {
 	int maxBuffered = negotiationData->connection[nOut + i].maxBuffered;
 	int accLatency = negotiationData->connection[nOut + i].accLatency;
+	bool interpolate = negotiationData->connection[nOut + i].interpolate;
 	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;
 	Synchronizer* synch
@@ -420,7 +445,12 @@ namespace MUSIC {
 	synch->setSenderTickInterval (remoteTickInterval);
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
+	synch->setInterpolate (interpolate);
       }
+
+    // setup start time
+    int delayedTicks = negotiationData->maxDelay / localTime.tickInterval ();
+    localTime.ticks (-1 - delayedTicks);
   }
 
 

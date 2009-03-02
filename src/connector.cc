@@ -181,9 +181,10 @@ namespace MUSIC {
   
 
   Connector*
-  ContOutputConnector::specialize (ClockState tickInterval)
+  ContOutputConnector::specialize (Clock& localTime)
   {
     Connector* connector;
+    ClockState tickInterval = localTime.tickInterval ();
     if (tickInterval < remoteTickInterval (tickInterval))
       connector = new InterpolatingContOutputConnector (*this);
     else
@@ -253,7 +254,7 @@ namespace MUSIC {
   {
     if (synch.sample ())
       // sampling before and after time of receiver tick
-      sampler_.sample ();
+      sampler_.sampleOnce ();
     if (synch.interpolate ())
       {
 	sampler_.interpolate (synch.interpolationCoefficient ());
@@ -268,9 +269,11 @@ namespace MUSIC {
   ContInputConnector::ContInputConnector (ConnectorInfo connInfo,
 					  SpatialInputNegotiator* spatialNegotiator,
 					  MPI::Intracomm comm,
-					  Sampler& sampler)
+					  Sampler& sampler,
+					  double delay)
     : Connector (connInfo, spatialNegotiator, comm),
-      ContConnector (sampler)
+      ContConnector (sampler),
+      delay_ (delay)
   {
   }
 
@@ -284,13 +287,25 @@ namespace MUSIC {
 				      receiverRank,
 				      receiverPortName ());
   }
+
+
+  bool
+  ContInputConnector::divisibleDelay (Clock& localTime)
+  {
+    ClockState delay = delay_ / localTime.timebase () + 0.5;
+    return (delay % localTime.tickInterval ()) == 0;
+  }
   
 
   Connector*
-  ContInputConnector::specialize (ClockState tickInterval)
+  ContInputConnector::specialize (Clock& localTime)
   {
     Connector* connector;
-    if (tickInterval < remoteTickInterval (tickInterval))
+    ClockState tickInterval = localTime.tickInterval ();
+    ClockState rTickInterval = remoteTickInterval (tickInterval);
+    if (tickInterval < rTickInterval
+	|| (tickInterval == rTickInterval
+	    && !divisibleDelay (localTime)))
       connector = new InterpolatingContInputConnector (*this);
     else
       connector = new PlainContInputConnector (*this);
@@ -339,8 +354,11 @@ namespace MUSIC {
   void
   PlainContInputConnector::postCommunication ()
   {
-    // collect data from input buffers and write to application
-    collector_.collect ();
+    if (synch.simulating ())
+      {
+	// collect data from input buffers and write to application
+	collector_.collect ();
+      }
   }
 
 

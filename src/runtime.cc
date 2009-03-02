@@ -47,7 +47,7 @@ namespace MUSIC {
 	buildSchedule (comm.Get_rank ());
 	takePostCommunicators ();
 	MUSIC_LOG ("temporal negotiation");
-	temporalNegotiation (s, localTime);
+	temporalNegotiation (s);
 	// final initialization before simulation starts
 	initialize ();
       }
@@ -147,7 +147,7 @@ namespace MUSIC {
     for (std::vector<Connector*>::iterator c = connectors->begin ();
 	 c != connectors->end ();
 	 ++c)
-      *c = (*c)->specialize (localTime.tickInterval ());
+      *c = (*c)->specialize (localTime);
   }
 
   
@@ -244,7 +244,7 @@ namespace MUSIC {
 
   
   void
-  Runtime::temporalNegotiation (Setup* s, Clock& localTime)
+  Runtime::temporalNegotiation (Setup* s)
   {
     // Temporal negotiation is done globally by a serial algorithm
     // which yields the same result in each process
@@ -262,11 +262,13 @@ namespace MUSIC {
   void
   Runtime::initialize ()
   {
+    std::cout << "starttime = " << localTime.time () << std::endl;
     std::vector<Connector*>::iterator c;
     for (c = connectors->begin (); c != connectors->end (); ++c)
       (*c)->initialize ();
-    tick ();
-    localTime.ticks (-1);
+
+    while (localTime.integerTime () < 0)
+      tick ();
   }
 
   
@@ -290,6 +292,9 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
+    // Update local time
+    localTime.tick ();
+    
     // ContPorts do some per-tick initialization here
     std::vector<TickingPort*>::iterator p;
     for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
@@ -319,8 +324,6 @@ namespace MUSIC {
 	 ++c)
       (*c)->postCommunication ();
 	
-    // Update local time
-    localTime.tick ();
   }
 
 

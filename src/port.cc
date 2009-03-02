@@ -81,7 +81,7 @@ namespace MUSIC {
   void
   OutputRedistributionPort::setupCleanup ()
   {
-    delete spatialNegotiator;
+    //*fixme* delete spatialNegotiator;
   }
   
 
@@ -112,14 +112,15 @@ namespace MUSIC {
   void
   InputRedistributionPort::setupCleanup ()
   {
-    delete spatialNegotiator;
+    //*fixme* delete spatialNegotiator;
   }
 
   void
   InputRedistributionPort::mapImpl (IndexMap* indices,
 				    Index::Type type,
 				    double accLatency,
-				    int maxBuffered)
+				    int maxBuffered,
+				    bool interpolate)
   {
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
@@ -129,7 +130,8 @@ namespace MUSIC {
     InputConnector* connector = makeInputConnector (*info);
     setup_->temporalNegotiator ()->addConnection (connector,
 						  maxBuffered,
-						  accLatency);
+						  accLatency,
+						  interpolate);
     setup_->addConnector (connector);
   }
 
@@ -236,12 +238,13 @@ namespace MUSIC {
 			  bool interpolate)
   {
     assertInput ();
-    interpolate_ = interpolate;
     sampler.configure (dmap);
+    delay_ = delay;
     InputRedistributionPort::mapImpl (dmap->indexMap (),
 				      Index::GLOBAL,
 				      delay,
-				      maxBuffered);
+				      maxBuffered,
+				      interpolate);
   }
 
   
@@ -251,7 +254,8 @@ namespace MUSIC {
     return new ContInputConnector (connInfo,
 				   spatialNegotiator,
 				   setup_->communicator (),
-				   sampler);
+				   sampler,
+				   delay_);
   }
 
   
@@ -392,7 +396,11 @@ namespace MUSIC {
   {
     type_ = type;
     handleEvent_ = handleEvent;
-    InputRedistributionPort::mapImpl (indices, type, accLatency, maxBuffered);
+    InputRedistributionPort::mapImpl (indices,
+				      type,
+				      accLatency,
+				      maxBuffered,
+				      false);
   }
 
   
@@ -542,7 +550,8 @@ namespace MUSIC {
     InputRedistributionPort::mapImpl (&indices,
 				      Index::GLOBAL,
 				      accLatency,
-				      maxBuffered);
+				      maxBuffered,
+				      false);
   }
 
   

@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "music/array_data.hh"
+#include "music/error.hh"
+
 #include "music/sampler.hh"
 
 namespace MUSIC {
@@ -34,17 +37,50 @@ namespace MUSIC {
       delete interpolationDataMap_;
   }
   
-  
+
+  /*
+   * Called during port mapping
+   */
   void
   Sampler::configure (DataMap* dataMap)
   {
     dataMap_ = dataMap->copy ();
   }
 
+
+  void
+  Sampler::initialize ()
+  {
+    elementSize = dataMap_->type ().Get_size ();
+    
+    size = 0;
+    IndexMap* indices = dataMap_->indexMap ();
+    for (IndexMap::iterator i = indices->begin ();
+	 i != indices->end ();
+	 ++i)
+      size += i->end () - i->begin ();
+
+    prevSample_ = new ContDataT[elementSize * size];
+    sample_ = new ContDataT[elementSize * size];
+    interpolationData_ = new ContDataT[elementSize * size];
+
+    interpolationDataMap_ = new ArrayData (interpolationData_,
+					   dataMap_->type (),
+					   0,
+					   size);
+  }
+
   
+  /*
+   * Called during configuration of interpolating connectors
+   */
   DataMap*
   Sampler::interpolationDataMap ()
   {
+    if (interpolationDataMap_ == 0)
+      initialize ();
+    
+    return interpolationDataMap_;
   }
 
 
@@ -56,12 +92,33 @@ namespace MUSIC {
 
 
   void
-  Sampler::sample ()
+  Sampler::sampleOnce ()
   {
-    
     if (!hasSampled)
       {
+	sample ();
 	hasSampled = true;
+      }
+  }
+
+
+  void
+  Sampler::sample ()
+  {
+    ContDataT* dest = insert ();
+
+    int pos = 0;
+    IndexMap* indices = dataMap_->indexMap ();
+    for (IndexMap::iterator i = indices->begin ();
+	 i != indices->end ();
+	 ++i)
+      {
+	ContDataT* src = static_cast<ContDataT*> (dataMap_->base ());
+	int iSize = elementSize * (i->end () - i->begin ());
+	memcpy (dest + pos,
+		src + elementSize * i->begin (),
+		iSize);
+	pos += iSize;
       }
   }
 
@@ -87,14 +144,70 @@ namespace MUSIC {
   void
   Sampler::interpolate (double interpolationCoefficient)
   {
-    
+    interpolateTo (interpolationDataMap_, interpolationCoefficient);
   }
+  
   
   void
   Sampler::interpolateToApplication (double interpolationCoefficient)
   {
-    
+    interpolateTo (dataMap_, interpolationCoefficient);
   }
   
 
+  void
+  Sampler::interpolateTo (DataMap* dataMap, double interpolationCoefficient)
+  {
+    int pos = 0;
+    IndexMap* indices = dataMap->indexMap ();
+    for (IndexMap::iterator i = indices->begin ();
+	 i != indices->end ();
+	 ++i)
+      {
+	int iSize = i->end () - i->begin ();
+	if (dataMap->type () == MPI::DOUBLE)
+	  interpolate (pos, iSize, interpolationCoefficient,
+		       static_cast<double*> (dataMap->base ()) + i->begin ());
+	else if (dataMap->type () == MPI::FLOAT)
+	  interpolate (pos, iSize, interpolationCoefficient,
+		       static_cast<float*> (dataMap->base ()) + i->begin ());
+	else
+	  error ("internal error in Sampler::interpolateTo");
+	pos += iSize;
+      }    
+  }
+
+
+  void
+  Sampler::interpolate (int from,
+			int n,
+			double interpolationCoefficient,
+			double* dest)
+  {
+    double* prev = (static_cast<double*> (static_cast<void*> (prevSample_))
+		    + from);
+    double* succ = (static_cast<double*> (static_cast<void*> (sample_))
+		    + from);
+    for (int i = 0; i < n; ++i)
+      dest[i] = ((1.0 - interpolationCoefficient) * prev[i]
+		 + interpolationCoefficient * succ[i]);
+  }
+			
+  
+  void
+  Sampler::interpolate (int from,
+			int n,
+			float interpolationCoefficient,
+			float* dest)
+  {
+    float* prev = (static_cast<float*> (static_cast<void*> (prevSample_))
+		    + from);
+    float* succ = (static_cast<float*> (static_cast<void*> (sample_))
+		    + from);
+    for (int i = 0; i < n; ++i)
+      dest[i] = ((1.0 - interpolationCoefficient) * prev[i]
+		 + interpolationCoefficient * succ[i]);
+  }
+			
+  
 }

@@ -19,6 +19,8 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
+#include <cmath>
+
 #include "music/synchronizer.hh"
 
 namespace MUSIC {
@@ -91,6 +93,13 @@ namespace MUSIC {
 
   
   void
+  Synchronizer::setInterpolate (bool flag)
+  {
+    interpolate_ = flag;
+  }
+
+  
+  void
   Synchronizer::initialize ()
   {
     nextCommunication ();
@@ -101,6 +110,13 @@ namespace MUSIC {
   Synchronizer::communicate ()
   {
     return communicate_;
+  }
+
+
+  bool
+  Synchronizer::simulating ()
+  {
+    return localTime->integerTime () >= 0;
   }
 
 
@@ -187,8 +203,15 @@ namespace MUSIC {
   {
     ClockState prevSampleTime
       = localTime->integerTime () - localTime->tickInterval ();
-    return ((double) (remoteTime.integerTime () - prevSampleTime)
-	    / (double) localTime->tickInterval ());
+    double c = ((double) (remoteTime.integerTime () - prevSampleTime)
+		/ (double) localTime->tickInterval ());
+    
+    // *fixme* preliminary implementation which just provides
+    // the functionality specified in the API
+    if (interpolate_)
+      return c;
+    else
+      return round (c);
   }
 
 
@@ -205,7 +228,9 @@ namespace MUSIC {
   {
     ClockState sampleWindowLow
       = remoteTime.integerTime () - localTime->tickInterval ();
-    return sampleWindowLow <= localTime->integerTime ();
+    double tb = localTime->timebase ();
+    bool sample = (sampleWindowLow <= localTime->integerTime ());
+    return sample;
   }
 
 
@@ -214,8 +239,15 @@ namespace MUSIC {
   {
     ClockState prevSampleTime
       = remoteTime.integerTime () - remoteTime.tickInterval ();
-    return ((double) (localTime->integerTime () - prevSampleTime)
-	    / (double) remoteTime.tickInterval ());
+    double c = ((double) (localTime->integerTime () - prevSampleTime)
+		/ (double) remoteTime.tickInterval ());
+    
+    // *fixme* preliminary implementation which just provides
+    // the functionality specified in the API
+    if (interpolate_)
+      return c;
+    else
+      return round (c);
   }
 
 

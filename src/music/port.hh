@@ -92,7 +92,8 @@ namespace MUSIC {
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  double accLatency,
-		  int maxBuffered);
+		  int maxBuffered,
+		  bool interpolate);
   public:
     void setupCleanup ();
   };
@@ -116,7 +117,7 @@ namespace MUSIC {
   };
   
   class ContInputPort : public ContPort, public InputRedistributionPort {
-    bool interpolate_;
+    double delay_;
     void mapImpl (DataMap* dmap,
 		  double delay,
 		  int maxBuffered,

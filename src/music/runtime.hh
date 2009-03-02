@@ -46,7 +46,7 @@ namespace MUSIC {
     void buildSchedule (int localRank);
     void takePostCommunicators ();
     void buildTables (Setup* s);
-    void temporalNegotiation (Setup* s, Clock& localTime);
+    void temporalNegotiation (Setup* s);
     void initialize ();
 
     int rank;

@@ -57,7 +57,7 @@ namespace MUSIC {
 	       SpatialNegotiator* spatialNegotiator_,
 	       MPI::Intracomm c);
     void setRef (Connector** ref) { ref_ = ref; }
-    virtual Connector* specialize (ClockState tickInterval) { return this; }
+    virtual Connector* specialize (Clock& localTime) { return this; }
     std::string receiverAppName () const
     { return info.receiverAppName (); }
     std::string receiverPortName () const
@@ -126,7 +126,7 @@ namespace MUSIC {
 			 Sampler& sampler);
     OutputSubconnector* makeOutputSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
-    Connector* specialize (ClockState tickInterval);
+    Connector* specialize (Clock& localTime);
   };
   
   class PlainContOutputConnector : public ContOutputConnector {
@@ -153,14 +153,17 @@ namespace MUSIC {
 			     public PostCommunicationConnector {
   protected:
     Collector collector_;
+    double delay_;
+    bool divisibleDelay (Clock& localTime);
   public:
     ContInputConnector (ConnectorInfo connInfo,
 			SpatialInputNegotiator* spatialNegotiator,
 			MPI::Intracomm comm,
-			Sampler& sampler);
+			Sampler& sampler,
+			double delay);
     InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
     void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
-    Connector* specialize (ClockState tickInterval);
+    Connector* specialize (Clock& localTime);
     // We need to allocate instances of ContInputConnector and, therefore
     // need dummy versions of the following virtual functions:
     virtual void postCommunication () { }

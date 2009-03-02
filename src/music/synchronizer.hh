@@ -29,6 +29,7 @@ namespace MUSIC {
     Clock nextReceive;
     ClockState latency_;
     int maxBuffered_;
+    bool interpolate_;
     bool communicate_;
     void nextCommunication ();
   public:
@@ -39,8 +40,11 @@ namespace MUSIC {
     void setMaxBuffered (int m);
     int allowedBuffered () { return maxBuffered_; }
     void setAccLatency (ClockState l);
+    ClockState delay () { return latency_; }
+    void setInterpolate (bool flag);
     void initialize ();
     bool communicate ();
+    bool simulating ();
   };
 
 

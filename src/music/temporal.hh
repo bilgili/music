@@ -50,16 +50,20 @@ namespace MUSIC {
     Connector* connector_;
     int maxBuffered_;
     ClockState accLatency_;
+    bool interpolate_;
   public:
     InputConnection (Connector* connector,
 		     int maxBuffered,
-		     ClockState accLatency)
+		     ClockState accLatency,
+		     bool interpolate)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered),
-	accLatency_ (accLatency) { }
+	accLatency_ (accLatency),
+	interpolate_ (interpolate) { }
     Connector*& connector () { return connector_; }
     int maxBuffered () { return maxBuffered_; }
     ClockState accLatency () { return accLatency_; }
+    bool interpolate () { return interpolate_; }
   };
   
   class ConnectionDescriptor {
@@ -68,6 +72,7 @@ namespace MUSIC {
     int receiverPort;
     int maxBuffered;
     int defaultMaxBuffered; // not used for input connections
+    bool interpolate;
     ClockState accLatency;
     ClockState remoteTickInterval;
   };
@@ -76,9 +81,9 @@ namespace MUSIC {
   public:
     double timebase;
     ClockState tickInterval;
+    ClockState maxDelay;
     int nOutConnections;
     int nInConnections;
-    int recNamesSize;
     ConnectionDescriptor connection[0];
   };
 
@@ -123,7 +128,8 @@ namespace MUSIC {
 			int elementSize);
     void addConnection (InputConnector* connector,
 			int maxBuffered,
-			double accLatency);
+			double accLatency,
+			bool interpolate);
     void createNegotiationCommunicator ();
     void collectNegotiationData (ClockState ti);
     void communicateNegotiationData ();

@@ -31,19 +31,33 @@ namespace MUSIC {
     ContDataT* prevSample_;
     ContDataT* sample_;
     ContDataT* interpolationData_;
-    void swapBuffers (ContDataT*& b1, ContDataT*& b2);
+    int elementSize;
+    int size;
   public:
     Sampler ();
     ~Sampler ();
     void configure (DataMap* dataMap);
+    void initialize ();
     DataMap* dataMap () { return dataMap_; }
     // this class manages one single copy of the interpolation DataMap
     DataMap* interpolationDataMap ();
     void newSample ();
+    void sampleOnce ();
     void sample ();
     ContDataT* insert ();
     void interpolate (double interpolationCoefficient);
     void interpolateToApplication (double interpolationCoefficient);
+  private:
+    void swapBuffers (ContDataT*& b1, ContDataT*& b2);
+    void interpolateTo (DataMap* dataMap, double interpolationCoefficient);
+    void interpolate (int from,
+		      int n,
+		      double interpolationCoefficient,
+		      double* dest);
+    void interpolate (int from,
+		      int n,
+		      float interpolationCoefficient,
+		      float* dest);
   };
 
 }

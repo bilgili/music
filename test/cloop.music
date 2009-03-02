@@ -2,10 +2,10 @@ np=1
 stoptime=1.0
 [A]
   binary=../utils/contdelay
-  args=-d 0.1 -b 2
+  args=-d 0.1 -b 1000
 [B]
   binary=../utils/contdelay
-  args=-d 0.1 -b 2
+  args=-d 0.1 -b 1000
 [from]
   binary=../utils/clocksource
   args=-b 5

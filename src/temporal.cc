@@ -410,6 +410,11 @@ namespace MUSIC {
   }
 
 
+  /* 
+   * Distribute results of temporal negotiation to the synchronizers
+   * of the local process
+   */
+
   void
   TemporalNegotiator::distributeNegotiationData (Clock& localTime)
   {
@@ -429,8 +434,10 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
+	// inform synchronizers about simulation-wide maximum delay
 	synch->setMaxDelay (negotiationData->maxDelay);
       }
+
     int nIn = negotiationData->nInConnections;
     for (int i = 0; i < nIn; ++i)
       {
@@ -447,6 +454,7 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
+	// inform synchronizers about simulation-wide maximum delay
 	synch->setMaxDelay (negotiationData->maxDelay);
       }
   }

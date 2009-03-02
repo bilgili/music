@@ -1,5 +1,5 @@
 np=1
-stoptime=1.0
+stoptime=1.1
 [A]
   binary=../utils/eventdelay
   args=-d 0.1 -L 1 -b 2

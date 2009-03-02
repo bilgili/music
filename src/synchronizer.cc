@@ -102,9 +102,11 @@ namespace MUSIC {
   void
   Synchronizer::setMaxDelay (ClockState maxDelay)
   {
+    // back up clocks to start at -maxDelay
     setMaxDelay (maxDelay, *localTime);
     setMaxDelay (maxDelay, nextSend);
     setMaxDelay (maxDelay, nextReceive);
+    // compensate for first localTime.tick () in Runtime::tick ()
     localTime->ticks (-1);
   }
 
@@ -113,7 +115,9 @@ namespace MUSIC {
   Synchronizer::setMaxDelay (ClockState maxDelay, Clock& clock)
   {
     // setup start time
-    int delayedTicks = maxDelay / clock.tickInterval ();
+    int delayedTicks = 0;
+    if (maxDelay > 0)
+      delayedTicks = 1 + (maxDelay - 1) / clock.tickInterval ();
     clock.ticks (- delayedTicks);
   }
   

@@ -224,7 +224,9 @@ namespace MUSIC {
   void
   PlainContOutputConnector::tick (bool& requestCommunication)
   {
+    // copy application data to send buffers
     distributor_.distribute ();
+
     synch.tick ();
     if (synch.communicate ())
       requestCommunication = true;

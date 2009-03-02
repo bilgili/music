@@ -262,6 +262,10 @@ namespace MUSIC {
   void
   Runtime::initialize ()
   {
+    // clocks are already set by temporal negotiation to -maxDelay (in
+    // whole ticks so that all clocks will pass time zero)
+
+    // initialize connectors (and synchronizers)
     std::vector<Connector*>::iterator c;
     for (c = connectors->begin (); c != connectors->end (); ++c)
       (*c)->initialize ();

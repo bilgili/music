@@ -22,7 +22,7 @@
 #include <cmath>
 
 #include "music/synchronizer.hh"
-
+#include <iostream>
 namespace MUSIC {
 
   void
@@ -176,25 +176,35 @@ namespace MUSIC {
   
   
   void
-  InterpolationSynchronizer::tick ()
+  InterpolationSynchronizer::remoteTick ()
   {
-    /* The order of execution in Runtime::tick () is:
-     *
-     * 1. Port::tick ()
-     * 2. Connector::tick ()
-     *     =>  call of Synchronizer::sample ()
-     *         call of Synchronizer::tick ()
-     * 3. localTime.tick ()
-     *
-     * After the last sample at 1 localTime will be between remoteTime
-     * and remoteTime + localTime->tickInterval.  We trigger on this
-     * situation and forward remoteTime.
-     */ 
-    if (localTime->integerTime () >= remoteTime.integerTime ())
-      remoteTime.tick ();
+    remoteTime.tick ();
   }
 
 
+  void
+  InterpolationOutputSynchronizer::initialize ()
+  {
+    remoteTime.set (- latency_);
+    Synchronizer::initialize ();
+  }
+
+  
+  /* The order of execution in Runtime::tick () is:
+   *
+   * 1. localTime.tick ()
+   * 2. Port::tick ()
+   * 3. Connector::tick ()
+   *     =>  call of Synchronizer::tick ()
+   *         call of Synchronizer::sample ()
+   * 4. Communication
+   * 5. postCommunication
+   *
+   * After the last sample at 1 localTime will be between remoteTime
+   * and remoteTime + localTime->tickInterval.  We trigger on this
+   * situation and forward remoteTime.
+   */
+  
   bool
   InterpolationOutputSynchronizer::sample ()
   {
@@ -237,19 +247,28 @@ namespace MUSIC {
   void
   InterpolationOutputSynchronizer::tick ()
   {
-    InterpolationSynchronizer::tick ();
     OutputSynchronizer::tick ();
+  }
+
+  
+  void
+  InterpolationInputSynchronizer::initialize ()
+  {
+    //ClockState offset = latency_ + nextSend.integerTime ();
+    //remoteTime.set (localTime->integerTime () + offset);
+    //remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval () + offset);
+    remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval () + latency_);
+    std::cout << "nextSend = " << nextSend.time () << ", nextReceive = " << nextReceive.time () << std::endl;
+    Synchronizer::initialize ();
+    std::cout << "localTime = " << localTime->time () << ", remoteTime = " << remoteTime.time () << std::endl;
   }
 
   
   bool
   InterpolationInputSynchronizer::sample ()
   {
-    ClockState sampleWindowLow
-      = remoteTime.integerTime () - localTime->tickInterval ();
-    double tb = localTime->timebase ();
-    bool sample = (sampleWindowLow <= localTime->integerTime ());
-    return sample;
+    return (localTime->integerTime () > remoteTime.integerTime ()
+	    && localTime->integerTime () + localTime->tickInterval () >= 0);
   }
 
 
@@ -263,6 +282,7 @@ namespace MUSIC {
     
     // *fixme* preliminary implementation which just provides
     // the functionality specified in the API
+    std::cout << "c = " << c << std::endl;
     if (interpolate_)
       return c;
     else
@@ -273,7 +293,6 @@ namespace MUSIC {
   void
   InterpolationInputSynchronizer::tick ()
   {
-    InterpolationSynchronizer::tick ();
     InputSynchronizer::tick ();
   }
   

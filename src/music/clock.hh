@@ -70,6 +70,7 @@ namespace MUSIC {
     double timebase () { return timebase_; }
     double time ();
     ClockState integerTime () { return state_; }
+    void set (ClockState state) { state_ = state; }
     bool operator> (const Clock& ref) const { return state_ > ref.state_; }
     bool operator== (const Clock& ref) const { return state_ == ref.state_; }
   };

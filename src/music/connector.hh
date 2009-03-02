@@ -182,8 +182,6 @@ namespace MUSIC {
   class InterpolatingContInputConnector : public ContInputConnector,
 					  public InterpolatingConnector {
     InterpolationInputSynchronizer synch;
-    bool sample;
-    double interpolationCoefficient;
   public:
     InterpolatingContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }

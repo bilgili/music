@@ -252,15 +252,16 @@ namespace MUSIC {
   void
   InterpolatingContOutputConnector::tick (bool& requestCommunication)
   {
+    synch.tick ();
     if (synch.sample ())
       // sampling before and after time of receiver tick
       sampler_.sampleOnce ();
     if (synch.interpolate ())
       {
 	sampler_.interpolate (synch.interpolationCoefficient ());
+	synch.remoteTick ();
 	distributor_.distribute ();
       }
-    synch.tick ();
     if (synch.communicate ())
       requestCommunication = true;
   }
@@ -384,8 +385,6 @@ namespace MUSIC {
   void
   InterpolatingContInputConnector::tick (bool& requestCommunication)
   {
-    sample = synch.sample ();
-    interpolationCoefficient = synch.interpolationCoefficient ();
     synch.tick ();
     if (synch.communicate ())
       requestCommunication = true;
@@ -395,9 +394,12 @@ namespace MUSIC {
   void
   InterpolatingContInputConnector::postCommunication ()
   {
-    if (sample)
-      collector_.collect (sampler_.insert ());
-    sampler_.interpolateToApplication (interpolationCoefficient);
+    if (synch.sample ())
+      {
+	collector_.collect (sampler_.insert ());
+	synch.remoteTick ();
+      }
+    sampler_.interpolateToApplication (synch.interpolationCoefficient ());
   }
 
 

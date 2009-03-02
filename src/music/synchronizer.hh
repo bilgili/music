@@ -44,7 +44,7 @@ namespace MUSIC {
     ClockState delay () { return latency_; }
     void setInterpolate (bool flag);
     void setMaxDelay (ClockState maxDelay);
-    void initialize ();
+    virtual void initialize ();
     bool communicate ();
     bool simulating ();
   };
@@ -68,13 +68,14 @@ namespace MUSIC {
   public:
     virtual void setSenderTickInterval (ClockState ti);
     virtual void setReceiverTickInterval (ClockState ti);    
-    void tick ();
+    void remoteTick ();
   };
 
 
   class InterpolationOutputSynchronizer : public InterpolationSynchronizer,
 					  public OutputSynchronizer {
   public:
+    void initialize ();
     bool sample ();
     bool interpolate ();
     double interpolationCoefficient ();
@@ -85,6 +86,7 @@ namespace MUSIC {
   class InterpolationInputSynchronizer : public InterpolationSynchronizer,
 					 public InputSynchronizer {
   public:
+    void initialize ();
     bool sample ();
     double interpolationCoefficient ();
     void tick ();

@@ -2,7 +2,7 @@ np=2
 stoptime=1.0
 [from]
   binary=/usr/local/bin/eventsource
-  args=10 spikes
+  args=-b 1 10 spikes
 [to]
   binary=/usr/local/bin/eventlogger
   args=-b 2

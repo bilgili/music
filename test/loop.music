@@ -1,16 +1,16 @@
 np=1
 stoptime=1.1
 [A]
-  binary=../utils/eventdelay
+  binary=./eventdelay
   args=-d 0.1 -L 1 -b 2
 [B]
-  binary=../utils/eventdelay
+  binary=./eventdelay
   args=-d 0.1 -L 2 -b 2
 [from]
-  binary=/usr/local/bin/eventsource
+  binary=eventsource
   args=-b 5 10 spikes
 [to]
-  binary=/usr/local/bin/eventlogger
+  binary=eventlogger
   args=-b 5
 
 

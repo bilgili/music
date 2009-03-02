@@ -371,24 +371,23 @@ does MUSIC know which data to send where?
 
 In MUSIC, there are two views of the data to be communicated over a
 connection.  Data elements are enumerated differently according to
-these views.  MUSIC uses \emph{shared indices}\index{shared index} to
-enumerate the entire set of data to be sent over the connection while
-\emph{application indices}\index{application index} enumerate the
-subset of data which is stored in the memory of a particular MPI
-process.  Data does not need to be ordered in the same way according
-to the two views.  For example, data stored in an array may be
-associated with an arbitrary subset of shared indices in an arbitrary
-order.  The application indices can be local for each MPI process, or
-global over the whole application.
+these views.  MUSIC uses \emph{shared global indices}\index{shared
+  index}\index{global index} to enumerate the entire set of data to be
+sent over the connection while \emph{local indices}\index{local index}
+enumerate the subset of data which is stored in the memory of a
+particular MPI process.  Data does not need to be ordered in the same
+way according to the two views.  For example, data stored in an array
+may be associated with an arbitrary subset of global indices in an
+arbitrary order.
 
-The MUSIC library is informed about the relationship between shared
-and application indices and how data is stored in memory during the setup
+The MUSIC library is informed about the relationship between global
+and local indices and how data is stored in memory during the setup
 phase.  Two abstractions are used to carry this information:
 
-The \lstinline|IndexMap| maps application indices to shared indices.
-That is, the \lstinline|IndexMap| tells which parts of a distributed
-data array are handled by the local process and how the data elements
-are locally ordered.
+The \lstinline|IndexMap| maps local indices to global indices.  That
+is, the \lstinline|IndexMap| tells which parts of a distributed data
+array are handled by the local process and how the data elements are
+locally ordered.
 
 The \lstinline|DataMap| encapsulates how a port accesses its data.
 The \lstinline|DataMap| contains an \lstinline|IndexMap|.  While an
@@ -587,7 +586,7 @@ participate in a multi-simulation.
   to give MUSIC the opportunity to transfer data.
 \item \textbf{Finalize MUSIC}\index{finalize}\index{terminate}
 
-  By deleting the runtime object, all MUSIC communication is terminated.
+  By calling \lstinline|finalize|, all MUSIC communication is terminated.
 \end{enumerate}
 
 
@@ -1077,11 +1076,12 @@ closest according to simulation time.
 Since event ports don't access data the same way as cont ports, they
 do not require a full \lstinline|DataMap|.  Instead, an
 \lstinline|IndexMap| is used to describe how indices in the
-application should be mapped to the shared indices common for
-sender and receiver.  The applications indices can be local within
-each MPI process or global over the application as indicated by the
-\lstinline|type| parameters (\lstinline|MUSIC::Index::LOCAL| or
-\lstinline|MUSIC::Index::GLOBAL|).
+application should be mapped to the shared global indices common for
+sender and receiver.  The applications has the choice of using local
+indices or bypassing the index transformation by directly using the
+shared global indices when labelling events.  This is controlled by
+the \lstinline|type| parameter which can be set to
+\lstinline|MUSIC::Index::LOCAL| or \lstinline|MUSIC::Index::GLOBAL|.
 
 Events are communicated to the application through an \emph{event
   handler}\index{event handler}.  The event handler is called by MUSIC
@@ -1109,12 +1109,14 @@ The sender registers events for transmission by calling the method
 
 \index{insertEvent}
 \begin{head}{insertEvent}
-  void EventOutputPort::insertEvent (double t, LocalIndex id)
-  void EventOutputPort::insertEvent (double t, GlobalIndex id)
+  void EventOutputPort::insertEvent (double t,
+                                     LocalIndex id)
+  void EventOutputPort::insertEvent (double t,
+                                     GlobalIndex id)
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the application index of the event \\
+  \lstinline|id| & the local or global index of the event \\
 \end{parameters}
 
 MUSIC guarantees that this event will be delivered through a call to
@@ -1132,20 +1134,22 @@ kind of indices are used in the application.
 \index{receiving events}
 
 \index{EventHandler}
-\begin{head}{LocalEventHandler,GlobalEventHandler,operator}
-  class LocalEventHandler {
+\begin{head}{EventHandlerLocalIndex,EventHandlerGlobalIndex,operator}
+  class EventHandlerLocalIndex {
   public:
-    virtual void operator () (double t, int id) = 0;
+    virtual void operator () (double t,
+                              LocalIndex id) = 0;
   };
 
-  class GlobalEventHandler {
+  class EventHandlerLocalIndex {
   public:
-    virtual void operator () (double t, int id) = 0;
+    virtual void operator () (double t,
+                              GlobalIndex id) = 0;
   };
 \end{head}
 \begin{parameters}
   \lstinline|t| & trigger time of the event (s) \\
-  \lstinline|id| & the application index of the event \\
+  \lstinline|id| & local or global index if the event \\
 \end{parameters}
 
 Event handlers are called by event input ports to deliver events.  The
@@ -1245,11 +1249,11 @@ the MUSIC library.
 \subsection{Index maps}
 \index{index maps}
 
-An \lstinline|IndexMap| is a mapping from the applications data
-element indices to shared indices.  An index map instance thus
-holds information of which shared indices belong to the local MPI
-process and of their local order.  MUSIC implements two subclasses of
-\lstinline|IndexMap|: \lstinline|PermutationIndex| and
+An \lstinline|IndexMap| is a mapping from the local data element
+indices to shared global indices.  An index map instance thus holds
+information of which subset of the shared global indices belong to the
+local MPI process and of their local order.  MUSIC implements two
+subclasses of \lstinline|IndexMap|: \lstinline|PermutationIndex| and
 \lstinline|LinearIndex|.  The most general form is
 \lstinline|PermutationIndex| which allows for an arbitrary mapping.
 
@@ -1268,7 +1272,7 @@ process and of their local order.  MUSIC implements two subclasses of
   LinearIndex::LinearIndex (int baseIndex, int size)
 \end{head}
 \begin{parameters}
-  \lstinline|baseIndex| & shared index of first application element \\
+  \lstinline|baseIndex| & shared index corresponding to local index zero \\
   \lstinline|size| & number of contiguous indices in this process \\
 \end{parameters}
 

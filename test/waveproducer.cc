@@ -15,11 +15,13 @@ main (int argc, char* argv[])
   
   int width = atoi (argv[1]); // command line arg gives width
 
-  MUSIC::ContOutputPort* wavedata = setup->publishContOutput ("wavedata");
+  MUSIC::ContOutputPort* wavedata =
+    setup->publishContOutput ("wavedata");
 
   comm = setup->communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();        // which process am I?
+  int rank = comm.Get_rank ();       // which process am I?
+
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;
   data = new double[nLocalVars];
@@ -36,13 +38,13 @@ main (int argc, char* argv[])
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
 
-  double time = runtime->time ();
-  while (time < stoptime)
+  for (; runtime->time () < stoptime; runtime->tick ())
     {
       if (rank == 0)
 	{
 	  // Generate original data on master node
 	  int i;
+	  double time = runtime->time ();
 
 	  for (i = 0; i < nLocalVars; ++i)
 	    data[i] = sin (2 * M_PI * time * i);
@@ -50,11 +52,6 @@ main (int argc, char* argv[])
 
       // Broadcast these data out to all nodes
       comm.Bcast (data, nLocalVars, MPI::DOUBLE, 0);
-
-      // Make data available for other programs
-      runtime->tick ();
-
-      time = runtime->time ();
     }
 
   runtime->finalize ();

@@ -13,11 +13,12 @@ main (int args, char* argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (args, argv);
 
-  MUSIC::ContInputPort* wavedata = setup->publishContInput ("wavedata");
+  MUSIC::ContInputPort* wavedata =
+    setup->publishContInput ("wavedata");
 
   comm = setup->communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();        // which process am I?
+  int rank = comm.Get_rank ();       // which process am I?
   int width;
   if (wavedata->hasWidth ())
     width = wavedata->width ();
@@ -43,18 +44,12 @@ main (int args, char* argv[])
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
 
-  double time = runtime->time ();
-  while (time < stoptime)
+  for (; runtime->time () < stoptime; runtime->tick ())
     {
-      // Retrieve data from other program
-      runtime->tick ();
-
       // Dump to file
       for (int i = 0; i < nLocalVars; ++i)
 	file << data[i];
       file << std::endl;
-
-      time = runtime->time ();
     }
 
   runtime->finalize ();

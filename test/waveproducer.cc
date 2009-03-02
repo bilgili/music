@@ -25,6 +25,8 @@ main (int argc, char* argv[])
   // For clarity, assume that width is a multiple of n_processes
   int nLocalVars = width / nProcesses;
   data = new double[nLocalVars];
+  for (int i = 0; i < nLocalVars; ++i)
+    data[i] = 0.0;
     
   // Declare what data we have to export
   MUSIC::ArrayData dmap (data,

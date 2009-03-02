@@ -62,7 +62,6 @@ namespace MUSIC {
   void
   Synchronizer::setSenderTickInterval (ClockState ti)
   {
-    MUSIC_LOGR ("sender tick interval set to " << nextSend.timebase () * ti);
     nextSend.setTickInterval (ti);
   }
 
@@ -70,8 +69,6 @@ namespace MUSIC {
   void
   Synchronizer::setReceiverTickInterval (ClockState ti)
   {
-    MUSIC_LOGR ("receiver tick interval set to "
-		<< nextReceive.timebase () * ti);
     nextReceive.setTickInterval (ti);
   }
 
@@ -79,7 +76,6 @@ namespace MUSIC {
   void
   Synchronizer::setMaxBuffered (int m)
   {
-    MUSIC_LOGR ("maxBuffered set to " << m);
     maxBuffered_ = m - 1;
   }
 
@@ -87,7 +83,6 @@ namespace MUSIC {
   void
   Synchronizer::setAccLatency (ClockState l)
   {
-    MUSIC_LOGR ("accLatency set to " << nextReceive.timebase () * l);
     latency_ = l;
   }
 
@@ -258,13 +253,9 @@ namespace MUSIC {
   void
   InterpolationInputSynchronizer::initialize ()
   {
-    //ClockState offset = latency_ + nextSend.integerTime ();
-    //remoteTime.set (localTime->integerTime () + offset);
-    //remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval () + offset);
-    remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval () + latency_);
-    std::cout << "nextSend = " << nextSend.time () << ", nextReceive = " << nextReceive.time () << std::endl;
+    remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval ()
+		    + latency_);
     Synchronizer::initialize ();
-    std::cout << "localTime = " << localTime->time () << ", remoteTime = " << remoteTime.time () << std::endl;
   }
 
   

@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include "music/error.hh"
 
 #include "music/BIFO.hh"
@@ -76,7 +79,10 @@ namespace MUSIC {
   BIFO::next ()
   {
     if (isEmpty ())
-      error ("attempt to read from empty BIFO buffer");
+      {
+	MUSIC_LOG0 ("attempt to read from empty BIFO buffer");
+	return NULL;
+      }
     if (current == top)
       {
 	// wrap around

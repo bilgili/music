@@ -126,6 +126,9 @@ namespace MUSIC {
 	BIFO* buffer = b->first;
 	Intervals& intervals = b->second;
 	ContDataT* src = static_cast<ContDataT*> (buffer->next ());
+	if (src == NULL)
+	  // Out of data (remote has flushed)
+	  return;
 	ContDataT* dest = static_cast<ContDataT*> (base);
 	int elementSize = dataMap->type ().Get_size ();
 	for (Intervals::iterator i = intervals.begin ();

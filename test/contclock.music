@@ -5,4 +5,4 @@ stoptime=1.0
 [to]
   np=1
   binary=../utils/contsink
-  from.clock -> to.contdata
+  from.clock -> to.contdata [1]

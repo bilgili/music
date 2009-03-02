@@ -282,7 +282,7 @@ namespace MUSIC {
     
     // *fixme* preliminary implementation which just provides
     // the functionality specified in the API
-    std::cout << "c = " << c << std::endl;
+    // std::cout << "c = " << c << std::endl;
     if (interpolate_)
       return c;
     else

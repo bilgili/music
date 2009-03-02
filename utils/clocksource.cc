@@ -135,19 +135,15 @@ main (int argc, char *argv[])
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
-  dataarray[0] = -1;
+  dataarray[0] = 0.0;
   
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
 
-  double time = runtime->time ();
-  while (time < stoptime)
+  for (; runtime->time () < stoptime; runtime->tick ())
     {
-      dataarray[0] = time;
-
-      runtime->tick ();
-
-      time = runtime->time ();
+      // Use current time (valid at next tick) at exported data
+      dataarray[0] = runtime->time () + timestep;
     }
 
   runtime->finalize ();

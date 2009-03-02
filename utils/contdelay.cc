@@ -40,9 +40,9 @@ usage (int rank)
 {
   if (rank == 0)
     {
-      std::cerr << "Usage: eventdelay [OPTION...] N_UNITS PREFIX [SUFFIX]" << std::endl
-		<< "`eventdelay' receives spikes through a MUSIC input port" << std::endl
-		<< "and writes these to a set of files with names PREFIX RANK SUFFIX" << std::endl << std:: endl
+      std::cerr << "Usage: contdelay [OPTION...]" << std::endl
+		<< "`contdelay' receives data a MUSIC input port" << std::endl
+		<< "and sends them out after a delay" << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -d, --delay SECS        amount of delay" << std::endl
 		<< "  -b, --maxbuffer TICKS   maximal buffer" << std::endl
@@ -59,16 +59,6 @@ double timestep = DEFAULT_TIMESTEP;
 double delay = 0.0;
 int label = -1;
 int maxbuffered = 0;
-
-class MyEventHandler: public MUSIC::EventHandlerLocalIndex {
-public:
-  void operator () (double t, MUSIC::LocalIndex id)
-  {
-    eventBuffer.push_back (MUSIC::Event (t + delay, id));
-    std::cout << label << ":Got(" << id <<
-      ", " << t + delay << ")" << std::endl;
-  }
-};
 
 
 void
@@ -102,7 +92,7 @@ getargs (int rank, int argc, char* argv[])
 	  timestep = atof (optarg);
 	  continue;
 	case 'd':
-	  delay = atof(optarg);
+	  delay = atoi(optarg);
 	  continue;
 	case 'L':
 	  label = atoi(optarg);
@@ -124,6 +114,11 @@ getargs (int rank, int argc, char* argv[])
     usage (rank);
 }
 
+double inData = 0.0;
+double outData = 0.0;
+double auxData = 0.0;
+
+
 int
 main (int argc, char *argv[])
 {
@@ -135,53 +130,48 @@ main (int argc, char *argv[])
   
   getargs (rank, argc, argv);
 
-  MUSIC::EventInputPort* in = setup->publishEventInput ("in");
+  MUSIC::ContInputPort* in = setup->publishContInput ("in");
   if (!in->isConnected ())
     {
       if (rank == 0)
-	std::cerr << "eventdelay input port is not connected" << std::endl;
+	std::cerr << "contdelay input port is not connected" << std::endl;
       exit (1);
     }
 
-  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  MUSIC::ArrayData inMap (&inData,
+			  MPI::DOUBLE,
+			  0,
+			  1);
+  in->map (&inMap, delay, maxbuffered);
+
+
+  MUSIC::ContOutputPort* out = setup->publishContOutput ("out");
   if (!out->isConnected ())
     {
       if (rank == 0)
-	std::cerr << "eventdelay output port is not connected" << std::endl;
+	std::cerr << "contdelay output port is not connected" << std::endl;
       exit (1);
     }
 
+  MUSIC::ArrayData outMap (&outData,
+			   MPI::DOUBLE,
+			   0,
+			   1);
+  out->map (&outMap, maxbuffered);
+
+
   // Optional extra input port
-  MUSIC::EventInputPort* aux = setup->publishEventInput ("aux");
+  MUSIC::ContInputPort* aux = setup->publishContInput ("aux");
 
-  int width = in->width ();
-    
-  MyEventHandler evhandler;
-  
-  int localWidth = width / nProcesses;
-  int myWidth = localWidth;
-  int rest = width % nProcesses;
-
-  if (rank == nProcesses-1)
-    {
-      myWidth = localWidth;	// FIXME
-    }
-
-  MUSIC::LinearIndex indices (rank*localWidth, myWidth);
-
-  if (maxbuffered)
-    in->map (&indices, &evhandler, delay, maxbuffered);
-  else
-    in->map (&indices, &evhandler, delay);
-
-  out->map (&indices, MUSIC::Index::LOCAL);
   if (aux->isConnected ())
     {
-      if (maxbuffered)
-	aux->map (&indices, &evhandler, 0.0, maxbuffered);
-      else
-	aux->map (&indices, &evhandler, 0.0);
+      MUSIC::ArrayData auxMap (&auxData,
+			      MPI::DOUBLE,
+			      0,
+			      1);
+      aux->map (&auxMap, delay, maxbuffered);
     }
+
   double stoptime;
   setup->config ("stoptime", &stoptime);
 
@@ -189,28 +179,7 @@ main (int argc, char *argv[])
 
   for (; runtime->time () < stoptime; runtime->tick ())
     {
-      sort (eventBuffer.begin (), eventBuffer.end ());
-      for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
-	   i != eventBuffer.end ();
-	   ++i)
-	{
-	  if (i->t < runtime->time () + timestep)
-	    {
-	      std::cout << label << ":Sent(" << i->id << ", "
-			<< i->t << " @" << runtime->time ()
-			<< ")" << std::endl;
-	      out->insertEvent (i->t, MUSIC::LocalIndex(i->id));
-	    }
-	  else
-	    overflowBuffer.push_back (*i);
-	}
-      eventBuffer.clear ();
-
-      for (std::vector<MUSIC::Event>::iterator i = overflowBuffer.begin ();
-	   i != overflowBuffer.end ();
-	   ++i)
-	eventBuffer.push_back (*i);
-      overflowBuffer.clear ();
+      outData = inData + auxData;
     }
 
   runtime->finalize ();

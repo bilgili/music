@@ -1,0 +1,18 @@
+np=1
+stoptime=1.0
+[A]
+  binary=/home/orjan/music/utils/contdelay
+  args=-d 0.1 -b 2
+[B]
+  binary=/home/orjan/music/utils/contdelay
+  args=-d 0.1 -b 2
+[from]
+  binary=/home/orjan/music/utils/clocksource
+  args=-b 5
+[to]
+  binary=/home/orjan/music/utils/contsink
+
+
+from.clock -> A.in [1]
+A.out -> B.in [1]
+B.out -> to.contdata [1]

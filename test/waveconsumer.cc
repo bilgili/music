@@ -48,7 +48,7 @@ main (int args, char* argv[])
     {
       // Dump to file
       for (int i = 0; i < nLocalVars; ++i)
-	file << data[i];
+	file << data[i] << ' ';
       file << std::endl;
     }
 

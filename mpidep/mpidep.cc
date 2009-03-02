@@ -24,7 +24,7 @@
 
 extern "C" {
 #include <stdlib.h>
-};
+}
 
 #include "music/error.hh"
 

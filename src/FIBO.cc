@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cstring>
+
 #include "music/FIBO.hh"
 
 namespace MUSIC {
@@ -59,11 +61,26 @@ namespace MUSIC {
   
 
   void
-  FIBO::nextBlock (void*& data, int& size)
+  FIBO::insert (void* elements, int n_elements)
+  {
+    int blockSize = elementSize * n_elements;
+    if (current + blockSize > size)
+      grow (3 * (current + blockSize) / 2);
+    // Here we use the assumption that vector memory is contiguous
+    // Josuttis says this is the intention of STL even though the
+    // first version of the report is not clear about this.
+    void* memory = static_cast<void*> (&buffer[current]);
+    memcpy (memory, elements, blockSize);
+    current += blockSize;
+  }
+  
+
+  void
+  FIBO::nextBlock (void*& data, int& blockSize)
   {
     //*fixme*
     data = static_cast<void*> (&buffer[0]);
-    size = current;
+    blockSize = current;
     current = 0;
   }
 

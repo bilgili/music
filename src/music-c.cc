@@ -365,8 +365,8 @@ MUSIC_MessageInputPort_map (MUSIC_MessageInputPort *Port,
 			    int maxBuffered)
 {
   MUSIC::MessageInputPort* cxxPort = (MUSIC::MessageInputPort *) Port;
-  MUSIC::MessageHandlerGlobalIndexProxy* cxxHandleMessage =
-    cxxPort->allocMessageHandlerGlobalIndexProxy (handleMessage);
+  MUSIC::MessageHandlerProxy* cxxHandleMessage =
+    cxxPort->allocMessageHandlerProxy (handleMessage);
   cxxPort->map (cxxHandleMessage, accLatency, maxBuffered);
 }
 

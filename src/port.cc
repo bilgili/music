@@ -488,21 +488,23 @@ namespace MUSIC {
     return new MessageOutputConnector (connInfo,
 				       spatialNegotiator,
 				       setup_->communicator (),
-				       router);
+				       buffers);
   }
   
-  
-  void
-  MessageOutputPort::buildTable ()
-  {
-    router.buildTable ();
-  }
-
   
   void
   MessageOutputPort::insertMessage (double t, void* msg, size_t size)
   {
-    router.insertEvent (t, GlobalIndex (rank_));
+    // This should be reorganized so that multiple subconnectors can
+    // share one output buffer
+    for (std::vector<FIBO*>::iterator b = buffers.begin ();
+	 b != buffers.end ();
+	 ++b)
+      {
+	MessageHeader header (t, size);
+	(*b)->insert (header.data (), sizeof (MessageHeader));
+	(*b)->insert (msg, size);
+      }
   }
 
   
@@ -513,19 +515,19 @@ namespace MUSIC {
 
   
   void
-  MessageInputPort::map (MessageHandlerGlobalIndex* handleMessage,
+  MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency)
   {
     assertInput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
-    mapImpl (MessageHandlerPtr (handleMessage),
+    mapImpl (handleMessage,
 	     accLatency,
 	     maxBuffered);
   }
 
   
   void
-  MessageInputPort::map (MessageHandlerGlobalIndex* handleMessage,
+  MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency,
 			 int maxBuffered)
   {
@@ -534,14 +536,14 @@ namespace MUSIC {
       {
 	error ("MessageInputPort::map: maxBuffered should be a positive integer");
       }
-    mapImpl (MessageHandlerPtr (handleMessage),
+    mapImpl (handleMessage,
 	     accLatency,
 	     maxBuffered);
   }
 
   
   void
-  MessageInputPort::mapImpl (MessageHandlerPtr handleMessage,
+  MessageInputPort::mapImpl (MessageHandler* handleMessage,
 			     double accLatency,
 			     int maxBuffered)
   {
@@ -566,13 +568,13 @@ namespace MUSIC {
   }
 
   
-  MessageHandlerGlobalIndexProxy*
-  MessageInputPort::allocMessageHandlerGlobalIndexProxy (void (*mh) (double,
+  MessageHandlerProxy*
+  MessageInputPort::allocMessageHandlerProxy (void (*mh) (double,
 								     void*,
 								     size_t))
   {
-    cMessageHandlerGlobalIndex = MessageHandlerGlobalIndexProxy (mh);
-    return &cMessageHandlerGlobalIndex;
+    cMessageHandler = MessageHandlerProxy (mh);
+    return &cMessageHandler;
   }
 
   

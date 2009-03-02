@@ -462,17 +462,17 @@ namespace MUSIC {
     buffer_.nextBlock (data, size);
     //*fixme* marshalling
     char* buffer = static_cast <char*> (data);
-    while (size >= SPIKE_BUFFER_MAX)
+    while (size >= MESSAGE_BUFFER_MAX)
       {
 	intercomm.Send (buffer,
-			SPIKE_BUFFER_MAX,
+			MESSAGE_BUFFER_MAX,
 			MPI::BYTE,
 			remoteRank_,
-			SPIKE_MSG);
-	buffer += SPIKE_BUFFER_MAX;
-	size -= SPIKE_BUFFER_MAX;
+			MESSAGE_MSG);
+	buffer += MESSAGE_BUFFER_MAX;
+	size -= MESSAGE_BUFFER_MAX;
       }
-    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, MESSAGE_MSG);
   }
 
   
@@ -487,9 +487,8 @@ namespace MUSIC {
       }
     else
       {
-	Message* e = static_cast<Message*> (buffer_.insert ());
-	e->id = FLUSH_MARK;
-	send ();
+	char dummy;
+	intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);	
       }
   }
   
@@ -498,41 +497,20 @@ namespace MUSIC {
 						      MPI::Intercomm intercomm,
 						      int remoteRank,
 						      int receiverRank,
-						      std::string receiverPortName)
+						      std::string receiverPortName,
+						      MessageHandler* mh)
     : Subconnector (synch,
 		    intercomm,
 		    remoteRank,
 		    receiverRank,
 		    receiverPortName),
-      InputSubconnector ()
+      handleMessage (mh)
   {
   }
 
 
-  MessageInputSubconnectorGlobal::MessageInputSubconnectorGlobal
-  (Synchronizer* synch,
-   MPI::Intercomm intercomm,
-   int remoteRank,
-   int receiverRank,
-   std::string receiverPortName,
-   MessageHandlerGlobalIndex* eh)
-    : Subconnector (synch,
-		    intercomm,
-		    remoteRank,
-		    receiverRank,
-		    receiverPortName),
-      MessageInputSubconnector (synch,
-			      intercomm,
-			      remoteRank,
-			      receiverRank,
-			      receiverPortName),
-      handleMessage (eh)
-  {
-  }
-
-
-  MessageHandlerGlobalIndexDummy
-  MessageInputSubconnectorGlobal::dummyHandler;
+  MessageHandlerDummy
+  MessageInputSubconnector::dummyHandler;
 
   
   void
@@ -545,39 +523,44 @@ namespace MUSIC {
 
   //*fixme* isolate difference between global and local
   void
-  MessageInputSubconnectorGlobal::receive ()
+  MessageInputSubconnector::receive ()
   {
-    char* data[SPIKE_BUFFER_MAX]; 
+    char* data[MESSAGE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
     do
       {
 	intercomm.Recv (data,
-			SPIKE_BUFFER_MAX,
+			MESSAGE_BUFFER_MAX,
 			MPI::BYTE,
 			remoteRank_,
-			SPIKE_MSG,
+			MPI::ANY_TAG,
 			status);
-	Message* ev = (Message*) data;
-	if (ev[0].id == FLUSH_MARK)
+	if (status.Get_tag () == FLUSH_MSG)
 	  {
 	    flushed = true;
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
-	int nMessages = size / sizeof (Message);
-	MUSIC_LOGR ("received " << nMessages << "messages");
-	for (int i = 0; i < nMessages; ++i)
-	  (*handleMessage) (ev[i].t, ev[i].id);
+	int current = 0;
+	while (current < size)
+	  {
+	    MessageHeader* header = static_cast<MessageHeader*>
+	      (static_cast<void*> (&data[current]));
+	    current += sizeof (MessageHeader);
+	    (*handleMessage) (header->t (), &data[current], header->size ());
+	    current += header->size ();
+	  }
       }
-    while (size == SPIKE_BUFFER_MAX);
+    while (size == MESSAGE_BUFFER_MAX);
   }
 
 
   void
   MessageInputSubconnector::flush (bool& dataStillFlowing)
   {
+    handleMessage = &dummyHandler;
     if (!flushed)
       {
 	MUSIC_LOGR ("receiving and throwing away data");
@@ -586,14 +569,5 @@ namespace MUSIC {
 	  dataStillFlowing = true;
       }
   }
-
-  
-  void
-  MessageInputSubconnectorGlobal::flush (bool& dataStillFlowing)
-  {
-    handleMessage = &dummyHandler;
-    MessageInputSubconnector::flush (dataStillFlowing);
-  }
-
   
 }

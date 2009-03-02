@@ -36,6 +36,7 @@ namespace MUSIC {
   const int FLUSH_MSG = 4;
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
   const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX;
+  const int MESSAGE_BUFFER_MAX = 10000;
 
   // The subconnector is responsible for the local side of the
   // communication between two MPI processes, one for each port of a
@@ -189,27 +190,16 @@ namespace MUSIC {
   
   class MessageInputSubconnector : public InputSubconnector,
 				   public MessageSubconnector {
+    MessageHandler* handleMessage;
+    static MessageHandlerDummy dummyHandler;
   public:
     MessageInputSubconnector (Synchronizer* synch,
 			      MPI::Intercomm intercomm,
 			      int remoteRank,
 			      int receiverRank,
-			      std::string receiverPortName);
+			      std::string receiverPortName,
+			      MessageHandler* mh);
     void tick ();
-    virtual void receive () = 0;
-    virtual void flush (bool& dataStillFlowing);
-  };
-
-  class MessageInputSubconnectorGlobal : public MessageInputSubconnector {
-    MessageHandlerGlobalIndex* handleMessage;
-    static MessageHandlerGlobalIndexDummy dummyHandler;
-  public:
-    MessageInputSubconnectorGlobal (Synchronizer* synch,
-				    MPI::Intercomm intercomm,
-				    int remoteRank,
-				    int receiverRank,
-				    std::string receiverPortName,
-				    MessageHandlerGlobalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
   };

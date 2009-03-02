@@ -40,6 +40,7 @@ namespace MUSIC {
     bool isEmpty ();
     //*fixme* return type
     void* insert ();
+    void insert (void* elements, int n_elements);
     void nextBlock (void*& data, int& size);
   };
   

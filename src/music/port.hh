@@ -204,10 +204,9 @@ namespace MUSIC {
 
   class MessageOutputPort : public MessagePort,
 			    public OutputRedistributionPort {
-    EventRouter router;
+    std::vector<FIBO*> buffers;
   public:
     MessageOutputPort (Setup* s, std::string id);
-    void buildTable ();
     void map ();
     void map (int maxBuffered);
     void insertMessage (double t, void* msg, size_t size);
@@ -218,23 +217,22 @@ namespace MUSIC {
 
   class MessageInputPort : public MessagePort,
 			   public InputRedistributionPort {
-  private:
-    MessageHandlerPtr handleMessage_;
+    MessageHandler* handleMessage_;
   public:
     MessageInputPort (Setup* s, std::string id);
     void map ();
-    void map (MessageHandlerGlobalIndex* handler, double accLatency = 0.0);
-    void map (MessageHandlerGlobalIndex* handler, double accLatency, int maxBuffered);
+    void map (MessageHandler* handler, double accLatency = 0.0);
+    void map (MessageHandler* handler, double accLatency, int maxBuffered);
   protected:
-    void mapImpl (MessageHandlerPtr handleEvent,
+    void mapImpl (MessageHandler* handleEvent,
 		  double accLatency,
 		  int maxBuffered);
     InputConnector* makeInputConnector (ConnectorInfo connInfo);
   public:
-    MessageHandlerGlobalIndexProxy*
-    allocMessageHandlerGlobalIndexProxy (void (*) (double, void*, size_t));
+    MessageHandlerProxy*
+    allocMessageHandlerProxy (void (*) (double, void*, size_t));
   private:
-    MessageHandlerGlobalIndexProxy cMessageHandlerGlobalIndex;
+    MessageHandlerProxy cMessageHandler;
   };
 
 }

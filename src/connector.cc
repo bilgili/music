@@ -91,7 +91,7 @@ namespace MUSIC {
   void
   OutputConnector::addRoutingInterval (IndexInterval i, OutputSubconnector* s)
   {
-    error ("internal error: correct addRoutingInterval () not called");
+    // Default: Do nothing
   };
 
 
@@ -510,9 +510,9 @@ namespace MUSIC {
 						  SpatialOutputNegotiator*
 						  spatialNegotiator,
 						  MPI::Intracomm comm,
-						  EventRouter& router)
+						  std::vector<FIBO*>& buffers)
     : Connector (connInfo, spatialNegotiator, comm),
-      router_ (router)
+      buffers_ (buffers)
   {
   }
 
@@ -538,7 +538,7 @@ namespace MUSIC {
   MessageOutputConnector::addRoutingInterval (IndexInterval i,
 					      OutputSubconnector* osubconn)
   {
-    router_.insertRoutingInterval (i, osubconn->buffer ());
+    buffers_.push_back (osubconn->buffer ());
   }
   
   
@@ -554,7 +554,7 @@ namespace MUSIC {
   
   MessageInputConnector::MessageInputConnector (ConnectorInfo connInfo,
 						SpatialInputNegotiator* spatialNegotiator,
-						MessageHandlerPtr handleMessage,
+						MessageHandler* handleMessage,
 						Index::Type type,
 						MPI::Intracomm comm)
     : Connector (connInfo, spatialNegotiator, comm),
@@ -574,12 +574,12 @@ namespace MUSIC {
   InputSubconnector*
   MessageInputConnector::makeInputSubconnector (int remoteRank, int receiverRank)
   {
-    return new MessageInputSubconnectorGlobal (&synch,
-					       intercomm,
-					       remoteRank,
-					       receiverRank,
-					       receiverPortName (),
-					       handleMessage_.global ());
+    return new MessageInputSubconnector (&synch,
+					 intercomm,
+					 remoteRank,
+					 receiverRank,
+					 receiverPortName (),
+					 handleMessage_);
   }
 
 

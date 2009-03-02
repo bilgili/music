@@ -236,13 +236,13 @@ namespace MUSIC {
   class MessageOutputConnector : public OutputConnector, public MessageConnector {
   private:
     OutputSynchronizer synch;
-    EventRouter& router_;
+    std::vector<FIBO*>& buffers_;
     void send ();
   public:
     MessageOutputConnector (ConnectorInfo connInfo,
 			    SpatialOutputNegotiator* spatialNegotiator,
 			    MPI::Intracomm comm,
-			    EventRouter& router);
+			    std::vector<FIBO*>& buffers);
     OutputSubconnector* makeOutputSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Synchronizer* synchronizer () { return &synch; }
@@ -254,12 +254,12 @@ namespace MUSIC {
     
   private:
     InputSynchronizer synch;
-    MessageHandlerPtr handleMessage_;
+    MessageHandler* handleMessage_;
     Index::Type type_;
   public:
     MessageInputConnector (ConnectorInfo connInfo,
 			   SpatialInputNegotiator* spatialNegotiator,
-			   MessageHandlerPtr handleMessage,
+			   MessageHandler* handleMessage,
 			   Index::Type type,
 			   MPI::Intracomm comm);
     InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);

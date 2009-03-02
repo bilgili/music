@@ -1,3 +1,9 @@
+* felavbrott om map icke float eller double
+
+* Marshalling i contsubconnector
+
+* Kodduplicering sampler - distributor - collector - kommentarer
+
 * Manual:
 
 ** Are all manual-related points in Hans Plesser's revision to the RFC

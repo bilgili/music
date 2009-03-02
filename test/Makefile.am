@@ -2,15 +2,8 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = application1 waveproducer waveconsumer launchtest eventlogger #parsetest # rudetest
-
-#parsetest_SOURCES = parsetest.cc
-#parsetest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
-#parsetest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
-
-application1_SOURCES = application1.cc
-application1_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
-application1_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+bin_PROGRAMS = waveproducer waveconsumer eventlogger
+EXTRA_PROGRAMS = clocksource contsink constsource eventdelay contdelay
 
 waveproducer_SOURCES = waveproducer.cc
 waveproducer_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
@@ -24,12 +17,25 @@ eventlogger_SOURCES = eventlogger.cc
 eventlogger_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
 eventlogger_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-launchtest_SOURCES = launchtest.cc
-launchtest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
-launchtest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+clocksource_SOURCES = clocksource.cc
+clocksource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-#rudetest_SOURCES = rudetest.cc
-#rudetest_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
-#rudetest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+contsink_SOURCES = contsink.cc
+contsink_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+constsource_SOURCES = constsource.cc
+constsource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+eventdelay_SOURCES = eventdelay.cc
+eventdelay_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+contdelay_SOURCES = contdelay.cc
+contdelay_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+contdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

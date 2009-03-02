@@ -5,7 +5,7 @@ stoptime=1.0
   binary=/usr/local/bin/eventsource
   args=-b 2 10 spikes
 [mid]
-  binary=/home/orjan/music/utils/eventdelay
+  binary=../utils/eventdelay
   args=-d 0.3
 [to]
   binary=/usr/local/bin/eventlogger

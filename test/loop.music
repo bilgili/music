@@ -1,10 +1,10 @@
 np=1
 stoptime=1.0
 [A]
-  binary=/home/orjan/music/utils/eventdelay
+  binary=../utils/eventdelay
   args=-d 0.1 -L 1 -b 2
 [B]
-  binary=/home/orjan/music/utils/eventdelay
+  binary=../utils/eventdelay
   args=-d 0.1 -L 2 -b 2
 [from]
   binary=/usr/local/bin/eventsource

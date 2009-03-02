@@ -429,6 +429,7 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
+	synch->setMaxDelay (negotiationData->maxDelay);
       }
     int nIn = negotiationData->nInConnections;
     for (int i = 0; i < nIn; ++i)
@@ -446,11 +447,8 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
+	synch->setMaxDelay (negotiationData->maxDelay);
       }
-
-    // setup start time
-    int delayedTicks = negotiationData->maxDelay / localTime.tickInterval ();
-    localTime.ticks (-1 - delayedTicks);
   }
 
 

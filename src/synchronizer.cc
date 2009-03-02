@@ -98,6 +98,25 @@ namespace MUSIC {
     interpolate_ = flag;
   }
 
+
+  void
+  Synchronizer::setMaxDelay (ClockState maxDelay)
+  {
+    setMaxDelay (maxDelay, *localTime);
+    setMaxDelay (maxDelay, nextSend);
+    setMaxDelay (maxDelay, nextReceive);
+    localTime->ticks (-1);
+  }
+
+
+  void
+  Synchronizer::setMaxDelay (ClockState maxDelay, Clock& clock)
+  {
+    // setup start time
+    int delayedTicks = maxDelay / clock.tickInterval ();
+    clock.ticks (- delayedTicks);
+  }
+  
   
   void
   Synchronizer::initialize ()

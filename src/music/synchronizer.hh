@@ -32,6 +32,7 @@ namespace MUSIC {
     bool interpolate_;
     bool communicate_;
     void nextCommunication ();
+    void setMaxDelay (ClockState maxDelay, Clock& clock);
   public:
     void setLocalTime (Clock* lt);
     virtual void setSenderTickInterval (ClockState ti);
@@ -42,6 +43,7 @@ namespace MUSIC {
     void setAccLatency (ClockState l);
     ClockState delay () { return latency_; }
     void setInterpolate (bool flag);
+    void setMaxDelay (ClockState maxDelay);
     void initialize ();
     bool communicate ();
     bool simulating ();

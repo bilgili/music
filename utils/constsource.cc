@@ -44,7 +44,6 @@ usage (int rank)
 		<< "`constsource' sends out constant values" << std::endl
 		<< "through a MUSIC output port." << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
-		<< "  -n, --localwidth WIDTH  width per process" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
     }
@@ -63,7 +62,6 @@ getargs (int rank, int argc, char* argv[])
       static struct option longOptions[] =
 	{
 	  {"timestep",    required_argument, 0, 't'},
-	  {"localwidth",  required_argument, 0, 'n'},
 	  {"help",        no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
@@ -82,9 +80,6 @@ getargs (int rank, int argc, char* argv[])
 	{
 	case 't':
 	  timestep = atof (optarg);
-	  continue;
-	case 'n':
-	  localwidth = atoi (optarg);
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -111,7 +106,15 @@ main (int argc, char *argv[])
   
   getargs (rank, argc, argv);
 
-  int totalWidth = contdata->width ();
+  MUSIC::ContOutputPort* out = setup->publishContOutput ("contdata");
+  if (!out->isConnected ())
+    {
+      if (rank == 0)
+	std::cerr << "constsource port is not connected" << std::endl;
+      exit (1);
+    }
+
+  int totalWidth = out->width ();
   int localWidth = (totalWidth-1) / nProcesses + 1;
   int myWidth = localWidth;
   if (rank == nProcesses - 1)	// Last processor
@@ -121,14 +124,6 @@ main (int argc, char *argv[])
 
   for (int i; i < myWidth; ++i)
     dataarray[i] = rank * localWidth + i;
-
-  MUSIC::ContOutputPort* out = setup->publishContOutput ("contdata");
-  if (!out->isConnected ())
-    {
-      if (rank == 0)
-	std::cerr << "constsource port is not connected" << std::endl;
-      exit (1);
-    }
 
 
   MUSIC::ArrayData dmap (dataarray,

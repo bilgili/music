@@ -111,9 +111,16 @@ main (int argc, char *argv[])
   
   getargs (rank, argc, argv);
 
-  dataarray = new double[localwidth];
-  for (int i; i < localwidth; ++i)
-    dataarray[i] = rank * localwidth + i;
+  int totalWidth = contdata->width ();
+  int localWidth = (totalWidth-1) / nProcesses + 1;
+  int myWidth = localWidth;
+  if (rank == nProcesses - 1)	// Last processor
+    myWidth = totalWidth - (nProcesses-1) * localWidth;
+
+  dataarray = new double[myWidth];
+
+  for (int i; i < myWidth; ++i)
+    dataarray[i] = rank * localWidth + i;
 
   MUSIC::ContOutputPort* out = setup->publishContOutput ("contdata");
   if (!out->isConnected ())
@@ -126,8 +133,8 @@ main (int argc, char *argv[])
 
   MUSIC::ArrayData dmap (dataarray,
 			 MPI::DOUBLE,
-			 rank * localwidth,
-			 localwidth);
+			 rank * localWidth,
+			 myWidth);
 
   out->map (&dmap);
 

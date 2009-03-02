@@ -99,14 +99,19 @@ main (int argc, char* argv[])
 
   getargs (rank, argc, argv);
 
-  int width = contdata->width ();
-  data = new double[width];
+  int totalWidth = contdata->width ();
+  int localWidth = (totalWidth-1) / nProcesses + 1;
+  int myWidth = localWidth;
+  if (rank == nProcesses - 1)	// Last processor
+    myWidth = totalWidth - (nProcesses-1) * localWidth;
+
+  data = new double[myWidth];
 
   // Declare where in memory to put data
   MUSIC::ArrayData dmap (data,
 			 MPI::DOUBLE,
-			 0,
-			 width);
+			 rank * localWidth,
+			 myWidth);
   contdata->map (&dmap, delay, interpolate);
 
   double stoptime;
@@ -117,9 +122,9 @@ main (int argc, char* argv[])
 
   for (; runtime->time () < stoptime; runtime->tick ())
     {
-      for (int i = 0; i < width; ++i)
+      for (int i = 0; i < myWidth; ++i)
 	std::cout << data[i] << " ";
-      std::cout << "at " << runtime->time () << std::endl;
+      std::cout << "on " << rank << " @" << runtime->time () << std::endl;
     }
 
   runtime->finalize ();

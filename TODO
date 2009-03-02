@@ -1,4 +1,8 @@
+* alternative implementation for clockstate (not long long)
+
 * felavbrott om map icke float eller double
+
+* continuous loops
 
 * Marshalling i contsubconnector
 

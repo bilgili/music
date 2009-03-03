@@ -1,0 +1,119 @@
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+	
+2009-02-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application_mapper.cc (ApplicattionMapper::mapConnectivity):
+	Moved generation of port codes to a position which is treated
+	identically in all processes.
+
+2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music.cc: Moved mpi dependent code to ../mpidep/mpidep.cc.
+
+	* Makefile.am: Removed dependency on librudeconfig for all
+	utilities except the music launcher.
+
+	* Makefile.am (music_LDADD): Added dependency on libmpidep.a.
+
+	* music.cc: Test if ompi_comm_free exists instead of
+	ompi_comm_create which doesn't exist in OpenMPI 1.3.
+
+2009-02-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventcounter.cc, eventsource.cc, eventgenerator: Added option
+	--maxbuffered.
+
+	* music.cc (getRank): Added code to support newer (1.3.x) versions
+	of OpenMPI.
+
+2009-02-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application_mapper.cc (ApplicationMapper::mapConnectivity):
+	Compute and propagate a unique "port code" for each port name.
+
+2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Switch to CamelCase.
+	
+2008-11-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Added eventcounter.
+
+	* eventcounter.cc: New file.
+
+2008-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* VisualiseNeurons.cpp: #include <cstring>.  (Should change to C++
+	code.)
+
+	* music.cc (launch): Added standard configuration variable "wd",
+	specifying working directory.
+
+2008-11-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventgenerator.cc: New file.
+
+	* Makefile.am: Added eventgenerator.cc.
+
+2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsink.cc, eventselect.cc: New files.
+
+	* Makefile.am: Added eventsink, eventselect.
+
+	* eventsource.cc: Error checking when opening files.
+
+	* Makefile.am: Compile viewevents conditionally.
+
+2008-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsource.cc: Extended to support global and local indices and
+	roundrobin index maps.
+
+2008-10-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Changes to implement propagation of configuration
+	information and routing of spikes.
+
+2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsource.cc: Updated to use global_index.
+
+2008-10-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventsource.cc, datafile.h, datafile.cc: New files.
+
+	* Makefile.am: Added eventsource.
+
+2007-11-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music.cc (BGL): #include <rts.h>
+
+2007-11-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application_map.hh: #include "rudeconfig/src/config.h" instead
+	of <rude/config.h>.
+
+	* Makefile.am (music_CXXFLAGS): Added -I$(top_srcdir).
+
+	* music.cc (get_rank): Support OPENMPI.
+
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* parse.hh, parse.cc: Moved to src.
+
+	* music.cc: Rewritten.
+
+	* Makefile.am (music_SOURCES): Added application_map.hh,
+	application_map.cc.
+
+2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, music.cc, parse.cc, parse.hh: New files.
+
+2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Pang!
+

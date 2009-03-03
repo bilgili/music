@@ -24,6 +24,11 @@
 
 namespace MUSIC {
 
+  /*
+   * This index map is part of the MUSIC API and documented
+   * in section 4.3.8 of the MUSIC manual.
+   */
+
   class PermutationIndex : public IndexMap {
     std::vector<IndexInterval> indices_;
   public:

@@ -1,3 +1,7 @@
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+	
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am, mpidep.hh, mpidep.cc: New files.

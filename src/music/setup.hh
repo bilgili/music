@@ -37,6 +37,12 @@ using std::string;
 #define MUSIC_DEFAULT_TIMEBASE 1e-9
 
 namespace MUSIC {
+
+  /*
+   * This is the Setup object in the MUSIC API
+   *
+   * It is documented in section 4.3 of the MUSIC manual
+   */
   
   class Setup {
   public:

@@ -22,6 +22,11 @@
 
 namespace MUSIC {
 
+  /*
+   * This index map is part of the MUSIC API and documented
+   * in section 4.3.8 of the MUSIC manual.
+   */
+
   class LinearIndex : public IndexMap {
     IndexInterval interval_;
   public:

@@ -28,6 +28,12 @@
 
 namespace MUSIC {
 
+  /*
+   * This is the Runtime object in the MUSIC API
+   *
+   * It is documented in section 4.4 of the MUSIC manual
+   */
+  
   class Runtime {
   private:
     MPI::Intracomm comm;

@@ -22,6 +22,11 @@
 
 namespace MUSIC {
 
+  /*
+   * This data map is part of the MUSIC API and documented
+   * in section 4.3.9 of the MUSIC manual.
+   */
+
   class ArrayData : public DataMap {
     MPI::Datatype type_;
     IndexMap* indexMap_;

@@ -109,10 +109,11 @@ main (int argc, char *argv[])
   // mpi implementation dependent code from ../mpidep
   std::istream* configFile = getConfig (rank, argc, argv);
 
-  if (!configFile)
+  if (!*configFile)
     {
       if (rank == 0)
-	std::cerr << "Couldn't open config file " << argv[1] << std::endl;
+	std::cerr << "MUSIC: Couldn't open config file "
+		  << argv[1] << std::endl;
       exit (1);
     }
 

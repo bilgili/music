@@ -26,6 +26,9 @@ namespace MUSIC {
   
   enum MessageTag {
     CREATE_INTERCOMM_MSG,
+    TICKINTERVAL_MSG,
+    WIDTH_MSG,
+    SPATIAL_NEGOTIATION_MSG,
     CONT_MSG,
     SPIKE_MSG,
     MESSAGE_MSG,

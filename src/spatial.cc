@@ -24,6 +24,7 @@
 
 #include "music/debug.hh"
 #include "music/error.hh"
+#include "music/communication.hh"
 
 namespace MUSIC {
 
@@ -136,7 +137,7 @@ namespace MUSIC {
     if (localRank == 0)
       {
 	int remoteWidth;
-	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, 0); //*fixme* tag
+	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
 	if (remoteWidth != width)
 	  {
 	    std::ostringstream msg;
@@ -153,7 +154,7 @@ namespace MUSIC {
   {
     SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
-      intercomm.Send (&width, 1, MPI::INT, 0, 0); //*fixme* tag
+      intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
   }
 
   
@@ -336,7 +337,8 @@ namespace MUSIC {
 	if (source->begin () < dest->begin ())
 	  if (dest->begin () < source->end ())
 	    if (dest->end () < source->end ())
-	      {//*fixme* put inte helper function to get overview
+	      {
+		// NOTE: put into helper function to get overview
 		SpatialNegotiationData d (dest->begin (),
 					  dest->end (),
 					  dest->local () - source->local (),
@@ -394,7 +396,7 @@ namespace MUSIC {
 		   sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
 		   MPI::INT,
 		   destRank,
-		   0); //*fixme* tag
+		   SPATIAL_NEGOTIATION_MSG);
 	data += TRANSMITTED_INTERVALS_MAX;
 	nIntervals -= TRANSMITTED_INTERVALS_MAX;
       }
@@ -402,7 +404,7 @@ namespace MUSIC {
 	       sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
 	       MPI::INT,
 	       destRank,
-	       0); //*fixme* tag
+	       SPATIAL_NEGOTIATION_MSG);
   }
 
 
@@ -422,8 +424,8 @@ namespace MUSIC {
 		   * TRANSMITTED_INTERVALS_MAX,
 		   MPI::INT,
 		   sourceRank,
-		   0,
-		   status); //*fixme* tag
+		   SPATIAL_NEGOTIATION_MSG,
+		   status);
 	nReceived = (status.Get_count (MPI::INT)
 		     / (sizeof (SpatialNegotiationData) / sizeof (int)));
 	nextPos += nReceived;
@@ -481,7 +483,7 @@ namespace MUSIC {
 						    localRank);
     NegotiationIterator canonicalDist
       = canonicalDistribution (width, nProcesses);
-    //*fixme* rename results
+    // NOTE: Find a better name for variable `results'
     intersectToBuffers (mappedDist, canonicalDist, results);
 
     // Send to virtual connector

@@ -54,7 +54,7 @@ namespace MUSIC {
 		  int receiverRank,
 		  std::string receiverPortName);
     virtual ~Subconnector ();
-    virtual void tick () = 0;
+    virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
     int remoteRank () const { return remoteRank_; }
     int receiverRank () const { return receiverRank_; }
@@ -88,7 +88,7 @@ namespace MUSIC {
 			    MPI::Intercomm intercomm_,
 			    int remoteRank,
 			    std::string receiverPortName_);
-    void tick ();
+    void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
   };
@@ -104,7 +104,7 @@ namespace MUSIC {
 			   int receiverRank,
 			   std::string receiverPortName);
     BIFO* buffer () { return &buffer_; }
-    void tick ();
+    void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);
   };
@@ -121,7 +121,7 @@ namespace MUSIC {
 			     MPI::Intercomm intercomm_,
 			     int remoteRank,
 			     std::string receiverPortName_);
-    void tick ();
+    void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
   };
@@ -134,7 +134,7 @@ namespace MUSIC {
 			    int remoteRank,
 			    int receiverRank,
 			    std::string receiverPortName);
-    void tick ();
+    void maybeCommunicate ();
     virtual void receive () = 0;
     virtual void flush (bool& dataStillFlowing);
   };
@@ -179,7 +179,7 @@ namespace MUSIC {
 			       MPI::Intercomm intercomm_,
 			       int remoteRank,
 			       std::string receiverPortName_);
-    void tick ();
+    void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
   };
@@ -195,7 +195,7 @@ namespace MUSIC {
 			      int receiverRank,
 			      std::string receiverPortName,
 			      MessageHandler* mh);
-    void tick ();
+    void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);
   };

@@ -57,7 +57,7 @@ namespace MUSIC {
 	    arg << (char) in->get ();
 	    continue;
 	  case EOF:
-	    //*fixme* error?
+	    // NOTE: generate error message
 	    break;
 	  }
 	break;

@@ -223,7 +223,7 @@ namespace MUSIC {
 	schedule.push_back (*c);
     }
 
-    //*fixme* could delete output/inputSubconnectors here
+    // NOTE: could delete output/inputSubconnectors here
   }
 
   
@@ -312,7 +312,7 @@ namespace MUSIC {
 	for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	     s != schedule.end ();
 	     ++s)
-	  (*s)->tick ();//*fixme* rename subconnector tick to maybeCommunicate?
+	  (*s)->maybeCommunicate ();
       }
 
     // ContInputConnectors write data to application here

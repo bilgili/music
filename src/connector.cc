@@ -100,7 +100,7 @@ namespace MUSIC {
 
 
 
-  //*fixme* code repetition (OutputConnector::spatialNegotiation)
+  // NOTE: code repetition (OutputConnector::spatialNegotiation)
   void
   InputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
@@ -157,7 +157,8 @@ namespace MUSIC {
 	// exchange tickInterval with peer leader
 	sRemoteTickInterval = tickInterval.serialize ();
 	intercomm.Sendrecv_replace (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG,
-				    0, 0, 0, 0); /*fixme* tags*/
+				    0, TICKINTERVAL_MSG,
+				    0, TICKINTERVAL_MSG);
       }
     // broadcast to peers
     comm.Bcast (&sRemoteTickInterval, 2, MPI::UNSIGNED_LONG, 0);

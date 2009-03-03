@@ -86,7 +86,7 @@ namespace MUSIC {
   
 
   void
-  ContOutputSubconnector::tick ()
+  ContOutputSubconnector::maybeCommunicate ()
   {
     if (synch->communicate ())
       send ();
@@ -99,7 +99,7 @@ namespace MUSIC {
     void* data;
     int size;
     buffer_.nextBlock (data, size);
-    //*fixme* marshalling
+    // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= CONT_BUFFER_MAX)
       {
@@ -148,7 +148,7 @@ namespace MUSIC {
 
 
   void
-  ContInputSubconnector::tick ()
+  ContInputSubconnector::maybeCommunicate ()
   {
     if (!flushed && synch->communicate ())
       receive ();    
@@ -217,7 +217,7 @@ namespace MUSIC {
   
 
   void
-  EventOutputSubconnector::tick ()
+  EventOutputSubconnector::maybeCommunicate ()
   {
     if (synch->communicate ())
       send ();
@@ -230,7 +230,7 @@ namespace MUSIC {
     void* data;
     int size;
     buffer_.nextBlock (data, size);
-    //*fixme* marshalling
+    // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= SPIKE_BUFFER_MAX)
       {
@@ -332,14 +332,14 @@ namespace MUSIC {
 
   
   void
-  EventInputSubconnector::tick ()
+  EventInputSubconnector::maybeCommunicate ()
   {
     if (!flushed && synch->communicate ())
       receive ();    
   }
 
 
-  //*fixme* isolate difference between global and local
+  // NOTE: isolate difference between global and local to avoid code repetition
   void
   EventInputSubconnectorGlobal::receive ()
   {
@@ -449,7 +449,7 @@ namespace MUSIC {
   
 
   void
-  MessageOutputSubconnector::tick ()
+  MessageOutputSubconnector::maybeCommunicate ()
   {
     if (synch->communicate ())
       send ();
@@ -462,7 +462,7 @@ namespace MUSIC {
     void* data;
     int size;
     buffer_.nextBlock (data, size);
-    //*fixme* marshalling
+    // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= MESSAGE_BUFFER_MAX)
       {
@@ -516,14 +516,14 @@ namespace MUSIC {
 
   
   void
-  MessageInputSubconnector::tick ()
+  MessageInputSubconnector::maybeCommunicate ()
   {
     if (!flushed && synch->communicate ())
       receive ();    
   }
 
 
-  //*fixme* isolate difference between global and local
+  // NOTE: isolate difference between global and local to avoid code repetition
   void
   MessageInputSubconnector::receive ()
   {

@@ -234,7 +234,7 @@ namespace MUSIC {
     double c = ((double) (remoteTime.integerTime () - prevSampleTime)
 		/ (double) localTime->tickInterval ());
     
-    // *fixme* preliminary implementation which just provides
+    // NOTE: preliminary implementation which just provides
     // the functionality specified in the API
     if (interpolate_)
       return c;
@@ -275,9 +275,8 @@ namespace MUSIC {
     double c = ((double) (localTime->integerTime () - prevSampleTime)
 		/ (double) remoteTime.tickInterval ());
     
-    // *fixme* preliminary implementation which just provides
+    // NOTE: preliminary implementation which just provides
     // the functionality specified in the API
-    // std::cout << "c = " << c << std::endl;
     if (interpolate_)
       return c;
     else

@@ -78,7 +78,6 @@ namespace MUSIC {
   void
   FIBO::nextBlock (void*& data, int& blockSize)
   {
-    //*fixme*
     data = static_cast<void*> (&buffer[0]);
     blockSize = current;
     current = 0;

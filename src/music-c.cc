@@ -429,6 +429,10 @@ MUSIC_createLinearArrayData (void *buffer,
 			     int baseIndex,
 			     int size)
 {
+  return (MUSIC_ArrayData *) new MUSIC::ArrayData (buffer,
+						   type,
+						   baseIndex,
+						   size);
 }
 
 

@@ -30,10 +30,6 @@
 
 namespace MUSIC {
 
-  const int SPIKE_MSG = 1;
-  const int CONT_MSG = 2;
-  const int MESSAGE_MSG = 3;
-  const int FLUSH_MSG = 4;
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
   const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX;
   const int MESSAGE_BUFFER_MAX = 10000;

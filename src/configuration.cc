@@ -100,8 +100,6 @@ namespace MUSIC {
   void
   Configuration::writeEnv ()
   {
-    //*fixme* generally make lexical structure more strict and make
-    //sure that everything written can be consistently read back
     std::ostringstream env;
     env << applicationName_ << ':' << color_ << ':';
     applications_->write (env);

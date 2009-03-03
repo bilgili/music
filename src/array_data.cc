@@ -36,8 +36,8 @@ namespace MUSIC {
 			MPI::Datatype type,
 			int baseIndex,
 			int size)
+    : DataMap (buffer)
   {
-    base_ = buffer; //*fixme*
     type_ = type;
     indexMap_ = new LinearIndex (baseIndex, size);
   }

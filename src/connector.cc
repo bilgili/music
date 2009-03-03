@@ -20,6 +20,7 @@
 #include "music/debug.hh"
 
 #include "music/error.hh"
+#include "music/communication.hh"
 
 #include "music/connector.hh"
 
@@ -48,9 +49,9 @@ namespace MUSIC {
     MUSIC_LOG (comm.Get_rank () << ": " << comm);
     MUSIC_LOG (comm.Get_rank () << ": remote = " << info.remoteLeader ());
     intercomm = comm.Create_intercomm (0,
-				       MPI::COMM_WORLD, //*fixme* recursive?
+				       MPI::COMM_WORLD,
 				       info.remoteLeader (),
-				       0); //*fixme* tag
+				       CREATE_INTERCOMM_MSG);
   }
 
 

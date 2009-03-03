@@ -19,6 +19,8 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
+#include "music/communication.hh"
+
 #include "music/subconnector.hh"
 
 namespace MUSIC {

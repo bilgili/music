@@ -42,6 +42,7 @@ namespace MUSIC {
     ApplicationMap () { }
     ApplicationMap (std::istringstream& in);
     ApplicationInfo* lookup (std::string appName);
+    int nProcesses ();
     void add (std::string name, int l, int n);
     void write (std::ostringstream& out);
   };

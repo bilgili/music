@@ -98,7 +98,12 @@ namespace MUSIC {
 	    return;
 	  }
       }
-    error ("internal error in ApplicationMapper::selectApplication");
+
+    // postpone error reporting to setup
+    // NOTE: consider doing error checking here
+
+    // for now, choose the first application
+    selectedName = applications_->begin ()->name ();
   }
 
 

@@ -39,14 +39,6 @@ using std::string;
 namespace MUSIC {
   
   class Setup {
-  private:
-    Configuration* config_;
-    MPI::Intracomm comm;
-    std::vector<Port*> ports_;
-    std::vector<Connector*>* connectors_;
-    TemporalNegotiator* temporalNegotiator_;
-    double timebase_;
-
   public:
     Setup (int& argc, char**& argv);
 
@@ -110,6 +102,15 @@ namespace MUSIC {
 
     TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
     
+  private:
+    Configuration* config_;
+    MPI::Intracomm comm;
+    std::vector<Port*> ports_;
+    std::vector<Connector*>* connectors_;
+    TemporalNegotiator* temporalNegotiator_;
+    double timebase_;
+
+    void errorChecks ();
   };
   
 }

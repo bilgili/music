@@ -23,15 +23,7 @@
 #include "music/setup.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"
-
-int debugHang = 0;
-
-static void
-hang ()
-{
-  while (debugHang)
-    ;
-}
+#include "music/error.hh"
 
 namespace MUSIC {
 
@@ -73,13 +65,13 @@ namespace MUSIC {
   void
   Setup::init (int& argc, char**& argv)
   {
-    hang ();
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();
     connectors_ = new std::vector<Connector*>; // destoyed by runtime
     if (launchedByMusic ())
       {
 	// launched by the music utility
+	errorChecks ();
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
 	MUSIC_LOG (comm.Get_rank () << ": " << comm);
 	if (!config ("timebase", &timebase_))
@@ -96,6 +88,26 @@ namespace MUSIC {
 	// launched with mpirun
 	comm = MPI::COMM_WORLD;
 	timebase_ = MUSIC_DEFAULT_TIMEBASE;
+      }
+  }
+
+  void
+  Setup::errorChecks ()
+  {
+    ApplicationMap* apps = applicationMap ();
+    int nRequestedProc = apps->nProcesses ();
+    int nMPIProc = MPI::COMM_WORLD.Get_size ();
+    if (nMPIProc != nRequestedProc)
+      {
+	if (MPI::COMM_WORLD.Get_rank () != 0)
+	  while (1)
+	    ; // wait for MPI process 0 to report error
+	
+	std::ostringstream msg;
+	msg << "configuration file specifies " << nRequestedProc
+	    << " MPI processes but MUSIC was given " << nMPIProc
+	    << std::endl;
+	error (msg.str ());
       }
   }
 

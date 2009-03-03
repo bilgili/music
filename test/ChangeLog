@@ -1,0 +1,88 @@
+2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0
+	
+2009-02-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Log time of event as well as time of reception.
+
+2009-02-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Added options --acclatency and --maxbuffered.
+
+2008-12-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Switch to CamelCase.
+	
+2008-11-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Print error message if port width not specified.
+
+2008-11-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc, events.music: Input port renamed from "eventlog"
+	to "in".
+
+2008-11-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Added better argument handling, including
+	options; Bugfix: Don't pass pointers to automatic event handlers
+	to map.
+
+	* events.music: Removed index map type argument (which is now an
+	option).
+
+2008-10-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Check that port is connected before mapping it.
+
+2008-10-10  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Updated to use global_index.
+
+2008-02-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (waveproducer_SOURCES, waveproducer_CXXFLAGS,
+	waveproducer_LDADD): Renamed from wavegenerator_SOURCES,
+	wavegenerator_CXXFLAGS, wavegenerator_LDADD.
+
+	* waveproducer.cc: Renamed from wavegenerator.cc
+
+2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (bin_PROGRAMS): Added launchtest.
+
+	* launchest.cc, launchtest.music: New files.
+
+	* wavegenerator.cc (main): Don't pass color to setup.
+
+	* waveconsumer.cc (main): Don't pass color to setup.
+
+	* application1.cc (main): Don't pass color to setup.
+
+2007-10-19  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* wavegenerator.cc, waveconsumer.cc, application1.cc: Replace C
+	MPI calls with their C++ equivalents.
+
+2007-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* wavegenerator.cc (main): Renamed array_data, linear_index from
+	arraydata, linearindex.
+
+2007-10-18  Örjan Ekeberg  <orjan@nada.kth.se>
+
+	* wavegenerator.cc: Added new miniature application.
+
+	* Makefile.am: Added rule to build wavegenerator.
+
+2007-09-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* application1.cc: Modified to conform to setup.hh and runtime.hh.
+
+	* Makefile.am: New file.
+
+2007-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Pling!
+

@@ -63,6 +63,7 @@ launch (MUSIC::Configuration* config, char** argv)
 
  error_exit:
   // if we get here, something is wrong
+  std::cerr << "Error during launching of binary " << binary << std::endl;
   perror ("MUSIC");
   exit (1);
 }

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,46 +18,53 @@
 
 #include "music/setup.hh"
 #include "music/runtime.hh"
-#include "music/permutation_index.hh"
+#include "music/index_map_factory.hh"
 
 namespace MUSIC {
   
-  PermutationIndex::PermutationIndex (GlobalIndex* indices, int size)
+  IndexMapFactory::IndexMapFactory ()
   {
-    
-    //*fixme* collapse where possible
-    for (int i = 0; i < size; ++i)
-      indices_.push_back (IndexInterval (indices[i],
-					 indices[i] + 1,
-					 indices[i] - i));
-    sort (indices_.begin (), indices_.end ());
   }
   
 
-  PermutationIndex::PermutationIndex (std::vector<IndexInterval>& indices)
+  IndexMapFactory::IndexMapFactory (std::vector<IndexInterval>& indices)
     : indices_ (indices)
   {
   }
 
+
+  void
+  IndexMapFactory::add (int begin, int end, int local)
+  {
+    indices_.push_back (IndexInterval (begin, end, begin - local));
+  }
   
+
+  void
+  IndexMapFactory::build ()
+  {
+    sort (indices_.begin (), indices_.end ());
+  }
+  
+
   IndexMap::iterator
-  PermutationIndex::begin ()
+  IndexMapFactory::begin ()
   {
     return IndexMap::iterator (new iterator (&indices_.front ()));
   }
 
   
   const IndexMap::iterator
-  PermutationIndex::end () const
+  IndexMapFactory::end () const
   {
     return IndexMap::iterator (new iterator (&indices_.back () + 1));
   }
 
 
   IndexMap*
-  PermutationIndex::copy ()
+  IndexMapFactory::copy ()
   {
-    return new PermutationIndex (indices_);
+    return new IndexMapFactory (indices_);
   }
 
 }

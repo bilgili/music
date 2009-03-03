@@ -55,6 +55,8 @@ namespace MUSIC {
     void setLocal (int l) { local_ = l; }
   };
 
+  bool operator< (const IndexInterval& a, const IndexInterval& b);
+
   class IndexMap {
   public:
     class IteratorImplementation {

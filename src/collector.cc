@@ -52,7 +52,11 @@ namespace MUSIC {
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      tree->add (*i);
+      {
+	MUSIC_LOGR ("adding (" << i->begin () << ", " << i->end ()
+		    << ", " << i->local () << ") to tree");
+	tree->add (*i);
+      }
 
     tree->build ();
     
@@ -80,6 +84,10 @@ namespace MUSIC {
     interval_.setBegin (elementSize_
 			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
+    MUSIC_LOGN (1,
+		"es = " << elementSize_
+		<< ", begin = " << interval_.begin ()
+		<< ", length = " << interval_.length ());
   }
 
 
@@ -100,6 +108,7 @@ namespace MUSIC {
 	     ++i)
 	  {
 	    IntervalCalculator calculator (*i, elementSize);
+	    MUSIC_LOGX ("searching for " << i->begin ());
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
 	  }
@@ -120,12 +129,11 @@ namespace MUSIC {
 	  // Out of data (remote has flushed)
 	  return;
 	ContDataT* dest = static_cast<ContDataT*> (base);
-	int elementSize = dataMap->type ().Get_size ();
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)
 	  {
-	    MUSIC_LOGR ("collect to dest = " << static_cast<void*> (dest)
+	    MUSIC_LOGX ("collect to dest = " << static_cast<void*> (dest)
 		       << ", begin = " << i->begin ()
 		       << ", length = " << i->length ());
 	    memcpy (dest + i->begin (), src, i->length ());

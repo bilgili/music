@@ -19,6 +19,7 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
+#include "music/index_map_factory.hh"
 #include "music/array_data.hh"
 #include "music/error.hh"
 
@@ -58,10 +59,16 @@ namespace MUSIC {
     
     size = 0;
     IndexMap* indices = dataMap_->indexMap ();
+    IndexMapFactory newIndices;
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      size += i->end () - i->begin ();
+      {
+	int localIndex = size;
+	newIndices.add (i->begin (), i->end (), localIndex);
+	size += i->end () - i->begin ();
+      }
+    newIndices.build ();
 
     prevSample_ = new ContDataT[elementSize * size];
     sample_ = new ContDataT[elementSize * size];
@@ -69,8 +76,7 @@ namespace MUSIC {
 
     interpolationDataMap_ = new ArrayData (interpolationData_,
 					   dataMap_->type (),
-					   0,
-					   size);
+					   &newIndices);
 
     MUSIC_LOGR ("prev = " << static_cast<void*> (prevSample_)
 		<< ", sample = " << static_cast<void*> (sample_)

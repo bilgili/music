@@ -20,6 +20,12 @@
 
 namespace MUSIC {
 
+  bool operator< (const IndexInterval& a, const IndexInterval& b)
+  {
+    return (a.begin () < b.begin ()
+	    || (a.begin () == b.begin () && a.end () < b.end ()));
+  }
+  
   const IndexInterval
   IndexMap::iterator::operator* ()
   {

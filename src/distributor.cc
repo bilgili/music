@@ -51,7 +51,11 @@ namespace MUSIC {
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      tree->add (*i);
+      {
+	MUSIC_LOGR ("adding (" << i->begin () << ", " << i->end ()
+		    << ", " << i->local () << ") to tree");
+	tree->add (*i);
+      }
 
     tree->build ();
     
@@ -120,7 +124,6 @@ namespace MUSIC {
 	Intervals& intervals = b->second;
 	ContDataT* src = static_cast<ContDataT*> (dataMap->base ());
 	ContDataT* dest = static_cast<ContDataT*> (buffer->insert ());
-	int elementSize = dataMap->type ().Get_size ();
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)

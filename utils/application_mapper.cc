@@ -26,7 +26,8 @@
 namespace MUSIC {
 
   // This is where we parse the configuration file
-  // *fixme* Should check here that obligatory parameters exists
+
+  // NOTE: Could check here that obligatory parameters exists
   ApplicationMapper::ApplicationMapper (std::istream* configFile, int rank)
   {
     rude::Config* cfile = new rude::Config ();
@@ -172,7 +173,7 @@ namespace MUSIC {
 	    if (width == "")
 	      w = ConnectivityInfo::NO_WIDTH;
 	    else
-	      { //*fixme*
+	      {
 		std::istringstream ws (width);
 		if (!(ws >> w))
 		  error ("could not interpret width");

@@ -104,7 +104,7 @@ getargs (int rank, int argc, char* argv[])
       switch (c)
 	{
 	case 't':
-	  timestep = atof (optarg); //*fixme* error checking
+	  timestep = atof (optarg); // NOTE: could do error checking
 	  continue;
 	case 'm':
 	  imaptype = optarg;

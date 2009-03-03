@@ -89,7 +89,7 @@ getargs (int rank, int argc, char* argv[])
       switch (c)
 	{
 	case 't':
-	  timestep = atof (optarg); //*fixme* error checking
+	  timestep = atof (optarg); // NOTE: some error checking would be good!
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -232,7 +232,7 @@ main (int argc, char *argv[])
       for (std::vector<MUSIC::Event>::iterator i = eventBuffer.begin ();
 	   i != eventBuffer.end ();
 	   ++i)
-	// Send data (*fixme* assumes that non-mapped id:s will be discarded)
+	// Send data (NOTE: assumes that non-mapped id:s will be discarded)
 	out->insertEvent (i->t, MUSIC::GlobalIndex (i->id));
 
       time = runtime->time ();

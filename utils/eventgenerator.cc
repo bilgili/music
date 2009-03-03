@@ -91,13 +91,13 @@ getargs (int rank, int argc, char* argv[])
       switch (c)
 	{
 	case 't':
-	  timestep = atof (optarg); //*fixme* error checking
+	  timestep = atof (optarg); // NOTE: could do error checking
 	  continue;
 	case 'b':
 	  maxbuffered = atoi (optarg);
 	  continue;
 	case 'f':
-	  freq = atof (optarg); //*fixme* error checking
+	  freq = atof (optarg); // NOTE: error checking here as well
 	  continue;
 	case 'm':
 	  imaptype = optarg;

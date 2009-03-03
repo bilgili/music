@@ -19,11 +19,14 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
+// distributor.hh needs to be included first since it causes inclusion
+// of mpi.h (in data_map.hh).  mpi.h must be included before other
+// header files on BG/L
+#include "music/distributor.hh"
+
 #include <algorithm>
 
 #include "music/event.hh"
-
-#include "music/distributor.hh"
 
 namespace MUSIC {
 

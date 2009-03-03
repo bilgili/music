@@ -19,8 +19,11 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
-#include "music/index_map_factory.hh"
+// array_data.hh needs to be included first since it causes inclusion
+// of mpi.h (in data_map.hh).  mpi.h must be included before other
+// header files on BG/L
 #include "music/array_data.hh"
+#include "music/index_map_factory.hh"
 #include "music/error.hh"
 
 #include "music/sampler.hh"

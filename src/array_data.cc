@@ -16,9 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/linear_index.hh"
-
+// This header file needs to be included first since array_data.hh
+// includes <mpi.h> which musy be included first on BG/L
 #include "music/array_data.hh"
+
+#include "music/linear_index.hh"
 
 namespace MUSIC {
   

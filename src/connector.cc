@@ -19,10 +19,13 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
+// connector.hh needs to be included first since it causes inclusion
+// of mpi.h (in data_map.hh).  mpi.h must be included before other
+// header files on BG/L
+#include "music/connector.hh"
+
 #include "music/error.hh"
 #include "music/communication.hh"
-
-#include "music/connector.hh"
 
 namespace MUSIC {
 

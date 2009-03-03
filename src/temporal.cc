@@ -258,6 +258,7 @@ namespace MUSIC {
       if (inputDescriptors[i].receiverPort == port)
 	return &inputDescriptors[i];
     error ("internal error in TemporalNegotiator::findInputConnection");
+    return 0; // never reached
   }
 
   

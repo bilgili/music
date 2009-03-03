@@ -18,11 +18,14 @@
 
 #ifndef MUSIC_COLLECTOR_HH
 
+// data_map.hh needs to be included first since it includes mpi.h.
+// mpi.h must be included before other header files on BG/L
+#include <music/data_map.hh>
+
 #include <map>
 #include <vector>
 
 #include <music/BIFO.hh>
-#include <music/data_map.hh>
 #include <music/interval_tree.hh>
 
 namespace MUSIC {

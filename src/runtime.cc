@@ -163,11 +163,6 @@ namespace MUSIC {
 	 c != connectors->end ();
 	 ++c)
       {
-	if (*c == 0)
-	  {
-	    std::cout << "connector " << i << " = 0" << std::endl;
-	    abort ();
-	  }
 	++i;
 	// negotiate and fill up vectors passed as arguments
 	(*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);

@@ -54,7 +54,7 @@ namespace MUSIC {
 	 i != indices->end ();
 	 ++i)
       {
-	MUSIC_LOG ("adding [" << i->begin () << ", " << i->end () << ") to tree");
+	MUSIC_LOGR ("adding [" << i->begin () << ", " << i->end () << ") to tree");
 	tree->add (*i);
       }
 
@@ -67,7 +67,6 @@ namespace MUSIC {
   void
   Collector::addRoutingInterval (IndexInterval interval, BIFO* buffer)
   {
-    MUSIC_LOG ("Collector::addRoutingInterval");
     BufferMap::iterator b = buffers.find (buffer);
     if (b == buffers.end ())
       {
@@ -82,11 +81,9 @@ namespace MUSIC {
   void
   Collector::IntervalCalculator::operator() (IndexInterval& indexInterval)
   {
-    MUSIC_LOG ("action!");
     interval_.setBegin (elementSize_
 			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
-    MUSIC_LOG ("end!");
   }
 
 
@@ -135,7 +132,7 @@ namespace MUSIC {
 	     i != intervals.end ();
 	     ++i)
 	  {
-	    MUSIC_LOGR ("dest = " << static_cast<void*> (dest)
+	    MUSIC_LOGR ("collect to dest = " << static_cast<void*> (dest)
 		       << ", begin = " << i->begin ()
 		       << ", length = " << i->length ());
 	    memcpy (dest + i->begin (), src, i->length ());

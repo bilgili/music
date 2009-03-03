@@ -47,7 +47,7 @@ namespace MUSIC {
     BIFO () { }
     void configure (int elementSize, int maxBlockSize);
     bool isEmpty ();
-    //*fixme* return type
+    // NOTE: find better return type
     void* insertBlock ();
     // size in bytes
     void trimBlock (int size);

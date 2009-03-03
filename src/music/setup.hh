@@ -66,7 +66,7 @@ namespace MUSIC {
 
     ApplicationMap* applicationMap ();
 
-    //*fixme* unused
+    // NOTE: remove?
     bool isConnected (const std::string localName);
 
     ConnectivityInfo::PortDirection

@@ -98,7 +98,7 @@ main (int argc, char* argv[])
       switch (c)
 	{
 	case 't':
-	  timestep = atof (optarg); //*fixme* error checking
+	  timestep = atof (optarg); // NOTE: could add error checking
 	  continue;
 	case 'l':
 	  latency = atof (optarg);

@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//*fixme* switch name to Interpolator?
+// NOTE: rename to Interpolator?
 
 #ifndef MUSIC_SAMPLER_HH
 

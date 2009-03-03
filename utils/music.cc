@@ -28,6 +28,7 @@ extern "C" {
 #include <unistd.h>
 #include <getopt.h>
 #include <stdlib.h>
+#include <stdio.h>
 };
 
 using std::string;
@@ -54,9 +55,13 @@ launch (MUSIC::Configuration* config, char** argv)
   config->writeEnv ();
   string wd;
   if (config->lookup ("wd", &wd))
-    chdir (wd.c_str ()); //*fixme* error checking
+    {
+      if (chdir (wd.c_str ()))
+	goto error_exit;
+    }
   execvp (binary.c_str (), argv);
 
+ error_exit:
   // if we get here, something is wrong
   perror ("MUSIC");
   exit (1);

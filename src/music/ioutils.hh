@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 namespace MUSIC {
 
   namespace IOUtils {
-    //*fixme* these could be stream classes
+    // NOTE: these could be stream classes
     void write (std::ostringstream& out, std::string s);
     std::string read (std::istringstream& in, int delim);
     std::string read (std::istringstream& in);

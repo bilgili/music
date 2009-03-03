@@ -38,7 +38,7 @@ namespace MUSIC {
     FIBO (int elementSize);
     void configure (int elementSize);
     bool isEmpty ();
-    //*fixme* return type
+    // NOTE: find better return type
     void* insert ();
     void insert (void* elements, int n_elements);
     void nextBlock (void*& data, int& size);

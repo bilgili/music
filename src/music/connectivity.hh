@@ -47,7 +47,8 @@ namespace MUSIC {
     std::string receiverPortName () const { return recPort_; }
     int receiverPortCode () const { return recCode_; }
     int remoteLeader () const { return remoteLeader_; }
-    int nProcesses () const { return nProc_; } //*fixme* "remote" in name
+    // NOTE: nProcesses should have "remote" in name
+    int nProcesses () const { return nProc_; }
   };
 
 
@@ -93,7 +94,6 @@ namespace MUSIC {
 	      int remoteLeader,
 	      int remoteNProc);
     ConnectivityInfo* info (std::string portName);
-    //*fixme* not used
     bool isConnected (std::string portName);
     ConnectivityInfo::PortDirection direction (std::string portName);
     int width (std::string portName);

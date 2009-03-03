@@ -1,30 +1,20 @@
-* alternative implementation for clockstate (not long long)
+* error message on startup with wrong number of processes
 
-* felavbrott om map icke float eller double
+* error message binary not found
 
-* continuous loops
+* error message configuration file not found
+
+* report port name if missing
 
 * Marshalling i contsubconnector
 
-* Kodduplicering sampler - distributor - collector - kommentarer
+* alternative implementation for clockstate (not long long)
 
-* Manual:
+* Error check in map: MPI::Type not float or double
 
-** Are all manual-related points in Hans Plesser's revision to the RFC
-   considered?
+* continuous loops
 
-** No, they are not: We need to document the usage of
-   runtime->finalize ().  (This is where MUSIC does flushes data and
-   calls MPI::Finalize ().  The flushing of data needs to be
-   documented.
-
-** Is the API described in the manual consistent with the header files?
-
-** Clearify usage of tick ().  What data from what time-step is sent
-   and received by which tick?
-
-** Did we promise Raphael some addition to the manual during one of
-   our meetings?
+* Code duplication sampler - distributor - collector - kommentarer
 
 * optional arguments when mapping ports: maxbuffered but not latency
    
@@ -38,27 +28,13 @@
 * Check that all administrative objects get deallocated at start of runtime
   (for example TemporalNegotiator)
 
-* Buffering schedule in synchronizer
-
 * cleanup constructor arguments in subconnector.cc
 
 * marshalling, for example in temporal.cc, subconnector.cc
 
-Continuous data
-
-* Investigate what needs to be done
-
 Before delivery
 
-* Communicate timing parameters between group leaders
-
-* Run loop detection algorithm in group leaders
-
-* Distribute timing constraint data to all ranks
-
 * Documentation strings
-
-* Document finalize ()
 
 After delivery
 
@@ -73,9 +49,11 @@ Optional
   print out run statistics, such as part of time spent in tick() when
   deleting runtime.
 
-* Option for music launcer to get map over rank allocations
+* Option for music launcher to get map over rank allocations
 
 * Join intervals at spatial negotiation.
+
+* Join intervals in PermutationIndex and IndexMapFactory
 
 * Move all MPI implementation dependent code into a subdirectory
   mpidep.  This directory should also contain a test binary which is
@@ -83,7 +61,3 @@ Optional
 
 * Write piecewise_linear_index and derive linear_index and
   permutation_index from it.
-
-Obscure
-
-* Implement mark function in FIBO

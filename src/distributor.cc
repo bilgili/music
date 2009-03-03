@@ -51,10 +51,7 @@ namespace MUSIC {
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      {
-	MUSIC_LOG ("adding [" << i->begin () << ", " << i->end () << ") to tree");
-	tree->add (*i);
-      }
+      tree->add (*i);
 
     tree->build ();
     
@@ -104,7 +101,6 @@ namespace MUSIC {
 	     ++i)
 	  {
 	    IntervalCalculator calculator (*i, elementSize);
-	    MUSIC_LOG ("searching for " << i->begin () << " using " << &calculator);
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
 	  }

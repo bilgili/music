@@ -37,7 +37,6 @@ namespace MUSIC {
   void
   Collector::configure (DataMap* dmap, int allowedBuffered)
   {
-    MUSIC_LOG ("Collector::configure");
     dataMap = dmap;
     allowedBuffered_ = allowedBuffered;
   }
@@ -53,10 +52,7 @@ namespace MUSIC {
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
-      {
-	MUSIC_LOGR ("adding [" << i->begin () << ", " << i->end () << ") to tree");
-	tree->add (*i);
-      }
+      tree->add (*i);
 
     tree->build ();
     
@@ -90,7 +86,6 @@ namespace MUSIC {
   void
   Collector::initialize ()
   {
-    MUSIC_LOG ("Collector::initialize");
     IntervalTree<int, IndexInterval>* tree = buildTree ();
     
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
@@ -99,14 +94,12 @@ namespace MUSIC {
 	Intervals& intervals = b->second;
 	sort (intervals.begin (), intervals.end ());
 	int elementSize = dataMap->type ().Get_size ();
-	MUSIC_LOG ("elementSize = " << elementSize);
 	int size = 0;
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)
 	  {
 	    IntervalCalculator calculator (*i, elementSize);
-	    MUSIC_LOG ("searching for " << i->begin ());
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
 	  }

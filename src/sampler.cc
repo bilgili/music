@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include "music/array_data.hh"
 #include "music/error.hh"
 
@@ -68,6 +71,10 @@ namespace MUSIC {
 					   dataMap_->type (),
 					   0,
 					   size);
+
+    MUSIC_LOGR ("prev = " << static_cast<void*> (prevSample_)
+		<< ", sample = " << static_cast<void*> (sample_)
+		<< ", interp = " << static_cast<void*> (interpolationData_));
   }
 
   
@@ -116,7 +123,7 @@ namespace MUSIC {
 	ContDataT* src = static_cast<ContDataT*> (dataMap_->base ());
 	int iSize = elementSize * (i->end () - i->begin ());
 	memcpy (dest + pos,
-		src + elementSize * i->begin (),
+		src + elementSize * (i->begin () - i->local ()),
 		iSize);
 	pos += iSize;
       }
@@ -164,13 +171,14 @@ namespace MUSIC {
 	 i != indices->end ();
 	 ++i)
       {
+	int localIndex = i->begin () - i->local ();
 	int iSize = i->end () - i->begin ();
 	if (dataMap->type () == MPI::DOUBLE)
 	  interpolate (pos, iSize, interpolationCoefficient,
-		       static_cast<double*> (dataMap->base ()) + i->begin ());
+		       static_cast<double*> (dataMap->base ()) + localIndex);
 	else if (dataMap->type () == MPI::FLOAT)
 	  interpolate (pos, iSize, interpolationCoefficient,
-		       static_cast<float*> (dataMap->base ()) + i->begin ());
+		       static_cast<float*> (dataMap->base ()) + localIndex);
 	else
 	  error ("internal error in Sampler::interpolateTo");
 	pos += iSize;
@@ -184,6 +192,9 @@ namespace MUSIC {
 			double interpolationCoefficient,
 			double* dest)
   {
+    MUSIC_LOGR ("interpolate to dest = " << static_cast<void*> (dest)
+		<< ", begin = " << from
+		<< ", length = " << n);
     double* prev = (static_cast<double*> (static_cast<void*> (prevSample_))
 		    + from);
     double* succ = (static_cast<double*> (static_cast<void*> (sample_))

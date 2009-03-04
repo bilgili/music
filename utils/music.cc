@@ -144,9 +144,10 @@ main (int argc, char *argv[])
 
   MUSIC::ApplicationMapper map (configFile, rank);
 
-  if (do_print_map && rank <= 0)
+  if (do_print_map)
     {
-      print_map (map.config ());
+      if (rank <= 0)
+	print_map (map.config ());
       return 0;
     }
   

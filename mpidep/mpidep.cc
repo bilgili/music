@@ -26,8 +26,6 @@ extern "C" {
 #include <stdlib.h>
 }
 
-#include "music/error.hh"
-
 #include "mpidep.hh"
 
 // Implementation-dependent code
@@ -45,6 +43,15 @@ extern "C" {
 #ifdef BGL
 #include <rts.h>
 #endif
+
+/*
+ * Predict the local MPI process rank before having called MPI::Init
+ *
+ * MPI implementations typically passes meta information either through
+ * argc and argv (MPICH) or through the environment (OpenMPI).
+ *
+ * return -1 on failure
+ */ 
 
 int
 getRank (int argc, char *argv[])
@@ -67,14 +74,14 @@ getRank (int argc, char *argv[])
 	iss >> rank;
 	return rank;
       }
-  return 0;
+  return -1;
 #endif
 #ifdef OPENMPI
   char* vpid = getenv ("OMPI_MCA_ns_nds_vpid");
   if (vpid == NULL)
     vpid = getenv ("OMPI_COMM_WORLD_RANK");
   if (vpid == NULL)
-    MUSIC::error ("getRank: unable to determine process rank");
+    return -1;
   std::istringstream iss (vpid);
   int rank;
   iss >> rank;
@@ -101,6 +108,23 @@ getSharedDir ()
 #endif
 
 
+std::string
+getFirstArg (int argc, char** argv)
+{
+  for (int i = 1; i < argc; ++i)
+    if (*argv[i] != '-') // skip options
+      return argv[i];
+  return "";
+}
+
+
+/*
+ * Retrieve first argument (the name of the music configuration file)
+ * given to the music utility.
+ *
+ * Be robust against rank == -1 (which occurs when getRank fails).
+ */
+
 std::istream*
 getConfig (int rank, int argc, char** argv)
 {
@@ -111,16 +135,18 @@ getConfig (int rank, int argc, char** argv)
   if (rank == 0)
     {
       std::ofstream f (fname.str ().c_str ());
-      confname = argv[1];
+      confname = getFirstArg (argc, argv);
       f << confname;
     }
-  else
+  else if (rank > 0)
     {
       std::ifstream f (fname.str ().c_str ());
       f >> confname;
     }
+  else // rank == -1
+    confname = getFirstArg (argc, argv);
   return new std::ifstream (confname.c_str ());
 #else
-  return new std::ifstream (argv[1]);
+  return new std::ifstream (getFirstArg (argc, argv).c_str ());
 #endif
 }

@@ -1,0 +1,21 @@
+MUSIC NEWS --- history of user-visible changes.
+Copyright (C) 2009 INCF
+
+Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.0.1:
+
+* music utility
+
+** Improved error reporting
+
+** New option '-m' prints application rank mapping
+
+
+First release: 1.0
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

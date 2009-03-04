@@ -1,3 +1,9 @@
+2009-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getConfig): Don't reports errors here.  Leave that to
+	utils/music.cc; Skip optional arguments when looking for config
+	file name.
+
 2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0

@@ -36,14 +36,32 @@ using std::string;
 void
 usage (int rank)
 {
-  if (rank == 0)
+  if (rank <= 0)
     {
-      std::cerr << "Usage: music [OPTION...] CONFIG" << std::endl
+      std::cerr << "Usage: mpirun ... music [OPTION...] CONFIG" << std::endl
 		<< "`music' launches an application as part of a multi-simulator job." << std::endl << std::endl
+		<< "  -m, --map             print application rank map" << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl << std::endl
-		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
+		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
   exit (1);
+}
+
+
+void
+print_map (MUSIC::Configuration* config)
+{
+  MUSIC::ApplicationMap* a = config->applications ();
+  std::cout << "rank\tapplication" << std::endl;
+  for (MUSIC::ApplicationMap::iterator i = a->begin (); i != a->end (); ++i)
+    {
+      int first = i->leader ();
+      int nProc = i->nProc ();
+      std::cout << first;
+      if (nProc > 1)
+	std::cout << "-" << first + nProc - 1;
+      std::cout << '\t' << i->name () << std::endl;
+    }
 }
 
 
@@ -76,19 +94,22 @@ main (int argc, char *argv[])
   // mpi implementation dependent code from ../mpidep
   int rank = getRank (argc, argv);
 
+  bool do_print_map = false;
+  
   opterr = 0; // handle errors ourselves
   while (1)
     {
       static struct option longOptions[] =
 	{
-	  {"help",    no_argument,       0, 'h'},
+	  {"map",          required_argument, 0, 'm'},
+	  {"help",         no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+m:h", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -98,6 +119,9 @@ main (int argc, char *argv[])
 	{
 	case '?':
 	  break; // ignore unknown options
+	case 'm':
+	  do_print_map = true;
+	  break;
 	case 'h':
 	  usage (rank);
 
@@ -112,14 +136,26 @@ main (int argc, char *argv[])
 
   if (!*configFile)
     {
-      if (rank == 0)
+      if (rank <= 0)
 	std::cerr << "MUSIC: Couldn't open config file "
 		  << argv[1] << std::endl;
       exit (1);
     }
 
   MUSIC::ApplicationMapper map (configFile, rank);
+
+  if (do_print_map && rank <= 0)
+    {
+      print_map (map.config ());
+      return 0;
+    }
   
+  if (rank == -1)
+    {
+      std::cerr << "MUSIC: getRank: unable to determine process rank" << std::endl;
+      exit (1);
+    }
+
   launch (map.config (), argv);
 
   return 0;

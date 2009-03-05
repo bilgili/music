@@ -1,8 +1,8 @@
-* error message on startup with wrong number of processes
+* lift out as much as possible of the negotiation stuff from
+  connectors and move to connections, for example ConnectorINfo and
+  createIntercomm
 
-* error message binary not found
-
-* error message configuration file not found
+* rename Runtime::schedule
 
 * report port name if missing
 
@@ -48,8 +48,6 @@ Optional
   applications so that library behavior can be controlled.  E.g.,
   print out run statistics, such as part of time spent in tick() when
   deleting runtime.
-
-* Option for music launcher to get map over rank allocations
 
 * Join intervals at spatial negotiation.
 

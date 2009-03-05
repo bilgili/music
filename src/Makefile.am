@@ -27,6 +27,7 @@ libmusic_la_SOURCES = \
 	clock.cc music/clock.hh \
 	subconnector.cc music/subconnector.hh \
 	connector.cc music/connector.hh \
+	connection.cc music/connection.hh \
 	permutation_index.cc music/permutation_index.hh \
 	index_map_factory.cc music/index_map_factory.hh \
 	synchronizer.cc music/synchronizer.hh \
@@ -59,6 +60,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/spatial.hh music/temporal.hh music/error.hh \
 		       music/debug.hh music/port.hh music/clock.hh \
 		       music/connector.hh music/subconnector.hh \
+		       music/connection.hh \
 		       music/permutation_index.hh music/synchronizer.hh \
 		       music/index_map_factory.hh \
 		       music/sampler.hh music/BIFO.hh \

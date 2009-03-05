@@ -23,49 +23,12 @@
 #define EVENT_FREQUENCY_ESTIMATE 10.0
 
 #include <music/clock.hh>
+#include <music/connection.hh>
 
 namespace MUSIC {
 
   class Setup;
 
-  class OutputConnection {
-  private:
-    Connector* connector_;
-    int maxBuffered_;
-    int elementSize_;
-  public:
-    OutputConnection (Connector* connector,
-		      int maxBuffered,
-		      int elementSize)
-      : connector_ (connector),
-	maxBuffered_ (maxBuffered),
-	elementSize_ (elementSize) { }
-    Connector*& connector () { return connector_; }
-    int maxBuffered () { return maxBuffered_; }
-    int elementSize () { return elementSize_; }
-  };
-  
-  class InputConnection {
-  private:
-    Connector* connector_;
-    int maxBuffered_;
-    ClockState accLatency_;
-    bool interpolate_;
-  public:
-    InputConnection (Connector* connector,
-		     int maxBuffered,
-		     ClockState accLatency,
-		     bool interpolate)
-      : connector_ (connector),
-	maxBuffered_ (maxBuffered),
-	accLatency_ (accLatency),
-	interpolate_ (interpolate) { }
-    Connector*& connector () { return connector_; }
-    int maxBuffered () { return maxBuffered_; }
-    ClockState accLatency () { return accLatency_; }
-    bool interpolate () { return interpolate_; }
-  };
-  
   class ConnectionDescriptor {
   public:
     int remoteNode;
@@ -89,7 +52,7 @@ namespace MUSIC {
 
   class ApplicationNode;
 
-  class Connection;
+  class ConnectionEdge;
 
   class TemporalNegotiator {
     Setup* setup_;
@@ -117,19 +80,13 @@ namespace MUSIC {
     bool isLeader ();
     bool hasPeers ();
     void depthFirst (ApplicationNode& x,
-		     std::vector<Connection>& path);
+		     std::vector<ConnectionEdge>& path);
   public:
     TemporalNegotiator (Setup* setup);
     ~TemporalNegotiator ();
     Setup* setup () { return setup_; }
     ApplicationNode& applicationNode (int i) { return nodes[i]; }
-    void addConnection (OutputConnector* connector,
-			int maxBuffered,
-			int elementSize);
-    void addConnection (InputConnector* connector,
-			int maxBuffered,
-			double accLatency,
-			bool interpolate);
+    void separateConnections (std::vector<Connection*>* connections);
     void createNegotiationCommunicator ();
     void collectNegotiationData (ClockState ti);
     void communicateNegotiationData ();
@@ -138,17 +95,17 @@ namespace MUSIC {
     void broadcastNegotiationData ();
     void receiveNegotiationData ();
     void distributeNegotiationData (Clock& localTime);
-    void negotiate (Clock& localTime);
+    void negotiate (Clock& localTime, std::vector<Connection*>* connections);
   };
 
-  class Connection {
+  class ConnectionEdge {
     ApplicationNode* pre_;
     ApplicationNode* post_;
     ConnectionDescriptor* connection_;
   public:
-    Connection (ApplicationNode& pre,
-		ApplicationNode& post,
-		ConnectionDescriptor& descr)
+    ConnectionEdge (ApplicationNode& pre,
+		    ApplicationNode& post,
+		    ConnectionDescriptor& descr)
       : pre_ (&pre), post_ (&post), connection_ (&descr) { }
     ApplicationNode& pre () { return *pre_; }
     ApplicationNode& post () { return *post_; }
@@ -175,12 +132,12 @@ namespace MUSIC {
     std::string name ();
     ClockState tickInterval () { return data->tickInterval; }
     int nConnections () { return data->nOutConnections; }
-    Connection connection (int c)
+    ConnectionEdge connection (int c)
     {
       ConnectionDescriptor& descr = data->connection[c];
-      return Connection (*this,
-			 negotiator_->applicationNode (descr.remoteNode),
-			 descr);
+      return ConnectionEdge (*this,
+			     negotiator_->applicationNode (descr.remoteNode),
+			     descr);
     };
   };
 

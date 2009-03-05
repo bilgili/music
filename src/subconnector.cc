@@ -44,15 +44,6 @@ namespace MUSIC {
   }
 
   
-  void
-  Subconnector::connect ()
-  {
-#if 0
-    std::cout << "Process " << MPI::COMM_WORLD.Get_rank () << " creating intercomm with local " << localLeader_ << " and remote " << remoteLeader_ << std::endl;
-#endif
-  }
-
-
   OutputSubconnector::OutputSubconnector (int elementSize)
     : buffer_ (elementSize)
   {
@@ -103,6 +94,7 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= CONT_BUFFER_MAX)
       {
+	MUSIC_LOGR ("Sending to rank " << remoteRank_);
 	intercomm.Send (buffer,
 			CONT_BUFFER_MAX,
 			MPI::BYTE,
@@ -163,6 +155,7 @@ namespace MUSIC {
     int size;
     do
       {
+	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
 	intercomm.Recv (data,
 			CONT_BUFFER_MAX,
 			MPI::BYTE,

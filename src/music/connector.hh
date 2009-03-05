@@ -45,27 +45,28 @@ namespace MUSIC {
 
   class Connector {
   protected:
-  public:
     ConnectorInfo info;
     SpatialNegotiator* spatialNegotiator_;
     MPI::Intracomm comm;
     MPI::Intercomm intercomm;
-    Connector** ref_;
+    
   public:
     Connector () { }
     Connector (ConnectorInfo info_,
 	       SpatialNegotiator* spatialNegotiator_,
 	       MPI::Intracomm c);
-    void setRef (Connector** ref) { ref_ = ref; }
+    Connector (ConnectorInfo info_,
+	       SpatialNegotiator* spatialNegotiator_,
+	       MPI::Intracomm c,
+	       MPI::Intercomm ic);
+    virtual ~Connector () { }
     virtual Connector* specialize (Clock& localTime) { return this; }
-    std::string receiverAppName () const
-    { return info.receiverAppName (); }
-    std::string receiverPortName () const
-    { return info.receiverPortName (); }
-    int receiverPortCode () const
-    { return info.receiverPortCode (); }
-    int remoteLeader () const
-    { return info.remoteLeader (); }
+
+    std::string receiverAppName () const { return info.receiverAppName (); }
+    std::string receiverPortName () const { return info.receiverPortName (); }
+    int receiverPortCode () const { return info.receiverPortCode (); }
+    int remoteLeader () const { return info.remoteLeader (); }
+    
     int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
     bool isLeader ();
     virtual Synchronizer* synchronizer () = 0;
@@ -121,7 +122,7 @@ namespace MUSIC {
     Distributor distributor_;
   public:
     ContOutputConnector (ConnectorInfo connInfo,
-			 SpatialOutputNegotiator* spatialNegotiator,
+			 SpatialNegotiator* spatialNegotiator,
 			 MPI::Intracomm comm,
 			 Sampler& sampler);
     OutputSubconnector* makeOutputSubconnector (int remoteRank);
@@ -132,6 +133,11 @@ namespace MUSIC {
   class PlainContOutputConnector : public ContOutputConnector {
     OutputSynchronizer synch;
   public:
+    PlainContOutputConnector (ConnectorInfo connInfo,
+			      SpatialNegotiator* spatialNegotiator,
+			      MPI::Intracomm comm,
+			      MPI::Intercomm intercomm,
+			      Sampler& sampler);
     PlainContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -142,6 +148,11 @@ namespace MUSIC {
 					   public InterpolatingConnector {
     InterpolationOutputSynchronizer synch;
   public:
+    InterpolatingContOutputConnector (ConnectorInfo connInfo,
+				      SpatialNegotiator* spatialNegotiator,
+				      MPI::Intracomm comm,
+				      MPI::Intercomm intercomm,
+				      Sampler& sampler);
     InterpolatingContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -157,7 +168,7 @@ namespace MUSIC {
     bool divisibleDelay (Clock& localTime);
   public:
     ContInputConnector (ConnectorInfo connInfo,
-			SpatialInputNegotiator* spatialNegotiator,
+			SpatialNegotiator* spatialNegotiator,
 			MPI::Intracomm comm,
 			Sampler& sampler,
 			double delay);
@@ -172,6 +183,12 @@ namespace MUSIC {
   class PlainContInputConnector : public ContInputConnector {
     InputSynchronizer synch;
   public:
+    PlainContInputConnector (ConnectorInfo connInfo,
+			     SpatialNegotiator* spatialNegotiator,
+			     MPI::Intracomm comm,
+			     MPI::Intercomm intercomm,
+			     Sampler& sampler,
+			     double delay);
     PlainContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -183,6 +200,12 @@ namespace MUSIC {
 					  public InterpolatingConnector {
     InterpolationInputSynchronizer synch;
   public:
+    InterpolatingContInputConnector (ConnectorInfo connInfo,
+				     SpatialNegotiator* spatialNegotiator,
+				     MPI::Intracomm comm,
+				     MPI::Intercomm intercomm,
+				     Sampler& sampler,
+				     double delay);
     InterpolatingContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();

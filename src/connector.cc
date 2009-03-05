@@ -39,6 +39,18 @@ namespace MUSIC {
   }
 
 
+  Connector::Connector (ConnectorInfo info_,
+			SpatialNegotiator* spatialNegotiator,
+			MPI::Intracomm c,
+			MPI::Intercomm ic)
+    : info (info_),
+      spatialNegotiator_ (spatialNegotiator),
+      comm (c),
+      intercomm (ic)
+  {
+  }
+
+
   bool
   Connector::isLeader ()
   {
@@ -67,7 +79,8 @@ namespace MUSIC {
     for (NegotiationIterator i
 	   = spatialNegotiator_->negotiate (comm,
 					    intercomm,
-					    info.nProcesses ());
+					    info.nProcesses (),
+					    this); // only for debugging
 	 !i.end ();
 	 ++i)
       {
@@ -108,9 +121,11 @@ namespace MUSIC {
   {
     std::map<int, InputSubconnector*> subconnectors;
     int receiverRank = intercomm.Get_rank ();
-    for (NegotiationIterator i = spatialNegotiator_->negotiate (comm,
-								intercomm,
-								info.nProcesses ());
+    for (NegotiationIterator i
+	   = spatialNegotiator_->negotiate (comm,
+					    intercomm,
+					    info.nProcesses (),
+					    this); // only for debugging
 	 !i.end ();
 	 ++i)
       {
@@ -166,7 +181,7 @@ namespace MUSIC {
   }
 
   ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
-					    SpatialOutputNegotiator* spatialNegotiator,
+					    SpatialNegotiator* spatialNegotiator,
 					    MPI::Intracomm comm,
 					    Sampler& sampler)
     : Connector (connInfo, spatialNegotiator, comm),
@@ -190,12 +205,26 @@ namespace MUSIC {
   {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
+#if 0 // temporarily testing alternative code
     if (tickInterval < remoteTickInterval (tickInterval))
       connector = new InterpolatingContOutputConnector (*this);
     else
       connector = new PlainContOutputConnector (*this);
-    *ref_ = connector;
-    delete this; // delete ourselves!!
+#else
+    if (tickInterval < remoteTickInterval (tickInterval))
+      connector = new InterpolatingContOutputConnector (info,
+							spatialNegotiator_,
+							comm,
+							intercomm,
+							sampler_);
+
+    else
+      connector = new PlainContOutputConnector (info,
+						spatialNegotiator_,
+						comm,
+						intercomm,
+						sampler_);
+#endif
     return connector;
   }
 
@@ -207,6 +236,21 @@ namespace MUSIC {
     distributor_.addRoutingInterval (i, osubconn->buffer ());
   }
   
+  
+  PlainContOutputConnector::PlainContOutputConnector
+  (ConnectorInfo connInfo,
+   SpatialNegotiator* spatialNegotiator,
+   MPI::Intracomm comm,
+   MPI::Intercomm intercomm,
+   Sampler& sampler)
+    : Connector (connInfo, spatialNegotiator, comm, intercomm),
+      ContOutputConnector (connInfo,
+			   spatialNegotiator,
+			   comm,
+			   sampler)
+  {
+  }
+
   
   PlainContOutputConnector::PlainContOutputConnector
   (ContOutputConnector& connector)
@@ -238,6 +282,21 @@ namespace MUSIC {
   }
 
 
+  InterpolatingContOutputConnector::InterpolatingContOutputConnector
+  (ConnectorInfo connInfo,
+   SpatialNegotiator* spatialNegotiator,
+   MPI::Intracomm comm,
+   MPI::Intercomm intercomm,
+   Sampler& sampler)
+    : Connector (connInfo, spatialNegotiator, comm, intercomm),
+      ContOutputConnector (connInfo,
+			   spatialNegotiator,
+			   comm,
+			   sampler)
+  {
+  }
+
+  
   InterpolatingContOutputConnector::InterpolatingContOutputConnector
   (ContOutputConnector& connector)
     : Connector (connector),
@@ -275,7 +334,7 @@ namespace MUSIC {
 
 
   ContInputConnector::ContInputConnector (ConnectorInfo connInfo,
-					  SpatialInputNegotiator* spatialNegotiator,
+					  SpatialNegotiator* spatialNegotiator,
 					  MPI::Intracomm comm,
 					  Sampler& sampler,
 					  double delay)
@@ -311,14 +370,32 @@ namespace MUSIC {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
     ClockState rTickInterval = remoteTickInterval (tickInterval);
+#if 0 // temporarily testing alternative code
     if (tickInterval < rTickInterval
 	|| (tickInterval == rTickInterval
 	    && !divisibleDelay (localTime)))
       connector = new InterpolatingContInputConnector (*this);
     else
       connector = new PlainContInputConnector (*this);
-    *ref_ = connector;
-    delete this; // delete ourselves!!
+#else
+    if (tickInterval < rTickInterval
+	|| (tickInterval == rTickInterval
+	    && !divisibleDelay (localTime)))
+      connector = new InterpolatingContInputConnector (info,
+						       spatialNegotiator_,
+						       comm,
+						       intercomm,
+						       sampler_,
+						       delay_);
+
+    else
+      connector = new PlainContInputConnector (info,
+					       spatialNegotiator_,
+					       comm,
+					       intercomm,
+					       sampler_,
+					       delay_);
+#endif
     return connector;
   }
 
@@ -331,6 +408,23 @@ namespace MUSIC {
     collector_.addRoutingInterval (i, isubconn->buffer ());
   }
   
+  
+  PlainContInputConnector::PlainContInputConnector
+  (ConnectorInfo connInfo,
+   SpatialNegotiator* spatialNegotiator,
+   MPI::Intracomm comm,
+   MPI::Intercomm intercomm,
+   Sampler& sampler,
+   double delay)
+    : Connector (connInfo, spatialNegotiator, comm, intercomm),
+      ContInputConnector (connInfo,
+			  spatialNegotiator,
+			  comm,
+			  sampler,
+			  delay_)
+  {
+  }
+
   
   PlainContInputConnector::PlainContInputConnector
   (ContInputConnector& connector)
@@ -370,6 +464,23 @@ namespace MUSIC {
   }
 
 
+  InterpolatingContInputConnector::InterpolatingContInputConnector
+  (ConnectorInfo connInfo,
+   SpatialNegotiator* spatialNegotiator,
+   MPI::Intracomm comm,
+   MPI::Intercomm intercomm,
+   Sampler& sampler,
+   double delay)
+    : Connector (connInfo, spatialNegotiator, comm, intercomm),
+      ContInputConnector (connInfo,
+			  spatialNegotiator,
+			  comm,
+			  sampler,
+			  delay_)
+  {
+  }
+
+  
   InterpolatingContInputConnector::InterpolatingContInputConnector
   (ContInputConnector& connector)
     : Connector (connector),

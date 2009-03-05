@@ -38,6 +38,8 @@ using std::string;
 
 namespace MUSIC {
 
+  class Runtime;
+
   /*
    * This is the Setup object in the MUSIC API
    *
@@ -50,29 +52,9 @@ namespace MUSIC {
 
     Setup (int& argc, char**& argv, int required, int* provided);
 
-    virtual ~Setup ();
-
-    double timebase () { return timebase_; }
-
-    bool launchedByMusic ();
-
-    void init (int& argc, char**& argv);
+    ~Setup ();
 
     MPI::Intracomm communicator ();
-
-    ConnectivityInfo* portConnectivity (const std::string localName);
-
-    ApplicationMap* applicationMap ();
-
-    // NOTE: remove?
-    bool isConnected (const std::string localName);
-
-    ConnectivityInfo::PortDirection
-    portDirection (const std::string localName);
-
-    int portWidth (const std::string localName);
-
-    PortConnectorInfo portConnections (const std::string localName);
 
     bool config (string var, string* result);
 
@@ -92,6 +74,44 @@ namespace MUSIC {
 
     MessageOutputPort* publishMessageOutput (string identifier);
 
+  private:
+    MPI::Intracomm comm;
+    Configuration* config_;
+    std::vector<Port*> ports_;
+    std::vector<Connection*>* connections_;
+    TemporalNegotiator* temporalNegotiator_;
+    double timebase_;
+
+    // Since we don't want to expose this internal interface to the
+    // user we put the member functions in the private part and give
+    // these classes access through a friend declaration.  Classes are
+    // still expected not to access the internal data members
+    // directly.  A cleaner solution would be to split this class into
+    // one user API part and one internal interface part.
+    friend class Runtime;
+    friend class Port;
+    friend class OutputRedistributionPort;
+    friend class InputRedistributionPort;
+    friend class TemporalNegotiator;
+    friend class ApplicationNode;
+    
+    double timebase () { return timebase_; }
+
+    bool launchedByMusic ();
+
+    void init (int& argc, char**& argv);
+
+    ConnectivityInfo* portConnectivity (const std::string localName);
+
+    ApplicationMap* applicationMap ();
+
+    ConnectivityInfo::PortDirection
+    portDirection (const std::string localName);
+
+    int portWidth (const std::string localName);
+
+    PortConnectorInfo portConnections (const std::string localName);
+
     std::vector<Port*>* ports ()
     {
       return &ports_;
@@ -99,23 +119,15 @@ namespace MUSIC {
 
     void addPort (Port* p);
     
-    std::vector<Connector*>* connectors ()
+    std::vector<Connection*>* connections ()
     {
-      return connectors_;
+      return connections_;
     }
     
-    void addConnector (Connector* c);
+    void addConnection (Connection* c);
 
     TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
     
-  private:
-    Configuration* config_;
-    MPI::Intracomm comm;
-    std::vector<Port*> ports_;
-    std::vector<Connector*>* connectors_;
-    TemporalNegotiator* temporalNegotiator_;
-    double timebase_;
-
     void errorChecks ();
   };
   

@@ -25,6 +25,7 @@
 #include "music/debug.hh"
 #include "music/error.hh"
 #include "music/communication.hh"
+#include "music/connector.hh" // used only for debugging
 
 namespace MUSIC {
 
@@ -133,6 +134,7 @@ namespace MUSIC {
   void
   SpatialOutputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
+    MUSIC_LOGR (msg ("negwidth-out: ", connector_));
     SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
       {
@@ -146,15 +148,18 @@ namespace MUSIC {
 	    error (msg.str ());
 	  }
       }
+    MUSIC_LOGR (msg ("negwidth-out-done: ", connector_));
   }
 
   
   void
   SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
+    MUSIC_LOGR (msg ("negwidth-in: ", connector_));
     SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
       intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
+    MUSIC_LOGR (msg ("negwidth-in-done: ", connector_));
   }
 
   
@@ -257,17 +262,9 @@ namespace MUSIC {
   
     Wrapper* w;
     if (type == Index::GLOBAL)
-      {
-	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
-		   << " selecting GlobalWrapper" << std::endl);
-	w = new GlobalWrapper (beg, end, rank);
-      }
+      w = new GlobalWrapper (beg, end, rank);
     else
-      {
-	MUSIC_LOG ("rank " << MPI::COMM_WORLD.Get_rank ()
-		   << " selecting LocalWrapper" << std::endl);
-	w = new LocalWrapper (beg, end, rank);
-      }
+      w = new LocalWrapper (beg, end, rank);
     return NegotiationIterator (w);
   }
 
@@ -281,7 +278,6 @@ namespace MUSIC {
    std::vector<NegotiationIntervals>& dest,
    std::vector<NegotiationIntervals>& buffers)
   {
-    MUSIC_LOG0 ("intersecting-vvv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
     for (std::vector<NegotiationIntervals>::iterator i = buffers.begin ();
 	 i != buffers.end ();
@@ -303,7 +299,6 @@ namespace MUSIC {
    NegotiationIterator dest,
    std::vector<NegotiationIntervals>& buffers)
   {
-    MUSIC_LOG0 ("intersecting-nnv to " << buffers.size () << " buffers");
     // Cleanup old buffer content
     for (std::vector<NegotiationIntervals>::iterator i = buffers.begin ();
 	 i != buffers.end ();
@@ -319,13 +314,9 @@ namespace MUSIC {
    NegotiationIterator dest,
    std::vector<NegotiationIntervals>& buffers)
   {
-    if (source.end ())
-      MUSIC_LOG0 ("source empty on entry");
-    if (dest.end ())
-      MUSIC_LOG0 ("dest empty on entry");
     while (!source.end () && !dest.end ())
       {
-	MUSIC_LOG0 ("comparing " <<
+	MUSIC_LOGX ("comparing " <<
 		    "(" << source->begin () << ", "
 		    << source->end () << ", "
 		    << source->local () << ", "
@@ -463,15 +454,17 @@ namespace MUSIC {
   NegotiationIterator
   SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
 				      MPI::Intercomm intercomm,
-				      int remoteNProc)
+				      int remoteNProc,
+				      // only for debugging:
+				      Connector* connector)
   {
-    MUSIC_LOG0 ("SpatialOutputNegotiator::negotiate");
     comm = c;
-    MUSIC_LOG0 ("o before Get_size");
     nProcesses = comm.Get_size ();
-    MUSIC_LOG0 ("o before Get_rank");
     localRank = comm.Get_rank ();
-    MUSIC_LOG0 ("o after Get_rank");
+    #ifdef MUSIC_DEBUG
+    connector_ = connector;
+    #endif
+    
     local.resize (nProcesses);
     remote.resize (remoteNProc);
     results.resize (nProcesses);
@@ -520,15 +513,17 @@ namespace MUSIC {
   NegotiationIterator
   SpatialInputNegotiator::negotiate (MPI::Intracomm c,
 				     MPI::Intercomm intercomm,
-				     int remoteNProc)
+				     int remoteNProc,
+				      // only for debugging:
+				     Connector* connector)
   {
-    MUSIC_LOG0 ("SpatialInputNegotiator::negotiate");
     comm = c;
-    MUSIC_LOG0 ("i before Get_size");
     nProcesses = comm.Get_size ();
-    MUSIC_LOG0 ("i before Get_rank");
     localRank = comm.Get_rank ();
-    MUSIC_LOG0 ("i after Get_rank");
+    #ifdef MUSIC_DEBUG
+    connector_ = connector;
+    #endif
+    
     remote.resize (remoteNProc);
     
     negotiateWidth (intercomm);

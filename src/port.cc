@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include "music/setup.hh" // Must be included first on BG/L
 #include "music/port.hh"
 #include "music/error.hh"
@@ -102,10 +105,9 @@ namespace MUSIC {
       {
 	// Create connector
 	OutputConnector* connector = makeOutputConnector (*info);
-	setup_->temporalNegotiator ()->addConnection (connector,
-						      maxBuffered,
-						      dataSize);
-	setup_->addConnector (connector);
+	setup_->addConnection (new OutputConnection (connector,
+						     maxBuffered,
+						     dataSize));
       }
   }
 
@@ -117,6 +119,7 @@ namespace MUSIC {
     //       e.g. spatial negotiator
   }
 
+  
   void
   InputRedistributionPort::mapImpl (IndexMap* indices,
 				    Index::Type type,
@@ -130,11 +133,11 @@ namespace MUSIC {
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
     InputConnector* connector = makeInputConnector (*info);
-    setup_->temporalNegotiator ()->addConnection (connector,
-						  maxBuffered,
-						  accLatency,
-						  interpolate);
-    setup_->addConnector (connector);
+    ClockState integerLatency = accLatency / setup_->timebase () + 0.5;
+    setup_->addConnection (new InputConnection (connector,
+						maxBuffered,
+						integerLatency,
+						interpolate));
   }
 
   

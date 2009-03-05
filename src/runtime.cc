@@ -30,44 +30,69 @@ namespace MUSIC {
 
   Runtime::Runtime (Setup* s, double h)
   {
+    OutputSubconnectors outputSubconnectors;
+    InputSubconnectors inputSubconnectors;
+    
     // Setup the MUSIC clock
     localTime = Clock (s->timebase (), h);
     
     comm = s->communicator ();
-    // Take over connectors from setup object
-    connectors = s->connectors ();
+
+    Connections* connections = s->connections ();
+    
     if (s->launchedByMusic ())
       {
 	takeTickingPorts (s);
-	connectToPeers ();
-	specializeConnectors ();
-	MUSIC_LOG ("spatial negotiation");
-	spatialNegotiation ();
+	
+	// create a total order for connectors and
+	// establish connection to peers
+	connectToPeers (connections);
+	
+	// specialize connectors and fill up connectors vector
+	specializeConnectors (connections);
+	
+	// from here we can start using the vector `connectors'
+
+	// negotiate where to route data and fill up subconnector vectors
+	spatialNegotiation (outputSubconnectors, inputSubconnectors);
+
+	// build data routing tables
 	buildTables (s);
-	buildSchedule (comm.Get_rank ());
+
+	// build a total order of subconnectors
+	// for non-blocking pairwise exchange
+	buildSchedule (comm.Get_rank (),
+		       outputSubconnectors,
+		       inputSubconnectors);
+	
 	takePostCommunicators ();
-	MUSIC_LOG ("temporal negotiation");
-	temporalNegotiation (s);
+	
+	// negotiate timing constraints for synchronizers
+	temporalNegotiation (s, connections);
+	
 	// final initialization before simulation starts
 	initialize ();
       }
+    
     delete s;
   }
 
 
   Runtime::~Runtime ()
   {
-    for (std::vector<OutputSubconnector*>::iterator c
-	   = outputSubconnectors.begin ();
-	 c != outputSubconnectors.end ();
-	 ++c)
-      delete *c;
-    for (std::vector<InputSubconnector*>::iterator c
-	   = inputSubconnectors.begin ();
-	 c != inputSubconnectors.end ();
-	 ++c)
-      delete *c;
-    delete connectors;
+    // delete subconnectors
+    for (std::vector<Subconnector*>::iterator subconnector = schedule.begin ();
+	 subconnector != schedule.end ();
+	 ++subconnector)
+      delete *subconnector;
+
+#if 0
+    // delete connectors
+    for (std::vector<Connector*>::iterator connector = connectors.begin ();
+	 connector != connectors.end ();
+	 ++connector)
+      delete *connector;
+#endif
   }
   
 
@@ -88,12 +113,12 @@ namespace MUSIC {
   Runtime::takePostCommunicators ()
   {
     std::vector<Connector*>::iterator c;
-    for (c = connectors->begin (); c != connectors->end (); ++c)
+    for (c = connectors.begin (); c != connectors.end (); ++c)
       {
-	PostCommunicationConnector* pc
+	PostCommunicationConnector* postCommunicationConnector
 	  = dynamic_cast<PostCommunicationConnector*> (*c);
-	if (pc != NULL)
-	  postCommunication.push_back (pc);
+	if (postCommunicationConnector != NULL)
+	  postCommunication.push_back (postCommunicationConnector);
       }
   }
   
@@ -103,8 +128,10 @@ namespace MUSIC {
   // than in connector.hh or connector.cc since it is connected to the
   // connect algorithm.
   bool
-  lessConnector (const Connector* c1, const Connector* c2)
+  lessConnection (const Connection* cn1, const Connection* cn2)
   {
+    Connector* c1 = cn1->connector ();
+    Connector* c2 = cn2->connector ();
     return (c1->receiverAppName () < c2->receiverAppName ()
 	    || (c1->receiverAppName () == c2->receiverAppName ()
 		&& c1->receiverPortName () < c2->receiverPortName ()));
@@ -125,7 +152,7 @@ namespace MUSIC {
 
   
   void
-  Runtime::connectToPeers ()
+  Runtime::connectToPeers (Connections* connections)
   {
     // This ordering is necessary so that both sender and receiver
     // in each pair sets up communication at the same point in time
@@ -133,37 +160,42 @@ namespace MUSIC {
     // Note that we don't need to use the dead-lock scheme used in
     // build_schedule () here.
     //
-    sort (connectors->begin (), connectors->end (), lessConnector);
-    for (std::vector<Connector*>::iterator c = connectors->begin ();
-	 c != connectors->end ();
+    sort (connections->begin (), connections->end (), lessConnection);
+    for (Connections::iterator c = connections->begin ();
+	 c != connections->end ();
 	 ++c)
-      (*c)->createIntercomm ();
+      (*c)->connector ()->createIntercomm ();
   }
 
-  
+
   void
-  Runtime::specializeConnectors ()
+  Runtime::specializeConnectors (Connections* connections)
   {
-    for (std::vector<Connector*>::iterator c = connectors->begin ();
-	 c != connectors->end ();
+    for (Connections::iterator c = connections->begin ();
+	 c != connections->end ();
 	 ++c)
-      *c = (*c)->specialize (localTime);
+      {
+	Connector* oldConnector = (*c)->connector ();
+	Connector* newConnector = oldConnector->specialize (localTime);
+	//delete oldConnector;
+	
+	(*c)->setConnector (newConnector);
+	connectors.push_back (newConnector);
+      }
   }
 
   
   void
-  Runtime::spatialNegotiation ()
+  Runtime::spatialNegotiation (OutputSubconnectors& outputSubconnectors,
+			       InputSubconnectors& inputSubconnectors)
   {
     // Let each connector pair setup their inter-communicators
     // and create all required subconnectors.
 
-    sort (connectors->begin (), connectors->end (), lessConnector);
-    int i = 0;
-    for (std::vector<Connector*>::iterator c = connectors->begin ();
-	 c != connectors->end ();
+    for (std::vector<Connector*>::iterator c = connectors.begin ();
+	 c != connectors.end ();
 	 ++c)
       {
-	++i;
 	// negotiate and fill up vectors passed as arguments
 	(*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
       }
@@ -171,7 +203,9 @@ namespace MUSIC {
 
 
   void
-  Runtime::buildSchedule (int localRank)
+  Runtime::buildSchedule (int localRank,
+			  OutputSubconnectors& outputSubconnectors,
+			  InputSubconnectors& inputSubconnectors)
   {
     // Build the communication schedule.
     
@@ -223,7 +257,6 @@ namespace MUSIC {
 	schedule.push_back (*c);
     }
 
-    // NOTE: could delete output/inputSubconnectors here
   }
 
   
@@ -239,11 +272,11 @@ namespace MUSIC {
 
   
   void
-  Runtime::temporalNegotiation (Setup* s)
+  Runtime::temporalNegotiation (Setup* s, Connections* connections)
   {
     // Temporal negotiation is done globally by a serial algorithm
     // which yields the same result in each process
-    s->temporalNegotiator ()->negotiate (localTime);
+    s->temporalNegotiator ()->negotiate (localTime, connections);
   }
 
 
@@ -262,7 +295,7 @@ namespace MUSIC {
 
     // initialize connectors (and synchronizers)
     std::vector<Connector*>::iterator c;
-    for (c = connectors->begin (); c != connectors->end (); ++c)
+    for (c = connectors.begin (); c != connectors.end (); ++c)
       (*c)->initialize ();
 
     while (localTime.integerTime () < 0)
@@ -302,7 +335,7 @@ namespace MUSIC {
     bool requestCommunication = false;
 
     std::vector<Connector*>::iterator c;
-    for (c = connectors->begin (); c != connectors->end (); ++c)
+    for (c = connectors.begin (); c != connectors.end (); ++c)
       (*c)->tick (requestCommunication);
 
     // Communicate data through non-interlocking pair-wise exchange

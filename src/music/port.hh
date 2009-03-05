@@ -35,11 +35,6 @@ namespace MUSIC {
   class Setup;
 
   class Port {
-  protected:
-    Setup* setup_;
-    ConnectivityInfo* ConnectivityInfo_;
-    void assertOutput ();
-    void assertInput ();
   public:
     Port () { }
     Port (Setup* s, std::string identifier);
@@ -48,6 +43,15 @@ namespace MUSIC {
     bool isConnected ();
     bool hasWidth ();
     int width ();
+
+  protected:
+    Setup* setup_;
+    ConnectivityInfo* ConnectivityInfo_;
+    void assertOutput ();
+    void assertInput ();
+
+  private:
+    void checkConnected (std::string action);
   };
 
   // A redistribution_port is a port with the ability to route

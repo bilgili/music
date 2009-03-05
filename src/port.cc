@@ -46,8 +46,8 @@ namespace MUSIC {
     if (!isConnected ())
       {
 	std::ostringstream msg;
-	msg << "attempt to " << action << " port "
-	    << ConnectivityInfo_->portName () << " which is unconnected";
+	msg << "attempt to " << action << " port `"
+	    << ConnectivityInfo_->portName () << "' which is unconnected";
 	error (msg);
       }
   }
@@ -60,8 +60,8 @@ namespace MUSIC {
     if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
       {
 	std::ostringstream msg;
-	msg << "output port " << ConnectivityInfo_->portName ()
-	    << "connected as input";
+	msg << "output port `" << ConnectivityInfo_->portName ()
+	    << "' connected as input";
 	error (msg);
       }
   }
@@ -74,8 +74,8 @@ namespace MUSIC {
     if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
       {
 	std::ostringstream msg;
-	msg << "input port " << ConnectivityInfo_->portName ()
-	    << "connected as output";
+	msg << "input port `" << ConnectivityInfo_->portName ()
+	    << "' connected as output";
 	error (msg);
       }
   }
@@ -97,8 +97,8 @@ namespace MUSIC {
     if (w == ConnectivityInfo::NO_WIDTH)
       {
 	std::ostringstream msg;
-	msg << "width requested for port " << ConnectivityInfo_->portName ()
-	    << " which has unspecified width";
+	msg << "width requested for port `" << ConnectivityInfo_->portName ()
+	    << "' which has unspecified width";
 	error (msg);
       }
     return w;

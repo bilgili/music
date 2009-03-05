@@ -1,5 +1,7 @@
 2009-03-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* constsource.cc (main): Initialize loop variable i.
+
 	* contdelay.cc (getargs): Use atof instead of atoi for option -d.
 
 2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>

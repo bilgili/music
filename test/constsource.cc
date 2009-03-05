@@ -122,7 +122,7 @@ main (int argc, char *argv[])
 
   dataarray = new double[myWidth];
 
-  for (int i; i < myWidth; ++i)
+  for (int i = 0; i < myWidth; ++i)
     dataarray[i] = rank * localWidth + i;
 
 

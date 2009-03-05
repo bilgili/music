@@ -18,6 +18,7 @@
 
 #ifndef MUSIC_ERROR_HH
 
+#include <sstream>
 #include <string>
 
 namespace MUSIC {
@@ -25,6 +26,7 @@ namespace MUSIC {
   void error ();
   void hang ();
   void error (std::string msg);
+  void error (std::ostringstream& ostr);
   void error0 (std::string msg);
   
 }

@@ -80,7 +80,7 @@ namespace MUSIC {
   {
     if (isEmpty ())
       {
-	MUSIC_LOG0 ("attempt to read from empty BIFO buffer");
+	MUSIC_LOGR ("attempt to read from empty BIFO buffer");
 	return NULL;
       }
     if (current == top)

@@ -63,7 +63,7 @@ namespace MUSIC {
       {
 	MUSIC_LOG ("creating new entry for " << localPort);
 	int index = connections_.size ();
-	connections_.push_back (ConnectivityInfo (dir, width));
+	connections_.push_back (ConnectivityInfo (localPort, dir, width));
 	info = &connections_.back ();
 	MUSIC_LOG ("ci = " << info);
 	connectivityMap.insert (std::make_pair (localPort, index));

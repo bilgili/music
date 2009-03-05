@@ -41,30 +41,50 @@ namespace MUSIC {
 
 
   void
-  Port::assertOutput ()
+  Port::checkConnected (std::string action)
   {
     if (!isConnected ())
-      error ("attempt to map an unconnected port");
-    else if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
-      error ("output port connected as input");
+      {
+	std::ostringstream msg;
+	msg << "attempt to " << action << " port "
+	    << ConnectivityInfo_->portName () << " which is unconnected";
+	error (msg);
+      }
+  }
+  
+  
+  void
+  Port::assertOutput ()
+  {
+    checkConnected ("map");
+    if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
+      {
+	std::ostringstream msg;
+	msg << "output port " << ConnectivityInfo_->portName ()
+	    << "connected as input";
+	error (msg);
+      }
   }
 
 
   void
   Port::assertInput ()
   {
-    if (!isConnected ())
-      error ("attempt to map an unconnected port");
-    else if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
-      error ("input port connected as output");
+    checkConnected ("map");
+    if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
+      {
+	std::ostringstream msg;
+	msg << "input port " << ConnectivityInfo_->portName ()
+	    << "connected as output";
+	error (msg);
+      }
   }
 
 
   bool
   Port::hasWidth ()
   {
-    if (!isConnected ())
-      error ("attempt to ask for width of an unconnected port");
+    checkConnected ("ask for width of");
     return ConnectivityInfo_->width () != ConnectivityInfo::NO_WIDTH;
   }
 
@@ -72,11 +92,15 @@ namespace MUSIC {
   int
   Port::width ()
   {
-    if (!isConnected ())
-      error ("attempt to ask for width of an unconnected port");
+    checkConnected ("ask for width of");
     int w = ConnectivityInfo_->width ();
     if (w == ConnectivityInfo::NO_WIDTH)
-      error ("width requested for port with unspecified width");
+      {
+	std::ostringstream msg;
+	msg << "width requested for port " << ConnectivityInfo_->portName ()
+	    << " which has unspecified width";
+	error (msg);
+      }
     return w;
   }
 

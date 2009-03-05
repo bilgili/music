@@ -60,12 +60,14 @@ namespace MUSIC {
     enum PortDirection { OUTPUT, INPUT };
     static const int NO_WIDTH = -1;
   private:
+    std::string portName_;
     PortDirection dir_;
     int width_;
     PortConnectorInfo portConnections_;
   public:
-    ConnectivityInfo (PortDirection dir, int width)
-      : dir_ (dir), width_ (width) { }
+    ConnectivityInfo (std::string portName, PortDirection dir, int width)
+      : portName_ (portName), dir_ (dir), width_ (width) { }
+    std::string portName () { return portName_; }
     PortDirection direction () { return dir_; }
     int width () { return width_; } // NO_WIDTH if no width specified
     PortConnectorInfo connections () { return portConnections_; }

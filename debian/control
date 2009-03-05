@@ -12,12 +12,12 @@ Architecture: any
 Depends: libmusic1 (= ${binary:Version})
 Description: MUSIC Multi-Simulation Coordinator -- Development files
  Large scale neural network simulator data exchange framework.
-
+ .
  MUSIC allows spike events and continuous time series to be
  communicated between applications in a cluster computer. The typical
  usage cases are connecting models developed for different simulators
  and connecting a parallel simulator to a post-processing tool.
-
+ .
  This package contains the header files which are needed to compile
  and link programs against libmusic1.
 
@@ -27,12 +27,12 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: MUSIC Multi-Simulation Coordinator -- Runtime library
  Large scale neural network simulator data exchange framework.
-
+ .
  MUSIC allows spike events and continuous time series to be
  communicated between applications in a cluster computer. The typical
  usage cases are connecting models developed for different simulators
  and connecting a parallel simulator to a post-processing tool.
-
+ .
  This package contains the MUSIC library.
 
 Package: music-bin
@@ -41,12 +41,12 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: MUSIC Multi-Simulation Coordinator -- Utilities
  Large scale neural network simulator data exchange framework.
-
+ .
  MUSIC allows spike events and continuous time series to be
  communicated between applications in a cluster computer. The typical
  usage cases are connecting models developed for different simulators
  and connecting a parallel simulator to a post-processing tool.
-
+ .
  This package contains the MUSIC launch utility.
 
 Package: music-doc
@@ -55,10 +55,10 @@ Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: MUSIC Multi-Simulation Coordinator -- Manual
  Large scale neural network simulator data exchange framework.
-
+ .
  MUSIC allows spike events and continuous time series to be
  communicated between applications in a cluster computer. The typical
  usage cases are connecting models developed for different simulators
  and connecting a parallel simulator to a post-processing tool.
-
+ .
  This package contains the MUSIC manual.

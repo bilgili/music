@@ -16,29 +16,28 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-music \- program to do something
+music \- launch a multi-simulation using MUSIC
 .SH SYNOPSIS
-.B music
-.RI [ options ] " files" ...
+.B mpirun music
+.RI [ options ] " config"
 .br
-.B bar
-.RI [ options ] " files" ...
+.B music
+.RI [ options ] " config" ...
 .SH DESCRIPTION
 This manual page documents briefly the
-.B music
-and
-.B bar
-commands.
+.B music utility.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
 \fBmusic\fP is a program that...
 .SH OPTIONS
-These programs follow the usual GNU command line syntax, with long
+The
+.B music
+utility follows the usual GNU command line syntax, with long
 options starting with two dashes (`-').
 A summary of options is included below.
-For a complete description, see the Info files.
+For a complete description, see the MUSIC manual.
 .TP
 .B \-h, \-\-help
 Show summary of options.

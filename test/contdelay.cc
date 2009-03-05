@@ -92,7 +92,7 @@ getargs (int rank, int argc, char* argv[])
 	  timestep = atof (optarg);
 	  continue;
 	case 'd':
-	  delay = atoi(optarg);
+	  delay = atof(optarg);
 	  continue;
 	case 'L':
 	  label = atoi(optarg);

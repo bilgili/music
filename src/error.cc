@@ -49,6 +49,13 @@ namespace MUSIC {
 
 
   void
+  error (std::ostringstream& ostr)
+  {
+    error (ostr.str ());
+  }
+
+
+  void
   error0 (std::string msg)
   {
     if (MPI::COMM_WORLD.Get_rank () == 0)

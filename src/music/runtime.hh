@@ -35,28 +35,6 @@ namespace MUSIC {
    */
   
   class Runtime {
-  private:
-    MPI::Intracomm comm;
-    Clock localTime;
-    std::vector<TickingPort*> tickingPorts;
-    std::vector<Connector*>* connectors;
-    std::vector<OutputSubconnector*> outputSubconnectors;
-    std::vector<InputSubconnector*> inputSubconnectors;
-    std::vector<Subconnector*> schedule;
-    std::vector<PostCommunicationConnector*> postCommunication;
-
-    void takeTickingPorts (Setup* s);
-    void connectToPeers ();
-    void specializeConnectors ();
-    void spatialNegotiation ();
-    void buildSchedule (int localRank);
-    void takePostCommunicators ();
-    void buildTables (Setup* s);
-    void temporalNegotiation (Setup* s);
-    void initialize ();
-
-    int rank;
-  
   public:
     Runtime (Setup* s, double h);
     ~Runtime ();
@@ -68,6 +46,30 @@ namespace MUSIC {
     void tick ();
 
     double time ();
+    
+  private:
+    Clock localTime;
+    MPI::Intracomm comm;
+    std::vector<TickingPort*> tickingPorts;
+    std::vector<Connector*> connectors;
+    std::vector<Subconnector*> schedule;
+    std::vector<PostCommunicationConnector*> postCommunication;
+
+    typedef std::vector<Connection*> Connections;
+    typedef std::vector<OutputSubconnector*> OutputSubconnectors;
+    typedef std::vector<InputSubconnector*> InputSubconnectors;
+    
+    void takeTickingPorts (Setup* s);
+    void connectToPeers (Connections* connections);
+    void specializeConnectors (Connections* connections);
+    void spatialNegotiation (OutputSubconnectors&, InputSubconnectors&);
+    void buildSchedule (int localRank,
+			OutputSubconnectors&,
+			InputSubconnectors&);
+    void takePostCommunicators ();
+    void buildTables (Setup* s);
+    void temporalNegotiation (Setup* s, Connections* connections);
+    void initialize ();
   };
 
 }

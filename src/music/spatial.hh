@@ -115,7 +115,8 @@ namespace MUSIC {
       return implementation_->dereference ();
     }
   };
-  
+
+  class Connector;
 
   // The SpatialNegotiator negotiates with the remote application how
   // to redistribute data over a port pair.  This is done using the
@@ -133,9 +134,10 @@ namespace MUSIC {
     int maxLocalWidth_;
     int localRank;
     int nProcesses;
+    Connector* connector_; // used only for debugging
   public:
     SpatialNegotiator (IndexMap* indices, Index::Type type);
-    ~SpatialNegotiator ();
+    virtual ~SpatialNegotiator ();
     void negotiateWidth ();
     int maxLocalWidth () { return maxLocalWidth_; }
     NegotiationIterator wrapIntervals (IndexMap::iterator beg,
@@ -162,7 +164,8 @@ namespace MUSIC {
   public:
     virtual NegotiationIterator negotiate (MPI::Intracomm comm,
 					   MPI::Intercomm intercomm,
-					   int remoteNProc) = 0;
+					   int remoteNProc,
+					   Connector* connector) = 0;
   };
 
 
@@ -174,7 +177,8 @@ namespace MUSIC {
     void negotiateWidth (MPI::Intercomm c);
     NegotiationIterator negotiate (MPI::Intracomm comm,
 				   MPI::Intercomm intercomm,
-				   int remoteNProc);
+				   int remoteNProc,
+				   Connector* connector);
   };
 
   
@@ -184,7 +188,8 @@ namespace MUSIC {
     void negotiateWidth (MPI::Intercomm c);
     NegotiationIterator negotiate (MPI::Intracomm comm,
 				   MPI::Intercomm intercomm,
-				   int remoteNProc);
+				   int remoteNProc,
+				   Connector* connector);
   };
 
 }

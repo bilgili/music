@@ -47,33 +47,17 @@ namespace MUSIC {
   }
 
 
-  Setup::~Setup ()
-  {
-    for (std::vector<Port*>::iterator i = ports_.begin ();
-	 i != ports_.end ();
-	 ++i)
-      (*i)->setupCleanup ();
-  }
-  
-
-  bool
-  Setup::launchedByMusic ()
-  {
-    return config_->launchedByMusic ();
-  }
-
   void
   Setup::init (int& argc, char**& argv)
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();
-    connectors_ = new std::vector<Connector*>; // destoyed by runtime
+    connections_ = new std::vector<Connection*>; // destoyed by runtime
     if (launchedByMusic ())
       {
 	// launched by the music utility
 	errorChecks ();
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
-	MUSIC_LOG (comm.Get_rank () << ": " << comm);
 	if (!config ("timebase", &timebase_))
 	  timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
 	string binary;
@@ -112,6 +96,33 @@ namespace MUSIC {
   }
 
 
+  Setup::~Setup ()
+  {
+    for (std::vector<Port*>::iterator i = ports_.begin ();
+	 i != ports_.end ();
+	 ++i)
+      (*i)->setupCleanup ();
+
+    delete temporalNegotiator_;
+
+    // delete connection objects
+    for (std::vector<Connection*>::iterator i = connections_->begin ();
+	 i != connections_->end ();
+	 ++i)
+      delete *i;
+    
+    delete connections_;
+    delete config_;
+  }
+  
+
+  bool
+  Setup::launchedByMusic ()
+  {
+    return config_->launchedByMusic ();
+  }
+
+  
   MPI::Intracomm
   Setup::communicator ()
   {
@@ -130,13 +141,6 @@ namespace MUSIC {
   Setup::applicationMap ()
   {
     return config_->applications ();
-  }
-
-
-  bool
-  Setup::isConnected (const std::string localName)
-  {
-    return config_->connectivityMap ()->isConnected (localName);
   }
 
 
@@ -216,9 +220,9 @@ namespace MUSIC {
   }
 
   
-  void Setup::addConnector (Connector* c)
+  void Setup::addConnection (Connection* c)
   {
-    connectors_->push_back (c);
+    connections_->push_back (c);
   }
 
 }

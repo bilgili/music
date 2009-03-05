@@ -59,7 +59,6 @@ namespace MUSIC {
     int remoteRank () const { return remoteRank_; }
     int receiverRank () const { return receiverRank_; }
     std::string receiverPortName () const { return receiverPortName_; }
-    void connect ();
   };
   
   class OutputSubconnector : virtual public Subconnector {

@@ -134,7 +134,11 @@ namespace MUSIC {
   bool
   Synchronizer::simulating ()
   {
+#if 0
     return localTime->integerTime () >= 0;
+#else
+    return true;
+#endif
   }
 
 
@@ -262,8 +266,12 @@ namespace MUSIC {
   bool
   InterpolationInputSynchronizer::sample ()
   {
+#if 0
     return (localTime->integerTime () > remoteTime.integerTime ()
 	    && localTime->integerTime () + localTime->tickInterval () >= 0);
+#else
+    return localTime->integerTime () > remoteTime.integerTime ();
+#endif
   }
 
 

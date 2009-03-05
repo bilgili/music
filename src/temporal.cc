@@ -34,33 +34,22 @@ namespace MUSIC {
   TemporalNegotiator::~TemporalNegotiator ()
   {
     freeNegotiationData (negotiationBuffer);
-    negotiationComm.Free ();
+    //negotiationComm.Free ();
   }
 
 
   void
-  TemporalNegotiator::addConnection (OutputConnector* connector,
-				     int maxBuffered,
-				     int elementSize)
+  TemporalNegotiator::separateConnections (std::vector<Connection*>* connections)
   {
-    outputConnections.push_back (OutputConnection (connector,
-						   maxBuffered,
-						   elementSize));
-    connector->setRef (&outputConnections.back ().connector ());
-  }
-  
-  void
-  TemporalNegotiator::addConnection (InputConnector* connector,
-				     int maxBuffered,
-				     double accLatency,
-				     bool interpolate)
-  {
-    ClockState integerLatency = accLatency / setup_->timebase () + 0.5;
-    inputConnections.push_back (InputConnection (connector,
-						 maxBuffered,
-						 integerLatency,
-						 interpolate));
-    connector->setRef (&inputConnections.back ().connector ());
+    for (std::vector<Connection*>::iterator c = connections->begin ();
+	 c != connections->end ();
+	 ++c)
+      {
+	if (dynamic_cast<OutputConnection*> (*c) != NULL)
+	  outputConnections.push_back (*dynamic_cast<OutputConnection*> (*c));
+	else
+	  inputConnections.push_back (*dynamic_cast<InputConnection*> (*c));
+      }
   }
 
 
@@ -197,9 +186,10 @@ namespace MUSIC {
 	negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
 	negotiationData->connection[nOut + i].accLatency
 	  = inputConnections[i].accLatency ();
+	MUSIC_LOGR ("port " << inputConnections[i].connector ()->receiverPortName () << ": " << inputConnections[i].accLatency ());
 	negotiationData->connection[nOut + i].interpolate
 	  = inputConnections[i].interpolate ();
-
+	
 	if (inputConnections[i].accLatency () > maxDelay)
 	  maxDelay = inputConnections[i].accLatency ();
       }
@@ -321,7 +311,7 @@ namespace MUSIC {
 
   void
   TemporalNegotiator::depthFirst (ApplicationNode& x,
-				  std::vector<Connection>& path)
+				  std::vector<ConnectionEdge>& path)
   {
     if (x.inPath)
       {
@@ -333,7 +323,11 @@ namespace MUSIC {
 	// Compute how much headroom we have for buffering
 	ClockState totalDelay = 0;
 	for (int c = loop; c < path.size (); ++c)
-	  totalDelay += path[c].latency () - path[c].pre ().tickInterval ();
+	  {
+	    MUSIC_LOGR ("latency = " << path[c].latency () << ", ti = "
+			<< path[c].pre ().tickInterval ());
+	    totalDelay += path[c].latency () - path[c].pre ().tickInterval ();
+	  }
 
 	// If negative we will not be able to make it in time
         // around the loop even without any extra buffering
@@ -380,7 +374,7 @@ namespace MUSIC {
   void
   TemporalNegotiator::loopAlgorithm ()
   {
-    std::vector<Connection> path;
+    std::vector<ConnectionEdge> path;
     for (std::vector<ApplicationNode>::iterator node = nodes.begin ();
 	 node != nodes.end ();
 	 ++node)
@@ -462,8 +456,12 @@ namespace MUSIC {
 
 
   void
-  TemporalNegotiator::negotiate (Clock& localTime)
+  TemporalNegotiator::negotiate (Clock& localTime,
+				 std::vector<Connection*>* connections)
   {
+    separateConnections (connections);
+    //MUSIC_LOGR (printconns ("NOut: ", outputConnections));
+    //MUSIC_LOGR (printconns ("NIn: ", inputConnections));
     createNegotiationCommunicator ();
     if (isLeader ())
       {

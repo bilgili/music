@@ -8,9 +8,13 @@ Changes in 1.0.1:
 
 * music utility
 
+** Bug fixes
+
 ** Improved error reporting
 
 ** New option '-m' prints application rank mapping
+
+** New option '-v' prints version information
 
 
 First release: 1.0

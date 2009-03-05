@@ -324,21 +324,20 @@ void VisualiseNeurons::rotateTimer() {
 }
 
 void VisualiseNeurons::operator () (double t, MUSIC::GlobalIndex id) {
-  // For now: just print out incoming events
   //std::cout << "Event " << id << " detected at " << t 
   //          << " (vis time = " << time_ << ")" <<  std::endl;
 
-  assert(0 <= id && id < volt_.size());
+  assert(0 <= id && id < volt_.size()); // Check that it is within range
 
+  if(t < time_) // time_ is old timestep
+    {
+      std::cerr << "Received old spike " << t << " at " << time_ << std::endl;
+    }
 
-  assert(time_ - 2*dt_ < t); // time_ is old timestep
-  //assert(t < time_ + 2*dt_); // Check that spike is not too old...
-  if(t > time_ + 2*dt_) {
-    std::cerr << "Spike from the future: " << t << " sim time: " << time_ << std::endl;
-  }
+  TimeIdPair *tmpPair = new TimeIdPair(t,id);
 
-
-  volt_[id] = 1;
+  // Add time to priority queue
+  priorityQueue_.push(*tmpPair);
   
 }
 
@@ -415,6 +414,15 @@ void VisualiseNeurons::tick() {
     for(int i = 0; i < volt_.size(); i++) {
       volt_[i] *= 1-(time_-oldTime_)/tau_;
     }
+
+    // Add any new spikes that occured since last tick()
+    while(!priorityQueue_.empty() && priorityQueue_.top().getTime() <= time_) 
+      {
+        volt_[priorityQueue_.top().getId()] = 1;
+        priorityQueue_.pop();
+
+      }
+
 
     // Tell GLUT to update the screen
     //glutPostRedisplay();
@@ -568,7 +576,19 @@ void VisualiseNeurons::readConfigFile(string filename) {
 }
 
 
+/*
+bool VisualiseNeurons::TimeIdPair::operator<(const TimeIdPair& right) const
+{
+  return time_ < right.getTime();
+}
+*/
 
+ //bool VisualiseNeurons::TimeIdPair::operator>(const TimeIdPair& right) const
+bool TimeIdPair::operator<(const TimeIdPair& right) const
+{
 
+  // Note that we use > here, since we want lowest items first
+  return time_ > right.getTime();
+}
 
 

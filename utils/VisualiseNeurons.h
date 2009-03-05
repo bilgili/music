@@ -34,12 +34,35 @@
 #include <sys/select.h>
 #include <getopt.h>
 #include <string.h>
+#include <vector>
+#include <queue>
 
 #ifndef _VISUALISE_NEURONS
 #define _VISUALISE_NEURONS
 
 #define DEFAULT_TIMESTEP 1e-3
 #define PI 3.141592653589793
+
+
+  // Inner class used in priority queue
+  class TimeIdPair
+  {
+  public:
+
+    TimeIdPair() { time_ = -1; };
+    TimeIdPair(double time, MUSIC::GlobalIndex id) { time_ = time; id_ = id; }
+
+    //bool operator<(const TimeIdPair&) const;
+    bool operator<(const TimeIdPair&) const;
+
+    double getTime() const { return time_; }
+    MUSIC::GlobalIndex getId() const { return id_; }
+
+  private:
+    double time_;
+    MUSIC::GlobalIndex id_;
+  };
+
 
 
 class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
@@ -94,6 +117,8 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
     GLdouble b;
   }neuronColour;
 
+
+
  private:
 
   void getArgs(int argc, char* argv[]);
@@ -137,8 +162,11 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
   struct timeval tickEndTime_;
   struct timeval tickDelay_;
 
+
   string confFile_;  // Config file with colours and coordinates
 
+  //priority_queue <TimeIdPair> priorityQueue_;
+  std::priority_queue<TimeIdPair> priorityQueue_;
 };
 
 static std::vector<VisualiseNeurons*> objTable_;

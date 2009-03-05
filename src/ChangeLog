@@ -1,5 +1,12 @@
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/version.hh, version.cc: New files.
+
+	* Makefile.am: Added ditto.
+
+	* Makefile.am: Set shared library version 1.0.0. (Note that this
+	version number follows different rules than the MUSIC version.)
+
 	* port.cc (Port::assertOutput, Port::assertInput, Port::hasWidth,
 	Port::width): Supply port name in error messages.
 

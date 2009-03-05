@@ -1,0 +1,64 @@
+Source: music
+Priority: extra
+Maintainer: Mikael Djurfeldt <mdj@debian.org>
+Build-Depends: debhelper (>= 7), autotools-dev
+Standards-Version: 3.7.3
+Section: libs
+Homepage: http://software.incf.org/software/music/home
+
+Package: libmusic-dev
+Section: libdevel
+Architecture: any
+Depends: libmusic1 (= ${binary:Version})
+Description: MUSIC Multi-Simulation Coordinator -- Development files
+ Large scale neural network simulator data exchange framework.
+
+ MUSIC allows spike events and continuous time series to be
+ communicated between applications in a cluster computer. The typical
+ usage cases are connecting models developed for different simulators
+ and connecting a parallel simulator to a post-processing tool.
+
+ This package contains the header files which are needed to compile
+ and link programs against libmusic1.
+
+Package: libmusic1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MUSIC Multi-Simulation Coordinator -- Runtime library
+ Large scale neural network simulator data exchange framework.
+
+ MUSIC allows spike events and continuous time series to be
+ communicated between applications in a cluster computer. The typical
+ usage cases are connecting models developed for different simulators
+ and connecting a parallel simulator to a post-processing tool.
+
+ This package contains the MUSIC library.
+
+Package: music-bin
+Section: science
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MUSIC Multi-Simulation Coordinator -- Utilities
+ Large scale neural network simulator data exchange framework.
+
+ MUSIC allows spike events and continuous time series to be
+ communicated between applications in a cluster computer. The typical
+ usage cases are connecting models developed for different simulators
+ and connecting a parallel simulator to a post-processing tool.
+
+ This package contains the MUSIC launch utility.
+
+Package: music-doc
+Section: doc
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MUSIC Multi-Simulation Coordinator -- Manual
+ Large scale neural network simulator data exchange framework.
+
+ MUSIC allows spike events and continuous time series to be
+ communicated between applications in a cluster computer. The typical
+ usage cases are connecting models developed for different simulators
+ and connecting a parallel simulator to a post-processing tool.
+
+ This package contains the MUSIC manual.

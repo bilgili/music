@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#include <music/version.hh>
+
 #include "application_mapper.hh"
 #include "mpidep/mpidep.hh"
 
@@ -38,13 +40,15 @@ usage (int rank)
 {
   if (rank <= 0)
     {
-      std::cerr << "Usage: mpirun ... music [OPTION...] CONFIG" << std::endl
-		<< "`music' launches an application as part of a multi-simulator job." << std::endl << std::endl
-		<< "  -m, --map             print application rank map" << std::endl << std::endl
-		<< "  -h, --help            print this help message" << std::endl << std::endl
+      std::cout << "Usage: mpirun ... music [OPTION...] CONFIG" << std::endl
+		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
+		<< "  -h, --help            print this help message" << std::endl
+		<< "  -m, --map             print application rank map" << std::endl
+		<< "  -v, --version         prints version of MUSIC library" << std::endl
+		<< std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
-  exit (1);
+  exit (0);
 }
 
 
@@ -62,6 +66,21 @@ print_map (MUSIC::Configuration* config)
 	std::cout << "-" << first + nProc - 1;
       std::cout << '\t' << i->name () << std::endl;
     }
+}
+
+
+void
+print_version (int rank)
+{
+  if (rank <= 0)
+    {
+      std::cout << "MUSIC " << MUSIC::version () << std::endl
+		<< "Copyright (C) 2007-2009 INCF." << std::endl
+		<< "You may redistribute copies of MUSIC" << std::endl
+		<< "under the terms of the GNU General Public License." << std::endl
+		<< "For more information about these matters, see the file named COPYING." << std::endl;
+    }
+  exit (0);
 }
 
 
@@ -101,15 +120,16 @@ main (int argc, char *argv[])
     {
       static struct option longOptions[] =
 	{
-	  {"map",          required_argument, 0, 'm'},
 	  {"help",         no_argument,       0, 'h'},
+	  {"map",          required_argument, 0, 'm'},
+	  {"version",      no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+m:h", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+hm:v", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -119,11 +139,13 @@ main (int argc, char *argv[])
 	{
 	case '?':
 	  break; // ignore unknown options
+	case 'h':
+	  usage (rank);
 	case 'm':
 	  do_print_map = true;
 	  break;
-	case 'h':
-	  usage (rank);
+	case 'v':
+	  print_version (rank);
 
 	default:
 	  abort ();
@@ -137,7 +159,7 @@ main (int argc, char *argv[])
   if (!*configFile)
     {
       if (rank <= 0)
-	std::cerr << "MUSIC: Couldn't open config file "
+	std::cerr << "MUSIC: Couldn't open configuration file "
 		  << argv[1] << std::endl;
       exit (1);
     }
@@ -153,7 +175,9 @@ main (int argc, char *argv[])
   
   if (rank == -1)
     {
-      std::cerr << "MUSIC: getRank: unable to determine process rank" << std::endl;
+      std::cerr << "MUSIC: Unable to determine process rank." << std::endl
+		<< "MUSIC: Did you launch music using mpirun?" << std::endl
+		<< "MUSIC: If so, check the comments about porting in README." << std::endl;
       exit (1);
     }
 

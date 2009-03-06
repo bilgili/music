@@ -196,6 +196,7 @@ AC_CONFIG_FILES([
   test/Makefile
   rudeconfig/Makefile
   utils/Makefile
+  doc/Makefile
 ])
 
 AC_OUTPUT

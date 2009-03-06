@@ -214,6 +214,20 @@ namespace MUSIC {
   }
 
   
+  MessageInputPort*
+  Setup::publishMessageInput (std::string identifier)
+  {
+    return new MessageInputPort (this, identifier);
+  }
+
+
+  MessageOutputPort*
+  Setup::publishMessageOutput (std::string identifier)
+  {
+    return new MessageOutputPort (this, identifier);
+  }
+
+  
   void Setup::addPort (Port* p)
   {
     ports_.push_back (p);

@@ -6,6 +6,7 @@ EXTRA_DIST = debian/changelog \
 	     debian/copyright \
 	     debian/docs \
 	     debian/libmusic1.dirs \
+	     debian/libmusic1.docs \
 	     debian/libmusic1.install \
 	     debian/libmusic-dev.dirs \
 	     debian/libmusic-dev.install \

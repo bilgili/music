@@ -1,5 +1,7 @@
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* sampler.cc: #include <cstring>
+
 	* setup.cc (Setup::publishMessageInput,
 	Setup::publishMessageOutput): Added.
 

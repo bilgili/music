@@ -2,16 +2,15 @@ Source: music
 Priority: extra
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
 Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, freeglut3-dev
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 Section: libs
 Homepage: http://software.incf.org/software/music/home
 
 Package: libmusic-dev
 Section: libdevel
-Architecture: all
-Depends: libmusic1 (= ${binary:Version})
+Architecture: any
+Depends: libmusic1 (>= ${binary:Version})
 Description: Multi-Simulation Coordinator for MPI -- Development files
-                                                                         !
  Large scale neuronal network simulator data exchange framework.
  .
  MUSIC allows spike events and continuous time series to be

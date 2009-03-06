@@ -34,11 +34,12 @@ libmusic_la_SOURCES = \
 	BIFO.cc music/BIFO.hh \
 	FIBO.cc music/FIBO.hh music/message.hh \
 	music/interval.hh music/interval_tree.hh \
-	music/communication.hh
+	music/communication.hh \
+	music/version.hh version.cc
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
-libmusic_la_LDFLAGS = -version-info 0:0 -export-dynamic
+libmusic_la_LDFLAGS = -version-info 1:0:0 -export-dynamic
 libmusic_ladir = $(includedir)
 
 libmusic_c_la_SOURCES = \
@@ -68,6 +69,6 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/collector.hh music/distributor.hh \
 		       music/cont_data.hh music/event.hh music/message.hh \
 		       music/message.hh music/music-config.hh \
-		       music/communication.hh
+		       music/communication.hh music/version.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

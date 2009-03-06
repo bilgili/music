@@ -45,6 +45,7 @@ namespace MUSIC {
     int width ();
 
   protected:
+    std::string portName_;
     Setup* setup_;
     ConnectivityInfo* ConnectivityInfo_;
     void assertOutput ();

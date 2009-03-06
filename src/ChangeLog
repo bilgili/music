@@ -1,5 +1,7 @@
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* Makefile.am: Link shared library against MPI.
+
 	* music/port.hh, port.cc: Bugfixed error reporting.
 
 	* Makefile.am: Don't accept unresolved symbols in the shared library.

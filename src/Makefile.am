@@ -39,7 +39,8 @@ libmusic_la_SOURCES = \
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
-libmusic_la_LDFLAGS = -version-info 1:0:0 -export-dynamic -Wl,-z,defs
+libmusic_la_LDFLAGS = \
+	-version-info 1:0:0 -export-dynamic -Wl,-z,defs @MPI_LDFLAGS@
 libmusic_ladir = $(includedir)
 
 libmusic_c_la_SOURCES = \

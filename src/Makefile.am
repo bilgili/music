@@ -49,7 +49,7 @@ libmusic_c_la_SOURCES = \
 libmusic_c_la_HEADERS = music-c.h
 libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
 libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
-libmusic_c_la_LDFLAGS = -version-info 0:0 -export-dynamic
+libmusic_c_la_LDFLAGS = -version-info 1:0:0 -export-dynamic -Wl,-z,defs @MPI_LDFLAGS@
 libmusic_c_ladir = $(includedir)
 
 musicincludedir = $(includedir)/music

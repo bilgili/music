@@ -1,5 +1,8 @@
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/synchronizer.hh, synchronizer.cc, connector.cc: Removed
+	some old cruft in timing logic.
+
 	* sampler.cc: #include <cstring>
 
 	* setup.cc (Setup::publishMessageInput,

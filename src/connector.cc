@@ -456,11 +456,8 @@ namespace MUSIC {
   void
   PlainContInputConnector::postCommunication ()
   {
-    if (synch.simulating ())
-      {
-	// collect data from input buffers and write to application
-	collector_.collect ();
-      }
+    // collect data from input buffers and write to application
+    collector_.collect ();
   }
 
 

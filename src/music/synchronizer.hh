@@ -46,7 +46,6 @@ namespace MUSIC {
     void setMaxDelay (ClockState maxDelay);
     virtual void initialize ();
     bool communicate ();
-    bool simulating ();
   };
 
 

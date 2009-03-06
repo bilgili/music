@@ -65,7 +65,7 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	cp $(CURDIR)/doc/music-manual.pdf $(CURDIR)/debian/music-doc/usr/share/doc/music-doc/music-manual.pdf
+#	cp $(CURDIR)/doc/music-manual.pdf $(CURDIR)/debian/music-doc/usr/share/doc/music-doc/music-manual.pdf
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
 

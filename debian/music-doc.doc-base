@@ -1,22 +1,16 @@
-Document: music
-Title: Debian music Manual
-Author: <insert document author here>
-Abstract: This manual describes what music is
- and how it can be used to
- manage online manuals on Debian systems.
-Section: unknown
+Document: music-manual
+Title: MUSIC Manual
+Author: Örjan Ekeberg and Mikael Djurfeldt
+Abstract: MUSIC is an API allowing large scale neuron simulators using MPI
+  internally to exchange data during runtime.  MUSIC provides
+  mechanisms to transfer massive amounts of event information and
+  continuous values from one parallel application to another.  Special
+  care has been taken to ensure that existing simulators can be
+  adapted to MUSIC.  In particular, MUSIC handles data transfer
+  between applications that use different time steps and different
+  data allocation strategies.
+Section: Science/Biology
 
-Format: debiandoc-sgml
-Files: /usr/share/doc/music/music.sgml.gz
-
-Format: postscript
-Files: /usr/share/doc/music/music.ps.gz
-
-Format: text
-Files: /usr/share/doc/music/music.text.gz
-
-Format: HTML
-Index: /usr/share/doc/music/html/index.html
-Files: /usr/share/doc/music/html/*.html
-
+Format: PDF
+Files: /usr/share/doc/music-doc/music-manual.pdf.gz
 

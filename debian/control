@@ -1,7 +1,7 @@
 Source: music
 Priority: extra
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
-Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev
+Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, freeglut3-dev
 Standards-Version: 3.7.3
 Section: libs
 Homepage: http://software.incf.org/software/music/home

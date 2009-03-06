@@ -2,8 +2,9 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = waveproducer waveconsumer eventlogger
-EXTRA_PROGRAMS = clocksource contsink constsource eventdelay contdelay
+bin_PROGRAMS = eventlogger
+EXTRA_PROGRAMS = clocksource contsink constsource eventdelay contdelay \
+		 waveproducer waveconsumer
 
 EXTRA_DIST = chain.music const.music contclock.music events.music \
              fork.music loop.music wavetest.music viewevents.music \

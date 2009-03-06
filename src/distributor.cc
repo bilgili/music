@@ -25,6 +25,7 @@
 #include "music/distributor.hh"
 
 #include <algorithm>
+#include <cstring>
 
 #include "music/event.hh"
 

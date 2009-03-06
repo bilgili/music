@@ -26,9 +26,9 @@
 namespace MUSIC {
 
   Port::Port (Setup* s, std::string identifier)
-    : setup_ (s)
+    : portName_ (identifier), setup_ (s)
   {
-    ConnectivityInfo_ = s->portConnectivity (identifier);
+    ConnectivityInfo_ = s->portConnectivity (portName_);
     setup_->addPort (this);
   }
 
@@ -46,8 +46,8 @@ namespace MUSIC {
     if (!isConnected ())
       {
 	std::ostringstream msg;
-	msg << "attempt to " << action << " port `"
-	    << ConnectivityInfo_->portName () << "' which is unconnected";
+	msg << "attempt to " << action << " port `" << portName_
+	    << "' which is unconnected";
 	error (msg);
       }
   }

@@ -16,6 +16,8 @@ Changes in 1.0.1:
 
 ** New option '-v' prints version information
 
+** Debian packaging support
+
 
 First release: 1.0
 

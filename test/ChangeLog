@@ -1,3 +1,7 @@
+2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Don't install waveproducer/waveconsumer example.
+
 2009-03-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* constsource.cc (main): Initialize loop variable i.

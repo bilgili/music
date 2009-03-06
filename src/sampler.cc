@@ -26,6 +26,8 @@
 #include "music/index_map_factory.hh"
 #include "music/error.hh"
 
+#include <cstring>
+
 #include "music/sampler.hh"
 
 namespace MUSIC {

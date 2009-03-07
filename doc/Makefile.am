@@ -23,7 +23,7 @@ figures = figures/multisim.pdf \
 	  figures/remapping.pdf \
 	  figures/remapping2.pdf
 
-music-manual.pdf: music-manual.bbl music-manual.ind
+music-manual.pdf: music-manual.bbl music-manual.ind $(figures)
 	pdflatex music-manual
 	pdflatex music-manual
 
@@ -33,7 +33,7 @@ music-manual.bbl: music-manual.aux
 music-manual.ind: music-manual.idx
 	makeindex music-manual
 
-music-manual.aux:
+music-manual.aux: $(figures)
 	pdflatex music-manual
 
 $(figures): figures/%.pdf : figures/%.asy

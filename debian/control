@@ -1,4 +1,4 @@
-Source: music
+Source: incf-music
 Priority: extra
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
 Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, freeglut3-dev, texlive-latex-base, texlive-latex-extra, asymptote

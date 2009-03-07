@@ -1,6 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 
-dist_man1_MANS = music.1
+dist_man1_MANS = music.1 eventcounter.1 eventgenerator.1 eventlogger.1 \
+		 eventselect.1 eventsink.1 eventsource.1 viewevents.1
 
 EXTRA_DIST = music-manual.pdf
 

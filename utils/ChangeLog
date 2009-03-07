@@ -1,3 +1,7 @@
+2009-03-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventcounter.cc (usage): Updated text.
+
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music.cc: New option -v.

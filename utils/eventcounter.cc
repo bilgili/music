@@ -41,8 +41,9 @@ usage (int rank)
   if (rank == 0)
     {
       std::cerr << "Usage: eventcounter [OPTION...] N_UNITS PREFIX [SUFFIX]" << std::endl
-		<< "`eventcounter' receives spikes through a MUSIC input port" << std::endl
-		<< "and writes these to a set of files with names PREFIX RANK SUFFIX" << std::endl << std:: endl
+		<< "`eventcounter' receives spikes through a MUSIC input port, counts" << std::endl
+		<< "all spikes for each index and writes the frequencies to a set of files" << std::endl
+		<< "with names PREFIX RANK SUFFIX" << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl

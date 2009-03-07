@@ -22,17 +22,16 @@
 #include "VisualiseNeurons.h"
 
 void VisualiseNeurons::printHelp() {
-  std::cerr << "Usage: viewevents" 
-            << " configfile -timestep <dt> -scalefactor <sf>" << std::endl
-            << std::endl
-            << "Config file is required" << std::endl
-            << "Default timestep is " << DEFAULT_TIMESTEP << std::endl
-            << "Scale factor is how many times slower visualisation "
-            << "time is relative to real time. "
-            << "If omitted the visualisation runs at full speed."
-            << std::endl;
-
-  exit(-1);
+  std::cerr << "Usage: viewevents [OPTION...] CONFIGFILE" << std::endl
+	    << "`viewevents' receives spikes through a MUSIC input port" << std::endl
+	    << "and displays them as a 3D graphical representation." << std::endl << std::endl
+	    << "  -t, --timestep TIMESTEP time between tick() calls (default 1 ms)" << std::endl
+	    << "  -s, --scaletime SCALING real time to simulated time scale factor (s)" << std::endl
+	    << "                          If omitted, the visualisation runs at full speed." << std::endl
+	    << "  -h, --help              print this help message" << std::endl
+	    << "  -T, --title TITLE       window title" << std::endl << std::endl
+	    << "Report bugs to <music-bugs@incf.org>." << std::endl;
+  exit(1);
 }
 
 void VisualiseNeurons::getArgs(int argc, char* argv[]) {

@@ -15,6 +15,14 @@ CLEANFILES = music-manual.aux \
 	     music-manual.pdf \
 	     music-manual.toc
 
+figures = figures/multisim.pdf \
+	  figures/datamapping.pdf \
+	  figures/ticklogic.pdf \
+	  figures/ticklogic2.pdf \
+	  figures/timeline.pdf \
+	  figures/remapping.pdf \
+	  figures/remapping2.pdf
+
 music-manual.pdf: music-manual.bbl music-manual.ind
 	pdflatex music-manual
 	pdflatex music-manual
@@ -27,3 +35,6 @@ music-manual.ind: music-manual.idx
 
 music-manual.aux:
 	pdflatex music-manual
+
+$(figures): figures/%.pdf : figures/%.asy
+	asy -f pdf -o $@ $<

@@ -47,7 +47,7 @@ usage (int rank)
 		<< "  -d, --delay SECS        amount of delay" << std::endl
 		<< "  -b, --maxbuffer TICKS   maximal buffer" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
-		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
+		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
   exit (1);
 }

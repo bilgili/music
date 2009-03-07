@@ -46,7 +46,7 @@ usage (int rank)
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
-		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
+		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
   exit (1);
 }

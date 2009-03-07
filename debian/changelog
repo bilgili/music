@@ -1,4 +1,4 @@
-music (1.0.1-1) unstable; urgency=low
+incf-music (1.0.1-1) unstable; urgency=low
 
   * Initial Release (Closes: #518538, #518541, #518542, #518543, #518544)
 	

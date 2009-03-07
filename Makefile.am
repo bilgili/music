@@ -1,20 +1,7 @@
 SUBDIRS = mpidep src test rudeconfig utils doc
 
-EXTRA_DIST = debian/changelog \
-	     debian/compat \
-	     debian/control \
-	     debian/copyright \
-	     debian/docs \
-	     debian/libmusic1.dirs \
-	     debian/libmusic1.docs \
-	     debian/libmusic1.install \
-	     debian/libmusic-dev.dirs \
-	     debian/libmusic-dev.install \
-	     debian/music-bin.dirs \
-	     debian/music-bin.install \
-	     debian/music-doc.dirs \
-	     debian/music-doc.doc-base \
-	     debian/rules
+debian-source: dist
+	mv music-@PACKAGE_VERSION@.tar.gz ../incf-music-@PACKAGE_VERSION@.orig.tar.gz
 
 dist-hook:
 	rm $(distdir)/TODO

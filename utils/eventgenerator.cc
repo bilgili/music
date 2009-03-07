@@ -50,7 +50,7 @@ usage (int rank)
 		<< "  -m, --imaptype  TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE     global (default) or local" << std::endl
 		<< "  -h, --help               print this help message" << std::endl << std::endl
-		<< "Report bugs to <mikael@djurfeldt.com>." << std::endl;
+		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
   exit (1);
 }

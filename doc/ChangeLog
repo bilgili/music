@@ -1,0 +1,3 @@
+2009-03-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Added rules for creation of music manual.

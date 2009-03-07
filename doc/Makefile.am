@@ -13,7 +13,8 @@ CLEANFILES = music-manual.aux \
 	     music-manual.lof \
 	     music-manual.log \
 	     music-manual.pdf \
-	     music-manual.toc
+	     music-manual.toc \
+	     music-manual.stamp1
 
 figures = figures/multisim.pdf \
 	  figures/datamapping.pdf \
@@ -23,18 +24,19 @@ figures = figures/multisim.pdf \
 	  figures/remapping.pdf \
 	  figures/remapping2.pdf
 
-music-manual.pdf: music-manual.bbl music-manual.ind $(figures)
+music-manual.pdf: music-manual.bbl music-manual.ind
 	pdflatex music-manual
 	pdflatex music-manual
 
-music-manual.bbl: music-manual.aux
+music-manual.bbl: music-manual.stamp1
 	bibtex music-manual
 
-music-manual.ind: music-manual.idx
+music-manual.ind: music-manual.stamp1
 	makeindex music-manual
 
-music-manual.aux: $(figures)
+music-manual.stamp1: music-manual.tex $(figures)
 	pdflatex music-manual
+	touch music-manual.stamp1
 
 $(figures): figures/%.pdf : figures/%.asy
 	asy -f pdf -o $@ $<

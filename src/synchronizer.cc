@@ -76,6 +76,12 @@ namespace MUSIC {
   void
   Synchronizer::setMaxBuffered (int m)
   {
+    // The timing algorithm in nextCommunication uses a different
+    // definition of maxBuffered.  While the interface in port.hh
+    // counts the number of "ticks of data" which must be stored, the
+    // timing algorithm counts the offset in time between the
+    // processes in sender ticks.
+    
     maxBuffered_ = m - 1;
   }
 

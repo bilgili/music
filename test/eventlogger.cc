@@ -6,7 +6,7 @@
 extern "C" {
 #include <unistd.h>
 #include <getopt.h>
-};
+}
 
 const double DEFAULT_TIMESTEP = 0.01;
 
@@ -142,7 +142,7 @@ main (int argc, char* argv[])
     }
 
   // Split the width among the available processes
-  int width;
+  int width = 0;
   if (evport->hasWidth ())
     width = evport->width ();
   else

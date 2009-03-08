@@ -115,7 +115,7 @@ namespace MUSIC {
   OutputRedistributionPort::setupCleanup ()
   {
     // NOTE: Cleanup resources only used during setup phase,
-    //       e.g. spatial negotiator
+    delete spatialNegotiator;
   }
   
 
@@ -146,7 +146,7 @@ namespace MUSIC {
   InputRedistributionPort::setupCleanup ()
   {
     // NOTE: Cleanup resources only used during setup phase,
-    //       e.g. spatial negotiator
+    delete spatialNegotiator;
   }
 
   

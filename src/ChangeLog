@@ -1,5 +1,12 @@
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/error.hh, music/port.hh, music/runtime.hh, music/setup.hh,
+	error.cc, port.cc, runtime.cc, setup.cc (Setup::Setup,
+	Runtime::Runtime, Port::map): Added error messages when trying to
+	call repeatedly.
+
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
 	* Release 1.0.1
 
 	* music/connector.hh, music/port.hh, music/spatial.hh,

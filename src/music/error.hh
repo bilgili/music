@@ -28,6 +28,13 @@ namespace MUSIC {
   void error (std::string msg);
   void error (std::ostringstream& ostr);
   void error0 (std::string msg);
+  void errorRank (std::string msg);
+  void checkOnce (bool& flag, std::string msg);
+  void checkInstantiatedOnce (bool& flag, std::string className);
+  void checkCalledOnce (bool& isCalled,
+			std::string funcName,
+			std::string suffix1,
+			std::string suffix2);
   
 }
 

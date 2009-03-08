@@ -54,6 +54,7 @@ namespace MUSIC {
     std::vector<Connector*> connectors;
     std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
+    static bool isInstantiated_;
 
     typedef std::vector<Connection*> Connections;
     typedef std::vector<OutputSubconnector*> OutputSubconnectors;

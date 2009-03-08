@@ -55,14 +55,67 @@ namespace MUSIC {
   }
 
 
+  static int
+  getRank ()
+  {
+    if (MPI::Is_initialized ())
+      return MPI::COMM_WORLD.Get_rank ();
+    else
+      return -1;
+  }
+
+  
   void
   error0 (std::string msg)
   {
-    if (MPI::COMM_WORLD.Get_rank () == 0)
+    if (getRank () <= 0)
       error (msg);
     else
       // Give process #0 a chance to report the error
       hang ();
   }
 
+
+  void
+  errorRank (std::string msg)
+  {
+    std::ostringstream text;
+    int rank = getRank ();
+    if (rank >= 0)
+      text << "rank #" << rank << ": ";
+    text << msg;
+    error (text.str ());
+  }
+  
+  
+  void
+  checkOnce (bool& flag, std::string msg)
+  {
+    if (flag)
+      errorRank (msg);
+    flag = true;
+  }
+
+
+  void
+  checkInstantiatedOnce (bool& isInstantiated, std::string className)
+  {
+    std::ostringstream msg;
+    msg << className << " constructor was called a second time.\n"
+      "Only one " << className << " object can exist at any instance of time.";
+    checkOnce (isInstantiated, msg.str ());
+  }
+
+  
+  void
+  checkCalledOnce (bool& isCalled,
+		   std::string funcName,
+		   std::string suffix1,
+		   std::string suffix2)
+  {
+    std::ostringstream msg;
+    msg << funcName << " called twice" << suffix1 << suffix2;
+    checkOnce (isCalled, msg.str ());
+  }
+  
 }

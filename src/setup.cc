@@ -27,16 +27,19 @@
 
 namespace MUSIC {
 
+  bool Setup::isInstantiated_ = false;
+
   Setup::Setup (int& argc, char**& argv)
   {
+    checkInstantiatedOnce (isInstantiated_, "Setup");
     MPI::Init (argc, argv);
-    MUSIC_LOG ("exiting MPI::Init");
     init (argc, argv);
   }
 
   
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
+    checkInstantiatedOnce (isInstantiated_, "Setup");
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
 #else
@@ -83,15 +86,11 @@ namespace MUSIC {
     int nMPIProc = MPI::COMM_WORLD.Get_size ();
     if (nMPIProc != nRequestedProc)
       {
-	if (MPI::COMM_WORLD.Get_rank () != 0)
-	  while (1)
-	    ; // wait for MPI process 0 to report error
-	
 	std::ostringstream msg;
 	msg << "configuration file specifies " << nRequestedProc
 	    << " MPI processes but MUSIC was given " << nMPIProc
 	    << std::endl;
-	error (msg.str ());
+	error0 (msg.str ());
       }
   }
 
@@ -113,6 +112,8 @@ namespace MUSIC {
     
     delete connections_;
     delete config_;
+
+    isInstantiated_ = false;
   }
   
 

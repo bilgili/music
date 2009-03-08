@@ -81,6 +81,7 @@ namespace MUSIC {
     std::vector<Connection*>* connections_;
     TemporalNegotiator* temporalNegotiator_;
     double timebase_;
+    static bool isInstantiated_;
 
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give

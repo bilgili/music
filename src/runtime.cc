@@ -91,13 +91,11 @@ namespace MUSIC {
 	 ++subconnector)
       delete *subconnector;
 
-#if 0
     // delete connectors
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
       delete *connector;
-#endif
 
     isInstantiated_ = false;
   }
@@ -182,12 +180,9 @@ namespace MUSIC {
 	 c != connections->end ();
 	 ++c)
       {
-	Connector* oldConnector = (*c)->connector ();
-	Connector* newConnector = oldConnector->specialize (localTime);
-	//delete oldConnector;
-	
-	(*c)->setConnector (newConnector);
-	connectors.push_back (newConnector);
+	Connector* connector = (*c)->connector ()->specialize (localTime);
+	(*c)->setConnector (connector);
+	connectors.push_back (connector);
       }
   }
 

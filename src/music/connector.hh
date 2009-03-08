@@ -136,12 +136,6 @@ namespace MUSIC {
   class PlainContOutputConnector : public ContOutputConnector {
     OutputSynchronizer synch;
   public:
-    PlainContOutputConnector (ConnectorInfo connInfo,
-			      SpatialNegotiator* spatialNegotiator,
-			      MPI::Intracomm comm,
-			      MPI::Intercomm intercomm,
-			      Sampler& sampler,
-			      MPI::Datatype type);
     PlainContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -152,12 +146,6 @@ namespace MUSIC {
 					   public InterpolatingConnector {
     InterpolationOutputSynchronizer synch;
   public:
-    InterpolatingContOutputConnector (ConnectorInfo connInfo,
-				      SpatialNegotiator* spatialNegotiator,
-				      MPI::Intracomm comm,
-				      MPI::Intercomm intercomm,
-				      Sampler& sampler,
-				      MPI::Datatype type);
     InterpolatingContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -189,13 +177,6 @@ namespace MUSIC {
   class PlainContInputConnector : public ContInputConnector {
     InputSynchronizer synch;
   public:
-    PlainContInputConnector (ConnectorInfo connInfo,
-			     SpatialNegotiator* spatialNegotiator,
-			     MPI::Intracomm comm,
-			     MPI::Intercomm intercomm,
-			     Sampler& sampler,
-			     MPI::Datatype type,
-			     double delay);
     PlainContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -207,13 +188,6 @@ namespace MUSIC {
 					  public InterpolatingConnector {
     InterpolationInputSynchronizer synch;
   public:
-    InterpolatingContInputConnector (ConnectorInfo connInfo,
-				     SpatialNegotiator* spatialNegotiator,
-				     MPI::Intracomm comm,
-				     MPI::Intercomm intercomm,
-				     Sampler& sampler,
-				     MPI::Datatype type,
-				     double delay);
     InterpolatingContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();

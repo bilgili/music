@@ -1,5 +1,10 @@
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* synchronizer.cc, port.cc, music/temporal.hh: Decrement
+	maxBuffered at the proper place.  (This fixes a bug where the loop
+	algorithm worked on different parameters than the timing schedule
+	algorithm.)
+
 	* music/debug.hh (MUSIC_LOGBR): New debug macro.
 
 	* synchronizer.cc: Inserted some debugging statements.

@@ -45,8 +45,9 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
-    MUSIC_LOGR ("next send at " << nextSend.time ()
-		<< ", next receive at " << nextReceive.time ());
+    MUSIC_LOGBR (MPI::COMM_WORLD,
+		 "next send at " << nextSend.time ()
+		 << ", next receive at " << nextReceive.time ());
   }
 
   
@@ -56,6 +57,9 @@ namespace MUSIC {
     localTime = lt;
     nextSend.configure (localTime->timebase (), localTime->tickInterval ());
     nextReceive.configure (localTime->timebase (), localTime->tickInterval ());
+    MUSIC_LOGBR (MPI::COMM_WORLD,
+		 "timebase = " << localTime->timebase ()
+		 << ", ti = " << localTime->tickInterval ());
   }
 
   
@@ -63,6 +67,7 @@ namespace MUSIC {
   Synchronizer::setSenderTickInterval (ClockState ti)
   {
     nextSend.setTickInterval (ti);
+    MUSIC_LOGBR (MPI::COMM_WORLD, "nextSend.ti := " << ti);
   }
 
   
@@ -70,6 +75,7 @@ namespace MUSIC {
   Synchronizer::setReceiverTickInterval (ClockState ti)
   {
     nextReceive.setTickInterval (ti);
+    MUSIC_LOGBR (MPI::COMM_WORLD, "nextReceive.ti := " << ti);
   }
 
   
@@ -83,6 +89,7 @@ namespace MUSIC {
     // processes in sender ticks.
     
     maxBuffered_ = m - 1;
+    MUSIC_LOGBR (MPI::COMM_WORLD, "maxBuffered_ := " << m - 1);
   }
 
 
@@ -90,6 +97,7 @@ namespace MUSIC {
   Synchronizer::setAccLatency (ClockState l)
   {
     latency_ = l;
+    MUSIC_LOGBR (MPI::COMM_WORLD, "latency_ := " << l);
   }
 
   
@@ -103,6 +111,7 @@ namespace MUSIC {
   void
   Synchronizer::setMaxDelay (ClockState maxDelay)
   {
+    MUSIC_LOGBR (MPI::COMM_WORLD, "setMaxDelay (" << maxDelay << ")");
     // back up clocks to start at -maxDelay
     setMaxDelay (maxDelay, *localTime);
     setMaxDelay (maxDelay, nextSend);

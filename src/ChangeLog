@@ -1,5 +1,9 @@
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/debug.hh (MUSIC_LOGBR): New debug macro.
+
+	* synchronizer.cc: Inserted some debugging statements.
+
 	* port.cc (OutputRedistributionPort::setupCleanup,
 	InputRedistributionPort::setupCleanup):  Delete spatialNegotiator
 	at end of setup phase.

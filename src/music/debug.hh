@@ -19,20 +19,46 @@
 #ifndef MUSIC_DEBUG_HH
 
 #ifdef MUSIC_DEBUG
+
 #include <mpi.h> // Must be included first on BG/L
 #include <iostream>
 
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
-#define MUSIC_LOGN(N, X) { if (MPI::COMM_WORLD.Get_rank () == N) std::cerr << X << std::endl; }
+
+#define MUSIC_LOGN(N, X) \
+  { if (MPI::COMM_WORLD.Get_rank () == N) MUSIC_LOG (X); }
+
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
-#define MUSIC_LOGR(X) { std::cerr << MPI::COMM_WORLD.Get_rank () << ": " << X << std::endl; }
+
+#define MUSIC_LOGR(X)					\
+  {							\
+    std::cerr << MPI::COMM_WORLD.Get_rank () << ": "	\
+              << X << std::endl << std::flush;		\
+  }
+
+#define MUSIC_LOGBR(C, X)			\
+  {						\
+    int r = (C).Get_rank ();			\
+    int n = (C).Get_size ();			\
+    for (int i = 0; i < n; ++i)			\
+      {						\
+	(C).Barrier ();				\
+	if (i == r)				\
+	  MUSIC_LOGR (X);			\
+      }						\
+  }
+
 #define MUSIC_LOGX(X)
+
 #else
+
 #define MUSIC_LOG(X)
 #define MUSIC_LOGN(N, X)
 #define MUSIC_LOG0(X)
 #define MUSIC_LOGR(X)
+#define MUSIC_LOGBR(C, X)
 #define MUSIC_LOGX(X)
+
 #endif
 
 #define MUSIC_DEBUG_HH

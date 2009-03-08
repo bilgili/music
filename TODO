@@ -1,18 +1,20 @@
+* connector signature checking when connecting to peers (cont ports:
+  common MPI data types + unknown + size)
+
+* Check that all administrative objects get deallocated at start of runtime
+  (for example TemporalNegotiator)
+
 * lift out as much as possible of the negotiation stuff from
-  connectors and move to connections, for example ConnectorINfo and
+  connectors and move to connections, for example ConnectorInfo and
   createIntercomm
 
 * rename Runtime::schedule
 
 * report port name if missing
 
-* Marshalling i contsubconnector
-
 * alternative implementation for clockstate (not long long)
 
-* Error check in map: MPI::Type not float or double
-
-* continuous loops
+* debug timing in continuous loops
 
 * Code duplication sampler - distributor - collector - kommentarer
 
@@ -22,23 +24,14 @@
    
 * indexinterval::local --> offset
 
-* Use pass-by-reference ubstead of pass-by-value where possible
+* Use pass-by-reference instead of pass-by-value where possible
   (especially for some strings)
-
-* Check that all administrative objects get deallocated at start of runtime
-  (for example TemporalNegotiator)
 
 * cleanup constructor arguments in subconnector.cc
 
 * marshalling, for example in temporal.cc, subconnector.cc
 
-Before delivery
-
 * Documentation strings
-
-After delivery
-
-* Debian packaging
 
 Optional
   
@@ -53,8 +46,7 @@ Optional
 
 * Join intervals in PermutationIndex and IndexMapFactory
 
-* Move all MPI implementation dependent code into a subdirectory
-  mpidep.  This directory should also contain a test binary which is
+* Th mpidep directory should contain a test binary which is
   built and run before anything else is being compiled
 
 * Write piecewise_linear_index and derive linear_index and

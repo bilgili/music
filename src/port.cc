@@ -125,6 +125,14 @@ namespace MUSIC {
 				     int maxBuffered,
 				     int dataSize)
   {
+    // The timing algorithm in uses a different definition of
+    // maxBuffered.  While the interface in port.hh counts the number
+    // of "ticks of data" which must be stored, the timing algorithm
+    // counts the offset in time between the processes in sender
+    // ticks.
+    if (maxBuffered != MAX_BUFFERED_NO_VALUE)
+      maxBuffered -= 1;
+	
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();
@@ -157,6 +165,14 @@ namespace MUSIC {
 				    int maxBuffered,
 				    bool interpolate)
   {
+    // The timing algorithm in uses a different definition of
+    // maxBuffered.  While the interface in port.hh counts the number
+    // of "ticks of data" which must be stored, the timing algorithm
+    // counts the offset in time between the processes in sender
+    // ticks.
+    if (maxBuffered != MAX_BUFFERED_NO_VALUE)
+      maxBuffered -= 1;
+	
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();

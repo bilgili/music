@@ -45,9 +45,8 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
-    MUSIC_LOGBR (MPI::COMM_WORLD,
-		 "next send at " << nextSend.time ()
-		 << ", next receive at " << nextReceive.time ());
+    MUSIC_LOGR ("next send at " << nextSend.time ()
+		<< ", next receive at " << nextReceive.time ());
   }
 
   
@@ -82,14 +81,8 @@ namespace MUSIC {
   void
   Synchronizer::setMaxBuffered (int m)
   {
-    // The timing algorithm in nextCommunication uses a different
-    // definition of maxBuffered.  While the interface in port.hh
-    // counts the number of "ticks of data" which must be stored, the
-    // timing algorithm counts the offset in time between the
-    // processes in sender ticks.
-    
-    maxBuffered_ = m - 1;
-    MUSIC_LOGBR (MPI::COMM_WORLD, "maxBuffered_ := " << m - 1);
+    maxBuffered_ = m;
+    MUSIC_LOGBR (MPI::COMM_WORLD, "maxBuffered_ := " << m);
   }
 
 

@@ -108,13 +108,10 @@ namespace MUSIC {
 
   
   void
-  checkCalledOnce (bool& isCalled,
-		   std::string funcName,
-		   std::string suffix1,
-		   std::string suffix2)
+  checkCalledOnce (bool& isCalled, std::string funcName, std::string suffix)
   {
     std::ostringstream msg;
-    msg << funcName << " called twice" << suffix1 << suffix2;
+    msg << funcName << " called twice" << suffix;
     checkOnce (isCalled, msg.str ());
   }
   

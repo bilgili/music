@@ -33,8 +33,7 @@ namespace MUSIC {
   void checkInstantiatedOnce (bool& flag, std::string className);
   void checkCalledOnce (bool& isCalled,
 			std::string funcName,
-			std::string suffix1,
-			std::string suffix2);
+			std::string suffix);
   
 }
 

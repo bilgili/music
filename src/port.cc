@@ -58,8 +58,7 @@ namespace MUSIC {
   {
     checkCalledOnce (isMapped_,
 		     "OutputPort::map (...)",
-		     " for port ",
-		     portName_);
+		     " for port " + portName_);
     checkConnected ("map");
     if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
       {
@@ -76,8 +75,7 @@ namespace MUSIC {
   {
     checkCalledOnce (isMapped_,
 		     "InputPort::map (...)",
-		     " for port ",
-		     portName_);
+		     " for port " + portName_);
     checkConnected ("map");
     if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
       {

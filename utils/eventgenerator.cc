@@ -28,7 +28,7 @@
 extern "C" {
 #include <unistd.h>
 #include <getopt.h>
-};
+}
 
 #include <music.hh>
 
@@ -204,7 +204,7 @@ main (int argc, char *argv[])
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
   double m = 1.0 / freq;
-  for (int i = 0; i < ids.size (); ++i)
+  for (unsigned int i = 0; i < ids.size (); ++i)
     nextSpike.push_back (negexp (m));
 
   double time = runtime->time ();
@@ -214,7 +214,7 @@ main (int argc, char *argv[])
 
       if (type == MUSIC::Index::GLOBAL)
 	{
-	  for (int i = 0; i < ids.size (); ++i)
+	  for (unsigned int i = 0; i < ids.size (); ++i)
 	    while (nextSpike[i] < nextTime)
 	      {
 		out->insertEvent (nextSpike[i],
@@ -224,7 +224,7 @@ main (int argc, char *argv[])
 	}
       else
 	{
-	  for (int i = 0; i < ids.size (); ++i)
+	  for (unsigned int i = 0; i < ids.size (); ++i)
 	    while (nextSpike[i] < nextTime)
 	      {
 		out->insertEvent (nextSpike[i],

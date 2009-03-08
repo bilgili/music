@@ -128,7 +128,7 @@ void VisualiseNeurons::run(int argc, char **argv) {
     exit (1);
   }
 
-  if(evport->width() != coords_.size()) {
+  if(evport->width() != (int) coords_.size()) {
     std::cerr << "Size mismatch: port width " << evport->width()
               << " number of neurons to plot " << coords_.size()
               << std::endl;
@@ -228,7 +228,7 @@ void VisualiseNeurons::finalize() {
 
   //  std::cout << "Rank " << rank_ 
   //          << ": Searching for VisualiseNeurons wrapper object";
-  for(int i = 0; i < objTable_.size(); i++) {
+  for(unsigned int i = 0; i < objTable_.size(); i++) {
     if(objTable_[i] == this) {
       //std::cout << "found.";
     }
@@ -250,7 +250,7 @@ void VisualiseNeurons::display() {
   glLoadIdentity();
   glRotated(rotAngle_,0.1*sin(rotAngle_/100),1,0);
 
-  for(int i = 0; i < coords_.size(); i++) {
+  for(unsigned int i = 0; i < coords_.size(); i++) {
     // Here we translate coordinate system and draw a neuron
     glPushMatrix();
 
@@ -296,7 +296,7 @@ void VisualiseNeurons::display() {
   else {
     glRasterPos3d(-maxDist_*0.8,maxDist_*0.8,0.3*maxDist_);
   }
-  for(int i = 0; i < strlen(buffer); i++) {
+  for(unsigned int i = 0; i < strlen(buffer); i++) {
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,buffer[i]);
   }
 
@@ -326,7 +326,7 @@ void VisualiseNeurons::operator () (double t, MUSIC::GlobalIndex id) {
   //std::cout << "Event " << id << " detected at " << t 
   //          << " (vis time = " << time_ << ")" <<  std::endl;
 
-  assert(0 <= id && id < volt_.size()); // Check that it is within range
+  assert(0 <= id && id < (int) volt_.size()); // Check that it is within range
 
   if(t < time_) // time_ is old timestep
     {
@@ -410,7 +410,7 @@ void VisualiseNeurons::tick() {
     
 
     // Decay the volt/activity
-    for(int i = 0; i < volt_.size(); i++) {
+    for(unsigned int i = 0; i < volt_.size(); i++) {
       volt_[i] *= 1-(time_-oldTime_)/tau_;
     }
 
@@ -438,7 +438,7 @@ void VisualiseNeurons::tick() {
 
 
 void VisualiseNeurons::displayWrapper() {
-  for(int i = 0; i < objTable_.size(); i++) {
+  for(unsigned int i = 0; i < objTable_.size(); i++) {
     VisualiseNeurons *vn = objTable_[i];
     vn->display();
   }
@@ -447,7 +447,7 @@ void VisualiseNeurons::displayWrapper() {
 void VisualiseNeurons::rotateTimerWrapper(int v) {
   VisualiseNeurons *vn = 0;
 
-  for(int i = 0; i < objTable_.size(); i++) {
+  for(unsigned int i = 0; i < objTable_.size(); i++) {
     vn = objTable_[i];
     if(vn->is3dFlag_) {    
       vn->rotateTimer();
@@ -467,7 +467,7 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 void* VisualiseNeurons::runMusic(void *arg) {
   VisualiseNeurons *vn = 0;
 
-  for(int i = 0; i < objTable_.size(); i++) {
+  for(unsigned int i = 0; i < objTable_.size(); i++) {
     vn = objTable_[i];
     
     // Switch to runtime mode
@@ -488,7 +488,7 @@ void* VisualiseNeurons::runMusic(void *arg) {
 
     allDone = 1;
 
-    for(int i = 0; i < objTable_.size(); i++) {
+    for(unsigned int i = 0; i < objTable_.size(); i++) {
       vn = objTable_[i];
       vn->tick();
 

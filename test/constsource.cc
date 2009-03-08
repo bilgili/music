@@ -27,7 +27,7 @@
 extern "C" {
 #include <unistd.h>
 #include <getopt.h>
-};
+}
 
 #include <music.hh>
 

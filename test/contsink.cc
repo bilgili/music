@@ -8,7 +8,7 @@
 extern "C" {
 #include <unistd.h>
 #include <getopt.h>
-};
+}
 
 #define DEFAULT_TIMESTEP 1e-2
 

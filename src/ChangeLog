@@ -1,5 +1,8 @@
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/connector.hh, connector.cc, runtime.cc: Resolve a memory
+	allocation problem so that we leak less memory.
+
 	* port.cc (ContInputPort::mapImpl): Don't call assertInput ()
 	here.
 

@@ -197,6 +197,7 @@ namespace MUSIC {
 			   int maxBuffered)
   {
     sampler.configure (dmap);
+    type_ = dmap->type ();
     OutputRedistributionPort::mapImpl (dmap->indexMap (),
 				       Index::GLOBAL,
 				       maxBuffered,
@@ -210,7 +211,8 @@ namespace MUSIC {
     return new ContOutputConnector (connInfo,
 				    spatialNegotiator,
 				    setup_->communicator (),
-				    sampler);
+				    sampler,
+				    type_);
   }
   
   
@@ -269,6 +271,7 @@ namespace MUSIC {
     assertInput ();
     sampler.configure (dmap);
     delay_ = delay;
+    type_ = dmap->type ();
     InputRedistributionPort::mapImpl (dmap->indexMap (),
 				      Index::GLOBAL,
 				      delay,
@@ -284,6 +287,7 @@ namespace MUSIC {
 				   spatialNegotiator,
 				   setup_->communicator (),
 				   sampler,
+				   type_,
 				   delay_);
   }
 

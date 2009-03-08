@@ -42,7 +42,6 @@ namespace MUSIC {
   Configuration::Configuration ()
     : defaultConfig (0)
   {
-    int nVars;
     char* configStr = getenv (configEnvVarName);
     MUSIC_LOG0 ("config: " << configStr);
     if (configStr == NULL)

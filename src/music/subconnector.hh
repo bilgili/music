@@ -30,6 +30,8 @@
 
 namespace MUSIC {
 
+  // NOTE: Must be divisible by the size of the datatype of the data
+  // maps passed to cont ports
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
   const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX;
   const int MESSAGE_BUFFER_MAX = 10000;
@@ -78,6 +80,11 @@ namespace MUSIC {
   };
 
   class ContSubconnector : virtual public Subconnector {
+  protected:
+    MPI::Datatype type_;
+  public:
+    ContSubconnector (MPI::Datatype type)
+      : type_ (type) { };
   };
   
   class ContOutputSubconnector : public OutputSubconnector,
@@ -86,7 +93,8 @@ namespace MUSIC {
     ContOutputSubconnector (Synchronizer* synch_,
 			    MPI::Intercomm intercomm_,
 			    int remoteRank,
-			    std::string receiverPortName_);
+			    std::string receiverPortName_,
+			    MPI::Datatype type);
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -101,7 +109,8 @@ namespace MUSIC {
 			   MPI::Intercomm intercomm,
 			   int remoteRank,
 			   int receiverRank,
-			   std::string receiverPortName);
+			   std::string receiverPortName,
+			   MPI::Datatype type);
     BIFO* buffer () { return &buffer_; }
     void maybeCommunicate ();
     void receive ();

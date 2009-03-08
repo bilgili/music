@@ -65,13 +65,15 @@ namespace MUSIC {
   ContOutputSubconnector::ContOutputSubconnector (Synchronizer* synch_,
 						  MPI::Intercomm intercomm_,
 						  int remoteRank,
-						  std::string receiverPortName_)
+						  std::string receiverPortName_,
+						  MPI::Datatype type)
     : Subconnector (synch_,
 		    intercomm_,
 		    remoteRank,
 		    remoteRank,
 		    receiverPortName_),
-      OutputSubconnector (0)
+      OutputSubconnector (0),
+      ContSubconnector (type)
   {
   }
   
@@ -96,14 +98,18 @@ namespace MUSIC {
       {
 	MUSIC_LOGR ("Sending to rank " << remoteRank_);
 	intercomm.Send (buffer,
-			CONT_BUFFER_MAX,
-			MPI::BYTE,
+			CONT_BUFFER_MAX / type_.Get_size (),
+			type_,
 			remoteRank_,
 			CONT_MSG);
 	buffer += CONT_BUFFER_MAX;
 	size -= CONT_BUFFER_MAX;
       }
-    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, CONT_MSG);
+    intercomm.Send (buffer,
+		    size / type_.Get_size (),
+		    type_,
+		    remoteRank_,
+		    CONT_MSG);
   }
 
   
@@ -119,7 +125,7 @@ namespace MUSIC {
     else
       {
 	char dummy;
-	intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);
+	intercomm.Send (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
       }
   }
   
@@ -128,13 +134,15 @@ namespace MUSIC {
 						MPI::Intercomm intercomm,
 						int remoteRank,
 						int receiverRank,
-						std::string receiverPortName)
+						std::string receiverPortName,
+						MPI::Datatype type)
     : Subconnector (synch,
 		    intercomm,
 		    remoteRank,
 		    receiverRank,
 		    receiverPortName),
-      InputSubconnector ()
+      InputSubconnector (),
+      ContSubconnector (type)
   {
   }
 
@@ -157,8 +165,8 @@ namespace MUSIC {
       {
 	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
 	intercomm.Recv (data,
-			CONT_BUFFER_MAX,
-			MPI::BYTE,
+			CONT_BUFFER_MAX / type_.Get_size (),
+			type_,
 			remoteRank_,
 			MPI::ANY_TAG,
 			status);
@@ -168,8 +176,8 @@ namespace MUSIC {
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (MPI::BYTE);
-	buffer_.trimBlock (size);
+	size = status.Get_count (type_);
+	buffer_.trimBlock (type_.Get_size () * size);
       }
     while (size == CONT_BUFFER_MAX);
   }

@@ -61,7 +61,7 @@ namespace MUSIC {
 
     class IntervalTraversal : public Implementation {
       NegotiationIntervals& buffer;
-      int interval;
+      unsigned int interval;
     public:
       IntervalTraversal (NegotiationIntervals& buffer_)
 	: buffer (buffer_), interval (0) { }
@@ -73,8 +73,8 @@ namespace MUSIC {
 
     class BufferTraversal : public Implementation {
       std::vector<NegotiationIntervals>& buffers;
-      int buffer;
-      int interval;
+      unsigned int buffer;
+      unsigned int interval;
       void findInterval ();
     public:
       BufferTraversal (std::vector<NegotiationIntervals>& buffers);
@@ -132,8 +132,8 @@ namespace MUSIC {
     std::vector<NegotiationIntervals> remote;
     int width;
     int maxLocalWidth_;
-    int localRank;
-    int nProcesses;
+    unsigned int localRank;
+    unsigned int nProcesses;
     Connector* connector_; // used only for debugging
   public:
     SpatialNegotiator (IndexMap* indices, Index::Type type);

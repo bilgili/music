@@ -207,28 +207,13 @@ namespace MUSIC {
   {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
-#if 0
+
     if (tickInterval < remoteTickInterval (tickInterval))
       connector = new InterpolatingContOutputConnector (*this);
     else
       connector = new PlainContOutputConnector (*this);
-#else
-    if (tickInterval < remoteTickInterval (tickInterval))
-      connector = new InterpolatingContOutputConnector (info,
-							spatialNegotiator_,
-							comm,
-							intercomm,
-							sampler_,
-							type_);
-
-    else
-      connector = new PlainContOutputConnector (info,
-						spatialNegotiator_,
-						comm,
-						intercomm,
-						sampler_,
-						type_);
-#endif
+    
+    delete this; // delete ourselves!
     return connector;
   }
 
@@ -240,23 +225,6 @@ namespace MUSIC {
     distributor_.addRoutingInterval (i, osubconn->buffer ());
   }
   
-  
-  PlainContOutputConnector::PlainContOutputConnector
-  (ConnectorInfo connInfo,
-   SpatialNegotiator* spatialNegotiator,
-   MPI::Intracomm comm,
-   MPI::Intercomm intercomm,
-   Sampler& sampler,
-   MPI::Datatype type)
-    : Connector (connInfo, spatialNegotiator, comm, intercomm),
-      ContOutputConnector (connInfo,
-			   spatialNegotiator,
-			   comm,
-			   sampler,
-			   type)
-  {
-  }
-
   
   PlainContOutputConnector::PlainContOutputConnector
   (ContOutputConnector& connector)
@@ -288,23 +256,6 @@ namespace MUSIC {
   }
 
 
-  InterpolatingContOutputConnector::InterpolatingContOutputConnector
-  (ConnectorInfo connInfo,
-   SpatialNegotiator* spatialNegotiator,
-   MPI::Intracomm comm,
-   MPI::Intercomm intercomm,
-   Sampler& sampler,
-   MPI::Datatype type)
-    : Connector (connInfo, spatialNegotiator, comm, intercomm),
-      ContOutputConnector (connInfo,
-			   spatialNegotiator,
-			   comm,
-			   sampler,
-			   type)
-  {
-  }
-
-  
   InterpolatingContOutputConnector::InterpolatingContOutputConnector
   (ContOutputConnector& connector)
     : Connector (connector),
@@ -380,34 +331,14 @@ namespace MUSIC {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
     ClockState rTickInterval = remoteTickInterval (tickInterval);
-#if 0
+
     if (tickInterval < rTickInterval
 	|| (tickInterval == rTickInterval
 	    && !divisibleDelay (localTime)))
       connector = new InterpolatingContInputConnector (*this);
     else
       connector = new PlainContInputConnector (*this);
-#else
-    if (tickInterval < rTickInterval
-	|| (tickInterval == rTickInterval
-	    && !divisibleDelay (localTime)))
-      connector = new InterpolatingContInputConnector (info,
-						       spatialNegotiator_,
-						       comm,
-						       intercomm,
-						       sampler_,
-						       type_,
-						       delay_);
-
-    else
-      connector = new PlainContInputConnector (info,
-					       spatialNegotiator_,
-					       comm,
-					       intercomm,
-					       sampler_,
-					       type_,
-					       delay_);
-#endif
+    
     return connector;
   }
 
@@ -420,25 +351,6 @@ namespace MUSIC {
     collector_.addRoutingInterval (i, isubconn->buffer ());
   }
   
-  
-  PlainContInputConnector::PlainContInputConnector
-  (ConnectorInfo connInfo,
-   SpatialNegotiator* spatialNegotiator,
-   MPI::Intracomm comm,
-   MPI::Intercomm intercomm,
-   Sampler& sampler,
-   MPI::Datatype type,
-   double delay)
-    : Connector (connInfo, spatialNegotiator, comm, intercomm),
-      ContInputConnector (connInfo,
-			  spatialNegotiator,
-			  comm,
-			  sampler,
-			  type,
-			  delay_)
-  {
-  }
-
   
   PlainContInputConnector::PlainContInputConnector
   (ContInputConnector& connector)
@@ -475,25 +387,6 @@ namespace MUSIC {
   }
 
 
-  InterpolatingContInputConnector::InterpolatingContInputConnector
-  (ConnectorInfo connInfo,
-   SpatialNegotiator* spatialNegotiator,
-   MPI::Intracomm comm,
-   MPI::Intercomm intercomm,
-   Sampler& sampler,
-   MPI::Datatype type,
-   double delay)
-    : Connector (connInfo, spatialNegotiator, comm, intercomm),
-      ContInputConnector (connInfo,
-			  spatialNegotiator,
-			  comm,
-			  sampler,
-			  type,
-			  delay_)
-  {
-  }
-
-  
   InterpolatingContInputConnector::InterpolatingContInputConnector
   (ContInputConnector& connector)
     : Connector (connector),

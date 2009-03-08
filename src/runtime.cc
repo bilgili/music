@@ -25,11 +25,16 @@
 
 #include "music/runtime.hh"
 #include "music/temporal.hh"
+#include "music/error.hh"
 
 namespace MUSIC {
 
+  bool Runtime::isInstantiated_ = false;
+
   Runtime::Runtime (Setup* s, double h)
   {
+    checkInstantiatedOnce (isInstantiated_, "Runtime");
+    
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;
     
@@ -93,6 +98,8 @@ namespace MUSIC {
 	 ++connector)
       delete *connector;
 #endif
+
+    isInstantiated_ = false;
   }
   
 

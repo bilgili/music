@@ -55,6 +55,7 @@ namespace MUSIC {
 
   private:
     void checkConnected (std::string action);
+    bool isMapped_;
   };
 
   // A redistribution_port is a port with the ability to route

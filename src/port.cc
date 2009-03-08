@@ -26,7 +26,7 @@
 namespace MUSIC {
 
   Port::Port (Setup* s, std::string identifier)
-    : portName_ (identifier), setup_ (s)
+    : portName_ (identifier), setup_ (s), isMapped_ (false)
   {
     ConnectivityInfo_ = s->portConnectivity (portName_);
     setup_->addPort (this);
@@ -56,6 +56,10 @@ namespace MUSIC {
   void
   Port::assertOutput ()
   {
+    checkCalledOnce (isMapped_,
+		     "OutputPort::map (...)",
+		     " for port ",
+		     portName_);
     checkConnected ("map");
     if (ConnectivityInfo_->direction () != ConnectivityInfo::OUTPUT)
       {
@@ -70,6 +74,10 @@ namespace MUSIC {
   void
   Port::assertInput ()
   {
+    checkCalledOnce (isMapped_,
+		     "InputPort::map (...)",
+		     " for port ",
+		     portName_);
     checkConnected ("map");
     if (ConnectivityInfo_->direction () != ConnectivityInfo::INPUT)
       {

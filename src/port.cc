@@ -274,7 +274,6 @@ namespace MUSIC {
 			  int maxBuffered,
 			  bool interpolate)
   {
-    assertInput ();
     sampler.configure (dmap);
     delay_ = delay;
     type_ = dmap->type ();

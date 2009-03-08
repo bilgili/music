@@ -13,7 +13,6 @@ CLEANFILES = music-manual.aux \
 	     music-manual.ind \
 	     music-manual.lof \
 	     music-manual.log \
-	     music-manual.pdf \
 	     music-manual.toc \
 	     music-manual.stamp1
 

@@ -125,7 +125,6 @@ main (int argc, char *argv[])
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
 
   MPI::Intracomm comm = setup->communicator ();
-  int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
   
   getargs (rank, argc, argv);

@@ -160,7 +160,6 @@ main (int argc, char *argv[])
   
   int localWidth = width / nProcesses;
   int myWidth = localWidth;
-  int rest = width % nProcesses;
 
   if (rank == nProcesses-1)
     {

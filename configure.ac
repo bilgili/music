@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(incf-music, 1.0)
+AC_INIT(music, 1.0)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 
@@ -127,7 +127,7 @@ if test "$ac_test_CXXFLAGS" != set; then
   if test "$CXXFLAGS" = "-O2"; then
     CXXFLAGS="-O3"
   else
-    CXXFLAGS="-g -O3"
+    CXXFLAGS="-pedantic -Wall -Wno-long-long -g -O3"
   fi
 fi
 

@@ -1,3 +1,7 @@
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac (CXXFLAGS): Added -pedantic -Wall -Wno-long-long.
+
 2009-03-07  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Renamed package to incf-music (since people in the

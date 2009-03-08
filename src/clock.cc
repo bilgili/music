@@ -32,7 +32,7 @@ namespace MUSIC {
   {
     Serialized s;
     s.upper = (state >> 32);
-    s.lower = state & 0xffffffff;
+    s.lower = state & 0xffffffffLL;
     return s;
   }
 

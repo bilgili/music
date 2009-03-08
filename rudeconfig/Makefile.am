@@ -58,10 +58,10 @@ librudeconfig_la_SOURCES = src/AbstractData.cpp \
 
 librudeconfig_la_LDFLAGS = -version-info 5:1:2
 
-pkginclude_HEADERS = src/config.h
-pkgincludedir = $(includedir)/rude
+#pkginclude_HEADERS = src/config.h
+#pkgincludedir = $(includedir)/rude
 
-man_MANS = man3/rudeconfig.3
+#man_MANS = man3/rudeconfig.3
 
 EXTRA_DIST = $(man_MANS)
 

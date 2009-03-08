@@ -102,7 +102,8 @@ namespace MUSIC {
 
   class ContConnector : virtual public Connector {
   protected:
-    Sampler& sampler_;    
+    Sampler& sampler_;
+    MPI::Datatype type_;
     // We need to allocate instances of ContOutputConnector and
     // ContInputConnector and, therefore need dummy versions of the
     // following virtual functions:
@@ -110,7 +111,8 @@ namespace MUSIC {
     virtual void initialize () { }
     virtual void tick (bool&) { }
   public:
-    ContConnector (Sampler& sampler) : sampler_ (sampler) { }
+    ContConnector (Sampler& sampler, MPI::Datatype type)
+      : sampler_ (sampler), type_ (type) { }
     ClockState remoteTickInterval (ClockState tickInterval);
   };  
   
@@ -124,7 +126,8 @@ namespace MUSIC {
     ContOutputConnector (ConnectorInfo connInfo,
 			 SpatialNegotiator* spatialNegotiator,
 			 MPI::Intracomm comm,
-			 Sampler& sampler);
+			 Sampler& sampler,
+			 MPI::Datatype type);
     OutputSubconnector* makeOutputSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Connector* specialize (Clock& localTime);
@@ -137,7 +140,8 @@ namespace MUSIC {
 			      SpatialNegotiator* spatialNegotiator,
 			      MPI::Intracomm comm,
 			      MPI::Intercomm intercomm,
-			      Sampler& sampler);
+			      Sampler& sampler,
+			      MPI::Datatype type);
     PlainContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -152,7 +156,8 @@ namespace MUSIC {
 				      SpatialNegotiator* spatialNegotiator,
 				      MPI::Intracomm comm,
 				      MPI::Intercomm intercomm,
-				      Sampler& sampler);
+				      Sampler& sampler,
+				      MPI::Datatype type);
     InterpolatingContOutputConnector (ContOutputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -171,6 +176,7 @@ namespace MUSIC {
 			SpatialNegotiator* spatialNegotiator,
 			MPI::Intracomm comm,
 			Sampler& sampler,
+			MPI::Datatype type,
 			double delay);
     InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
     void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
@@ -188,6 +194,7 @@ namespace MUSIC {
 			     MPI::Intracomm comm,
 			     MPI::Intercomm intercomm,
 			     Sampler& sampler,
+			     MPI::Datatype type,
 			     double delay);
     PlainContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }
@@ -205,6 +212,7 @@ namespace MUSIC {
 				     MPI::Intracomm comm,
 				     MPI::Intercomm intercomm,
 				     Sampler& sampler,
+				     MPI::Datatype type,
 				     double delay);
     InterpolatingContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }

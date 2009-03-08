@@ -109,7 +109,7 @@ namespace MUSIC {
   OutputConnector::addRoutingInterval (IndexInterval i, OutputSubconnector* s)
   {
     // Default: Do nothing
-  };
+  }
 
 
 
@@ -154,7 +154,7 @@ namespace MUSIC {
   InputConnector::addRoutingInterval (IndexInterval i, InputSubconnector* s)
   {
     // Default: Do nothing
-  };
+  }
 
 
   /********************************************************************
@@ -183,9 +183,10 @@ namespace MUSIC {
   ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
 					    SpatialNegotiator* spatialNegotiator,
 					    MPI::Intracomm comm,
-					    Sampler& sampler)
+					    Sampler& sampler,
+					    MPI::Datatype type)
     : Connector (connInfo, spatialNegotiator, comm),
-      ContConnector (sampler)
+      ContConnector (sampler, type)
   {
   }
 
@@ -196,7 +197,8 @@ namespace MUSIC {
     return new ContOutputSubconnector (synchronizer (),
 				       intercomm,
 				       remoteRank,
-				       receiverPortName ());
+				       receiverPortName (),
+				       type_);
   }
   
 
@@ -205,7 +207,7 @@ namespace MUSIC {
   {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
-#if 0 // temporarily testing alternative code
+#if 0
     if (tickInterval < remoteTickInterval (tickInterval))
       connector = new InterpolatingContOutputConnector (*this);
     else
@@ -216,14 +218,16 @@ namespace MUSIC {
 							spatialNegotiator_,
 							comm,
 							intercomm,
-							sampler_);
+							sampler_,
+							type_);
 
     else
       connector = new PlainContOutputConnector (info,
 						spatialNegotiator_,
 						comm,
 						intercomm,
-						sampler_);
+						sampler_,
+						type_);
 #endif
     return connector;
   }
@@ -242,12 +246,14 @@ namespace MUSIC {
    SpatialNegotiator* spatialNegotiator,
    MPI::Intracomm comm,
    MPI::Intercomm intercomm,
-   Sampler& sampler)
+   Sampler& sampler,
+   MPI::Datatype type)
     : Connector (connInfo, spatialNegotiator, comm, intercomm),
       ContOutputConnector (connInfo,
 			   spatialNegotiator,
 			   comm,
-			   sampler)
+			   sampler,
+			   type)
   {
   }
 
@@ -287,12 +293,14 @@ namespace MUSIC {
    SpatialNegotiator* spatialNegotiator,
    MPI::Intracomm comm,
    MPI::Intercomm intercomm,
-   Sampler& sampler)
+   Sampler& sampler,
+   MPI::Datatype type)
     : Connector (connInfo, spatialNegotiator, comm, intercomm),
       ContOutputConnector (connInfo,
 			   spatialNegotiator,
 			   comm,
-			   sampler)
+			   sampler,
+			   type)
   {
   }
 
@@ -337,9 +345,10 @@ namespace MUSIC {
 					  SpatialNegotiator* spatialNegotiator,
 					  MPI::Intracomm comm,
 					  Sampler& sampler,
+					  MPI::Datatype type,
 					  double delay)
     : Connector (connInfo, spatialNegotiator, comm),
-      ContConnector (sampler),
+      ContConnector (sampler, type),
       delay_ (delay)
   {
   }
@@ -352,7 +361,8 @@ namespace MUSIC {
 				      intercomm,
 				      remoteRank,
 				      receiverRank,
-				      receiverPortName ());
+				      receiverPortName (),
+				      type_);
   }
 
 
@@ -370,7 +380,7 @@ namespace MUSIC {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
     ClockState rTickInterval = remoteTickInterval (tickInterval);
-#if 0 // temporarily testing alternative code
+#if 0
     if (tickInterval < rTickInterval
 	|| (tickInterval == rTickInterval
 	    && !divisibleDelay (localTime)))
@@ -386,6 +396,7 @@ namespace MUSIC {
 						       comm,
 						       intercomm,
 						       sampler_,
+						       type_,
 						       delay_);
 
     else
@@ -394,6 +405,7 @@ namespace MUSIC {
 					       comm,
 					       intercomm,
 					       sampler_,
+					       type_,
 					       delay_);
 #endif
     return connector;
@@ -415,12 +427,14 @@ namespace MUSIC {
    MPI::Intracomm comm,
    MPI::Intercomm intercomm,
    Sampler& sampler,
+   MPI::Datatype type,
    double delay)
     : Connector (connInfo, spatialNegotiator, comm, intercomm),
       ContInputConnector (connInfo,
 			  spatialNegotiator,
 			  comm,
 			  sampler,
+			  type,
 			  delay_)
   {
   }
@@ -467,12 +481,14 @@ namespace MUSIC {
    MPI::Intracomm comm,
    MPI::Intercomm intercomm,
    Sampler& sampler,
+   MPI::Datatype type,
    double delay)
     : Connector (connInfo, spatialNegotiator, comm, intercomm),
       ContInputConnector (connInfo,
 			  spatialNegotiator,
 			  comm,
 			  sampler,
+			  type,
 			  delay_)
   {
   }

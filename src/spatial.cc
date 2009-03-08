@@ -119,12 +119,12 @@ namespace MUSIC {
     // Now take maximum over all processes
     std::vector<int> m (nProcesses);
     comm.Allgather (&u, 1, MPI::INT, &m[0], 1, MPI::INT);
-    for (int i = 0; i < nProcesses; ++i)
+    for (unsigned int i = 0; i < nProcesses; ++i)
       if (m[i] > u)
 	u = m[i];
     width = u;
     comm.Allgather (&w, 1, MPI::INT, &m[0], 1, MPI::INT);
-    for (int i = 0; i < nProcesses; ++i)
+    for (unsigned int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];
     maxLocalWidth_ = w;
@@ -205,10 +205,12 @@ namespace MUSIC {
 				    int rank)
   {
     class Wrapper : public NegotiationIterator::Implementation {
-      IndexMap::iterator end_;
     protected:
       SpatialNegotiationData data;
       IndexMap::iterator i;
+    private:
+      IndexMap::iterator end_;
+    protected:
       int rank_;
     public:
       Wrapper (IndexMap::iterator beg,
@@ -433,13 +435,13 @@ namespace MUSIC {
     if (out.size () != nProcesses || in.size () != nProcesses)
       error ("internal error in SpatialNegotiator::allToAll ()");
     in[localRank] = out[localRank];
-    for (int i = 0; i < localRank; ++i)
+    for (unsigned int i = 0; i < localRank; ++i)
       receive (comm, i, in[i]);
-    for (int i = localRank + 1; i < nProcesses; ++i)
+    for (unsigned int i = localRank + 1; i < nProcesses; ++i)
       send (comm, i, out[i]);
-    for (int i = 0; i < localRank; ++i)
+    for (unsigned int i = 0; i < localRank; ++i)
       send (comm, i, out[i]);
-    for (int i = localRank + 1; i < nProcesses; ++i)
+    for (unsigned int i = localRank + 1; i < nProcesses; ++i)
       receive (comm, i, in[i]);
   }
   

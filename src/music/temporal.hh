@@ -47,7 +47,7 @@ namespace MUSIC {
     ClockState maxDelay;
     int nOutConnections;
     int nInConnections;
-    ConnectionDescriptor connection[0];
+    ConnectionDescriptor connection[1];
   };
 
   class ApplicationNode;

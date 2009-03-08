@@ -100,8 +100,9 @@ namespace MUSIC {
   int
   TemporalNegotiator::negotiationDataSize (int nBlocks, int nConnections)
   {
+    // -1 due to definition of connection member
     return (nBlocks * sizeof (TemporalNegotiationData)
-	    + nConnections * sizeof (ConnectionDescriptor));
+	    + (nConnections - 1) * sizeof (ConnectionDescriptor));
   }
 
 
@@ -322,7 +323,7 @@ namespace MUSIC {
 
 	// Compute how much headroom we have for buffering
 	ClockState totalDelay = 0;
-	for (int c = loop; c < path.size (); ++c)
+	for (unsigned int c = loop; c < path.size (); ++c)
 	  {
 	    MUSIC_LOGR ("latency = " << path[c].latency () << ", ti = "
 			<< path[c].pre ().tickInterval ());
@@ -336,7 +337,7 @@ namespace MUSIC {
 	    std::ostringstream ostr;
             ostr << "too short latency (" << - timebase * totalDelay
 		 << " s) around loop: " << path[loop].pre ().name ();
-	    for (int c = loop + 1; c < path.size (); ++c)
+	    for (unsigned int c = loop + 1; c < path.size (); ++c)
 	      ostr << ", " << path[c].pre ().name ();
 	    error0 (ostr.str ());
 	  }
@@ -345,7 +346,7 @@ namespace MUSIC {
         // (we could do better by considering constraints form other loops)
 	int loopLength = path.size () - loop;
         ClockState bufDelay = totalDelay / loopLength;
-        for (int c = 0; c < path.size (); ++c)
+        for (unsigned int c = 0; c < path.size (); ++c)
 	  {
 	    int allowedTicks = bufDelay / path[c].pre ().tickInterval ();
 	    path[c].setAllowedBuffer (std::min (path[c].allowedBuffer (),
@@ -483,6 +484,6 @@ namespace MUSIC {
   {
     // only used for error messages
     return (*negotiator_->setup ()->applicationMap ())[index].name ();
-  };
+  }
   
 }

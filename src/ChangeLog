@@ -1,3 +1,10 @@
+2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/port.hh, music/spatial.hh,
+	music/subconnector.hh, music/temporal.hh, configuration.cc,
+	connector.cc, port.cc, spatial.cc, subconnector.cc, temporal.cc:
+	Pass MPI::Datatype to ContSubconnectors; Some code cleanups.
+
 2009-03-06  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/synchronizer.hh, synchronizer.cc, connector.cc: Removed

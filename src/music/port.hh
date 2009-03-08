@@ -18,6 +18,8 @@
 
 #ifndef MUSIC_PORT_HH
 
+#include <mpi.h>
+
 #include <string>
 
 #include <music/data_map.hh>
@@ -106,6 +108,7 @@ namespace MUSIC {
   class ContPort : virtual public Port {
   protected:
     Sampler sampler;
+    MPI::Datatype type_;
   };
 
   class ContOutputPort : public ContPort,

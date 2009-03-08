@@ -31,7 +31,7 @@ extern "C" {
 #include <getopt.h>
 #include <stdlib.h>
 #include <stdio.h>
-};
+}
 
 using std::string;
 

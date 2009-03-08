@@ -129,15 +129,19 @@ namespace MUSIC {
 	    std::string width (cfile->getWidthAt (c));
 
 	    if (senderApp == "")
-	      if (secName == "")
-		error ("sender application not specified for output port " + senderPort);
-	      else
-		senderApp = secName;
+	      {
+		if (secName == "")
+		  error ("sender application not specified for output port " + senderPort);
+		else
+		  senderApp = secName;
+	      }
 	    if (receiverApp == "")
-	      if (secName == "")
-		error ("receiver application not specified for input port " + receiverPort);
-	      else
-		receiverApp = secName;
+	      {
+		if (secName == "")
+		  error ("receiver application not specified for input port " + receiverPort);
+		else
+		  receiverApp = secName;
+	      }
 	    if (senderApp == receiverApp)
 	      error ("port " + senderPort + " of application " + senderApp + " connected to the same application");
 

@@ -84,11 +84,9 @@ namespace MUSIC {
   void
   Distributor::IntervalCalculator::operator() (IndexInterval& indexInterval)
   {
-    MUSIC_LOG ("action!");
     interval_.setBegin (elementSize_
 			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
-    MUSIC_LOG ("end!");
   }
 
 

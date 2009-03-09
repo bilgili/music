@@ -68,7 +68,14 @@ namespace MUSIC {
       {
 	end = beginning + blockSize;
 	if (end > size)
-	  error ("BIFO buffer overflow");
+	  {
+	    std::ostringstream msg;
+	    msg << "BIFO buffer overflow; received "
+		<< blockSize / elementSize_
+		<< ", room " << (size - beginning) / elementSize_
+		<< ", permitted " << maxBlockSize_ / elementSize_;
+	    error (msg);
+	  }
 	if (current <= end)
 	  top = end;
       }

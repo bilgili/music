@@ -299,7 +299,9 @@ namespace MUSIC {
     std::vector<Connector*>::iterator c;
     for (c = connectors.begin (); c != connectors.end (); ++c)
       (*c)->initialize ();
-
+    
+    // compensate for first localTime.tick () in Runtime::tick ()
+    localTime.ticks (-1);
     while (localTime.integerTime () < 0)
       tick ();
   }

@@ -1,5 +1,14 @@
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* synchronizer.cc (Synchronizer::setMaxDelay (ClockState)): Moved
+	decrementing of localTime to Runtime::initialize.
+	(Synchronizer::setMaxDelay (ClockState, Clock&)): Use
+	Clock::setClockTicks to set startTime. (setMaxDelay may be called
+	multiple times.)
+	
+	* runtime.cc (Runtime::initialize): Decrement localTime one tick
+	here.
+
 	* music/temporal.hh, temporal.cc
 	(TemporalNegotiator::distributeParameters): New function.
 

@@ -1,5 +1,7 @@
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/clock.hh, clock.cc (Clock::setClockTicks): New function.
+
 	* BIFO.cc (BFIO::trimBlock): More informative overflow message.
 
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>

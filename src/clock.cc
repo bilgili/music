@@ -60,6 +60,13 @@ namespace MUSIC {
   
 
   void
+  Clock::setClockTicks (int n)
+  {
+    state_ = n * tickInterval_;
+  }
+  
+
+  void
   Clock::ticks (int n)
   {
     state_ += n * tickInterval_;

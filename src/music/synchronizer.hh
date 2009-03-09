@@ -37,7 +37,6 @@ namespace MUSIC {
     void setLocalTime (Clock* lt);
     virtual void setSenderTickInterval (ClockState ti);
     virtual void setReceiverTickInterval (ClockState ti);
-    // algorithm expects *extra* buffered ticks so we subtract 1
     void setMaxBuffered (int m);
     int allowedBuffered () { return maxBuffered_; }
     void setAccLatency (ClockState l);

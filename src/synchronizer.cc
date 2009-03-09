@@ -56,9 +56,8 @@ namespace MUSIC {
     localTime = lt;
     nextSend.configure (localTime->timebase (), localTime->tickInterval ());
     nextReceive.configure (localTime->timebase (), localTime->tickInterval ());
-    MUSIC_LOGBR (MPI::COMM_WORLD,
-		 "timebase = " << localTime->timebase ()
-		 << ", ti = " << localTime->tickInterval ());
+    MUSIC_LOGR ("timebase = " << localTime->timebase ()
+		<< ", ti = " << localTime->tickInterval ());
   }
 
   
@@ -66,7 +65,7 @@ namespace MUSIC {
   Synchronizer::setSenderTickInterval (ClockState ti)
   {
     nextSend.setTickInterval (ti);
-    MUSIC_LOGBR (MPI::COMM_WORLD, "nextSend.ti := " << ti);
+    MUSIC_LOGR ("nextSend.ti := " << ti);
   }
 
   
@@ -74,7 +73,7 @@ namespace MUSIC {
   Synchronizer::setReceiverTickInterval (ClockState ti)
   {
     nextReceive.setTickInterval (ti);
-    MUSIC_LOGBR (MPI::COMM_WORLD, "nextReceive.ti := " << ti);
+    MUSIC_LOGR ("nextReceive.ti := " << ti);
   }
 
   
@@ -82,7 +81,7 @@ namespace MUSIC {
   Synchronizer::setMaxBuffered (int m)
   {
     maxBuffered_ = m;
-    MUSIC_LOGBR (MPI::COMM_WORLD, "maxBuffered_ := " << m);
+    MUSIC_LOGR ("maxBuffered_ := " << m);
   }
 
 
@@ -90,7 +89,7 @@ namespace MUSIC {
   Synchronizer::setAccLatency (ClockState l)
   {
     latency_ = l;
-    MUSIC_LOGBR (MPI::COMM_WORLD, "latency_ := " << l);
+    MUSIC_LOGR ("latency_ := " << l);
   }
 
   
@@ -104,13 +103,12 @@ namespace MUSIC {
   void
   Synchronizer::setMaxDelay (ClockState maxDelay)
   {
-    MUSIC_LOGBR (MPI::COMM_WORLD, "setMaxDelay (" << maxDelay << ")");
+    MUSIC_LOGR ("setMaxDelay (" << maxDelay << ")");
     // back up clocks to start at -maxDelay
     setMaxDelay (maxDelay, *localTime);
     setMaxDelay (maxDelay, nextSend);
     setMaxDelay (maxDelay, nextReceive);
-    // compensate for first localTime.tick () in Runtime::tick ()
-    localTime->ticks (-1);
+    MUSIC_LOGR ("startTime = " << localTime->time ());
   }
 
 
@@ -121,7 +119,7 @@ namespace MUSIC {
     int delayedTicks = 0;
     if (maxDelay > 0)
       delayedTicks = 1 + (maxDelay - 1) / clock.tickInterval ();
-    clock.ticks (- delayedTicks);
+    clock.setClockTicks (- delayedTicks);
   }
   
   

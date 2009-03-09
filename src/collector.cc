@@ -88,10 +88,6 @@ namespace MUSIC {
     interval_.setBegin (elementSize_
 			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
-    MUSIC_LOGN (1,
-		"es = " << elementSize_
-		<< ", begin = " << interval_.begin ()
-		<< ", length = " << interval_.length ());
   }
 
 
@@ -116,7 +112,7 @@ namespace MUSIC {
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
 	  }
-	buffer->configure (size, size * (allowedBuffered_ + 2));
+	buffer->configure (size, size * allowedBuffered_);
       }
   }
 

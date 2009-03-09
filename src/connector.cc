@@ -364,7 +364,7 @@ namespace MUSIC {
   void
   PlainContInputConnector::initialize ()
   {
-    collector_.configure (sampler_.dataMap (), synch.allowedBuffered ());
+    collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
     collector_.initialize ();
     synch.initialize ();
   }
@@ -400,7 +400,7 @@ namespace MUSIC {
   InterpolatingContInputConnector::initialize ()
   {
     collector_.configure (sampler_.interpolationDataMap (),
-			  synch.allowedBuffered ());
+			  synch.allowedBuffered () + 1);
     collector_.initialize ();
     synch.initialize ();
   }

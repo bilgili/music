@@ -1,5 +1,12 @@
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* collector.cc: Collector shouldn't make assumptions and compute a
+	"better" maxBlockSize-value for the buffers.  Instead use
+	allowedBuffered as given when configured.
+
+	* connector.cc: Configure compute the actual needed buffer size
+	here instead.
+
 	* music/clock.hh, clock.cc (Clock::setClockTicks): New function.
 
 	* BIFO.cc (BFIO::trimBlock): More informative overflow message.

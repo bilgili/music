@@ -1,5 +1,8 @@
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/temporal.hh, temporal.cc
+	(TemporalNegotiator::distributeParameters): New function.
+
 	* collector.cc: Collector shouldn't make assumptions and compute a
 	"better" maxBlockSize-value for the buffers.  Instead use
 	allowedBuffered as given when configured.

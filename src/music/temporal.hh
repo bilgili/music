@@ -92,6 +92,7 @@ namespace MUSIC {
     void communicateNegotiationData ();
     void combineParameters ();
     void loopAlgorithm ();
+    void distributeParameters ();
     void broadcastNegotiationData ();
     void receiveNegotiationData ();
     void distributeNegotiationData (Clock& localTime);

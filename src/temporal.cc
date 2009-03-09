@@ -311,6 +311,25 @@ namespace MUSIC {
 
 
   void
+  TemporalNegotiator::distributeParameters ()
+  {
+    for (int o = 0; o < nApplications; ++o)
+      {
+	for (int c = 0; c < nodes[o].data->nOutConnections; ++c)
+	  {
+	    ConnectionDescriptor* out = &nodes[o].data->connection[c];
+	    int i = out->remoteNode;
+	    ConnectionDescriptor* in = findInputConnection (i,
+							    out->receiverPort);
+	  
+	    // store maxBuffered in sender units
+	    in->maxBuffered = out->maxBuffered;
+	  }
+      }
+  }
+
+
+  void
   TemporalNegotiator::depthFirst (ApplicationNode& x,
 				  std::vector<ConnectionEdge>& path)
   {
@@ -470,6 +489,7 @@ namespace MUSIC {
 	communicateNegotiationData ();
 	combineParameters ();
 	loopAlgorithm ();
+	distributeParameters ();
 	if (hasPeers ())
 	  broadcastNegotiationData ();
       }

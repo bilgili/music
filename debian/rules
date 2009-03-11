@@ -71,7 +71,7 @@ install: build
 #	( cd $(CURDIR)/doc; make music-manual.pdf )
 
 # Fill up examples directory
-	( cd $(CURDIR)/test; cp -p clocksource.cc contsink.cc constsource.cc eventdelay.cc contdelay.cc waveproducer.cc waveconsumer.cc *.music *.data *.dat $(CURDIR)/debian/libmusic-dev/usr/share/doc/libmusic-dev/examples/ )
+	( cd $(CURDIR)/test; cp -p README clocksource.cc contsink.cc constsource.cc eventdelay.cc contdelay.cc waveproducer.cc waveconsumer.cc *.music *.data *.dat $(CURDIR)/debian/libmusic-dev/usr/share/doc/libmusic-dev/examples/ )
 
 # Build architecture-independent files here.
 binary-indep: build install

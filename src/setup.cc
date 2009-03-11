@@ -102,7 +102,8 @@ namespace MUSIC {
 	 ++i)
       (*i)->setupCleanup ();
 
-    delete temporalNegotiator_;
+    if (launchedByMusic ())
+      delete temporalNegotiator_;
 
     // delete connection objects
     for (std::vector<Connection*>::iterator i = connections_->begin ();

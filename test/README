@@ -1,5 +1,17 @@
-This directory contains a number of small sample programs and scripts
-to run them.
+This directory contains a number of small sample programs and MUSIC
+configuration files.  Each configuration file (with file extension
+.music) is used to launch a set of programs in a multi-simulation.
+The configuration file variable "binary" tells MUSIC which program to
+launch.  Please make sure that such programs exist before you launch
+the simulation.
+
+It is possible to build each program in the standard way for your MPI
+distribution.  You also need to link with the MUSIC library.  This is
+how to build (if it wasn't already built for you automatically) the
+program `clocksource' used in the configuration file contclock.music
+under OpenMPI:
+
+  mpicxx clocksource.cc -lmusic
 
 * Demos
 

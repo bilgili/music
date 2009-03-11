@@ -1,5 +1,15 @@
 2009-03-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/port.hh
+	(OutputRedistributionPort::OutputRedistributionPort,
+	InputRedistributionPort::InputRedistributionPort): New
+	constructors: Initialize spatialNegotiator to NULL pointer.
+
+	* port.cc (OutputRedistributionPort::setupCleanup,
+	InputRedistributionPort::setupCleanup): Conditionally delete
+	spatialNegotiator.  (It has not been allocated if the port has not
+	been mapped.)
+
 	* music/BIFO.hh, music/clock.hh, music/connector.hh,
 	music/subconnector.hh, music/synchronizer.hh, music/temporal.hh,
 	BIFO.cc, clock.cc, connector.cc, port.cc, runtime.cc,

@@ -55,7 +55,7 @@ namespace MUSIC {
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();
-    connections_ = new std::vector<Connection*>; // destoyed by runtime
+    connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
 	// launched by the music utility

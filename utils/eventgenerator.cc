@@ -153,7 +153,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventgenerator port is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   MUSIC::Index::Type type;

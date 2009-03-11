@@ -46,7 +46,7 @@ the first argument to the music utility.  The test subdirectory
 contains a collection of examples, for example:
 
 cd test
-mpirun -np 4 /usr/local/bin/music events.music
+mpirun -np 4 /usr/local/bin/music demo.music
 
 
 * Porting

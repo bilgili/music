@@ -37,7 +37,7 @@
 
 namespace MUSIC {
 
-  // The connector is responsible for one side of the communication
+  // The Connector is responsible for one side of the communication
   // between the ports of a port pair.  An output port can have
   // multiple connectors while an input port only has one.  The method
   // connector::connect () creates one subconnector for each MPI

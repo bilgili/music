@@ -22,6 +22,11 @@
 
 namespace MUSIC {
 
+  // The Synchronizer is responsible for the timing involved in
+  // communication, sampling, interpolation and buffering.  There is
+  // one Synchronizer in each Connector.  The Subconnectors of a
+  // Connector also have a reference to the Connector's synchronizer.
+
   class Synchronizer {
   protected:
     Clock* localTime;

@@ -89,12 +89,14 @@ namespace MUSIC {
 			  int maxBuffered,
 			  int dataSize);
   public:
+    OutputRedistributionPort () : spatialNegotiator (0) { }
     void setupCleanup ();
   };
 
   class InputRedistributionPort : public OutputPort,
 				  public RedistributionPort {
   protected:
+    InputRedistributionPort () : spatialNegotiator (0) { }
     SpatialInputNegotiator* spatialNegotiator;
     virtual InputConnector* makeInputConnector (ConnectorInfo connInfo) = 0;
     void mapImpl (IndexMap* indices,

@@ -46,6 +46,11 @@ namespace MUSIC {
   public:
     BIFO () { }
     void configure (int elementSize, int maxBlockSize);
+
+    // Duplicate the single element in the buffer to a total of nElements
+    // 0 is allowed as argument in which case the buffer is emptied
+    void fill (int nElements);
+    
     bool isEmpty ();
     // NOTE: find better return type
     void* insertBlock ();

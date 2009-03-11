@@ -20,6 +20,16 @@
 
 namespace MUSIC {
 
+  ClockState::ClockState (double t, double tb)
+  {
+    double dstate = t / tb;
+    if (dstate >= 0.0)
+      state = dstate + 0.5;
+    else
+      state = dstate - 0.5;
+  }
+
+  
   ClockState
   ClockState::Serialized::deserialize ()
   {
@@ -39,7 +49,7 @@ namespace MUSIC {
 
   Clock::Clock (double tb, double h)
   {
-    configure (tb, h / tb + 0.5);
+    configure (tb, ClockState (h, tb));
   }
 
 
@@ -56,13 +66,6 @@ namespace MUSIC {
   Clock::tick ()
   {
     state_ += tickInterval_;
-  }
-  
-
-  void
-  Clock::setClockTicks (int n)
-  {
-    state_ = n * tickInterval_;
   }
   
 

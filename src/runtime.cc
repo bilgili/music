@@ -292,18 +292,26 @@ namespace MUSIC {
   void
   Runtime::initialize ()
   {
-    // clocks are already set by temporal negotiation to -maxDelay (in
-    // whole ticks so that all clocks will pass time zero)
-
     // initialize connectors (and synchronizers)
     std::vector<Connector*>::iterator c;
     for (c = connectors.begin (); c != connectors.end (); ++c)
       (*c)->initialize ();
-    
+
+    // receive first chunk of data from sender application and fill
+    // cont buffers according to Synchronizer::initialBufferedTicks ()
+    for (std::vector<Subconnector*>::iterator s = schedule.begin ();
+	 s != schedule.end ();
+	 ++s)
+      (*s)->initialCommunication ();
+
+    for (c = connectors.begin (); c != connectors.end (); ++c)
+      (*c)->prepareForSimulation ();
+
     // compensate for first localTime.tick () in Runtime::tick ()
     localTime.ticks (-1);
-    while (localTime.integerTime () < 0)
-      tick ();
+
+    // the time zero tick () (where we may or may not communicate)
+    tick ();
   }
 
   

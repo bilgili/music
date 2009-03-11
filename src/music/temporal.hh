@@ -44,7 +44,6 @@ namespace MUSIC {
   public:
     double timebase;
     ClockState tickInterval;
-    ClockState maxDelay;
     int nOutConnections;
     int nInConnections;
     ConnectionDescriptor connection[1];

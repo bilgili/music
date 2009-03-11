@@ -34,6 +34,7 @@ namespace MUSIC {
     // The following operations should be defined in this header file
     // so that they can be inlined by the compiler.
     inline ClockState (const long long s) : state (s) { }
+    ClockState (double t, double tb);
     inline operator long long () const { return state; }
     inline ClockState& operator+= (const ClockState& s)
     {
@@ -64,7 +65,6 @@ namespace MUSIC {
     Clock (double tb, double h);
     void configure (double tb, ClockState ti);
     void tick ();
-    void setClockTicks (int n);
     void ticks (int n);
     ClockState tickInterval () { return tickInterval_; }
     void setTickInterval (ClockState ti) { tickInterval_ = ti; }

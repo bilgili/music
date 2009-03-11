@@ -56,6 +56,7 @@ namespace MUSIC {
 		  int receiverRank,
 		  std::string receiverPortName);
     virtual ~Subconnector ();
+    virtual void initialCommunication () { }
     virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
     int remoteRank () const { return remoteRank_; }
@@ -95,6 +96,7 @@ namespace MUSIC {
 			    int remoteRank,
 			    std::string receiverPortName_,
 			    MPI::Datatype type);
+    void initialCommunication ();
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -112,6 +114,7 @@ namespace MUSIC {
 			   std::string receiverPortName,
 			   MPI::Datatype type);
     BIFO* buffer () { return &buffer_; }
+    void initialCommunication ();
     void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);

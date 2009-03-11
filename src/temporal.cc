@@ -174,8 +174,6 @@ namespace MUSIC {
 	negotiationData->connection[i].accLatency = 0;
       }
 
-    ClockState maxDelay = 0;
-    
     for (int i = 0; i < nIn; ++i)
       {
 	int remote = inputConnections[i].connector ()->remoteLeader ();
@@ -190,12 +188,7 @@ namespace MUSIC {
 	MUSIC_LOGR ("port " << inputConnections[i].connector ()->receiverPortName () << ": " << inputConnections[i].accLatency ());
 	negotiationData->connection[nOut + i].interpolate
 	  = inputConnections[i].interpolate ();
-	
-	if (inputConnections[i].accLatency () > maxDelay)
-	  maxDelay = inputConnections[i].accLatency ();
       }
-
-    negotiationData->maxDelay = maxDelay;
   }
 
 
@@ -257,17 +250,13 @@ namespace MUSIC {
   TemporalNegotiator::combineParameters ()
   {
     double timebase = nodes[0].data->timebase;
-    ClockState maxDelay = 0;
+
     for (int o = 0; o < nApplications; ++o)
       {
 	// check timebase
 	if (nodes[o].data->timebase != timebase)
 	  error0 ("applications don't use same timebase");
 
-	// compute maxDelay
-	if (nodes[o].data->maxDelay > maxDelay)
-	  maxDelay = nodes[o].data->maxDelay;
-	
 	for (int c = 0; c < nodes[o].data->nOutConnections; ++c)
 	  {
 	    ConnectionDescriptor* out = &nodes[o].data->connection[c];
@@ -306,7 +295,6 @@ namespace MUSIC {
 	    in->remoteTickInterval = nodes[o].data->tickInterval;
 	  }
       }
-    negotiationData->maxDelay = maxDelay;
   }
 
 
@@ -449,8 +437,6 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
-	// inform synchronizers about simulation-wide maximum delay
-	synch->setMaxDelay (negotiationData->maxDelay);
       }
 
     int nIn = negotiationData->nInConnections;
@@ -469,8 +455,6 @@ namespace MUSIC {
 	synch->setMaxBuffered (maxBuffered);
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
-	// inform synchronizers about simulation-wide maximum delay
-	synch->setMaxDelay (negotiationData->maxDelay);
       }
   }
 

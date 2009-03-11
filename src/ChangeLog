@@ -1,3 +1,11 @@
+2009-03-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/BIFO.hh, music/clock.hh, music/connector.hh,
+	music/subconnector.hh, music/synchronizer.hh, music/temporal.hh,
+	BIFO.cc, clock.cc, connector.cc, port.cc, runtime.cc,
+	subconnector.cc, synchronizer.cc, temporal.cc: Major revision of
+	timing logic.  Cont ports can now be connected in loops.
+
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* synchronizer.cc (Synchronizer::setMaxDelay (ClockState)): Moved

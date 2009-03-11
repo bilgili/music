@@ -241,18 +241,28 @@ namespace MUSIC {
     distributor_.configure (sampler_.dataMap ());
     distributor_.initialize ();
     synch.initialize ();
+
+    // put one element in send buffers
+    distributor_.distribute ();
   }
 
 
   void
   PlainContOutputConnector::tick (bool& requestCommunication)
   {
-    // copy application data to send buffers
-    distributor_.distribute ();
+    if (synch.sample ())
+      {
+	// copy application data to send buffers
+	MUSIC_LOG0 ("sampling at " << synch.localTime->time ());
+	distributor_.distribute ();
+      }
 
     synch.tick ();
     if (synch.communicate ())
-      requestCommunication = true;
+      {
+	MUSIC_LOG0 ("send!");
+	requestCommunication = true;
+      }
   }
 
 
@@ -261,7 +271,6 @@ namespace MUSIC {
     : Connector (connector),
       ContOutputConnector (connector)
   {
-    MUSIC_LOG ("InterpolatingContOutputConnector");
   }
 
 
@@ -271,6 +280,11 @@ namespace MUSIC {
     distributor_.configure (sampler_.interpolationDataMap ());
     distributor_.initialize ();
     synch.initialize ();
+
+    // put one element in send buffers
+    sampler_.sample ();
+    sampler_.interpolate (1.0);
+    distributor_.distribute ();
   }
 
   
@@ -320,7 +334,7 @@ namespace MUSIC {
   bool
   ContInputConnector::divisibleDelay (Clock& localTime)
   {
-    ClockState delay = delay_ / localTime.timebase () + 0.5;
+    ClockState delay (delay_, localTime.timebase ());
     return (delay % localTime.tickInterval ()) == 0;
   }
   
@@ -347,7 +361,6 @@ namespace MUSIC {
   ContInputConnector::addRoutingInterval (IndexInterval i,
 					  InputSubconnector* isubconn)
   {
-    MUSIC_LOG ("ContInputConnector::addRoutingInterval");
     collector_.addRoutingInterval (i, isubconn->buffer ());
   }
   
@@ -357,7 +370,6 @@ namespace MUSIC {
     :  Connector (connector),
        ContInputConnector (connector)
   {
-    MUSIC_LOG ("PlainContInputConnector");
   }
 
 
@@ -390,9 +402,9 @@ namespace MUSIC {
   InterpolatingContInputConnector::InterpolatingContInputConnector
   (ContInputConnector& connector)
     : Connector (connector),
-      ContInputConnector (connector)
+      ContInputConnector (connector),
+      first_ (true)
   {
-    MUSIC_LOG ("InterpolatingContInputConnector");
   }
 
 
@@ -404,7 +416,7 @@ namespace MUSIC {
     collector_.initialize ();
     synch.initialize ();
   }
-  
+
 
   void
   InterpolatingContInputConnector::tick (bool& requestCommunication)
@@ -418,6 +430,12 @@ namespace MUSIC {
   void
   InterpolatingContInputConnector::postCommunication ()
   {
+    if (first_)
+      {
+	collector_.collect (sampler_.insert ());
+	synch.remoteTick ();
+	first_ = false;
+      }
     if (synch.sample ())
       {
 	collector_.collect (sampler_.insert ());

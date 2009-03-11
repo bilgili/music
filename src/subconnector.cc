@@ -79,6 +79,13 @@ namespace MUSIC {
   
 
   void
+  ContOutputSubconnector::initialCommunication ()
+  {
+    send ();
+  }
+  
+
+  void
   ContOutputSubconnector::maybeCommunicate ()
   {
     if (synch->communicate ())
@@ -146,6 +153,14 @@ namespace MUSIC {
   {
   }
 
+
+  void
+  ContInputSubconnector::initialCommunication ()
+  {
+    receive ();
+    buffer_.fill (synch->initialBufferedTicks ());
+  }
+  
 
   void
   ContInputSubconnector::maybeCommunicate ()

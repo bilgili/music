@@ -19,6 +19,8 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
+#include <cstring>
+
 #include "music/error.hh"
 
 #include "music/BIFO.hh"
@@ -36,6 +38,48 @@ namespace MUSIC {
     end = 0;
     current = 0;
     top = 0;
+  }
+
+
+  // Duplicate the single element in the buffer to a total of nElements
+  // 0 is allowed as argument in which case the buffer is emptied
+  void
+  BIFO::fill (int nElements)
+  {
+    int neededSize = nElements * elementSize_;
+    if (neededSize > size)
+      grow (neededSize);
+    
+    if (end - current != elementSize_)
+      error ("internal error: BIFO in erroneous state before fill");
+    
+    beginning = 0;
+    
+    if (nElements == 0)
+      {
+	end = 0;
+	current = 0;
+	top = 0;
+	return;
+      }
+
+    // Here we use the assumption that vector memory is contiguous
+    // Josuttis says this is the intention of STL even though the
+    // first version of the report is not clear about this.
+
+    if (current != 0)
+      {
+	memcpy (&buffer[0], &buffer[current], elementSize_);
+	current = 0;
+      }
+    
+    top = elementSize_;
+    end = nElements * elementSize_;
+    while (top < end)
+      {
+	memcpy (&buffer[top], &buffer[0], elementSize_);
+	top += elementSize_;
+      }
   }
 
   
@@ -90,12 +134,17 @@ namespace MUSIC {
 	MUSIC_LOGR ("attempt to read from empty BIFO buffer");
 	return NULL;
       }
+    
     if (current == top)
       {
 	// wrap around
 	current = 0;
 	top = end;
       }
+    
+    // Here we use the assumption that vector memory is contiguous
+    // Josuttis says this is the intention of STL even though the
+    // first version of the report is not clear about this.
     void* memory = static_cast<void*> (&buffer[current]);
     current += elementSize_;
     return memory;

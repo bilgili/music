@@ -75,6 +75,7 @@ namespace MUSIC {
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 			std::vector<InputSubconnector*>& isubconn) { }
     virtual void initialize () = 0;
+    virtual void prepareForSimulation () { }
     virtual void tick (bool& requestCommunication) = 0;
   };
 
@@ -187,6 +188,7 @@ namespace MUSIC {
   class InterpolatingContInputConnector : public ContInputConnector,
 					  public InterpolatingConnector {
     InterpolationInputSynchronizer synch;
+    bool first_;
   public:
     InterpolatingContInputConnector (ContInputConnector& connector);
     Synchronizer* synchronizer () { return &synch; }

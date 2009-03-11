@@ -101,29 +101,6 @@ namespace MUSIC {
 
 
   void
-  Synchronizer::setMaxDelay (ClockState maxDelay)
-  {
-    MUSIC_LOGR ("setMaxDelay (" << maxDelay << ")");
-    // back up clocks to start at -maxDelay
-    setMaxDelay (maxDelay, *localTime);
-    setMaxDelay (maxDelay, nextSend);
-    setMaxDelay (maxDelay, nextReceive);
-    MUSIC_LOGR ("startTime = " << localTime->time ());
-  }
-
-
-  void
-  Synchronizer::setMaxDelay (ClockState maxDelay, Clock& clock)
-  {
-    // setup start time
-    int delayedTicks = 0;
-    if (maxDelay > 0)
-      delayedTicks = 1 + (maxDelay - 1) / clock.tickInterval ();
-    clock.setClockTicks (- delayedTicks);
-  }
-  
-  
-  void
   Synchronizer::initialize ()
   {
     nextCommunication ();
@@ -137,12 +114,45 @@ namespace MUSIC {
   }
 
 
+  bool
+  OutputSynchronizer::sample ()
+  {
+    return (localTime->integerTime () + latency_ + nextReceive.tickInterval ()
+	    > 0);
+  }
+
+  
   void
   OutputSynchronizer::tick ()
   {
     if (*localTime > nextSend)
       nextCommunication ();
     communicate_ = *localTime == nextSend;
+  }
+
+
+  int
+  InputSynchronizer::initialBufferedTicks ()
+  {
+    if (nextSend.tickInterval () < nextReceive.tickInterval ())
+      {
+	if (latency_ <= 0)
+	  return 0;
+	else
+	  {
+	    int ticks = (latency_ - 1) / nextReceive.tickInterval ();
+	    if (latency_ >= nextSend.tickInterval ())
+	      ticks += 1;
+	    return ticks;
+	  }
+      }
+    else
+      {
+	if (latency_ <= 0)
+	  return 0;
+	else
+	  return 1 + (latency_ - 1) / nextReceive.tickInterval ();;
+      }
   }
 
   
@@ -183,7 +193,15 @@ namespace MUSIC {
   void
   InterpolationOutputSynchronizer::initialize ()
   {
-    remoteTime.set (- latency_);
+    if (latency_ > 0)
+      {
+	ClockState startTime = - latency_ % remoteTime.tickInterval ();
+	if (latency_ >= localTime->tickInterval ())
+	  startTime = startTime + remoteTime.tickInterval ();
+	remoteTime.set (startTime);
+      }
+    else
+      remoteTime.set (- latency_);
     Synchronizer::initialize ();
   }
 
@@ -233,6 +251,7 @@ namespace MUSIC {
     double c = ((double) (remoteTime.integerTime () - prevSampleTime)
 		/ (double) localTime->tickInterval ());
     
+    MUSIC_LOGR ("interpolationCoefficient = " << c);
     // NOTE: preliminary implementation which just provides
     // the functionality specified in the API
     if (interpolate_)
@@ -252,8 +271,12 @@ namespace MUSIC {
   void
   InterpolationInputSynchronizer::initialize ()
   {
-    remoteTime.set (nextSend.integerTime () - remoteTime.tickInterval ()
-		    + latency_);
+    if (latency_ > 0)
+      remoteTime.set (latency_ % remoteTime.tickInterval ()
+		      - 2 * remoteTime.tickInterval ());
+    else
+      remoteTime.set (latency_ % remoteTime.tickInterval ()
+		      - remoteTime.tickInterval ());
     Synchronizer::initialize ();
   }
 
@@ -272,7 +295,8 @@ namespace MUSIC {
       = remoteTime.integerTime () - remoteTime.tickInterval ();
     double c = ((double) (localTime->integerTime () - prevSampleTime)
 		/ (double) remoteTime.tickInterval ());
-    
+
+    MUSIC_LOGR ("interpolationCoefficient = " << c);
     // NOTE: preliminary implementation which just provides
     // the functionality specified in the API
     if (interpolate_)

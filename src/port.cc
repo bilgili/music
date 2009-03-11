@@ -179,7 +179,7 @@ namespace MUSIC {
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
     InputConnector* connector = makeInputConnector (*info);
-    ClockState integerLatency = accLatency / setup_->timebase () + 0.5;
+    ClockState integerLatency (accLatency, setup_->timebase ());
     setup_->addConnection (new InputConnection (connector,
 						maxBuffered,
 						integerLatency,

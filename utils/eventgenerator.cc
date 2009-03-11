@@ -203,6 +203,8 @@ main (int argc, char *argv[])
 
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
 
+  srand48 (rank);		// Use different seeds
+
   double m = 1.0 / freq;
   for (unsigned int i = 0; i < ids.size (); ++i)
     nextSpike.push_back (negexp (m));

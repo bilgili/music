@@ -4,6 +4,19 @@ Copyright (C) 2009 INCF
 Please send MUSIC bug reports to music-bugs@incf.org.
 
 
+Changes in 1.0.2:
+
+* music library
+
+** Better error reporting.
+
+** Bug fixes.
+
+** New README file in test directory.
+
+** New demo in test directory.
+
+
 Changes in 1.0.1:
 
 * music utility

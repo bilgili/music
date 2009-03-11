@@ -1,3 +1,7 @@
+2009-03-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Added AM_MAINTAINER_MODE.
+
 2009-03-09  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (debian-source): Copy manual source into debian

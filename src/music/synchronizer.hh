@@ -29,13 +29,38 @@ namespace MUSIC {
 
   class Synchronizer {
   protected:
+    // pointer to the main clock of this application
     Clock* localTime;
+
+    // the following two clocks are mirrored on both peers; this is
+    // the core of the mechanism by which MUSIC avoids handshaking
+    
+    // this clock holds the time (in the sender time frame) when an
+    // OutputConnector is going to send next packet of data to its
+    // peer InputConnector
     Clock nextSend;
+
+    // this clock holds the time (in the receiver time frame) when an
+    // InputConnector is going to receive next packet of data from its
+    // peer OutputConnector
     Clock nextReceive;
+
+    // for events and messages, this is how late data is permitted to
+    // arrive at the receiver; for continous data this is how much
+    // data is delayed; negative values are allowed
     ClockState latency_;
+
+    // how much extra buffering is allowed; measured in units of
+    // sender side ticks
     int maxBuffered_;
+
+    // interpolate rather than picking value closest in time
     bool interpolate_;
+
+    // cached decision to communicate; (nextSend or nextReceive time
+    // has arrived)
     bool communicate_;
+    
     void nextCommunication ();
   public:
     void setLocalTime (Clock* lt);

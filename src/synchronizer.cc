@@ -25,6 +25,8 @@
 #include <iostream>
 namespace MUSIC {
 
+  // This is the algorithm updating the communication schedule
+  // realized by the clocks nextSend and nextReceive
   void
   Synchronizer::nextCommunication ()
   {
@@ -49,6 +51,8 @@ namespace MUSIC {
 		<< ", next receive at " << nextReceive.time ());
   }
 
+  // The following set of mutators are used by the TemporalNegotiator
+  // to configure the Synchronizer
   
   void
   Synchronizer::setLocalTime (Clock* lt)
@@ -99,7 +103,7 @@ namespace MUSIC {
     interpolate_ = flag;
   }
 
-
+  // Advance nextSend and nextReceive to first pair of communication times
   void
   Synchronizer::initialize ()
   {
@@ -114,6 +118,11 @@ namespace MUSIC {
   }
 
 
+  // Start sampling (and fill the output buffers) at a time dependent
+  // on latency and receiver's tick interval.  A negative latency can
+  // delay start of sampling beyond time 0.  The tickInterval together
+  // with the strict comparison has the purpose of supplying an
+  // interpolating receiver side with samples.
   bool
   OutputSynchronizer::sample ()
   {
@@ -131,26 +140,46 @@ namespace MUSIC {
   }
 
 
+  // Return the number of copies of the data sampled by the sender
+  // Runtime constructor which should be stored in the receiver
+  // buffers at the first tick () (which occurs at the end of the
+  // Runtime constructor)
   int
   InputSynchronizer::initialBufferedTicks ()
   {
     if (nextSend.tickInterval () < nextReceive.tickInterval ())
       {
+	// InterpolatingOutputConnector - PlainInputConnector
+	
 	if (latency_ <= 0)
 	  return 0;
 	else
 	  {
+	    // Need to add a sample first when we pass the receiver
+	    // tick (=> - 1).  If we haven't passed, the interpolator
+	    // could simply use an interpolation coefficient of 0.0.
+	    // (But this will never happen since that case isn't
+	    // handled by an InterpolatingOutputConnector.)
 	    int ticks = (latency_ - 1) / nextReceive.tickInterval ();
+	    
+	    // Need to add a sample if we go outside of the sender
+	    // interpolation window
 	    if (latency_ >= nextSend.tickInterval ())
 	      ticks += 1;
+	    
 	    return ticks;
 	  }
       }
     else
       {
+	// PlainOutputConnector - InterpolatingInputConnector
+	
 	if (latency_ <= 0)
 	  return 0;
 	else
+	  // Need to add a sample first when we pass the receiver
+	  // tick (=> - 1).  If we haven't passed, the interpolator
+	  // can simply use an interpolation coefficient of 0.0.
 	  return 1 + (latency_ - 1) / nextReceive.tickInterval ();;
       }
   }
@@ -190,6 +219,13 @@ namespace MUSIC {
   }
 
 
+  // Set the remoteTime which is used to control sampling and
+  // interpolation.
+  //
+  // For positive latencies, the integer part (in terms of receiver
+  // ticks) of the latency is handled by filling up the receiver
+  // buffers using InputSynchronizer::initialBufferedTicks ().
+  // remoteTime then holds the fractional part.
   void
   InterpolationOutputSynchronizer::initialize ()
   {

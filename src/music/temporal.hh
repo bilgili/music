@@ -53,6 +53,9 @@ namespace MUSIC {
 
   class ConnectionEdge;
 
+  // The TemporalNegotiator negotiates communication timing parameters
+  // with all other applications.
+  
   class TemporalNegotiator {
     Setup* setup_;
     MPI::Intracomm negotiationComm;

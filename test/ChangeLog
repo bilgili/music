@@ -2,6 +2,7 @@
 
 	* Makefile.am: Automatically build all test programs (but don't
 	install them).
+	(EXTRA_DIST): Added cloop.music.
 
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

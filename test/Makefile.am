@@ -6,9 +6,9 @@ bin_PROGRAMS = eventlogger
 noinst_PROGRAMS = clocksource contsink constsource eventdelay contdelay \
 		  waveproducer waveconsumer
 
-EXTRA_DIST = chain.music const.music contclock.music events.music \
-             fork.music loop.music wavetest.music viewevents.music \
-             neuronGrid.data spikes0.dat spikes1.dat
+EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
+	     events.music fork.music loop.music wavetest.music		\
+	     viewevents.music neuronGrid.data spikes0.dat spikes1.dat
 
 waveproducer_SOURCES = waveproducer.cc
 waveproducer_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@

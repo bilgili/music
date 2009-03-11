@@ -124,8 +124,8 @@ void VisualiseNeurons::run(int argc, char **argv) {
 
   if (!evport->isConnected()) {
     if (rank_ == 0)
-      std::cerr << "eventlog port is not connected" << std::endl;
-    exit (1);
+      std::cerr << "port `plot' is not connected" << std::endl;
+    comm.Abort (1);
   }
 
   if(evport->width() != (int) coords_.size()) {

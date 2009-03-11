@@ -140,7 +140,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventdelay input port is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
@@ -148,7 +148,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventdelay output port is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   // Optional extra input port

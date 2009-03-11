@@ -138,7 +138,7 @@ main (int argc, char* argv[])
     {
       if (rank == 0)
 	std::cerr << "port `in' is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   // Split the width among the available processes

@@ -199,7 +199,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventselect port in is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
@@ -207,7 +207,7 @@ main (int argc, char *argv[])
     {
       if (rank == 0)
 	std::cerr << "eventselect port out is not connected" << std::endl;
-      exit (1);
+      comm.Abort (1);
     }
 
   mapOutput (out, nProcesses, rank, units);

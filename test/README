@@ -65,3 +65,11 @@ cloop.music
    gradually accumulated.
 
    $ mpirun -np 4 music cloop.music
+
+
+wavetest.music
+   Send sinusoidal waves from one distributes application
+   to another.  The receiving application writes the result
+   in files named dumpfile0.out, dumpfile1.out and dumpfile2.out.
+
+   $ mpirun -np 7 music wavetest.music

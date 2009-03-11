@@ -65,7 +65,7 @@ void VisualiseNeurons::getArgs(int argc, char* argv[]) {
 	  continue;
 	case 's':
           synchFlag_ = 1;
-          scaleTime_ = atof(optarg); //*fixme* error checking
+          scaleTime_ = atof(optarg);
           std::cout << "Using scaletime: " << scaleTime_ << std::endl;
 	  continue;
 	case '?':
@@ -345,8 +345,9 @@ void VisualiseNeurons::tick() {
 
   if(!done_){
 
-    // What is real time before tick is called
-    // gettimeofday(&tickStartTime_,NULL);
+    // Reinitialize realtime clock at first tick
+    if (runtime_->time () == 0.0)
+      gettimeofday(&tickStartTime_,NULL);
 
 
 #if 0
@@ -571,7 +572,7 @@ void VisualiseNeurons::readConfigFile(string filename) {
   spikeScale_ = (spikeScale_ > 0) ? spikeScale_ : 0;
 
   std::cout << "Read " << i << " neuron positions" << std::endl;
-  std::cout << "Setting spike scalign to " << spikeScale_ << std::endl;
+  std::cout << "Setting spike scaling to " << spikeScale_ << std::endl;
 }
 
 

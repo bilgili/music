@@ -1,5 +1,5 @@
-music (1.0.1-1) unstable; urgency=low
+music (1.0.2-1) unstable; urgency=low
 
   * Initial Release (Closes: #518538, #518541, #518542, #518543, #518544)
 	
- -- Mikael Djurfeldt <mdj@debian.org>  Thu, 05 Mar 2009 13:40:44 +0100
+ -- Mikael Djurfeldt <mdj@debian.org>  Wed, 11 Mar 2009 23:32:38 +0100

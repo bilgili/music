@@ -328,6 +328,11 @@ namespace MUSIC {
       }
     while (dataStillFlowing);
     
+    for (std::vector<Connector*>::iterator connector = connectors.begin ();
+	 connector != connectors.end ();
+	 ++connector)
+      (*connector)->freeIntercomm ();
+    
     MPI::Finalize ();
   }
 

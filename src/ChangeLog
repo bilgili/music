@@ -1,5 +1,13 @@
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* runtime.cc (Runtime::finalize): Call Connector::freeIntercomm
+	().
+
+	* music/connector.hh, connector.cc (Connector::freeIntercomm): New
+	member function.  (Actual freeing disabled for now.)
+
+2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
 	* Release 1.0.2
 
 	* version.cc: Updated to version 1.0.2.

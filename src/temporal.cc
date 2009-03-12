@@ -35,6 +35,8 @@ namespace MUSIC {
   {
     freeNegotiationData (negotiationBuffer);
     //negotiationComm.Free ();
+    applicationLeaders.Free ();
+    groupWorld.Free ();
   }
 
 
@@ -82,11 +84,10 @@ namespace MUSIC {
 	if (leader == localRank)
 	  localNode = i;
       }
-    MPI::Group groupWorld = MPI::COMM_WORLD.Get_group ();
-    MPI::Group applicationLeaders = groupWorld.Incl (nApplications, ranks);
+    groupWorld = MPI::COMM_WORLD.Get_group ();
+    applicationLeaders = groupWorld.Incl (nApplications, ranks);
     delete[] ranks;
     negotiationComm = MPI::COMM_WORLD.Create (applicationLeaders);
-    applicationLeaders.Free ();
   }
 
 

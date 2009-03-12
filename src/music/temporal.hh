@@ -58,6 +58,8 @@ namespace MUSIC {
   
   class TemporalNegotiator {
     Setup* setup_;
+    MPI::Group groupWorld;
+    MPI::Group applicationLeaders;
     MPI::Intracomm negotiationComm;
     std::map<int, int> leaderToNode;
     int nApplications; // initialized by createNegotiationCommunicator

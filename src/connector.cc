@@ -71,6 +71,13 @@ namespace MUSIC {
 
 
   void
+  Connector::freeIntercomm ()
+  {
+    //intercomm.Free ();
+  }
+
+
+  void
   OutputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
    std::vector<InputSubconnector*>& isubconn)

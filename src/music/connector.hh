@@ -71,6 +71,7 @@ namespace MUSIC {
     bool isLeader ();
     virtual Synchronizer* synchronizer () = 0;
     void createIntercomm ();
+    void freeIntercomm ();
     virtual void
     spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
 			std::vector<InputSubconnector*>& isubconn) { }

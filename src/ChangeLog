@@ -7,10 +7,10 @@
 	groups throughout communication.
 
 	* runtime.cc (Runtime::finalize): Call Connector::freeIntercomm
-	().
+	(); Include a barrier call to make freeing work under OpenMPI.
 
 	* music/connector.hh, connector.cc (Connector::freeIntercomm): New
-	member function.  (Actual freeing disabled for now.)
+	member function.
 
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

@@ -327,6 +327,10 @@ namespace MUSIC {
 	  (*c)->flush (dataStillFlowing);
       }
     while (dataStillFlowing);
+
+    // This is needed in OpenMPI for the freeing of the
+    // intercommunicators to go well
+    MPI::COMM_WORLD.Barrier ();
     
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();

@@ -34,7 +34,11 @@ namespace MUSIC {
   TemporalNegotiator::~TemporalNegotiator ()
   {
     freeNegotiationData (negotiationBuffer);
-    //negotiationComm.Free ();
+
+    // Free negotiation communicator in application leaders
+    if (negotiationComm != MPI::COMM_NULL)
+      negotiationComm.Free ();
+    
     applicationLeaders.Free ();
     groupWorld.Free ();
   }

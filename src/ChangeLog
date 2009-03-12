@@ -4,8 +4,7 @@
 	(class TemporalNegotiator,
 	TemporalNegotiator::createNegotiationCommunicator,
 	TemporalNegotiator::~TemporalNegotiator): Keep handles to MPI
-	groups throughout communication.  (Actual freeing of
-	negotiationComm disabled for now.)
+	groups throughout communication.
 
 	* runtime.cc (Runtime::finalize): Call Connector::freeIntercomm
 	().

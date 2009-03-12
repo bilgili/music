@@ -1,5 +1,12 @@
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/temporal.hh, temporal.cc
+	(class TemporalNegotiator,
+	TemporalNegotiator::createNegotiationCommunicator,
+	TemporalNegotiator::~TemporalNegotiator): Keep handles to MPI
+	groups throughout communication.  (Actual freeing of
+	negotiationComm disabled for now.)
+
 	* runtime.cc (Runtime::finalize): Call Connector::freeIntercomm
 	().
 

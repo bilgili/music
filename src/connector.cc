@@ -73,7 +73,7 @@ namespace MUSIC {
   void
   Connector::freeIntercomm ()
   {
-    //intercomm.Free ();
+    intercomm.Free ();
   }
 
 

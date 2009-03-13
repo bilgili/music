@@ -1,3 +1,7 @@
+2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc: #include "config.h"
+
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/temporal.hh, temporal.cc

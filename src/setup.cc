@@ -20,6 +20,9 @@
 #include "music/debug.hh"
 
 #include <mpi.h>
+
+#include "config.h"
+
 #include "music/setup.hh"
 #include "music/runtime.hh"
 #include "music/parse.hh"

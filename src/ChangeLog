@@ -1,5 +1,7 @@
 2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* Release 1.0.3
+	
 	* setup.cc: #include "config.h"
 
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>

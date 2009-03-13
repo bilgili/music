@@ -1,8 +1,10 @@
+* duplicate COMM_WORLD and use that throughout library?
+
 * connector signature checking when connecting to peers (cont ports:
   common MPI data types + unknown + size)
 
 * Check that all administrative objects get deallocated at start of runtime
-  (for example TemporalNegotiator)
+  (for example the objects assoicated with configuration)
 
 * lift out as much as possible of the negotiation stuff from
   connectors and move to connections, for example ConnectorInfo and
@@ -13,8 +15,6 @@
 * report port name if missing
 
 * alternative implementation for clockstate (not long long)
-
-* debug timing in continuous loops
 
 * Code duplication sampler - distributor - collector - kommentarer
 

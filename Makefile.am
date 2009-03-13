@@ -12,5 +12,7 @@ debian-source: dist
 	mkdir $(debdir)/doc/figures
 	cp -p doc/figures/*.asy $(debdir)/doc/figures
 
+EXTRA_DIST = BUGS
+
 dist-hook:
 	rm $(distdir)/TODO

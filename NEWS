@@ -4,6 +4,16 @@ Copyright (C) 2009 INCF
 Please send MUSIC bug reports to music-bugs@incf.org.
 
 
+Changes in 1.0.3:
+
+* music library
+
+** Fixes a bug which occurs in Runtime::finalize () when using the
+   threading version of the Setup constructor under OpenMPI 1.2.7.
+
+** Other smaller fixes.
+
+
 Changes in 1.0.2:
 
 * music library

@@ -41,6 +41,8 @@ namespace MUSIC {
     // NOTE: find better return type
     void* insert ();
     void insert (void* elements, int n_elements);
+    void clear ();
+    void nextBlockNoClear (void*& data, int& size);
     void nextBlock (void*& data, int& size);
   };
   

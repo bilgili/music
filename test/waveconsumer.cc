@@ -19,7 +19,7 @@ main (int args, char* argv[])
   comm = setup->communicator ();
   int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();       // which process am I?
-  int width;
+  int width = 0;
   if (wavedata->hasWidth ())
     width = wavedata->width ();
   else

@@ -563,6 +563,8 @@ namespace MUSIC {
 						  MPI::Intracomm comm,
 						  std::vector<FIBO*>& buffers)
     : Connector (connInfo, spatialNegotiator, comm),
+      buffer (1),
+      bufferAdded (false),
       buffers_ (buffers)
   {
   }
@@ -581,7 +583,8 @@ namespace MUSIC {
     return new MessageOutputSubconnector (&synch,
 					  intercomm,
 					  remoteRank,
-					  receiverPortName ());
+					  receiverPortName (),
+					  &buffer);
   }
 
 
@@ -589,7 +592,11 @@ namespace MUSIC {
   MessageOutputConnector::addRoutingInterval (IndexInterval i,
 					      OutputSubconnector* osubconn)
   {
-    buffers_.push_back (osubconn->buffer ());
+    if (!bufferAdded)
+      {
+	buffers_.push_back (&buffer);
+	bufferAdded = true;
+      }
   }
   
   
@@ -600,6 +607,14 @@ namespace MUSIC {
     // Only assign requestCommunication if true
     if (synch.communicate ())
       requestCommunication = true;
+  }
+
+  
+  void
+  MessageOutputConnector::postCommunication ()
+  {
+    if (synch.communicate ())
+      buffer.clear ();
   }
 
   
@@ -614,7 +629,7 @@ namespace MUSIC {
   {
   }
 
-  
+
   void
   MessageInputConnector::initialize ()
   {

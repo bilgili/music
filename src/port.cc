@@ -551,8 +551,8 @@ namespace MUSIC {
   void
   MessageOutputPort::insertMessage (double t, void* msg, size_t size)
   {
-    // This should be reorganized so that multiple subconnectors can
-    // share one output buffer
+    // One output buffer per OutputConnector (since different
+    // connectors may need to send at different times)
     for (std::vector<FIBO*>::iterator b = buffers.begin ();
 	 b != buffers.end ();
 	 ++b)

@@ -4,12 +4,12 @@ ACLOCAL = $(top_srcdir)/aclocal.sh
 
 bin_PROGRAMS = eventlogger
 noinst_PROGRAMS = clocksource contsink constsource eventdelay contdelay \
-		  waveproducer waveconsumer
+		  messagesource waveproducer waveconsumer
 
 EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
-	     events.music fork.music loop.music wavetest.music		\
-	     viewevents.music demo.music demolarge.music                \
-             neuronGrid.data neuronGridLARGE.data                       \
+	     events.music messages.music fork.music loop.music		\
+	     wavetest.music viewevents.music demo.music demolarge.music	\
+             neuronGrid.data neuronGridLARGE.data			\
 	     spikes0.dat spikes1.dat README
 
 waveproducer_SOURCES = waveproducer.cc
@@ -43,6 +43,10 @@ eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 contdelay_SOURCES = contdelay.cc
 contdelay_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
 contdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+messagesource_SOURCES = messagesource.cc
+messagesource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

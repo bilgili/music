@@ -73,14 +73,28 @@ namespace MUSIC {
     memcpy (memory, elements, blockSize);
     current += blockSize;
   }
+
+
+  void
+  FIBO::clear ()
+  {
+    current = 0;
+  }
   
+
+  void
+  FIBO::nextBlockNoClear (void*& data, int& blockSize)
+  {
+    data = static_cast<void*> (&buffer[0]);
+    blockSize = current;
+  }
+
 
   void
   FIBO::nextBlock (void*& data, int& blockSize)
   {
-    data = static_cast<void*> (&buffer[0]);
-    blockSize = current;
-    current = 0;
+    nextBlockNoClear (data, blockSize);
+    clear ();
   }
 
 

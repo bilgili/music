@@ -65,10 +65,15 @@ namespace MUSIC {
   };
   
   class OutputSubconnector : virtual public Subconnector {
+  public:
+    virtual FIBO* buffer () { return 0; }
+  };
+  
+  class BufferingOutputSubconnector : virtual public OutputSubconnector {
   protected:
     FIBO buffer_;
   public:
-    OutputSubconnector (int elementSize);
+    BufferingOutputSubconnector (int elementSize);
     FIBO* buffer () { return &buffer_; }
   };
   
@@ -88,7 +93,7 @@ namespace MUSIC {
       : type_ (type) { };
   };
   
-  class ContOutputSubconnector : public OutputSubconnector,
+  class ContOutputSubconnector : public BufferingOutputSubconnector,
 				 public ContSubconnector {
   public:
     ContOutputSubconnector (Synchronizer* synch_,
@@ -125,7 +130,7 @@ namespace MUSIC {
     static const int FLUSH_MARK = -1;
   };
   
-  class EventOutputSubconnector : public OutputSubconnector,
+  class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
   public:
     EventOutputSubconnector (Synchronizer* synch_,
@@ -185,11 +190,13 @@ namespace MUSIC {
   
   class MessageOutputSubconnector : public OutputSubconnector,
 				  public MessageSubconnector {
+    FIBO* buffer_;
   public:
     MessageOutputSubconnector (Synchronizer* synch_,
 			       MPI::Intercomm intercomm_,
 			       int remoteRank,
-			       std::string receiverPortName_);
+			       std::string receiverPortName_,
+			       FIBO* buffer);
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);

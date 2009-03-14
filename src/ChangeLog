@@ -1,5 +1,11 @@
 2009-03-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/connector.hh, music/subconnector.hh, connector.cc,
+	subconnector.cc: Moved buffer from subconnector to connector for
+	MessageOutputPorts.
+
+	* music/subconnector.hh (BufferingOutputSubconnector): New class.
+
 	* music/FIBO.hh, FIBO.cc (FIBO::clear, FIBO::nextBlockNoClear):
 	New member functions.
 

@@ -239,9 +239,13 @@ namespace MUSIC {
   class MessageConnector : virtual public Connector {
   };
   
-  class MessageOutputConnector : public OutputConnector, public MessageConnector {
+  class MessageOutputConnector : public OutputConnector,
+				 public MessageConnector,
+				 public PostCommunicationConnector {
   private:
     OutputSynchronizer synch;
+    FIBO buffer;
+    bool bufferAdded;
     std::vector<FIBO*>& buffers_;
     void send ();
   public:
@@ -254,6 +258,7 @@ namespace MUSIC {
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
     void tick (bool& requestCommunication);
+    void postCommunication ();
   };
   
   class MessageInputConnector : public InputConnector, public MessageConnector {

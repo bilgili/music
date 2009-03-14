@@ -44,7 +44,7 @@ namespace MUSIC {
   }
 
   
-  OutputSubconnector::OutputSubconnector (int elementSize)
+  BufferingOutputSubconnector::BufferingOutputSubconnector (int elementSize)
     : buffer_ (elementSize)
   {
   }
@@ -72,7 +72,7 @@ namespace MUSIC {
 		    remoteRank,
 		    remoteRank,
 		    receiverPortName_),
-      OutputSubconnector (0),
+      BufferingOutputSubconnector (0),
       ContSubconnector (type)
   {
   }
@@ -227,7 +227,7 @@ namespace MUSIC {
 		    remoteRank,
 		    remoteRank,
 		    receiverPortName_),
-      OutputSubconnector (sizeof (Event))
+      BufferingOutputSubconnector (sizeof (Event))
   {
   }
   
@@ -453,13 +453,14 @@ namespace MUSIC {
   MessageOutputSubconnector::MessageOutputSubconnector (Synchronizer* synch_,
 							MPI::Intercomm intercomm_,
 							int remoteRank,
-							std::string receiverPortName_)
+							std::string receiverPortName_,
+							FIBO* buffer)
     : Subconnector (synch_,
 		    intercomm_,
 		    remoteRank,
 		    remoteRank,
 		    receiverPortName_),
-      OutputSubconnector (1)
+      buffer_ (buffer)
   {
   }
   
@@ -477,7 +478,7 @@ namespace MUSIC {
   {
     void* data;
     int size;
-    buffer_.nextBlock (data, size);
+    buffer_->nextBlockNoClear (data, size);
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= MESSAGE_BUFFER_MAX)
@@ -497,7 +498,7 @@ namespace MUSIC {
   void
   MessageOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!buffer_.isEmpty ())
+    if (!buffer_->isEmpty ())
       {
 	MUSIC_LOGR ("sending data remaining in buffers");
 	send ();

@@ -359,7 +359,7 @@ namespace MUSIC {
   void
   EventInputSubconnectorGlobal::receive ()
   {
-    char* data[SPIKE_BUFFER_MAX]; 
+    char data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
     do
@@ -390,7 +390,7 @@ namespace MUSIC {
   void
   EventInputSubconnectorLocal::receive ()
   {
-    char* data[SPIKE_BUFFER_MAX]; 
+    char data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
     do
@@ -543,7 +543,7 @@ namespace MUSIC {
   void
   MessageInputSubconnector::receive ()
   {
-    char* data[MESSAGE_BUFFER_MAX]; 
+    char data[MESSAGE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
     do

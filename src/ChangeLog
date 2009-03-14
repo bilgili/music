@@ -1,3 +1,21 @@
+2009-03-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* port.cc (MessageInputPort::mapImpl): Give correct routing
+	information in the indexMap.
+
+	* music/port.hh, port.cc (MessageInputPort::map): Cover all
+	argument combinations.
+
+	* music/index_map.hh, index_map.cc (Index::WILDCARD_MAX): New
+	member.
+
+	* spatial.cc: Accept wild card indices on receiver side.
+
+	* subconnector.cc (EventInputSubconnectorGlobal::receive,
+	EventInputSubconnectorLocal::receive,
+	MessageInputSubconnector::receive): Define `data' as vector of
+	char, not vector of char*.
+
 2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0.3

@@ -16,9 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <limits>
+
 #include "music/index_map.hh"
 
 namespace MUSIC {
+
+  int Index::WILDCARD_MAX = std::numeric_limits<int>::max ();
 
   bool operator< (const IndexInterval& a, const IndexInterval& b)
   {

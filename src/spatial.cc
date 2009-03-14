@@ -106,7 +106,7 @@ namespace MUSIC {
   SpatialNegotiator::negotiateWidth ()
   {
     // First determine local least upper bound and width
-    int u = -1;
+    int u = 0;
     int w = 0;
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
@@ -134,10 +134,11 @@ namespace MUSIC {
   void
   SpatialOutputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
-    MUSIC_LOGR (msg ("negwidth-out: ", connector_));
     SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
       {
+	// Receiver might need to know sender width
+	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
 	int remoteWidth;
 	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
 	if (remoteWidth != width)
@@ -148,18 +149,23 @@ namespace MUSIC {
 	    error (msg.str ());
 	  }
       }
-    MUSIC_LOGR (msg ("negwidth-out-done: ", connector_));
   }
 
   
   void
   SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
-    MUSIC_LOGR (msg ("negwidth-in: ", connector_));
     SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
-      intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
-    MUSIC_LOGR (msg ("negwidth-in-done: ", connector_));
+      {
+	int remoteWidth;
+	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
+	if (width == Index::WILDCARD_MAX)
+	  width = remoteWidth;
+	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
+      }
+    // Broadcast result (if we used a wildcard)
+    comm.Bcast (&width, 1, MPI::INT, 0);
   }
 
   

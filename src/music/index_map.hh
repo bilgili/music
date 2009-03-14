@@ -27,6 +27,7 @@ namespace MUSIC {
   class Index {
   public:
     enum Type { GLOBAL, LOCAL };
+    static int WILDCARD_MAX;
   };
 
   class GlobalIndex : public Index {

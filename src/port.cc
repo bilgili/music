@@ -493,7 +493,6 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-
   MessagePort::MessagePort (Setup* s)
     : rank_ (s->communicator ().Get_rank ())
   {
@@ -530,6 +529,7 @@ namespace MUSIC {
   void
   MessageOutputPort::mapImpl (int maxBuffered)
   {
+    // Identify ourselves
     LinearIndex indices (rank_, 1);
     OutputRedistributionPort::mapImpl (&indices,
 				       Index::GLOBAL,
@@ -583,6 +583,50 @@ namespace MUSIC {
 
   
   void
+  MessageInputPort::map (int maxBuffered)
+  {
+    assertInput ();
+    if (maxBuffered <= 0)
+      {
+	error ("MessageInputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (0,
+	     0.0,
+	     maxBuffered);
+  }
+
+  
+  void
+  MessageInputPort::map (double accLatency,
+			 int maxBuffered)
+  {
+    assertInput ();
+    if (maxBuffered <= 0)
+      {
+	error ("MessageInputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (0,
+	     accLatency,
+	     maxBuffered);
+  }
+
+  
+  void
+  MessageInputPort::map (MessageHandler* handleMessage,
+			 int maxBuffered)
+  {
+    assertInput ();
+    if (maxBuffered <= 0)
+      {
+	error ("MessageInputPort::map: maxBuffered should be a positive integer");
+      }
+    mapImpl (handleMessage,
+	     0.0,
+	     maxBuffered);
+  }
+
+  
+  void
   MessageInputPort::map (MessageHandler* handleMessage,
 			 double accLatency,
 			 int maxBuffered)
@@ -604,7 +648,8 @@ namespace MUSIC {
 			     int maxBuffered)
   {
     handleMessage_ = handleMessage;
-    LinearIndex indices (rank_, 1);
+    // Receive from everybody
+    LinearIndex indices (0, handleMessage ? Index::WILDCARD_MAX : 0);
     InputRedistributionPort::mapImpl (&indices,
 				      Index::GLOBAL,
 				      accLatency,

@@ -231,8 +231,10 @@ namespace MUSIC {
     MessageHandler* handleMessage_;
   public:
     MessageInputPort (Setup* s, std::string id);
-    void map ();
-    void map (MessageHandler* handler, double accLatency = 0.0);
+    void map (MessageHandler* handler = 0, double accLatency = 0.0);
+    void map (int maxBuffered);
+    void map (double accLatency, int maxBuffered);
+    void map (MessageHandler* handler, int maxBuffered);
     void map (MessageHandler* handler, double accLatency, int maxBuffered);
   protected:
     void mapImpl (MessageHandler* handleEvent,

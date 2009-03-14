@@ -85,3 +85,11 @@ wavetest.music
    in files named dumpfile0.out, dumpfile1.out and dumpfile2.out.
 
    $ mpirun -np 7 music wavetest.music
+
+
+* Message communication
+
+messages.music
+   Messages are sent from a sending to a receiving application.
+
+   $ mpirun -np 4 music messages.music

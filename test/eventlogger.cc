@@ -58,6 +58,20 @@ public:
   }
 };
 
+class MyMessageHandler : public MUSIC::MessageHandler {
+  int rank;
+public:
+  MyMessageHandler (int rank_) : rank (rank_) { }
+  void operator () (double t, void* msg, size_t size)
+  {
+    // Print out incoming messages
+    std::string message (static_cast<char*> (msg), size);
+    std::cout << "Rank " << rank
+	      << ": Message (" << t << ", " << message
+	      << ") detected at " << apptime << std::endl;
+  }
+};
+
 double timestep = DEFAULT_TIMESTEP;
 double latency = 0.0;
 int    maxbuffered = 0;
@@ -134,20 +148,11 @@ main (int argc, char* argv[])
 
   // Port publishing
   MUSIC::EventInputPort* evport = setup->publishEventInput ("in");
-  if (!evport->isConnected ())
+  MUSIC::MessageInputPort* msgport = setup->publishMessageInput ("messages");
+  if (!evport->isConnected () && !msgport->isConnected ())
     {
       if (rank == 0)
-	std::cerr << "port `in' is not connected" << std::endl;
-      comm.Abort (1);
-    }
-
-  // Split the width among the available processes
-  int width = 0;
-  if (evport->hasWidth ())
-    width = evport->width ();
-  else
-    {
-      std::cerr << "port width not specified in Configuration file" << std::endl;
+	std::cerr << "eventlogger: no connected input ports" << std::endl;
       comm.Abort (1);
     }
 
@@ -156,48 +161,72 @@ main (int argc, char* argv[])
   MyEventHandlerGlobal evhandlerGlobal (rank);
   MyEventHandlerLocal evhandlerLocal (rank);
 
-  if (imaptype == "linear")
+  if (evport->isConnected ())
     {
-      int nLocal = width / nProcesses;
-      int rest = width % nProcesses;
-      int firstId = nLocal * rank;
-      if (rank < rest)
+      // Split the width among the available processes
+      int width = 0;
+      if (evport->hasWidth ())
+	width = evport->width ();
+      else
 	{
-	  firstId += rank;
-	  nLocal += 1;
+	  std::cerr << "port width not specified in Configuration file"
+		    << std::endl;
+	  comm.Abort (1);
+	}
+
+      if (imaptype == "linear")
+	{
+	  int nLocal = width / nProcesses;
+	  int rest = width % nProcesses;
+	  int firstId = nLocal * rank;
+	  if (rank < rest)
+	    {
+	      firstId += rank;
+	      nLocal += 1;
+	    }
+	  else
+	    firstId += rest;
+	  MUSIC::LinearIndex indexmap (firstId, nLocal);
+      
+	  if (indextype == "global")
+	    if (maxbuffered > 0)
+	      evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
+	    else
+	      evport->map (&indexmap, &evhandlerGlobal, latency);
+	  else
+	    if (maxbuffered > 0)
+	      evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
+	    else
+	      evport->map (&indexmap, &evhandlerLocal, latency);
 	}
       else
-	firstId += rest;
-      MUSIC::LinearIndex indexmap (firstId, nLocal);
+	{
+	  std::vector<MUSIC::GlobalIndex> v;
+	  for (int i = rank; i < width; i += nProcesses)
+	    v.push_back (i);
+	  MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
       
-      if (indextype == "global")
-	if (maxbuffered > 0)
-	  evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
-	else
-	  evport->map (&indexmap, &evhandlerGlobal, latency);
-      else
-	if (maxbuffered > 0)
-	  evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
-	else
-	  evport->map (&indexmap, &evhandlerLocal, latency);
+	  if (indextype == "global")
+	    if (maxbuffered > 0)
+	      evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
+	    else
+	      evport->map (&indexmap, &evhandlerGlobal, latency);
+	  else
+	    if (maxbuffered > 0)
+	      evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
+	    else
+	      evport->map (&indexmap, &evhandlerLocal, latency);
+	}
     }
-  else
+
+  // Messages
+  MyMessageHandler msgHandler (rank);
+  if (msgport->isConnected ())
     {
-      std::vector<MUSIC::GlobalIndex> v;
-      for (int i = rank; i < width; i += nProcesses)
-	v.push_back (i);
-      MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
-      
-      if (indextype == "global")
-	if (maxbuffered > 0)
-	  evport->map (&indexmap, &evhandlerGlobal, latency, maxbuffered);
-	else
-	  evport->map (&indexmap, &evhandlerGlobal, latency);
+      if (maxbuffered > 0)
+	msgport->map (&msgHandler, latency, maxbuffered);
       else
-	if (maxbuffered > 0)
-	  evport->map (&indexmap, &evhandlerLocal, latency, maxbuffered);
-	else
-	  evport->map (&indexmap, &evhandlerLocal, latency);
+	msgport->map (&msgHandler, latency);
     }
 
   double stoptime;

@@ -1,5 +1,8 @@
 2009-03-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* FIBO.cc (FIBO::clear, FIBO::nextBlockNoClear): New member
+	functions.
+
 	* port.cc (MessageInputPort::mapImpl): Give correct routing
 	information in the indexMap.
 

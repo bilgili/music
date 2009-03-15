@@ -328,9 +328,11 @@ namespace MUSIC {
       }
     while (dataStillFlowing);
 
-    // This is needed in OpenMPI for the freeing of the
+#if defined (OPEN_MPI) && MPI_VERSION <= 2
+    // This is needed in OpenMPI version <= 1.2 for the freeing of the
     // intercommunicators to go well
     MPI::COMM_WORLD.Barrier ();
+#endif
     
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();

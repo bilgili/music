@@ -1,5 +1,8 @@
 2009-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* runtime.cc (Runtime::finalize): Only include Barrier call for
+	OpenMPI versions <= 1.2.
+
 	* music/temporal.hh,
 	temporal.cc (TemporalNegotiator::computeDefaultMaxBuffered):
 	Select a proper default buffering for message ports.

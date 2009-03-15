@@ -42,8 +42,6 @@ Optional
   print out run statistics, such as part of time spent in tick() when
   deleting runtime.
 
-* Join intervals at spatial negotiation.
-
 * Join intervals in PermutationIndex and IndexMapFactory
 
 * Th mpidep directory should contain a test binary which is

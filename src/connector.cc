@@ -61,8 +61,6 @@ namespace MUSIC {
   void
   Connector::createIntercomm ()
   {
-    MUSIC_LOG (comm.Get_rank () << ": " << comm);
-    MUSIC_LOG (comm.Get_rank () << ": remote = " << info.remoteLeader ());
     intercomm = comm.Create_intercomm (0,
 				       MPI::COMM_WORLD,
 				       info.remoteLeader (),
@@ -238,7 +236,6 @@ namespace MUSIC {
     : Connector (connector),
       ContOutputConnector (connector)
   {
-    MUSIC_LOG ("PlainContOutputConnector");
   }
 
 
@@ -260,14 +257,12 @@ namespace MUSIC {
     if (synch.sample ())
       {
 	// copy application data to send buffers
-	MUSIC_LOG0 ("sampling at " << synch.localTime->time ());
 	distributor_.distribute ();
       }
 
     synch.tick ();
     if (synch.communicate ())
       {
-	MUSIC_LOG0 ("send!");
 	requestCommunication = true;
       }
   }

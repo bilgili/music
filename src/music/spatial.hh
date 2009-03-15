@@ -40,6 +40,7 @@ namespace MUSIC {
     const IndexInterval& interval () const { return interval_; }
     int begin () const { return interval_.begin (); }
     int end () const { return interval_.end (); }
+    void setEnd (int e) { interval_.setEnd (e); }
     int local () const { return interval_.local (); }
     void setLocal (int l) { interval_.setLocal (l); }
     int rank () const { return rank_; }
@@ -86,34 +87,22 @@ namespace MUSIC {
 
   private:
     Implementation* implementation_;
+    SpatialNegotiationData current_;
+    bool end_;
   public:
-    NegotiationIterator (Implementation* impl);
-    NegotiationIterator (NegotiationIntervals& buffer);
-    NegotiationIterator (std::vector<NegotiationIntervals>& buffers);
-    ~NegotiationIterator ()
-    {
-      delete implementation_;
-    }
-    NegotiationIterator (const NegotiationIterator& i)
-      : implementation_ (i.implementation_->copy ())
-    {
-    }
-    const NegotiationIterator& operator= (const NegotiationIterator& i)
-    {
-      delete implementation_;
-      implementation_ = i.implementation_->copy ();
-      return *this;
-    }
-    bool end () { return implementation_->end (); }
-    NegotiationIterator& operator++ ()
-    {
-      ++*implementation_;
-      return *this;
-    };
-    SpatialNegotiationData* operator-> ()
-    {
-      return implementation_->dereference ();
-    }
+    NegotiationIterator (Implementation* impl)
+    { init (impl); }
+    NegotiationIterator (NegotiationIntervals& buffer)
+    { init (new IntervalTraversal (buffer)); }
+    NegotiationIterator (std::vector<NegotiationIntervals>& buffers)
+    { init (new BufferTraversal (buffers)); }
+    void init (Implementation* impl);
+    ~NegotiationIterator ();
+    NegotiationIterator (const NegotiationIterator& i);
+    const NegotiationIterator& operator= (const NegotiationIterator& i);
+    bool end () { return end_; }
+    NegotiationIterator& operator++ ();
+    SpatialNegotiationData* operator-> ();
   };
 
   class Connector;

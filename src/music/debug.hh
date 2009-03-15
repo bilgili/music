@@ -38,12 +38,12 @@
 
 #define MUSIC_LOGBR(C, X)			\
   {						\
-    int r = (C).Get_rank ();			\
-    int n = (C).Get_size ();			\
-    for (int i = 0; i < n; ++i)			\
+    int _r = (C).Get_rank ();			\
+    int _n = (C).Get_size ();			\
+    for (int _i = 0; _i < _n; ++_i)		\
       {						\
 	(C).Barrier ();				\
-	if (i == r)				\
+	if (_i == _r)				\
 	  MUSIC_LOGR (X);			\
       }						\
   }

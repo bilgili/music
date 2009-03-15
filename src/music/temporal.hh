@@ -21,6 +21,7 @@
 #define MAX_BUFFERED_NO_VALUE -1
 #define DEFAULT_PACKET_SIZE 64000
 #define EVENT_FREQUENCY_ESTIMATE 10.0
+#define DEFAULT_MESSAGE_MAX_BUFFERED 10
 
 #include <music/clock.hh>
 #include <music/connection.hh>

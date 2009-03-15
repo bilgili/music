@@ -1,3 +1,12 @@
+2009-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/temporal.hh,
+	temporal.cc (TemporalNegotiator::computeDefaultMaxBuffered):
+	Select a proper default buffering for message ports.
+
+	* spatial.cc (SpatialInputNegotiator::negotiateWidth): Set
+	maxLocalWidth_ when given wildcard index.
+
 2009-03-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/connector.hh, music/subconnector.hh, connector.cc,

@@ -160,12 +160,19 @@ namespace MUSIC {
       {
 	int remoteWidth;
 	intercomm.Recv (&remoteWidth, 1, MPI::INT, 0, WIDTH_MSG);
+	// NOTE: For now, the handling of Index::WILDCARD_MAX is a bit
+	// incomplete since, if there is any index interval on the
+	// receiver side with index larger than the sender side width,
+	// we will still choose sender side width as receiver side
+	// width.
 	if (width == Index::WILDCARD_MAX)
 	  width = remoteWidth;
 	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
       }
     // Broadcast result (if we used a wildcard)
     comm.Bcast (&width, 1, MPI::INT, 0);
+    if (maxLocalWidth_ == Index::WILDCARD_MAX)
+      maxLocalWidth_ = width;
   }
 
   

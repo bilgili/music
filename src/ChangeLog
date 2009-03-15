@@ -1,5 +1,9 @@
 2009-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/spatial.hh, spatial.cc (NegotiationIterator): Join
+	intervals.  (In some cases this allows thousands of routing
+	intervals to be replaced by a single one.)
+
 	* runtime.cc (Runtime::finalize): Only include Barrier call for
 	OpenMPI versions <= 1.2.
 

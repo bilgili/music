@@ -71,25 +71,70 @@ namespace MUSIC {
   }
 
 
-  NegotiationIterator::NegotiationIterator (Implementation* impl)
-    : implementation_ (impl)
+  void
+  NegotiationIterator::init (Implementation* impl)
   {
+    implementation_ = impl;
+    end_ = false;
+    ++*this;
   }
 
 
-  NegotiationIterator::NegotiationIterator (NegotiationIntervals& buffer)
-    : implementation_ (new IntervalTraversal (buffer))
+  NegotiationIterator::~NegotiationIterator ()
   {
+    delete implementation_;
   }
+
   
-
-  NegotiationIterator::NegotiationIterator
-  (std::vector<NegotiationIntervals>& buffers)
-    : implementation_ (new BufferTraversal (buffers))
+  NegotiationIterator::NegotiationIterator (const NegotiationIterator& i)
+    : implementation_ (i.implementation_->copy ()),
+      current_ (i.current_),
+      end_ (i.end_)
   {
   }
-  
 
+  
+  const NegotiationIterator&
+  NegotiationIterator::operator= (const NegotiationIterator& i)
+  {
+    delete implementation_;
+    implementation_ = i.implementation_->copy ();
+    current_ = i.current_;
+    end_ = i.end_;
+    return *this;
+  }
+
+  
+  NegotiationIterator&
+  NegotiationIterator::operator++ ()
+  {
+    if (implementation_->end ())
+      end_ = true;
+    else
+      {
+	current_ = *implementation_->dereference ();
+	++*implementation_;
+	while (!implementation_->end ()
+	       && implementation_->dereference ()->begin () == current_.end ()
+	       && implementation_->dereference ()->local () == current_.local ()
+	       && implementation_->dereference ()->rank () == current_.rank ())
+	  {
+	    // join intervals
+	    current_.setEnd (implementation_->dereference ()->end ());
+	    ++*implementation_;
+	  }
+      }
+    return *this;
+  }
+
+  
+  SpatialNegotiationData*
+  NegotiationIterator::operator-> ()
+  {
+    return &current_;
+  }
+
+  
   SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_)
     : indices (ind->copy ()), type (type_)
   {

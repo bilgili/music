@@ -6,6 +6,10 @@ Please send MUSIC bug reports to music-bugs@incf.org.
 
 Changes in 1.0.4:
 
+* test directory
+
+** New example: messages.music
+
 * music library
 
 ** Message ports now work correctly.

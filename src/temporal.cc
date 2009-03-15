@@ -133,9 +133,18 @@ namespace MUSIC {
 						 double timebase)
   {
     int res;
+
+    // Do different calculation depending on the kind of port
+
+    // NOTE: We should not base this choice eventSize but instead on
+    // proper type information
+    
     if (eventSize == 0)
       // continuous data
       res = DEFAULT_PACKET_SIZE / maxLocalWidth;
+    else if (eventSize == 1)
+      // message data
+      res = DEFAULT_MESSAGE_MAX_BUFFERED;
     else
       // event data
       res = (DEFAULT_PACKET_SIZE

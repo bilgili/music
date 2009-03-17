@@ -1,5 +1,10 @@
 * duplicate COMM_WORLD and use that throughout library?
 
+* error handling (call MPI error handler)
+
+* revise timing algorithm to allow for loops with 1 tick acceptable
+  latency where this is theoretically possible.
+
 * connector signature checking when connecting to peers (cont ports:
   common MPI data types + unknown + size)
 
@@ -49,3 +54,7 @@ Optional
 
 * Write piecewise_linear_index and derive linear_index and
   permutation_index from it.
+
+* Communicate between ticks using non-blocking communication.
+  Possible to have two kinds of subconnectors, keeping the current
+  ones for cases with short acceptable latency,

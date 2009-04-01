@@ -8,7 +8,7 @@ to ensure that existing simulators can be adapted to MUSIC.  In
 particular, MUSIC handles data transfer between applications that use
 different time steps and different data allocation strategies.
 
-This is release 1.0.3 of the MUSIC pilot implementation.
+This is release 1.0.4 of the MUSIC pilot implementation.
 
 The two most important components built from this software
 distribution is the music library `libmusic.a' and the music utility

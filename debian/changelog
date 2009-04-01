@@ -1,3 +1,11 @@
+music (1.0.4-1) unstable; urgency=low
+
+  * Upstream release 1.0.4.
+  * Temporarily added a build dependency on libibverbs-dev (until a
+    dependency bug in libopenmpi-dev is fixed).
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Wed, 01 Apr 2009 11:14:58 +0200
+
 music (1.0.3-1) unstable; urgency=low
 
   * Initial Release (Closes: #518538, #518541, #518542, #518543, #518544)

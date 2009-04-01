@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(music, 1.0.3)
+AC_INIT(music, 1.0.4)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE

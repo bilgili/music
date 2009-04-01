@@ -1,7 +1,7 @@
 Source: music
 Priority: extra
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
-Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, freeglut3-dev, texlive-latex-base, texlive-latex-extra, asymptote
+Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, libibverbs-dev, freeglut3-dev, texlive-latex-base, texlive-latex-extra, asymptote
 Standards-Version: 3.8.0
 Section: libs
 Homepage: http://software.incf.org/software/music/home

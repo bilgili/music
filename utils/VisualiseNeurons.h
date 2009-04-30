@@ -97,7 +97,7 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
   void rotateTimer();
   void tick();
 
-  void addNeuron(double x, double y, double z, double r);
+  void addNeuron(double x, double y, double z, double r, double cIdx);
 
   // Static wrapper functions
   static void displayWrapper();
@@ -131,9 +131,10 @@ class VisualiseNeurons : public MUSIC::EventHandlerGlobalIndex {
 
   std::vector<neuronCoord> coords_;  // Coordinates of neuron population
   std::vector<double> volt_;  // Activity of neuron population
- 
-  neuronColour baseLineCol_;  // Colour of resting neuron
-  neuronColour excitedCol_;   // Colour of spiking neuron
+  std::vector<int> cMap_;   // Which colour does neurons have 
+
+  std::vector<neuronColour> baseLineCol_;  // Colour of resting neuron
+  std::vector<neuronColour> excitedCol_;   // Colour of spiking neuron
   double spikeScale_;         // eg, 0.1 = scale up spiking neurons by 10%
 
   string windowTitle_; 

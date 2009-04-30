@@ -30,6 +30,14 @@ void VisualiseNeurons::printHelp() {
 	    << "                          If omitted, the visualisation runs at full speed." << std::endl
 	    << "  -h, --help              print this help message" << std::endl
 	    << "  -T, --title TITLE       window title" << std::endl << std::endl
+            << "CONFIGFILE format:" << std::endl
+            << "<Number of neuron types (1 int)>" << std::endl
+  << "<Baseline colour neuron 1 (3 double): R G B>" << std::endl
+  << "<Excited colour neuron 1 (3 double): R G B>" << std::endl
+  << "[Baseline colour neuron i: R G B]" << std::endl
+  << "[Excited colour neuron i: R G B]" << std::endl
+  << "<Neuron 1 information (4 double, 1 int): X Y Z RADIE NEURONTYPEINDEX>" << std::endl
+  << "[Neuron i information: X Y Z RADIE NEURONTYPEINDEX]" << std::endl << std::endl
 	    << "Report bugs to <music-bugs@incf.org>." << std::endl;
   exit(1);
 }
@@ -263,9 +271,12 @@ void VisualiseNeurons::display() {
     //    GLdouble red =   0.25 + 0.75*col;
     //    GLdouble green = 0.53 + 0.37*col;
     //    GLdouble blue =  0.10 - 0.10*col;
-    GLdouble red   = baseLineCol_.r + (excitedCol_.r-baseLineCol_.r)*col;
-    GLdouble green = baseLineCol_.g + (excitedCol_.g-baseLineCol_.g)*col;
-    GLdouble blue  = baseLineCol_.b + (excitedCol_.b-baseLineCol_.b)*col;
+    neuronColour tmpColB = baseLineCol_[cMap_[i]];
+    neuronColour tmpColE = excitedCol_[cMap_[i]];
+
+    GLdouble red   = tmpColB.r + (tmpColE.r-tmpColB.r)*col;
+    GLdouble green = tmpColB.g + (tmpColE.g-tmpColB.g)*col;
+    GLdouble blue  = tmpColB.b + (tmpColE.b-tmpColB.b)*col;
 
     glColor3d(red,green,blue);
     //float specReflection[] = { 0.2*col, 0.2*col, 0.2*col, 1 };
@@ -306,11 +317,22 @@ void VisualiseNeurons::display() {
 
 
 
-void VisualiseNeurons::addNeuron(double x, double y, double z, double r) {
+void VisualiseNeurons::addNeuron(double x, double y, double z, double r, double cIdx) {
+
+  if(cIdx >= cMap_.size()) {
+    std::cerr << "VisualiseNeurons: Neuron colour index "
+              << cIdx << " out of range, using 0." << std::endl;
+    cIdx = 0;
+  }
+
+  // std::cout << "Adding neuron " << x << "," << y << "," << z 
+  //          << "," << r << "," << cIdx << std::endl;
+
   neuronCoord p;
   p.x = x; p.y = y; p.z = z; p.r = r;
   coords_.push_back(p);
   volt_.push_back(0);
+  cMap_.push_back(cIdx);
 }
 
 void VisualiseNeurons::rotateTimer() {
@@ -515,7 +537,9 @@ void VisualiseNeurons::readConfigFile(string filename) {
   double x, y, z, r, dist;
   double minDist = 1e66, maxR = 0;
 
+  neuronColour tmp;
   int i = 0;
+  int nCols, cIdx;
 
   std::cout << "Reading : " << filename << std::endl;
 
@@ -532,17 +556,28 @@ void VisualiseNeurons::readConfigFile(string filename) {
   // VisualiseNeurons.cpp:246: undefined reference to `datafile::skip_header()'
   //in.skip_header();
 
-  // Read in neuron base colour
-  in >> baseLineCol_.r >> baseLineCol_.g >> baseLineCol_.b;
+  // How many different colours are there
+  in >> nCols;
+  std::cout << "VisualiseNeurons: Reading " << nCols 
+            << " different neuron types" << std::endl;
 
-  // Read in neuron excited colour
-  in >> excitedCol_.r >> excitedCol_.g>> excitedCol_.b;
+  for(i = 0; i < nCols; i++) { 
+    // Read in neuron base colours
+    in >> tmp.r >> tmp.g >> tmp.b;
+    baseLineCol_.push_back(tmp);
 
-  // Read in neuron coordinates
-  in >> x >> y >> z >> r;
+    // Read in neuron excited colour
+    in >> tmp.r >> tmp.g >> tmp.b;
+    excitedCol_.push_back(tmp);
+  }
+
+
+  // Read in neuron coordinates and colour
+  in >> x >> y >> z >> r >> cIdx;
+  
 
   while(!in.eof()) {
-    addNeuron(x,y,z,r);
+    addNeuron(x,y,z,r,cIdx);
     dist = sqrt(x*x + y*y + z*z);
     maxDist_ = (dist > maxDist_) ? dist : maxDist_;
 
@@ -563,8 +598,8 @@ void VisualiseNeurons::readConfigFile(string filename) {
     //           << " radie " << r << std::endl;
     i++;
 
-    // Read in neuron coordinates
-    in >> x >> y >> z >> r;
+    // Read in neuron coordinates and colour index
+    in >> x >> y >> z >> r >> cIdx;
 
   }
 

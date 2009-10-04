@@ -21,6 +21,7 @@
 #include <mpi.h>
 
 #include <string>
+#include <vector>
 
 #include <music/data_map.hh>
 #include <music/index_map.hh>
@@ -152,10 +153,11 @@ namespace MUSIC {
   
   class EventOutputPort : public EventPort,
 			  public OutputRedistributionPort {
+    std::vector<EventRoutingData>* routingData;
     EventRouter router;
   public:
     EventOutputPort (Setup* s, std::string id)
-      : Port (s, id) { }
+      : Port (s, id), routingData (new std::vector<EventRoutingData>) { }
     void map (IndexMap* indices, Index::Type type);
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
     OutputConnector* makeOutputConnector (ConnectorInfo connInfo);

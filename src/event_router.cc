@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008 INCF
+ *  Copyright (C) 2008, 2009 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,13 @@
 #include "music/event.hh"
 
 namespace MUSIC {
+  
+  void
+  EventRouter::insertRoutingInterval (EventRoutingData& data)
+  {
+    routingTable.add (data);
+  }
+  
 
   void
   EventRouter::insertRoutingInterval (IndexInterval i, FIBO* b)

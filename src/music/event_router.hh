@@ -29,18 +29,24 @@ namespace MUSIC {
 
   class EventRoutingData {
     IndexInterval interval_;
-    FIBO* buffer;
+    FIBO* buffer_;
   public:
     EventRoutingData () { }
     EventRoutingData (IndexInterval i, FIBO* b)
-      : interval_ (i), buffer (b) { }
+      : interval_ (i), buffer_ (b) { }
     int begin () const { return interval_.begin (); }
     int end () const { return interval_.end (); }
+    void setEnd (int e) { interval_.setEnd (e); }
     int offset () const { return interval_.local (); }
+    FIBO* buffer () const { return buffer_; }
     void insert (double t, int id) {
-      Event* e = static_cast<Event*> (buffer->insert ());
+      Event* e = static_cast<Event*> (buffer_->insert ());
       e->t = t;
       e->id = id;
+    }
+    bool operator< (const EventRoutingData& data) const
+    {
+      return begin () < data.begin ();
     }
   };
 
@@ -60,6 +66,7 @@ namespace MUSIC {
     
     IntervalTree<int, EventRoutingData> routingTable;
   public:
+    void insertRoutingInterval (EventRoutingData& data);
     void insertRoutingInterval (IndexInterval i, FIBO* b);
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);

@@ -456,9 +456,9 @@ namespace MUSIC {
   EventOutputConnector::EventOutputConnector (ConnectorInfo connInfo,
 					      SpatialOutputNegotiator* spatialNegotiator,
 					      MPI::Intracomm comm,
-					      EventRouter& router)
+					      std::vector<EventRoutingData>* routingData)
     : Connector (connInfo, spatialNegotiator, comm),
-      router_ (router)
+      routingData_ (routingData)
   {
   }
 
@@ -484,7 +484,7 @@ namespace MUSIC {
   EventOutputConnector::addRoutingInterval (IndexInterval i,
 					    OutputSubconnector* osubconn)
   {
-    router_.insertRoutingInterval (i, osubconn->buffer ());
+    routingData_->push_back (EventRoutingData (i, osubconn->buffer ()));
   }
   
   

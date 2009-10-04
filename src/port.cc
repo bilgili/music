@@ -350,13 +350,29 @@ namespace MUSIC {
     return new EventOutputConnector (connInfo,
 				     spatialNegotiator,
 				     setup_->communicator (),
-				     router);
+				     routingData);
   }
   
   
   void
   EventOutputPort::buildTable ()
   {
+    sort (routingData->begin (), routingData->end ());
+    std::vector<EventRoutingData>::iterator i = routingData->begin ();
+    while (i != routingData->end ())
+      {
+	EventRoutingData current = *i++;
+	while (i != routingData->end ()
+	       && i->offset () == current.offset ()
+	       && i->buffer () == current.buffer ())
+	  {
+	    // join intervals
+	    current.setEnd (i->end ());
+	    ++i;
+	  }
+	router.insertRoutingInterval (current);
+      }
+    delete routingData;
     router.buildTable ();
   }
 

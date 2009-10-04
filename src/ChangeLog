@@ -1,3 +1,11 @@
+2009-10-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/connector.hh, music/event_router.hh, music/port.hh,
+	connector.cc, event_router.cc, port.cc: Join event routing
+	intervals over holes in the routing map.  This increases
+	efficiency of event routing but has the consequence that
+	non-mapped indices may now be erroneously routed.
+
 2009-10-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music-c.h: (MUSIC_EventOutputPort_mapGlobalIndex)

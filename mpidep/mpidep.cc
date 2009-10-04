@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include <string>
+#include <cstring>
 #include <sstream>
 #include <fstream>
 
@@ -65,16 +66,21 @@ getRank (int argc, char *argv[])
   return rank;
 #endif
 #ifdef MPICH
+  int seenP4arg = 0;
   int rank;
   const std::string rankopt = "-p4rmrank";
   for (int i = argc - 2; i > 0; --i)
-    if (argv[i] == rankopt)
-      {
-	std::istringstream iss (argv[i + 1]);
-	iss >> rank;
-	return rank;
-      }
-  return -1;
+    {
+      if (!strncmp (argv[i], "-p4", 3))
+	seenP4arg = 1;
+      if (argv[i] == rankopt)
+	{
+	  std::istringstream iss (argv[i + 1]);
+	  iss >> rank;
+	  return rank;
+	}
+    }
+  return seenP4arg ? 0 : -1;
 #endif
 #ifdef OPENMPI
   char* vpid = getenv ("OMPI_MCA_ns_nds_vpid");

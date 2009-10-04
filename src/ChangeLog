@@ -1,3 +1,12 @@
+2009-10-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music-c.h: (MUSIC_EventOutputPort_mapGlobalIndex)
+	(MUSIC_EventOutputPort_mapLocalIndex): Inserted missing
+	declarations.  (Thanks to Michael Hines.)
+
+	* Makefile.am (musicinclude_HEADERS): Removed duplicate
+	message.hh.
+
 2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Release 1.0.4
@@ -48,7 +57,7 @@
 2009-03-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0.3
-	
+
 	* setup.cc: #include "config.h"
 
 2009-03-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
@@ -98,7 +107,7 @@
 	(Synchronizer::setMaxDelay (ClockState, Clock&)): Use
 	Clock::setClockTicks to set startTime. (setMaxDelay may be called
 	multiple times.)
-	
+
 	* runtime.cc (Runtime::initialize): Decrement localTime one tick
 	here.
 
@@ -219,7 +228,7 @@
 	* music/BIFO.hh, music/collector.hh, music/distributor.hh,
 	music/sampler.hh, BIFO.cc, collector.cc, distributor.cc,
 	sampler.cc: New files.
-	
+
 2009-02-16  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (libmusic_la_SOURCES): Added distributor.cc,

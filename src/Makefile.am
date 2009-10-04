@@ -70,7 +70,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/sampler.hh music/BIFO.hh \
 		       music/FIBO.hh music/event_router.hh \
 		       music/collector.hh music/distributor.hh \
-		       music/cont_data.hh music/event.hh music/message.hh \
+		       music/cont_data.hh music/event.hh \
 		       music/message.hh music/music-config.hh \
 		       music/communication.hh music/version.hh
 

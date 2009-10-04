@@ -109,9 +109,13 @@ void MUSIC_ContInputPort_map (MUSIC_ContInputPort *port,
 			      int maxBuffered,
 			      int interpolate);
 
-void MUSIC_EventOutputPort_map (MUSIC_EventOutputPort *port,
-				MUSIC_IndexMap *indices,
-				int maxBuffered);
+void MUSIC_EventOutputPort_mapGlobalIndex (MUSIC_EventOutputPort *Port,
+					   MUSIC_IndexMap *indices,
+					   int maxBuffered);
+
+void MUSIC_EventOutputPort_mapLocalIndex (MUSIC_EventOutputPort *Port,
+					  MUSIC_IndexMap *indices,
+					  int maxBuffered);
 
 typedef void MUSIC_EventHandler (double t, int id);
 

@@ -363,6 +363,9 @@ namespace MUSIC {
       {
 	EventRoutingData current = *i++;
 	while (i != routingData->end ()
+	       // The following statement is not required since
+	       // intervals only overlap if offset or buffer differ
+	       // && i->begin () >= current.end () // no overlap
 	       && i->offset () == current.offset ()
 	       && i->buffer () == current.buffer ())
 	  {

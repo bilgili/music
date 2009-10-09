@@ -1,5 +1,3 @@
-#from setup cimport c_Setup
-
 cdef extern from "music/runtime.hh":
     ctypedef struct c_Runtime "MUSIC::Runtime":
         void tick ()
@@ -10,13 +8,9 @@ cdef extern from "music/runtime.hh":
 
 cdef class Runtime:
     cdef c_Runtime *thisptr      # hold a C++ instance which we're wrapping
-    def __cinit__(self, setup, h):
-        self.thisptr = new_Runtime (self._castSetup (setup), h)
-        setup.thisptr = 0
-
-    #*fixme* Solve this in a different way
-    cdef c_Setup* _castSetup (self, Setup setup):
-        return setup.thisptr
+    def __cinit__(self, Setup setup, h):
+        self.thisptr = new_Runtime (setup.thisptr, h)
+        setup.thisptr = NULL
 
     def __dealloc__(self):
         del_Runtime (self.thisptr)

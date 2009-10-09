@@ -1,9 +1,8 @@
 import sys
 
-#from port cimport c_EventOutputPort, EventOutputPort
-include "port.pyx"
+#from setup cimport *
+#from port cimport *
 
-#from setup cimport c_Setup
 cdef extern from "music/setup.hh":
     ctypedef struct c_Setup "MUSIC::Setup":
         c_EventOutputPort* publishEventOutput (char* identifier)
@@ -12,7 +11,7 @@ cdef extern from "music/setup.hh":
     void del_Setup "delete" (c_Setup *obj)
 
 cdef class Setup:
-    cdef c_Setup *thisptr      # hold a C++ instance which we're wrapping
+    cdef c_Setup* thisptr      # hold a C++ instance which we're wrapping
     def __cinit__(self, argv):
         # Convert argv into C array
         cdef int c_argc = 0
@@ -33,11 +32,14 @@ cdef class Setup:
         del_Setup (self.thisptr)
         
     def publishEventOutput (self, identifier):
-        cdef EventOutputPort port = EventOutputPort ()
-        port.thisptr = self.thisptr.publishEventOutput (identifier)
-        return port
+        return wrapEventOutputPort (self.thisptr.publishEventOutput (identifier))
 
     def publishEventInput (self, identifier):
-        cdef EventInputPort port = EventInputPort ()
-        port.thisptr = self.thisptr.publishEventInput (identifier)
-        return port
+        return wrapEventInputPort (self.thisptr.publishEventInput (identifier))
+
+cdef c_Setup* unwrapSetup (Setup setup):
+    return setup.thisptr
+
+# Local Variables:
+# mode: python
+# End:

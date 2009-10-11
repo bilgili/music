@@ -1,10 +1,4 @@
-cdef extern from "music/runtime.hh":
-    ctypedef struct c_Runtime "MUSIC::Runtime":
-        void tick ()
-        double time ()
-        void finalize ()
-    c_Runtime *new_Runtime "new MUSIC::Runtime" (c_Setup* s, double h)
-    void del_Runtime "delete" (c_Runtime *obj)
+from runtime cimport *
 
 cdef class Runtime:
     cdef c_Runtime *thisptr      # hold a C++ instance which we're wrapping
@@ -23,3 +17,7 @@ cdef class Runtime:
 
     def finalize (self):
         self.thisptr.finalize ()
+
+# Local Variables:
+# mode: python
+# End:

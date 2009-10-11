@@ -1,4 +1,3 @@
-include "common.pxi"
-include "port.pyx"
-include "setup.pyx"
-include "runtime.pyx"
+include "port.pxi"
+include "setup.pxi"
+include "runtime.pxi"

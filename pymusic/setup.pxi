@@ -1,14 +1,6 @@
 import sys
 
-#from setup cimport *
-#from port cimport *
-
-cdef extern from "music/setup.hh":
-    ctypedef struct c_Setup "MUSIC::Setup":
-        c_EventOutputPort* publishEventOutput (char* identifier)
-        c_EventInputPort* publishEventInput (char* identifier)
-    c_Setup *new_Setup "new MUSIC::Setup" (int argc, char** argv)
-    void del_Setup "delete" (c_Setup *obj)
+from setup cimport *
 
 cdef class Setup:
     cdef c_Setup* thisptr      # hold a C++ instance which we're wrapping

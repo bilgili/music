@@ -31,10 +31,13 @@
 namespace MUSIC {
 
   bool Setup::isInstantiated_ = false;
+  static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
   Setup::Setup (int& argc, char**& argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
+    if (MPI::Is_initialized ())
+      errorRank (err_MPI_Init);
     MPI::Init (argc, argv);
     init (argc, argv);
   }
@@ -43,6 +46,8 @@ namespace MUSIC {
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
+    if (MPI::Is_initialized ())
+      errorRank (err_MPI_Init);
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
 #else

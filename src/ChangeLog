@@ -1,3 +1,8 @@
+2009-10-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc (Setup::Setup): Report an error if MPI::Init has been
+	called.
+
 2009-10-05  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/connector.hh, music/event_router.hh, music/port.hh,

@@ -7,8 +7,8 @@ import sys, music
 setup = music.Setup (sys.argv)
 from mpi4py import MPI
 
-hwmess = "Hello, World! I am process %d of %d on %s.\n"
+hwmess = "Hello, World! I am process %d of %d with arg %s.\n"
 comm = setup.communicator ()
 myrank = comm.Get_rank()
 nprocs = comm.Get_size()
-sys.stdout.write(hwmess % (myrank, nprocs))
+sys.stdout.write(hwmess % (myrank, nprocs, sys.argv[1]))

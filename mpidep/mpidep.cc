@@ -37,7 +37,11 @@ extern "C" {
 #ifdef HAVE_OMPI_COMM_FREE
 #define OPENMPI
 #else
+#ifdef HAVE_MPICH2
+#define MPICH2
+#else
 #define MPICH
+#endif
 #endif
 #endif
 
@@ -64,6 +68,17 @@ getRank (int argc, char *argv[])
   unsigned int rank, np;
   rts_rankForCoordinates (p.xCoord, p.yCoord, p.zCoord, pid, &rank, &np);
   return rank;
+#endif
+#ifdef MPICH2
+  char *pmi_rank = getenv("PMI_RANK");
+  int rank;
+  if (pmi_rank==NULL)
+    return -1;
+  else {
+    rank = atoi(pmi_rank);
+    if (rank<0) return -1;
+    return rank;
+  }
 #endif
 #ifdef MPICH
   int seenP4arg = 0;

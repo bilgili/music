@@ -16,9 +16,19 @@ ext = Extension (
     #extra_link_args=[...],       # if needed
     )
 
+ext2 = Extension (
+    "music_late",
+    ["late.pyx"],
+    language = "c++",
+    include_dirs = ['/usr/lib/openmpi/include',
+                    '/usr/local/lib/python/mpi4py/include'],
+    extra_link_args = ['-Wl,-rpath=/home/mdj/sans/music/trunk/pymusic',
+                       'music.so']
+    )
+
 setup (name = "music",
        version = "1.0",
        description = 'Multi-Simulation Coordinator',
-       ext_modules = [ext],
+       ext_modules = [ext, ext2],
        cmdclass = {'build_ext': build_ext}
        )

@@ -24,11 +24,10 @@ cdef class Setup:
         del_Setup (self.thisptr)
 
     def communicator (self):
+        import music_late
         cdef MPI_Comm comm
         comm = IntracommToC (self.thisptr.communicator ())
-        #cdef Intracomm icomm = Intracomm ()
-        #icomm.ob_mpi = comm
-        #return icomm
+        return make_Intracomm (comm)
 
     def publishEventOutput (self, identifier):
         return wrapEventOutputPort (self.thisptr.publishEventOutput (identifier))

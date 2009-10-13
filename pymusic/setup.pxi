@@ -22,7 +22,14 @@ cdef class Setup:
             
     def __dealloc__(self):
         del_Setup (self.thisptr)
-        
+
+    def communicator (self):
+        cdef MPI_Comm comm
+        comm = IntracommToC (self.thisptr.communicator ())
+        #cdef Intracomm icomm = Intracomm ()
+        #icomm.ob_mpi = comm
+        #return icomm
+
     def publishEventOutput (self, identifier):
         return wrapEventOutputPort (self.thisptr.publishEventOutput (identifier))
 

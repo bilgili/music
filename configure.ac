@@ -34,28 +34,36 @@ Please set them manually.])
     fi
     changequote([, ])
     ;;
-  mpixlcxx|mpicxx)
-    if test $MPI_CXX = mpixlcxx; then
-      MPI_C=mpixlc
-    else
-      MPI_C=mpicc
-    fi
+  mpixlcxx)
+    MPI_C=mpixlc
     SYSGUESS=bgl
     CXX="$MPI_CXX"
-    CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
+    #CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
+    CC="$MPI_C"
+    ;;
+  mpicxx)
+    MPI_C=mpicc
+    CC="$MPI_C"
+    CXX="$MPI_CXX"
+    if mpich2version >/dev/null 2>/dev/null; then
+       SYSGUESS=mpich2
+       AC_DEFINE(HAVE_MPICH2, 1, [Define to 1 if you have MPICH2.])
+    else
+       SYSGUESS=bgl
+    fi
     ;;
   *)
     SYSGUESS=unknown
     ;;
 esac
-echo "$SYSGUESS"
+echo "SYSGUESS=$SYSGUESS"
 
 AC_MSG_CHECKING(MPI_CXXFLAGS)
 if test "$MPI_CXXFLAGS" != ""; then
   echo "$MPI_CXXFLAGS"
 else
   case "$SYSGUESS" in
-    mpich)
+    mpich|mpich2)
       changequote(<, >)
       MPI_CXXFLAGS="`$MPI_CXX -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
@@ -80,7 +88,7 @@ if test "$MPI_CFLAGS" != ""; then
   echo "$MPI_CFLAGS"
 else
   case "$SYSGUESS" in
-    mpich)
+    mpich|mpich2)
       changequote(<, >)
       MPI_CFLAGS="`$MPI_C -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
@@ -105,7 +113,7 @@ if test "$MPI_LDFLAGS" != ""; then
   echo "$MPI_LDFLAGS"
 else
   case "$SYSGUESS" in
-    mpich)
+    mpich|mpich2)
       changequote(<, >)
       MPI_LDFLAGS="`$MPI_CXX -link_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])

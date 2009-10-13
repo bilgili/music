@@ -20,6 +20,9 @@ from port cimport *
 
 from mpi4py.mpi_c cimport *
 
+cdef extern from "late_impl.h":
+    cdef make_Intracomm (MPI_Comm comm)
+
 cdef extern from "music/setup.hh":
     #
     # This is the Python binding of the Setup object in the MUSIC API

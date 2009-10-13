@@ -21,7 +21,7 @@ from port cimport *
 from mpi4py.mpi_c cimport *
 
 cdef extern from "late_impl.h":
-    cdef make_Intracomm (MPI_Comm comm)
+    cdef wrapIntracomm (MPI_Comm comm)
 
 cdef extern from "music/setup.hh":
     #
@@ -34,14 +34,14 @@ cdef extern from "music/setup.hh":
     #ctypedef struct _mpi_comm_t
     #ctypedef _mpi_comm_t* MPI_Comm
     
-    ctypedef struct c_Intracomm "MPI::Intracomm":
+    ctypedef struct cxx_Intracomm "MPI::Intracomm":
         MPI_Comm mpi_comm
     
-    MPI_Comm IntracommToC "(MPI_Comm)" (c_Intracomm comm)
+    MPI_Comm intracommToC "(MPI_Comm)" (cxx_Intracomm comm)
     
-    ctypedef struct c_Setup "MUSIC::Setup":
+    ctypedef struct cxx_Setup "MUSIC::Setup":
 
-        c_Intracomm communicator ()
+        cxx_Intracomm communicator ()
 
         #bool config (string var, string* result);
 
@@ -53,16 +53,16 @@ cdef extern from "music/setup.hh":
 
         #ContOutputPort* publishContOutput (string identifier);
 
-        c_EventInputPort* publishEventInput (char* identifier)
+        cxx_EventInputPort* publishEventInput (char* identifier)
 
-        c_EventOutputPort* publishEventOutput (char* identifier)
+        cxx_EventOutputPort* publishEventOutput (char* identifier)
 
         #MessageInputPort* publishMessageInput (string identifier);
 
         #MessageOutputPort* publishMessageOutput (string identifier);
 
-    c_Setup *new_Setup "new MUSIC::Setup" (int argc, char** argv)
-    void del_Setup "delete" (c_Setup *obj)
+    cxx_Setup *new_Setup "new MUSIC::Setup" (int argc, char** argv)
+    void del_Setup "delete" (cxx_Setup *obj)
 
 #cdef extern object PyMPIComm_New (MPI_Comm)
     

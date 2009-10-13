@@ -3,40 +3,36 @@ import sys
 from setup cimport *
 
 cdef class Setup:
-    cdef c_Setup* thisptr      # hold a C++ instance which we're wrapping
+    cdef cxx_Setup* cxx      # hold a C++ instance which we're wrapping
     def __cinit__(self, argv):
         # Convert argv into C array
-        cdef int c_argc = 0
+        cdef int cxx_argc = 0
         cdef char* storage[100] #*fixme*
-        cdef char** c_argv = storage
+        cdef char** cxx_argv = storage
         for arg in argv:
-            c_argv[c_argc] = arg
-            c_argc += 1
+            cxx_argv[cxx_argc] = arg
+            cxx_argc += 1
             
-        self.thisptr = new_Setup (c_argc, c_argv)
+        self.cxx = new_Setup (cxx_argc, cxx_argv)
 
         # Fill argv with C array
         argv[:] = []
-        for i in range (0, c_argc):
-            argv.append (c_argv[i])
+        for i in range (0, cxx_argc):
+            argv.append (cxx_argv[i])
             
     def __dealloc__(self):
-        del_Setup (self.thisptr)
+        if self.cxx != NULL:
+            del_Setup (self.cxx)
 
     def communicator (self):
         import music_late
-        cdef MPI_Comm comm
-        comm = IntracommToC (self.thisptr.communicator ())
-        return make_Intracomm (comm)
+        return wrapIntracomm (intracommToC (self.cxx.communicator ()))
 
     def publishEventOutput (self, identifier):
-        return wrapEventOutputPort (self.thisptr.publishEventOutput (identifier))
+        return wrapEventOutputPort (self.cxx.publishEventOutput (identifier))
 
     def publishEventInput (self, identifier):
-        return wrapEventInputPort (self.thisptr.publishEventInput (identifier))
-
-cdef c_Setup* unwrapSetup (Setup setup):
-    return setup.thisptr
+        return wrapEventInputPort (self.cxx.publishEventInput (identifier))
 
 # Local Variables:
 # mode: python

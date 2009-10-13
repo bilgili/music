@@ -1,22 +1,27 @@
 from runtime cimport *
 
 cdef class Runtime:
-    cdef c_Runtime *thisptr      # hold a C++ instance which we're wrapping
+    cdef cxx_Runtime *cxx      # hold a C++ instance which we're wrapping
     def __cinit__(self, Setup setup, h):
-        self.thisptr = new_Runtime (setup.thisptr, h)
-        setup.thisptr = NULL
+        self.cxx = new_Runtime (setup.cxx, h)
+        # setup object is now deallocated
+        setup.cxx = NULL       # mark as deallocated
 
     def __dealloc__(self):
-        del_Runtime (self.thisptr)
+        del_Runtime (self.cxx)
         
+    def communicator (self):
+        import music_late
+        return wrapIntracomm (intracommToC (self.cxx.communicator ()))
+
     def tick (self):
-        self.thisptr.tick ()
+        self.cxx.tick ()
 
     def time (self):
-        return self.thisptr.time ()
+        return self.cxx.time ()
 
     def finalize (self):
-        self.thisptr.finalize ()
+        self.cxx.finalize ()
 
 # Local Variables:
 # mode: python

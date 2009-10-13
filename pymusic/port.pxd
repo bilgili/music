@@ -1,9 +1,9 @@
 import sys
 
 cdef extern from "music/port.hh":
-    ctypedef struct c_EventOutputPort "MUSIC::EventOutputPort":
+    ctypedef struct cxx_EventOutputPort "MUSIC::EventOutputPort":
         pass
-    ctypedef struct c_EventInputPort "MUSIC::EventInputPort":
+    ctypedef struct cxx_EventInputPort "MUSIC::EventInputPort":
         pass
 
 # Local Variables:

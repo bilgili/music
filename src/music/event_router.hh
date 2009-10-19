@@ -18,6 +18,7 @@
 
 #ifndef MUSIC_EVENT_ROUTER_HH
 
+#include <map>
 #include <vector>
 
 #include <music/FIBO.hh>
@@ -36,17 +37,11 @@ namespace MUSIC {
       : interval_ (i), buffer_ (b) { }
     int begin () const { return interval_.begin (); }
     int end () const { return interval_.end (); }
-    void setEnd (int e) { interval_.setEnd (e); }
     int offset () const { return interval_.local (); }
-    FIBO* buffer () const { return buffer_; }
     void insert (double t, int id) {
       Event* e = static_cast<Event*> (buffer_->insert ());
       e->t = t;
       e->id = id;
-    }
-    bool operator< (const EventRoutingData& data) const
-    {
-      return begin () < data.begin ();
     }
   };
 
@@ -66,13 +61,24 @@ namespace MUSIC {
     
     IntervalTree<int, EventRoutingData> routingTable;
   public:
-    void insertRoutingInterval (EventRoutingData& data);
     void insertRoutingInterval (IndexInterval i, FIBO* b);
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
   };
     
+
+  class EventRoutingMap {
+    std::vector<Interval>* intervals;
+    typedef std::map<FIBO*, std::vector<IndexInterval> > BufferMap;
+    BufferMap bufferMap;
+  public:
+    EventRoutingMap () { intervals = new std::vector<Interval>; }
+    ~EventRoutingMap () { delete intervals; }
+    void insert (IndexInterval i, FIBO* buffer);
+    void rebuildIntervals ();
+    void fillRouter (EventRouter& router);
+  };
 }
 
 #define MUSIC_EVENT_ROUTER_HH

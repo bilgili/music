@@ -1,3 +1,10 @@
+2009-10-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* connector.hh, event_router.hh, interval.hh, port.hh,
+	connector.cc, event_router.cc, port.cc: New version of event
+	routing interval joining code which handles interval sequences for
+	different targets separately.
+
 2009-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* event_router.cc (EventRouter::buildTable): Added debugging

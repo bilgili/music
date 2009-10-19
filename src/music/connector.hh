@@ -204,13 +204,13 @@ namespace MUSIC {
   class EventOutputConnector : public OutputConnector, public EventConnector {
   private:
     OutputSynchronizer synch;
-    std::vector<EventRoutingData>* routingData_;
+    EventRoutingMap* routingMap_;
     void send ();
   public:
     EventOutputConnector (ConnectorInfo connInfo,
 			  SpatialOutputNegotiator* spatialNegotiator,
 			  MPI::Intracomm comm,
-			  std::vector<EventRoutingData>* routingData);
+			  EventRoutingMap* routingMap);
     OutputSubconnector* makeOutputSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Synchronizer* synchronizer () { return &synch; }

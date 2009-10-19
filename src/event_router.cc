@@ -23,13 +23,6 @@
 #include "music/event.hh"
 
 namespace MUSIC {
-  
-  void
-  EventRouter::insertRoutingInterval (EventRoutingData& data)
-  {
-    routingTable.add (data);
-  }
-  
 
   void
   EventRouter::insertRoutingInterval (IndexInterval i, FIBO* b)
@@ -60,4 +53,84 @@ namespace MUSIC {
     routingTable.search (id, &i);
   }
 
+
+  void
+  EventRoutingMap::insert (IndexInterval i, FIBO* buffer)
+  {
+    intervals->push_back (i);
+    bufferMap[buffer].push_back (i);
+  }
+
+
+  void
+  EventRoutingMap::rebuildIntervals ()
+  {
+    std::vector<Interval>* newIntervals = new std::vector<Interval>;
+    
+    // Sort all intervals
+    sort (intervals->begin (), intervals->end ());
+
+    // Build sequence of unions out of the original interval sequence
+    std::vector<Interval>::iterator i = intervals->begin ();
+    while (i != intervals->end ())
+      {
+	Interval current = *i++;
+
+	while (i != intervals->end ()
+	       && i->begin () <= current.end ())
+	  {
+	    // join intervals
+	    int maxEnd = std::max<int> (current.end (), i->end ());
+	    current.setEnd (maxEnd);
+	    ++i;
+	  }
+	newIntervals->push_back (current);
+      }
+
+    delete intervals;
+    intervals = newIntervals;
+  }
+  
+  
+  void
+  EventRoutingMap::fillRouter (EventRouter& router)
+  {
+    rebuildIntervals ();
+    
+    BufferMap::iterator pos;
+    for (pos = bufferMap.begin (); pos != bufferMap.end (); ++pos)
+      {
+	sort (pos->second.begin (), pos->second.end ());
+    
+	std::vector<IndexInterval>::iterator i = pos->second.begin ();
+	std::vector<Interval>::iterator mapped = intervals->begin ();
+	while (i != pos->second.end ())
+	  {
+	    IndexInterval current = *i++;
+
+	    while (i != pos->second.end ()
+		   && i->local () == current.local ())
+	      {
+		// Define the gap between current and next interval
+		int gapBegin = current.end ();
+		int gapEnd = i->begin ();
+
+		// Skip mapped intervals which end before gap
+		while (mapped != intervals->end ()
+		       && mapped->end () <= gapBegin)
+		  ++mapped;
+	    
+		// Check that gap does not overlap with any mapped interval
+		if (mapped != intervals->end () && mapped->begin () < gapEnd)
+		  break;
+
+		// Join intervals by closing over gap
+		current.setEnd (i->end ());
+		++i;
+	      }
+	    router.insertRoutingInterval (current, pos->first);
+	  }
+      }
+  }
+  
 }

@@ -350,32 +350,15 @@ namespace MUSIC {
     return new EventOutputConnector (connInfo,
 				     spatialNegotiator,
 				     setup_->communicator (),
-				     routingData);
+				     routingMap);
   }
   
   
   void
   EventOutputPort::buildTable ()
   {
-    sort (routingData->begin (), routingData->end ());
-    std::vector<EventRoutingData>::iterator i = routingData->begin ();
-    while (i != routingData->end ())
-      {
-	EventRoutingData current = *i++;
-	while (i != routingData->end ()
-	       // The following statement is not required since
-	       // intervals only overlap if offset or buffer differ
-	       // && i->begin () >= current.end () // no overlap
-	       && i->offset () == current.offset ()
-	       && i->buffer () == current.buffer ())
-	  {
-	    // join intervals
-	    current.setEnd (i->end ());
-	    ++i;
-	  }
-	router.insertRoutingInterval (current);
-      }
-    delete routingData;
+    routingMap->fillRouter (router);
+    delete routingMap;
     router.buildTable ();
   }
 

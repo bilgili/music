@@ -65,6 +65,7 @@ namespace MUSIC {
     void add (const DataType& data);
     void build ();
     void search (PointType point, Action* a);
+    int size () const { return nodes.size (); }
   };
 
   template<class PointType, class DataType>

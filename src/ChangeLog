@@ -1,3 +1,12 @@
+2009-10-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* event_router.cc (EventRouter::buildTable): Added debugging
+	printout of routing table size (when #define MUSIC_DEBUG is
+	uncommented).
+
+	* music/interval_tree.hh (IntervalTree<PointType)
+	(DataType>::size): New method (for debugging purposes).
+
 2009-10-12  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* setup.cc (Setup::Setup): Report an error if MPI::Init has been

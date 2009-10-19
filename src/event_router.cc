@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include "music/event_router.hh"
 #include "music/event.hh"
 
@@ -38,6 +41,7 @@ namespace MUSIC {
   void
   EventRouter::buildTable ()
   {
+    MUSIC_LOG0 ("Routing table size for rank 0 = " << routingTable.size ());
     routingTable.build ();
   }
 

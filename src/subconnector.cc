@@ -23,6 +23,10 @@
 
 #include "music/subconnector.hh"
 
+#ifdef MUSIC_DEBUG
+#include <cstdlib>
+#endif
+
 namespace MUSIC {
 
   Subconnector::Subconnector (Synchronizer* synch_,
@@ -246,13 +250,14 @@ namespace MUSIC {
     if (synch->communicate ())
       send ();
     else
-      MUSIC_LOGR ("will not send");
+      MUSIC_LOGRE ("will not send");
   }
 
 
   void
   EventOutputSubconnector::send ()
   {
+    MUSIC_LOGRE ("send");
     void* data;
     int size;
     buffer_.nextBlock (data, size);
@@ -392,12 +397,12 @@ namespace MUSIC {
 	if (ev[0].id == FLUSH_MARK)
 	  {
 	    flushed = true;
-	    MUSIC_LOGR ("received flush message");
+	    //MUSIC_LOGR ("received flush message");
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
-	MUSIC_LOGR ("received " << nEvents << "events");
+	//MUSIC_LOGR ("received " << nEvents << "events");
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
       }
@@ -408,6 +413,7 @@ namespace MUSIC {
   void
   EventInputSubconnectorLocal::receive ()
   {
+    MUSIC_LOGRE ("receive");
     char data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
@@ -439,7 +445,7 @@ namespace MUSIC {
   {
     if (!flushed)
       {
-	MUSIC_LOGR ("receiving and throwing away data");
+	MUSIC_LOGRE ("receiving and throwing away data");
 	receive ();
 	if (!flushed)
 	  dataStillFlowing = true;
@@ -520,7 +526,7 @@ namespace MUSIC {
   {
     if (!buffer_->isEmpty ())
       {
-	MUSIC_LOGR ("sending data remaining in buffers");
+	MUSIC_LOGRE ("sending data remaining in buffers");
 	send ();
 	dataStillFlowing = true;
       }
@@ -580,7 +586,7 @@ namespace MUSIC {
 	if (status.Get_tag () == FLUSH_MSG)
 	  {
 	    flushed = true;
-	    MUSIC_LOGR ("received flush message");
+	    MUSIC_LOGRE ("received flush message");
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
@@ -604,7 +610,7 @@ namespace MUSIC {
     handleMessage = &dummyHandler;
     if (!flushed)
       {
-	MUSIC_LOGR ("receiving and throwing away data");
+	MUSIC_LOGRE ("receiving and throwing away data");
 	receive ();
 	if (!flushed)
 	  dataStillFlowing = true;

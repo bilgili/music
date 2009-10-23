@@ -23,6 +23,11 @@
 
 #include "music/synchronizer.hh"
 #include <iostream>
+
+#ifdef MUSIC_DEBUG
+#include <cstdlib>
+#endif
+
 namespace MUSIC {
 
   // This is the algorithm updating the communication schedule
@@ -47,8 +52,8 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
-    MUSIC_LOGR ("next send at " << nextSend.time ()
-		<< ", next receive at " << nextReceive.time ());
+    MUSIC_LOGRE ("next send at " << nextSend.time ()
+		 << ", next receive at " << nextReceive.time ());
   }
 
   // The following set of mutators are used by the TemporalNegotiator
@@ -60,8 +65,8 @@ namespace MUSIC {
     localTime = lt;
     nextSend.configure (localTime->timebase (), localTime->tickInterval ());
     nextReceive.configure (localTime->timebase (), localTime->tickInterval ());
-    MUSIC_LOGR ("timebase = " << localTime->timebase ()
-		<< ", ti = " << localTime->tickInterval ());
+    MUSIC_LOGRE ("timebase = " << localTime->timebase ()
+		 << ", ti = " << localTime->tickInterval ());
   }
 
   
@@ -69,7 +74,7 @@ namespace MUSIC {
   Synchronizer::setSenderTickInterval (ClockState ti)
   {
     nextSend.setTickInterval (ti);
-    MUSIC_LOGR ("nextSend.ti := " << ti);
+    MUSIC_LOGRE ("nextSend.ti := " << ti);
   }
 
   
@@ -77,7 +82,7 @@ namespace MUSIC {
   Synchronizer::setReceiverTickInterval (ClockState ti)
   {
     nextReceive.setTickInterval (ti);
-    MUSIC_LOGR ("nextReceive.ti := " << ti);
+    MUSIC_LOGRE ("nextReceive.ti := " << ti);
   }
 
   
@@ -85,7 +90,7 @@ namespace MUSIC {
   Synchronizer::setMaxBuffered (int m)
   {
     maxBuffered_ = m;
-    MUSIC_LOGR ("maxBuffered_ := " << m);
+    MUSIC_LOGRE ("maxBuffered_ := " << m);
   }
 
 
@@ -93,7 +98,7 @@ namespace MUSIC {
   Synchronizer::setAccLatency (ClockState l)
   {
     latency_ = l;
-    MUSIC_LOGR ("latency_ := " << l);
+    MUSIC_LOGRE ("latency_ := " << l);
   }
 
   

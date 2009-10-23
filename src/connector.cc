@@ -201,8 +201,9 @@ namespace MUSIC {
   {
     return new ContOutputSubconnector (synchronizer (),
 				       intercomm,
+				       remoteLeader (),
 				       remoteRank,
-				       receiverPortName (),
+				       receiverPortCode (),
 				       type_);
   }
   
@@ -326,9 +327,10 @@ namespace MUSIC {
   {
     return new ContInputSubconnector (synchronizer (),
 				      intercomm,
+				      remoteLeader (),
 				      remoteRank,
 				      receiverRank,
-				      receiverPortName (),
+				      receiverPortCode (),
 				      type_);
   }
 
@@ -475,8 +477,9 @@ namespace MUSIC {
   {
     return new EventOutputSubconnector (&synch,
 					intercomm,
+					remoteLeader (),
 					remoteRank,
-					receiverPortName ());
+					receiverPortCode ());
   }
 
 
@@ -523,16 +526,18 @@ namespace MUSIC {
     if (type_ == Index::GLOBAL)
       return new EventInputSubconnectorGlobal (&synch,
 					       intercomm,
+					       remoteLeader (),
 					       remoteRank,
 					       receiverRank,
-					       receiverPortName (),
+					       receiverPortCode (),
 					       handleEvent_.global ());
     else
       return new EventInputSubconnectorLocal (&synch,
 					      intercomm,
+					      remoteLeader (),
 					      remoteRank,
 					      receiverRank,
-					      receiverPortName (),
+					      receiverPortCode (),
 					      handleEvent_.local ());
   }
 
@@ -577,8 +582,9 @@ namespace MUSIC {
   {
     return new MessageOutputSubconnector (&synch,
 					  intercomm,
+					  remoteLeader (),
 					  remoteRank,
-					  receiverPortName (),
+					  receiverPortCode (),
 					  &buffer);
   }
 
@@ -637,9 +643,10 @@ namespace MUSIC {
   {
     return new MessageInputSubconnector (&synch,
 					 intercomm,
+					 remoteLeader (),
 					 remoteRank,
 					 receiverRank,
-					 receiverPortName (),
+					 receiverPortCode (),
 					 handleMessage_);
   }
 

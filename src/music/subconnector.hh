@@ -45,23 +45,26 @@ namespace MUSIC {
   protected:
     Synchronizer* synch;
     MPI::Intercomm intercomm;
-    int remoteRank_;
+    int remoteRank_;		// rank in inter-communicatir
+    int remoteWorldRank_;	// rank in COMM_WORLD
     int receiverRank_;
-    std::string receiverPortName_;
+    int receiverPortCode_;
   public:
     Subconnector () { }
     Subconnector (Synchronizer* synch,
 		  MPI::Intercomm intercomm,
+		  int remoteLeader,
 		  int remoteRank,
 		  int receiverRank,
-		  std::string receiverPortName);
+		  int receiverPortCode);
     virtual ~Subconnector ();
     virtual void initialCommunication () { }
     virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
     int remoteRank () const { return remoteRank_; }
+    int remoteWorldRank () const { return remoteWorldRank_; }
     int receiverRank () const { return receiverRank_; }
-    std::string receiverPortName () const { return receiverPortName_; }
+    int receiverPortCode () const { return receiverPortCode_; }
   };
   
   class OutputSubconnector : virtual public Subconnector {
@@ -96,10 +99,11 @@ namespace MUSIC {
   class ContOutputSubconnector : public BufferingOutputSubconnector,
 				 public ContSubconnector {
   public:
-    ContOutputSubconnector (Synchronizer* synch_,
-			    MPI::Intercomm intercomm_,
+    ContOutputSubconnector (Synchronizer* synch,
+			    MPI::Intercomm intercomm,
+			    int remoteLeader,
 			    int remoteRank,
-			    std::string receiverPortName_,
+			    int receiverPortCode,
 			    MPI::Datatype type);
     void initialCommunication ();
     void maybeCommunicate ();
@@ -114,9 +118,10 @@ namespace MUSIC {
   public:
     ContInputSubconnector (Synchronizer* synch,
 			   MPI::Intercomm intercomm,
+			   int remoteLeader,
 			   int remoteRank,
 			   int receiverRank,
-			   std::string receiverPortName,
+			   int receiverPortCode,
 			   MPI::Datatype type);
     BIFO* buffer () { return &buffer_; }
     void initialCommunication ();
@@ -133,10 +138,11 @@ namespace MUSIC {
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
   public:
-    EventOutputSubconnector (Synchronizer* synch_,
-			     MPI::Intercomm intercomm_,
+    EventOutputSubconnector (Synchronizer* synch,
+			     MPI::Intercomm intercomm,
+			     int remoteLeader,
 			     int remoteRank,
-			     std::string receiverPortName_);
+			     int receiverPortCode);
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -147,9 +153,10 @@ namespace MUSIC {
   public:
     EventInputSubconnector (Synchronizer* synch,
 			    MPI::Intercomm intercomm,
+			    int remoteLeader,
 			    int remoteRank,
 			    int receiverRank,
-			    std::string receiverPortName);
+			    int receiverPortCode);
     void maybeCommunicate ();
     virtual void receive () = 0;
     virtual void flush (bool& dataStillFlowing);
@@ -161,9 +168,10 @@ namespace MUSIC {
   public:
     EventInputSubconnectorGlobal (Synchronizer* synch,
 				  MPI::Intercomm intercomm,
+				  int remoteLeader,
 				  int remoteRank,
 				  int receiverRank,
-				  std::string receiverPortName,
+				  int receiverPortCode,
 				  EventHandlerGlobalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
@@ -175,9 +183,10 @@ namespace MUSIC {
   public:
     EventInputSubconnectorLocal (Synchronizer* synch,
 				 MPI::Intercomm intercomm,
+				 int remoteLeader,
 				 int remoteRank,
 				 int receiverRank,
-				 std::string receiverPortName,
+				 int receiverPortCode,
 				 EventHandlerLocalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
@@ -192,10 +201,11 @@ namespace MUSIC {
 				  public MessageSubconnector {
     FIBO* buffer_;
   public:
-    MessageOutputSubconnector (Synchronizer* synch_,
-			       MPI::Intercomm intercomm_,
+    MessageOutputSubconnector (Synchronizer* synch,
+			       MPI::Intercomm intercomm,
+			       int remoteLeader,
 			       int remoteRank,
-			       std::string receiverPortName_,
+			       int receiverPortCode,
 			       FIBO* buffer);
     void maybeCommunicate ();
     void send ();
@@ -209,9 +219,10 @@ namespace MUSIC {
   public:
     MessageInputSubconnector (Synchronizer* synch,
 			      MPI::Intercomm intercomm,
+			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
-			      std::string receiverPortName,
+			      int receiverPortCode,
 			      MessageHandler* mh);
     void maybeCommunicate ();
     void receive ();

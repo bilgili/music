@@ -66,7 +66,7 @@ namespace MUSIC {
 
 	// build a total order of subconnectors
 	// for non-blocking pairwise exchange
-	buildSchedule (comm.Get_rank (),
+	buildSchedule (MPI::COMM_WORLD.Get_rank (),
 		       outputSubconnectors,
 		       inputSubconnectors);
 	
@@ -150,9 +150,9 @@ namespace MUSIC {
   bool
   lessSubconnector (const Subconnector* c1, const Subconnector* c2)
   {
-    return (c1->receiverRank () < c2->receiverRank ()
-	    || (c1->receiverRank () == c2->receiverRank ()
-		&& c1->receiverPortName () < c2->receiverPortName ()));
+    return (c1->remoteWorldRank () < c2->remoteWorldRank ()
+	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
+		&& c1->receiverPortCode () < c2->receiverPortCode ()));
   }
 
   
@@ -230,14 +230,14 @@ namespace MUSIC {
     // communication of data.
     for (std::vector<InputSubconnector*>::iterator c = inputSubconnectors.begin ();
 	 (c != inputSubconnectors.end ()
-	  && (*c)->remoteRank () < localRank);
+	  && (*c)->remoteWorldRank () < localRank);
 	 ++c)
       schedule.push_back (*c);
     {
       std::vector<OutputSubconnector*>::iterator c = outputSubconnectors.begin ();
       for (;
 	   (c != outputSubconnectors.end ()
-	    && (*c)->remoteRank () < localRank);
+	    && (*c)->remoteWorldRank () < localRank);
 	   ++c)
 	;
       for (; c != outputSubconnectors.end (); ++c)
@@ -245,14 +245,14 @@ namespace MUSIC {
     }
     for (std::vector<OutputSubconnector*>::iterator c = outputSubconnectors.begin ();
 	 (c != outputSubconnectors.end ()
-	  && (*c)->remoteRank () < localRank);
+	  && (*c)->remoteWorldRank () < localRank);
 	 ++c)
       schedule.push_back (*c);
     {
       std::vector<InputSubconnector*>::iterator c = inputSubconnectors.begin ();
       for (;
 	   (c != inputSubconnectors.end ()
-	    && (*c)->remoteRank () < localRank);
+	    && (*c)->remoteWorldRank () < localRank);
 	   ++c)
 	;
       for (; c != inputSubconnectors.end (); ++c)

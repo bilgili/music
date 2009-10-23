@@ -27,14 +27,16 @@ namespace MUSIC {
 
   Subconnector::Subconnector (Synchronizer* synch_,
 			      MPI::Intercomm intercomm_,
+			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
-			      std::string receiverPortName)
+			      int receiverPortCode)
     : synch (synch_),
       intercomm (intercomm_),
       remoteRank_ (remoteRank),
+      remoteWorldRank_ (remoteLeader + remoteRank),
       receiverRank_ (receiverRank),
-      receiverPortName_ (receiverPortName)
+      receiverPortCode_ (receiverPortCode)
   {
   }
 
@@ -64,14 +66,16 @@ namespace MUSIC {
 
   ContOutputSubconnector::ContOutputSubconnector (Synchronizer* synch_,
 						  MPI::Intercomm intercomm_,
+						  int remoteLeader,
 						  int remoteRank,
-						  std::string receiverPortName_,
+						  int receiverPortCode_,
 						  MPI::Datatype type)
     : Subconnector (synch_,
 		    intercomm_,
+		    remoteLeader,
 		    remoteRank,
 		    remoteRank,
-		    receiverPortName_),
+		    receiverPortCode_),
       BufferingOutputSubconnector (0),
       ContSubconnector (type)
   {
@@ -139,15 +143,17 @@ namespace MUSIC {
 
   ContInputSubconnector::ContInputSubconnector (Synchronizer* synch,
 						MPI::Intercomm intercomm,
+						int remoteLeader,
 						int remoteRank,
 						int receiverRank,
-						std::string receiverPortName,
+						int receiverPortCode,
 						MPI::Datatype type)
     : Subconnector (synch,
 		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName),
+		    receiverPortCode),
       InputSubconnector (),
       ContSubconnector (type)
   {
@@ -218,17 +224,20 @@ namespace MUSIC {
    ********************************************************************/
 
 
-  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* synch_,
-						    MPI::Intercomm intercomm_,
+  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* synch,
+						    MPI::Intercomm intercomm,
+						    int remoteLeader,
 						    int remoteRank,
-						    std::string receiverPortName_)
-    : Subconnector (synch_,
-		    intercomm_,
+						    int receiverPortCode)
+    : Subconnector (synch,
+		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    remoteRank,
-		    receiverPortName_),
+		    receiverPortCode),
       BufferingOutputSubconnector (sizeof (Event))
   {
+    type = "EventOutput";
   }
   
 
@@ -237,6 +246,8 @@ namespace MUSIC {
   {
     if (synch->communicate ())
       send ();
+    else
+      MUSIC_LOGR ("will not send");
   }
 
 
@@ -282,36 +293,42 @@ namespace MUSIC {
 
   EventInputSubconnector::EventInputSubconnector (Synchronizer* synch,
 						  MPI::Intercomm intercomm,
+						  int remoteLeader,
 						  int remoteRank,
 						  int receiverRank,
-						  std::string receiverPortName)
+						  int receiverPortCode)
     : Subconnector (synch,
 		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName),
+		    receiverPortCode),
       InputSubconnector ()
   {
+    type = "EventInput";
   }
 
 
   EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
   (Synchronizer* synch,
    MPI::Intercomm intercomm,
+   int remoteLeader,
    int remoteRank,
    int receiverRank,
-   std::string receiverPortName,
+   int receiverPortCode,
    EventHandlerGlobalIndex* eh)
     : Subconnector (synch,
 		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName),
+		    receiverPortCode),
       EventInputSubconnector (synch,
 			      intercomm,
+			      remoteLeader,
 			      remoteRank,
 			      receiverRank,
-			      receiverPortName),
+			      receiverPortCode),
       handleEvent (eh)
   {
   }
@@ -324,20 +341,23 @@ namespace MUSIC {
   EventInputSubconnectorLocal::EventInputSubconnectorLocal
   (Synchronizer* synch,
    MPI::Intercomm intercomm,
+   int remoteLeader,
    int remoteRank,
    int receiverRank,
-   std::string receiverPortName,
+   int receiverPortCode,
    EventHandlerLocalIndex* eh)
     : Subconnector (synch,
 		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName),
+		    receiverPortCode),
       EventInputSubconnector (synch,
 			      intercomm,
+			      remoteLeader,
 			      remoteRank,
 			      receiverRank,
-			      receiverPortName),
+			      receiverPortCode),
       handleEvent (eh)
   {
   }
@@ -451,15 +471,17 @@ namespace MUSIC {
    ********************************************************************/
 
   MessageOutputSubconnector::MessageOutputSubconnector (Synchronizer* synch_,
-							MPI::Intercomm intercomm_,
+							MPI::Intercomm intercomm,
+							int remoteLeader,
 							int remoteRank,
-							std::string receiverPortName_,
+							int receiverPortCode,
 							FIBO* buffer)
-    : Subconnector (synch_,
-		    intercomm_,
+    : Subconnector (synch,
+		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    remoteRank,
-		    receiverPortName_),
+		    receiverPortCode),
       buffer_ (buffer)
   {
   }
@@ -514,15 +536,17 @@ namespace MUSIC {
 
   MessageInputSubconnector::MessageInputSubconnector (Synchronizer* synch,
 						      MPI::Intercomm intercomm,
+						      int remoteLeader,
 						      int remoteRank,
 						      int receiverRank,
-						      std::string receiverPortName,
+						      int receiverPortCode,
 						      MessageHandler* mh)
     : Subconnector (synch,
 		    intercomm,
+		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
-		    receiverPortName),
+		    receiverPortCode),
       handleMessage (mh)
   {
   }

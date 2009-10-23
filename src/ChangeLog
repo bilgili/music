@@ -1,5 +1,9 @@
 2009-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/subconnector.hh, connector.cc, runtime.cc,
+	subconnector.cc: Use COMM_WORLD ranks for the pair-wise
+	communication schedule in Runtime::buildSchedule.
+
 	* music/port.hh, port.cc (EventOutputPort::EventOutputPort,
 	EventInputPort::EventInputPort): Moved from header file to
 	port.cc.

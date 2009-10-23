@@ -52,8 +52,11 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
+    else if (maxBuffered_ == 0)
+      nextSend.ticks (-1);	// arises with tight loops of spike events
     MUSIC_LOGRE ("next send at " << nextSend.time ()
-		 << ", next receive at " << nextReceive.time ());
+		 << ", next receive at " << nextReceive.time ()
+		 << ", bCount = " << bCount);
   }
 
   // The following set of mutators are used by the TemporalNegotiator

@@ -321,6 +321,12 @@ namespace MUSIC {
    *
    ********************************************************************/
   
+  EventOutputPort::EventOutputPort (Setup* s, std::string id)
+    : Port (s, id), routingMap (new EventRoutingMap ())
+  {
+  }
+
+  
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
@@ -374,6 +380,12 @@ namespace MUSIC {
   EventOutputPort::insertEvent (double t, LocalIndex id)
   {
     router.insertEvent (t, id);
+  }
+
+  
+  EventInputPort::EventInputPort (Setup* s, std::string id)
+    : Port (s, id)
+  {
   }
 
   

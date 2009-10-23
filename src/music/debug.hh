@@ -36,6 +36,17 @@
               << X << std::endl << std::flush;		\
   }
 
+#define MUSIC_LOGRE(X)					\
+  {							\
+    int _r = MPI::COMM_WORLD.Get_rank ();		\
+    char* _e = getenv ("MUSIC_DEBUG_RANK");		\
+    if (_e != NULL && atoi (_e) == _r)			\
+      {							\
+	std::cerr << _r << ": "				\
+		  << X << std::endl << std::flush;	\
+      }							\
+  }
+
 #define MUSIC_LOGBR(C, X)			\
   {						\
     int _r = (C).Get_rank ();			\

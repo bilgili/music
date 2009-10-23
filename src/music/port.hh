@@ -155,8 +155,7 @@ namespace MUSIC {
     EventRoutingMap* routingMap;
     EventRouter router;
   public:
-    EventOutputPort (Setup* s, std::string id)
-      : Port (s, id), routingMap (new EventRoutingMap ()) { }
+    EventOutputPort (Setup* s, std::string id);
     void map (IndexMap* indices, Index::Type type);
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
     OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
@@ -172,8 +171,7 @@ namespace MUSIC {
     Index::Type type_;
     EventHandlerPtr handleEvent_;
   public:
-    EventInputPort (Setup* s, std::string id)
-      : Port (s, id) { }
+    EventInputPort (Setup* s, std::string id);
     void map (IndexMap* indices,
 	      EventHandlerGlobalIndex* handleEvent,
 	      double accLatency = 0.0);

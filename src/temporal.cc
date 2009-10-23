@@ -439,7 +439,7 @@ namespace MUSIC {
     for (int i = 0; i < nOut; ++i)
       {
 	int maxBuffered = negotiationData->connection[i].maxBuffered;
-	int accLatency = negotiationData->connection[i].accLatency;
+	ClockState accLatency = negotiationData->connection[i].accLatency;
 	bool interpolate = negotiationData->connection[i].interpolate;
 	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;
@@ -457,7 +457,7 @@ namespace MUSIC {
     for (int i = 0; i < nIn; ++i)
       {
 	int maxBuffered = negotiationData->connection[nOut + i].maxBuffered;
-	int accLatency = negotiationData->connection[nOut + i].accLatency;
+	ClockState accLatency = negotiationData->connection[nOut + i].accLatency;
 	bool interpolate = negotiationData->connection[nOut + i].interpolate;
 	ClockState remoteTickInterval
 	  = negotiationData->connection[i].remoteTickInterval;

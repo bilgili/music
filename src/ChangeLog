@@ -1,5 +1,8 @@
 2009-10-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* temporal.cc (TemporalNegotiator::combineParameters): Correctly
+	take MAX_BUFFERED_NO_VALUE arguments into consideration.
+
 	* music/subconnector.hh, connector.cc, runtime.cc,
 	subconnector.cc: Use COMM_WORLD ranks for the pair-wise
 	communication schedule in Runtime::buildSchedule.

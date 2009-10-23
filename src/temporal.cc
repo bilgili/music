@@ -292,7 +292,8 @@ namespace MUSIC {
 		int inMaxBuffered = (inMaxBufferedTime
 				     / nodes[o].data->tickInterval);
 		// take min maxBuffered
-		if (inMaxBuffered < out->maxBuffered)
+		if (out->maxBuffered == MAX_BUFFERED_NO_VALUE
+		    || inMaxBuffered < out->maxBuffered)
 		  out->maxBuffered = inMaxBuffered;
 	      }
 	    // store maxBuffered in sender units

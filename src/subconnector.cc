@@ -237,7 +237,6 @@ namespace MUSIC {
 		    receiverPortCode),
       BufferingOutputSubconnector (sizeof (Event))
   {
-    type = "EventOutput";
   }
   
 
@@ -305,7 +304,6 @@ namespace MUSIC {
 		    receiverPortCode),
       InputSubconnector ()
   {
-    type = "EventInput";
   }
 
 

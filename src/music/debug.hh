@@ -67,6 +67,7 @@
 #define MUSIC_LOGN(N, X)
 #define MUSIC_LOG0(X)
 #define MUSIC_LOGR(X)
+#define MUSIC_LOGRE(X)
 #define MUSIC_LOGBR(C, X)
 #define MUSIC_LOGX(X)
 

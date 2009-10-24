@@ -2,6 +2,9 @@
 
 	* Release 1.0.5
 
+	* Makefile.am: Use hard instead of soft links for manpages (in
+	order to satisfy Debian dpkg-source); Add figures to CLEANFILES.
+
 2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Release 1.0.4

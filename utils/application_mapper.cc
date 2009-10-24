@@ -152,13 +152,14 @@ namespace MUSIC {
 	    //
 	    // NOTE: This code must be executed in the same order in
 	    // all MPI processes.
+	    std::string receiverPortFullName = receiverApp + "." + receiverPort;
 	    std::map<std::string, int>::iterator pos
-	      = receiverPortCodes.find (receiverPort);
+	      = receiverPortCodes.find (receiverPortFullName);
 	    int portCode;
 	    if (pos == receiverPortCodes.end ())
 	      {
 		portCode = nextPortCode++;
-		receiverPortCodes.insert (std::make_pair (receiverPort,
+		receiverPortCodes.insert (std::make_pair (receiverPortFullName,
 							  portCode));
 	      }
 	    else

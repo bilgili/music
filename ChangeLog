@@ -1,3 +1,7 @@
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Release 1.0.5
+
 2009-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Support for MPICH 2 (Thanks to Eilif Müller.)
@@ -43,7 +47,7 @@
 2009-03-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0
-	
+
 2009-02-11  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* mpidep: New directory for MPI dependent code.

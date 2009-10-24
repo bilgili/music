@@ -11,8 +11,6 @@ Section: libdevel
 Architecture: any
 Depends: libmusic1 (>= ${binary:Version})
 Description: Multi-Simulation Coordinator for MPI -- Development files
- Large scale neuronal network simulator data exchange framework.
- .
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in
  a cluster computer.  Typical usage cases are connecting models
@@ -27,8 +25,6 @@ Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Multi-Simulation Coordinator for MPI -- Runtime library
- Large scale neuronal network simulator data exchange framework.
- .
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in
  a cluster computer.  Typical usage cases are connecting models
@@ -42,8 +38,6 @@ Section: science
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Multi-Simulation Coordinator for MPI -- Utilities
- Large scale neuronal network simulator data exchange framework.
- .
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in
  a cluster computer.  Typical usage cases are connecting models
@@ -57,8 +51,6 @@ Section: doc
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Multi-Simulation Coordinator for MPI -- Manual
- Large scale neuronal network simulator data exchange framework.
- .
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in
  a cluster computer.  Typical usage cases are connecting models

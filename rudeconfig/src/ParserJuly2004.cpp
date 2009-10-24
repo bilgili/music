@@ -39,6 +39,8 @@
 #define INCLUDED_IOSTREAM
 #endif
 
+#include <cstdio>
+
 using namespace rude::config;
 using namespace std;
 
@@ -288,6 +290,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							break;
 					}
 					case SECTIONERROR:
+					case ENDSECTION: // dummy
 					{
 						return false;
 					}
@@ -409,7 +412,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                                 kvState = RIGHTARROW;
                                                                 // We need to split up the key into srcApp.srcObj and store them
-                                                                int dotPos = key.find_first_of('.');
+                                                                size_t dotPos = key.find_first_of('.');
 
                                                                 if(dotPos != string::npos)
                                                                   {
@@ -442,7 +445,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                                 kvState = LEFTARROW;
                                                                 // We need to split up the key into destApp.destObj and store them
-                                                                int dotPos = key.find_first_of('.');
+                                                                size_t dotPos = key.find_first_of('.');
 
                                                                 if(dotPos != string::npos)
                                                                   {
@@ -530,6 +533,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							break;
 					}
 					case KVERROR:
+					case ENDKEYVALUE: // dummy for compiler
 					{
                                           //std::cout << "KVERROR\n";
 							return false;
@@ -756,7 +760,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 stripTrailing(value);
 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -805,7 +809,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 stripTrailing(value);                                                
 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -849,7 +853,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 kvState = ENDSOURCEDEST;
 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -874,7 +878,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                 
                                                 stripTrailing(value);
                                                 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -921,7 +925,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 kvState = ENDSOURCEDEST;
 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -945,7 +949,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                 
                                                 stripTrailing(value);
                                                 
-                                                int dotPos = value.find_first_of('.');
+                                                size_t dotPos = value.find_first_of('.');
 
                                                 if(dotPos != string::npos)
                                                   {
@@ -1006,7 +1010,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 c = infile.peek();
 
-                                                if('0' <= c & c <= '9' & width.length() > 0)
+                                                if('0' <= c && c <= '9' && width.length() > 0)
                                                   {
                                                     setError("902", "Two numbers detected in the width declaration");
                                                     kvState = KVERROR;

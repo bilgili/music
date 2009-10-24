@@ -4,6 +4,19 @@ Copyright (C) 2009 INCF
 Please send MUSIC bug reports to music-bugs@incf.org.
 
 
+Changes in 1.0.5:
+
+* music library
+
+** Optimizations of event routing.  MUSIC now discovers ranges of
+   indices which can be handled collectively by one entry in the event
+   router, even in the case that this is not apparent from index maps
+   but due to the effect of negotiations with the port connected on
+   the other side.
+
+** Bug fixes.
+   
+
 Changes in 1.0.4:
 
 * test directory

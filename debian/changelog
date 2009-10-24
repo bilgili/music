@@ -1,3 +1,9 @@
+music (1.0.5-1) unstable; urgency=low
+
+  * Upstream release 1.0.5 (Closes: #524032, #526662).
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Sat, 24 Oct 2009 10:41:37 +0200
+
 music (1.0.4-1) unstable; urgency=low
 
   * Upstream release 1.0.4.
@@ -9,5 +15,5 @@ music (1.0.4-1) unstable; urgency=low
 music (1.0.3-1) unstable; urgency=low
 
   * Initial Release (Closes: #518538, #518541, #518542, #518543, #518544)
-	
+
  -- Mikael Djurfeldt <mdj@debian.org>  Fri, 13 Mar 2009 11:30:35 +0100

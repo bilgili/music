@@ -1,3 +1,7 @@
+2009-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: Support for MPICH 2 (Thanks to Eilif Müller.)
+
 2009-04-01  Mikael Djurfeldt  <djurfeldt@nada.kth.se>
 
 	* Release 1.0.4

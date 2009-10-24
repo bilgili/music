@@ -1,3 +1,8 @@
+2009-10-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* mpidep.cc (getRank): Support for MPICH 2.  (Thanks to Eilif
+	Müller.)
+
 2009-10-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* mpidep.cc (getRank): Handle rank 0 and correctly detect cases

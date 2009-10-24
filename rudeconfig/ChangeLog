@@ -1,3 +1,10 @@
+2009-10-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* src/ParserJuly2004.cpp: #include <cstdio>.
+	(ParserJuky2004::parse): Changed type of variable `dotPos' from
+	int to size_t throughout; Use '&&' instead of '&' in conditional
+	expression.
+
 2009-03-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (man_MANS): Don't install man pages.

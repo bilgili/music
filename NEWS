@@ -4,6 +4,15 @@ Copyright (C) 2009 INCF
 Please send MUSIC bug reports to music-bugs@incf.org.
 
 
+Changes in 1.0.6:
+
+* music library
+
+** Fixes for GCC version 4.4.
+
+** Don't include RPATH in libmusic.so.
+
+
 Changes in 1.0.5:
 
 * music library

@@ -12,13 +12,15 @@ Checklist for a release:
 
 * "Release x.y.z" in all ChangeLog:s except in rudeconfig/
 
-* make dist
+* make debian-source
 
-* mv music-x.y.z.tar.gz ../music_x.y.z.orig.tar.gz
+* cd ../music_x.y.z
 
 * dpkg-buildpackage -rfakeroot
 
 * lintian -i music_x.y.z.-n_ARCH.changes
+
+* dupload music_x.y.z.-n_ARCH.changes
 
 * svn commit
 

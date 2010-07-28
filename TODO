@@ -1,3 +1,5 @@
+* checkpointing
+
 * use duplicate of MPI::COMM_WORLD for setting up inter-communicators
 
 * report error if index maps overlap on the sender side

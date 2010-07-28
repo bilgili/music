@@ -2,14 +2,14 @@ Source: music
 Priority: extra
 Maintainer: Mikael Djurfeldt <mdj@debian.org>
 Build-Depends: debhelper (>= 7), autotools-dev, autoconf, automake, libtool, libopenmpi-dev, libibverbs-dev, freeglut3-dev, texlive-latex-base, texlive-latex-extra, asymptote, chrpath
-Standards-Version: 3.8.3
+Standards-Version: 3.9.0
 Section: libs
 Homepage: http://software.incf.org/software/music/home
 
 Package: libmusic-dev
 Section: libdevel
 Architecture: any
-Depends: libmusic1 (= ${binary:Version})
+Depends: libmusic1 (= ${binary:Version}), ${misc:Depends}
 Description: Multi-Simulation Coordinator for MPI -- Development files
  MUSIC allows spike events and continuous time series to be
  communicated between parallel applications within the same MPI job in

@@ -1,7 +1,14 @@
 MUSIC NEWS --- history of user-visible changes.
-Copyright (C) 2009 INCF
+Copyright (C) 2009, 2010 INCF
 
 Please send MUSIC bug reports to music-bugs@incf.org.
+
+
+Changes in 1.0.7:
+
+* music library
+
+** Bug fix release.
 
 
 Changes in 1.0.6:

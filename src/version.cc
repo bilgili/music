@@ -24,7 +24,7 @@ namespace MUSIC {
   version ()
   {
     // NOTE: take from version.hh which should get it from configure
-    return "1.0.6";
+    return "1.0.7";
   }
 
 }

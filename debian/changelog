@@ -1,3 +1,11 @@
+music (1.0.7-1) unstable; urgency=high
+
+  * Upstream release 1.0.7 (containing urgent bugfix).
+  * Updated standards version to 3.9.0.
+  * Added missing ${misc:Depends} field for libmusic-dev.
+
+ -- Mikael Djurfeldt <mdj@debian.org>  Wed, 28 Jul 2010 04:24:40 +0200
+
 music (1.0.6-1) unstable; urgency=low
 
   * Upstream release 1.0.6.

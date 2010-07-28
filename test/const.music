@@ -1,8 +1,8 @@
 stoptime=1.0
 [from]
-  np=2
+  np=4
   binary=./constsource
 [to]
-  np=2
+  np=3
   binary=./contsink
-  from.contdata -> to.contdata [7]
+  from.contdata -> to.contdata [120]

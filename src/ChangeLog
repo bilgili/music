@@ -1,3 +1,12 @@
+2010-07-28  Mikael Djurfeldt  <mdj@debian.org>
+
+	* synchronizer.cc (Synchronizer::nextCommunication): Revert
+	buggy handling of tight loops in change of 2009-10-23.
+
+	* subconnector.cc
+	(MessageOutputSubconnector::MessageOutputSubconnector): Bugfix:
+	Initialize synchronizer pointer properly.
+
 2009-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0.6

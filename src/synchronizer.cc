@@ -52,8 +52,10 @@ namespace MUSIC {
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
+#if 0 //*fixme* Need to handle this the correct way
     else if (maxBuffered_ == 0)
       nextSend.ticks (-1);	// arises with tight loops of spike events
+#endif
     MUSIC_LOGRE ("next send at " << nextSend.time ()
 		 << ", next receive at " << nextReceive.time ()
 		 << ", bCount = " << bCount);

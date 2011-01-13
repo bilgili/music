@@ -93,13 +93,43 @@ namespace MUSIC {
   void*
   BIFO::insertBlock ()
   {
-    if (current <= end && current >= maxBlockSize_)
-      beginning = 0;
+    beginning = end; // set insertion point to end of last block
+    if (current <= end) // reading below inserting?
+      {
+	// Inserting above current data
+
+
+	// Is it time to wrap around the insertion point?  This should
+	// only be done if we can fit a maximal block below current
+	// (current > maxBlockSize_).  We need to use > since a
+	// maximal block otherwise could cause an empty buffer.
+	if (current > maxBlockSize_)
+	  beginning = 0; // Wrap around!
+	else if (beginning + maxBlockSize_ > size) // Need to enlarge?
+	  // (The peculiar choice of growing just as much as we need
+	  // is made since buffers can be VERY large in large scale
+	  // simulations.)
+	  grow (beginning + maxBlockSize_);
+      }
     else
       {
-	beginning = end;
-	if (beginning + maxBlockSize_ > size)
-	  grow (beginning + maxBlockSize_);
+	// Inserting below current data
+	if (current - beginning <= maxBlockSize_) // Too tight?
+	  {
+	    // delta is how much more space we need + epsilon (8 to be
+	    // nice to memory)
+	    int delta = maxBlockSize_ - (current - beginning) + 8;
+	    if (size - top < delta) // Need to enlarge?
+	    // (The peculiar choice of growing just as much as we need
+	    // is made since buffers can be VERY large in large scale
+	    // simulations.)
+	      grow (size + delta);
+	    // Now move entire upper chunk of data:
+	    memmove (&buffer[current + delta], &buffer[current],
+		     top - current);
+	    current += delta;
+	    top += delta;
+	  }
       }
     return static_cast<void*> (&buffer[beginning]);
   }

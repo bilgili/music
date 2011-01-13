@@ -120,6 +120,7 @@ namespace MUSIC {
 	buffer += CONT_BUFFER_MAX;
 	size -= CONT_BUFFER_MAX;
       }
+    MUSIC_LOGR ("Last send to rank " << remoteRank_);
     intercomm.Send (buffer,
 		    size / type_.Get_size (),
 		    type_,
@@ -183,11 +184,12 @@ namespace MUSIC {
   void
   ContInputSubconnector::receive ()
   {
-    char* data = static_cast<char*> (buffer_.insertBlock ());
+    char* data;
     MPI::Status status;
     int size;
     do
       {
+	data = static_cast<char*> (buffer_.insertBlock ());
 	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
 	intercomm.Recv (data,
 			CONT_BUFFER_MAX / type_.Get_size (),

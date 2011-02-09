@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
+#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include "music/setup.hh" // Must be included first on BG/L
@@ -382,6 +382,39 @@ namespace MUSIC {
     router.insertEvent (t, id);
   }
 
+/*
+ * remedius
+ */
+  void
+  EventCommonOutputPort::insertEvent(double t, GlobalIndex id)
+  {
+
+	  if(buffer_== NULL)
+		  errorRank("buffer is not set");
+
+	  Event* e = static_cast<Event*> (buffer_->insert ());
+	  e->t = t;
+	  e->id = (int)id;
+
+
+  }
+  /*
+   * remedius
+   */
+ void EventCommonInputPort::map(IndexMap* indices,
+ 	      EventHandlerGlobalIndex* handleEvent)
+ {
+
+	 handleEvent_ =  EventHandlerPtr (handleEvent);
+	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
+		 intervals.push_back(*iindx);
+
+/*	 std::vector<IndexInterval>::iterator i;
+	 for( i = intervals.begin(); i != intervals.end(); ++i){
+			 std::cerr << (*i).begin() << "::" << (*i).end() << std::endl << std::flush;
+	 }*/
+
+ }
   
   EventInputPort::EventInputPort (Setup* s, std::string id)
     : Port (s, id)

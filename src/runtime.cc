@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
+#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include <mpi.h>
@@ -26,7 +26,7 @@
 #include "music/runtime.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
-
+#define ALLGATHER
 namespace MUSIC {
 
   bool Runtime::isInstantiated_ = false;
@@ -34,14 +34,16 @@ namespace MUSIC {
   Runtime::Runtime (Setup* s, double h)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
+    // Setup the MUSIC clock
+	localTime = Clock (s->timebase (), h);
+
+	comm = s->communicator ();
+#ifndef ALLGATHER
     
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;
     
-    // Setup the MUSIC clock
-    localTime = Clock (s->timebase (), h);
     
-    comm = s->communicator ();
 
     Connections* connections = s->connections ();
     
@@ -78,8 +80,42 @@ namespace MUSIC {
 	// final initialization before simulation starts
 	initialize ();
       }
-    
+#else
+    /*
+     * remedius
+     */
+    if (s->launchedByMusic ())
+    {
+    	std::vector<Port*>::iterator p;
+    	CommonEventSubconnector *subconn = NULL;
+    	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
+    	{
+    		EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
+    		if (bp != NULL){
+    			subconn = new CommonEventSubconnector(bp->getIntervals(),bp->getEventHandler());
+    			break;
+    		}
+    	}
+
+    	if(subconn == NULL)
+    		subconn = new CommonEventSubconnector(std::vector<IndexInterval>(),EventHandlerPtr());
+
+
+    	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
+    	{
+    		EventCommonOutputPort* bp = dynamic_cast<EventCommonOutputPort*> (*p);
+    		if (bp != NULL){
+    			bp->setBuffer(subconn->buffer());
+    			break;
+    		}
+    	}
+    	schedule.push_back (subconn);
+    	//should be called because otherwise the program will crash due to the destructor of TemporalNegotiator
+    	temporalNegotiation (s, s->connections());
+    }
+#endif
     delete s;
+
   }
 
 
@@ -299,6 +335,7 @@ namespace MUSIC {
 
     // receive first chunk of data from sender application and fill
     // cont buffers according to Synchronizer::initialBufferedTicks ()
+
     for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	 s != schedule.end ();
 	 ++s)
@@ -312,6 +349,7 @@ namespace MUSIC {
 
     // the time zero tick () (where we may or may not communicate)
     tick ();
+
   }
 
   
@@ -348,7 +386,7 @@ namespace MUSIC {
   {
     // Update local time
     localTime.tick ();
-    
+#ifndef ALLGATHER
     // ContPorts do some per-tick initialization here
     std::vector<TickingPort*>::iterator p;
     for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
@@ -377,7 +415,9 @@ namespace MUSIC {
 	 c != postCommunication.end ();
 	 ++c)
       (*c)->postCommunication ();
-	
+#else
+   schedule.front()->maybeCommunicate();
+#endif
   }
 
 

@@ -102,9 +102,9 @@ namespace MUSIC {
       }
   }
 
-
   Setup::~Setup ()
   {
+
     for (std::vector<Port*>::iterator i = ports_.begin ();
 	 i != ports_.end ();
 	 ++i)
@@ -222,8 +222,22 @@ namespace MUSIC {
   {
     return new EventOutputPort (this, identifier);
   }
-
   
+  /*
+   * remedius
+   */
+  EventCommonOutputPort*
+  Setup::publishEventCommonOutput (string identifier){
+	  return new EventCommonOutputPort(this, identifier);
+  }
+  /*
+   * remedius
+   */
+  EventCommonInputPort*
+  Setup::publishEventCommonInput(string identifier){
+	  return new EventCommonInputPort(this, identifier);
+  }
+
   MessageInputPort*
   Setup::publishMessageInput (std::string identifier)
   {

@@ -69,6 +69,14 @@ namespace MUSIC {
     EventInputPort* publishEventInput (string identifier);
 
     EventOutputPort* publishEventOutput (string identifier);
+    /*
+     * remedius
+     */
+    EventCommonOutputPort* publishEventCommonOutput (string identifier);
+    /*
+     * remedius
+     */
+    EventCommonInputPort* publishEventCommonInput(string identifier);
 
     MessageInputPort* publishMessageInput (string identifier);
 

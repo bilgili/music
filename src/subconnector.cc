@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
+#define MUSIC_DEBUG
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include "music/communication.hh"
@@ -54,7 +54,59 @@ namespace MUSIC {
     : buffer_ (elementSize)
   {
   }
+  /*
+   * remediuds
+   */
+  CommonEventSubconnector::CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent):BufferingOutputSubconnector(sizeof (Event)){
+	  this->handleEvent_ = handleEvent;
 
+	  std::vector<IndexInterval>::iterator i;
+	  for( i = intervals.begin(); i != intervals.end(); ++i)
+		  router.insertRoutingInterval(*i);
+	  router.buildTable();
+
+  }
+  /*
+   * remedius
+   */
+ void CommonEventSubconnector::maybeCommunicate(){
+
+	  void* data;
+	  int size, nProcesses;
+	  unsigned int dsize;
+	  int* ppBytes, *displ;
+	  char* cur_buff, *recv_buff;
+
+	  buffer_.nextBlock (data, size);
+	  cur_buff = static_cast <char*> (data);
+	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
+
+	  ppBytes = new int[nProcesses];
+	  //distributing the size of the buffer
+	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, MPI_COMM_WORLD );
+	  MPI_Barrier(MPI_COMM_WORLD);
+	  //could it be that dsize is more then unsigned int?
+	  dsize = 0;
+	  displ = new int[nProcesses];
+	  for(int i=0; i < nProcesses; ++i){
+		  displ[i] = dsize;
+		  dsize += ppBytes[i];
+	  }
+
+	  recv_buff = new char[dsize];
+	  //distributing the data
+	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, MPI_COMM_WORLD);
+	  //processing the data
+	  int sEvent = sizeof(Event);
+	  for(int i=0; i < dsize; i+=sEvent){
+		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
+		  router.processEvent(&handleEvent_, e->t, e->id);
+	 }
+
+	  delete ppBytes;
+	  delete displ;
+	  delete recv_buff;
+  }
   
   InputSubconnector::InputSubconnector ()
   {

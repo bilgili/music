@@ -163,7 +163,31 @@ namespace MUSIC {
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
   };
+  /*
+   * remedius
+   */
+  class EventCommonOutputPort:  public EventPort{
+	  FIBO* buffer_;
+  public:
+	  EventCommonOutputPort(Setup* s, std::string id):Port(s,id), buffer_(NULL){};
+	  void insertEvent(double , GlobalIndex);
+	  void setBuffer(FIBO* buffer){buffer_ = buffer;};
+  };
 
+  /*
+   * remedius
+   */
+  class EventCommonInputPort: public EventPort{
+	  std::vector<IndexInterval> intervals;
+	  EventHandlerPtr handleEvent_;
+  public:
+	  EventCommonInputPort(Setup* s, std::string id): Port (s, id){};
+	  void map (IndexMap* ,
+	  	      EventHandlerGlobalIndex* );
+	  EventHandlerPtr getEventHandler(){return handleEvent_; }
+	  std::vector<IndexInterval> getIntervals(){return intervals; }
+
+  };
 
   class EventInputPort : public EventPort,
 			 public InputRedistributionPort {

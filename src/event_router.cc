@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
+#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include "music/event_router.hh"
@@ -53,6 +53,29 @@ namespace MUSIC {
     routingTable.search (id, &i);
   }
 
+/*
+ * remedius
+ */
+  void
+  CommonEventRouter::insertRoutingInterval(IndexInterval i){
+	  routingTable.add (i);
+  }
+  /*
+   * remedius
+   */
+ void
+ CommonEventRouter::buildTable(){
+	 MUSIC_LOGR ("Routing table size = " << routingTable.size ());
+	 routingTable.build ();
+ }
+ /*
+  * remedius
+  */
+ void
+ CommonEventRouter::processEvent(EventHandlerPtr *handleEvent, double t, GlobalIndex id){
+	 EventHandler h(handleEvent->global(), t, id);
+	 routingTable.search (id, &h);
+ }
 
   void
   EventRoutingMap::insert (IndexInterval i, FIBO* buffer)

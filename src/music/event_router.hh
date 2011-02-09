@@ -66,6 +66,29 @@ namespace MUSIC {
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
   };
+
+  /*
+   * remedius
+   */
+  class CommonEventRouter {
+	  class EventHandler : public IntervalTree<int, IndexInterval>::Action {
+		  double t_;
+		  int id_;
+		  EventHandlerGlobalIndex *handleEvent_;
+	  public:
+		  EventHandler ( EventHandlerGlobalIndex *handleEvent, double t, int id) : t_ (t), id_ (id), handleEvent_(handleEvent) { };
+		  void operator() (IndexInterval& data)
+		  {
+			  (*handleEvent_) (t_, id_);
+		  }
+	  };
+
+     IntervalTree<int, IndexInterval> routingTable;
+   public:
+     void insertRoutingInterval (IndexInterval i);
+     void buildTable ();
+     void processEvent (EventHandlerPtr *handleEvent, double t, GlobalIndex id);
+   };
     
 
   class EventRoutingMap {

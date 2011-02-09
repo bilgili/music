@@ -25,7 +25,7 @@
 #include <music/synchronizer.hh>
 #include <music/FIBO.hh>
 #include <music/BIFO.hh>
-#include <music/event.hh>
+#include <music/event_router.hh>
 #include <music/message.hh>
 
 namespace MUSIC {
@@ -80,6 +80,18 @@ namespace MUSIC {
     FIBO* buffer () { return &buffer_; }
   };
   
+  /*
+   * remedius
+   */
+  class CommonEventSubconnector:public BufferingOutputSubconnector{
+	  EventHandlerPtr handleEvent_;
+	  CommonEventRouter router;
+  public:
+	  CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
+	  void maybeCommunicate ();
+	  void flush (bool& dataStillFlowing){};
+  };
+
   class InputSubconnector : virtual public Subconnector {
   protected:
     InputSubconnector ();

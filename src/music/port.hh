@@ -154,6 +154,7 @@ namespace MUSIC {
 			  public OutputRedistributionPort {
     EventRoutingMap* routingMap;
     EventRouter router;
+    FIBO* buffer_;
   public:
     EventOutputPort (Setup* s, std::string id);
     void map (IndexMap* indices, Index::Type type);
@@ -162,10 +163,11 @@ namespace MUSIC {
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
+    void setBuffer(FIBO* buffer){buffer_ = buffer;};
   };
-  /*
+/*
    * remedius
-   */
+
   class EventCommonOutputPort:  public EventPort{
 	  FIBO* buffer_;
   public:
@@ -174,9 +176,9 @@ namespace MUSIC {
 	  void setBuffer(FIBO* buffer){buffer_ = buffer;};
   };
 
-  /*
+
    * remedius
-   */
+
   class EventCommonInputPort: public EventPort{
 	  std::vector<IndexInterval> intervals;
 	  EventHandlerPtr handleEvent_;
@@ -187,13 +189,14 @@ namespace MUSIC {
 	  EventHandlerPtr getEventHandler(){return handleEvent_; }
 	  std::vector<IndexInterval> getIntervals(){return intervals; }
 
-  };
+  };*/
 
   class EventInputPort : public EventPort,
 			 public InputRedistributionPort {
   private:
     Index::Type type_;
     EventHandlerPtr handleEvent_;
+    std::vector<IndexInterval> intervals;
   public:
     EventInputPort (Setup* s, std::string id);
     void map (IndexMap* indices,
@@ -210,6 +213,8 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
+    EventHandlerPtr getEventHandler(){return handleEvent_; }
+    std::vector<IndexInterval> getIntervals(){return intervals; }
   protected:
     void mapImpl (IndexMap* indices,
 		  Index::Type type,

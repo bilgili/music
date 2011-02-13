@@ -90,7 +90,8 @@ namespace MUSIC {
     	CommonEventSubconnector *subconn = NULL;
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
-    		EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
+    		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
+    		EventInputPort* bp = dynamic_cast<EventInputPort*> (*p);
     		if (bp != NULL){
     			subconn = new CommonEventSubconnector(bp->getIntervals(),bp->getEventHandler());
     			break;
@@ -103,7 +104,7 @@ namespace MUSIC {
 
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
-    		EventCommonOutputPort* bp = dynamic_cast<EventCommonOutputPort*> (*p);
+    		EventOutputPort* bp = dynamic_cast<EventOutputPort*> (*p);
     		if (bp != NULL){
     			bp->setBuffer(subconn->buffer());
     			break;

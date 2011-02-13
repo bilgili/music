@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+#define ALLGATHER
 #define MUSIC_DEBUG
 #include "music/debug.hh"
 
@@ -324,15 +324,19 @@ namespace MUSIC {
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
     : Port (s, id), routingMap (new EventRoutingMap ())
   {
+	  buffer_ = NULL;
   }
 
   
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
+#ifndef ALLGATHER
     assertOutput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices, type, maxBuffered, sizeof (Event));
+#else
+#endif
   }
 
   
@@ -341,12 +345,15 @@ namespace MUSIC {
 			Index::Type type,
 			int maxBuffered)
   {
+#ifndef ALLGATHER
     assertOutput ();
     if (maxBuffered <= 0)
       {
 	error ("EventOutputPort::map: maxBuffered should be a positive integer");
       }
     mapImpl (indices, type, maxBuffered, sizeof (Event));
+#else
+#endif
   }
 
   
@@ -372,7 +379,16 @@ namespace MUSIC {
   void
   EventOutputPort::insertEvent (double t, GlobalIndex id)
   {
+#ifndef ALLGATHER
     router.insertEvent (t, id);
+#else
+    if(buffer_== NULL)
+   		  errorRank("buffer is not set");
+
+   	  Event* e = static_cast<Event*> (buffer_->insert ());
+   	  e->t = t;
+   	  e->id = (int)id;
+#endif
   }
 
   
@@ -384,7 +400,7 @@ namespace MUSIC {
 
 /*
  * remedius
- */
+
   void
   EventCommonOutputPort::insertEvent(double t, GlobalIndex id)
   {
@@ -398,9 +414,9 @@ namespace MUSIC {
 
 
   }
-  /*
+
    * remedius
-   */
+
  void EventCommonInputPort::map(IndexMap* indices,
  	      EventHandlerGlobalIndex* handleEvent)
  {
@@ -409,12 +425,12 @@ namespace MUSIC {
 	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
 		 intervals.push_back(*iindx);
 
-/*	 std::vector<IndexInterval>::iterator i;
+	 std::vector<IndexInterval>::iterator i;
 	 for( i = intervals.begin(); i != intervals.end(); ++i){
 			 std::cerr << (*i).begin() << "::" << (*i).end() << std::endl << std::flush;
-	 }*/
+	 }
 
- }
+ }*/
   
   EventInputPort::EventInputPort (Setup* s, std::string id)
     : Port (s, id)
@@ -427,6 +443,7 @@ namespace MUSIC {
 		       EventHandlerGlobalIndex* handleEvent,
 		       double accLatency)
   {
+#ifndef ALLGATHER
     assertInput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
@@ -434,6 +451,11 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
+#else
+	 handleEvent_ =  EventHandlerPtr (handleEvent);
+	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
+		 intervals.push_back(*iindx);
+#endif
   }
 
   
@@ -442,6 +464,7 @@ namespace MUSIC {
 		       EventHandlerLocalIndex* handleEvent,
 		       double accLatency)
   {
+#ifndef ALLGATHER
     assertInput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
@@ -449,6 +472,9 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
+#else
+    error("ALLGATHER doesn't support LocalIndex.");
+#endif
   }
 
   
@@ -458,6 +484,7 @@ namespace MUSIC {
 		       double accLatency,
 		       int maxBuffered)
   {
+#ifndef ALLGATHER
     assertInput ();
     if (maxBuffered <= 0)
       {
@@ -468,6 +495,11 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
+#else
+	 handleEvent_ =  EventHandlerPtr (handleEvent);
+	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
+		 intervals.push_back(*iindx);
+#endif
   }
 
   
@@ -477,6 +509,7 @@ namespace MUSIC {
 		       double accLatency,
 		       int maxBuffered)
   {
+#ifndef ALLGATHER
     assertInput ();
     if (maxBuffered <= 0)
       {
@@ -487,6 +520,9 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
+#else
+    error("ALLGATHER doesn't support LocalIndex.");
+#endif
   }
 
   

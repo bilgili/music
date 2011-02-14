@@ -132,70 +132,7 @@ getargs (int rank, int argc, char* argv[])
 
 #define MUSIC_DEBUG
 #include "../src/music/debug.hh"
-int
-main (int argc, char *argv[])
-{
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
 
-  MPI::Intracomm comm = setup->communicator ();
-  int nProcesses = comm.Get_size ();
-  int rank = comm.Get_rank ();
-
-  getargs (rank, argc, argv);
-
-  MUSIC::EventCommonOutputPort* out = setup->publishEventCommonOutput ("out");
-  if (!out->isConnected ())
-    {
-      if (rank == 0)
-	std::cerr << "eventsource port is not connected" << std::endl;
-      comm.Abort (1);
-    }
-
-  double stoptime;
-  setup->config ("stoptime", &stoptime);
-
-  std::ostringstream spikefile;
-  spikefile << prefix << rank << suffix;
-  Datafile in (spikefile.str ());
-  if (!in)
-  {
-	  std::cerr << "eventsource: could not open "
-			  << spikefile.str () << std::endl;
-	  abort ();
-  }
-
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
-
-  in.skipHeader ();
-  int id;
-  double t;
-  in >> t >> id;
-  bool moreSpikes = !in.eof ();
-
-  double time = runtime->time ();
-  while (time < stoptime)
-  {
-	  double nextTime = time + timestep;
-	  while (moreSpikes && t < nextTime)
-	  {
-
-		  out->insertEvent (t, MUSIC::GlobalIndex (id));
-
-		  in >> t >> id;
-		  moreSpikes = !in.eof ();
-	  }
-	  // Make data available for other programs
-	  runtime->tick ();
-
-	  time = runtime->time ();
-  }
-
-  runtime->finalize ();
-
-  delete runtime;
-  return 0;
-}
-/*
 int
 main (int argc, char *argv[])
 {
@@ -297,4 +234,3 @@ main (int argc, char *argv[])
   return 0;
 }
 
-*/

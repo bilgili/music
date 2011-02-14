@@ -79,94 +79,10 @@ std::string imaptype = "linear";
 std::string indextype = "global";
 #define MUSIC_DEBUG
 #include "../src/music/debug.hh"
+
+
+
 int
-main (int argc, char* argv[])
-{
-  MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  comm = setup->communicator ();
-  int nProcesses = comm.Get_size (); // how many processes are there?
-  int rank = comm.Get_rank ();        // which process am I?
-
-  // Port publishing
-  MUSIC::EventCommonInputPort* evport = setup->publishEventCommonInput ("in");
-  if (!evport->isConnected () )
-    {
-      if (rank == 0)
-	std::cerr << "eventlogger: no connected input ports" << std::endl;
-      comm.Abort (1);
-    }
-
-  // Port mapping
-
-  MyEventHandlerGlobal evhandlerGlobal (rank);
-
-  if (evport->isConnected ())
-    {
-      // Split the width among the available processes
-      int width = 0;
-      if (evport->hasWidth ())
-	width = evport->width ();
-      else
-	{
-	  std::cerr << "port width not specified in Configuration file"
-		    << std::endl;
-	  comm.Abort (1);
-	}
-
-      if (imaptype == "linear")
-	{
-	  int nLocal = width / nProcesses;
-	  int rest = width % nProcesses;
-	  int firstId = nLocal * rank;
-	  if (rank < rest)
-	    {
-	      firstId += rank;
-	      nLocal += 1;
-	    }
-	  else
-	    firstId += rest;
-	  MUSIC::LinearIndex indexmap (firstId, nLocal);
-
-	  if (indextype == "global")
-	      evport->map (&indexmap, &evhandlerGlobal);
-
-	}
-      else
-	{
-	  std::vector<MUSIC::GlobalIndex> v;
-	  for (int i = rank; i < width; i += nProcesses)
-	    v.push_back (i);
-	  MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
-
-	  if (indextype == "global")
-	      evport->map (&indexmap, &evhandlerGlobal);
-	}
-    }
-
-  double stoptime;
-  setup->config ("stoptime", &stoptime);
-
-  // Run
-  MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, timestep);
-
-  apptime = runtime->time ();
-  while (apptime < stoptime)
-    {
-      // Retrieve data from other program
-      runtime->tick ();
-
-      apptime = runtime->time ();
-    }
-
-  runtime->finalize ();
-
-  delete runtime;
-
-  return 0;
-}
-
-
-/*int
 main (int argc, char* argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
@@ -187,13 +103,13 @@ main (int argc, char* argv[])
 	  {"help",      no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
-       `getopt_long' stores the option index here.
+       //`getopt_long' stores the option index here.
       int optionIndex = 0;
 
       // the + below tells getopt_long not to reorder argv
       int c = getopt_long (argc, argv, "+t:l:b:m:i:h", longOptions, &optionIndex);
 
-       detect the end of the options
+     //  detect the end of the options
       if (c == -1)
 	break;
 
@@ -261,7 +177,7 @@ main (int argc, char* argv[])
 		    << std::endl;
 	  comm.Abort (1);
 	}
-std::cout << width << std::endl;
+
       if (imaptype == "linear")
 	{
 	  int nLocal = width / nProcesses;
@@ -337,4 +253,4 @@ std::cout << width << std::endl;
   delete runtime;
 
   return 0;
-}*/
+}

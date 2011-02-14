@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG
+#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include <mpi.h>
@@ -366,18 +366,19 @@ namespace MUSIC {
     // intercommunicators to go well
     MPI::COMM_WORLD.Barrier ();
 #endif
-    
+#ifndef ALLGATHER
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
-    
+#endif
     MPI::Finalize ();
   }
 
   void
   Runtime::tick ()
   {
+
     // Update local time
     localTime.tick ();
 #ifndef ALLGATHER
@@ -416,14 +417,16 @@ namespace MUSIC {
     bool requestCommunication =  false ;
     std::vector<Connector*>::iterator c;
 
-    for (c = connectors.begin (); c != connectors.end (); ++c)
+    for (c = connectors.begin (); c != connectors.end (); ++c){
     	(*c)->tick (requestCommunication);
+    }
 
     // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
     {
     	schedule.front()->maybeCommunicate();
     }
+
 #endif
   }
 

@@ -118,7 +118,7 @@ namespace MUSIC {
 		  }
 
 	 }
-	 if(dsize/sEvent != nProcesses || flushed)
+	 if(dsize/sEvent != nProcesses)
 		 flushed = false;
 
 	  delete ppBytes;
@@ -139,6 +139,7 @@ namespace MUSIC {
 	 {
 		 Event* e = static_cast<Event*> (buffer_.insert ());
 		 e->id = FLUSH_MARK;
+		// MUSIC_LOGR("sending FLUSH_MARK");
 		 maybeCommunicate ();
 		 if(!flushed)
 			 dataStillFlowing = true;

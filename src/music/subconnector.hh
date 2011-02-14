@@ -84,11 +84,13 @@ namespace MUSIC {
    * remedius
    */
   class CommonEventSubconnector:public BufferingOutputSubconnector{
-	  EventHandlerPtr handleEvent_;
 	  CommonEventRouter router;
   public:
-	  CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
+	  CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)){};
+	  //CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
 	  void maybeCommunicate ();
+	  void build();
+	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
 	  void flush (bool& dataStillFlowing){};
   };
 

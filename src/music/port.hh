@@ -88,6 +88,10 @@ namespace MUSIC {
 			  Index::Type type,
 			  int maxBuffered,
 			  int dataSize);
+    /*
+     * remedius
+     */
+    void mapImpl (IndexMap* indices, int maxBuffered, int dataSize);
   public:
     OutputRedistributionPort () : spatialNegotiator (0) { }
     void setupCleanup ();
@@ -95,7 +99,9 @@ namespace MUSIC {
 
   class InputRedistributionPort : public OutputPort,
 				  public RedistributionPort {
+
   protected:
+
     InputRedistributionPort () : spatialNegotiator (0) { }
     SpatialInputNegotiator* spatialNegotiator;
     virtual InputConnector* makeInputConnector (ConnectorInfo connInfo) = 0;
@@ -104,6 +110,11 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered,
 		  bool interpolate);
+    /*
+     * remedius
+     */
+    void mapImpl (IndexMap* indices,  double accLatency, int maxBuffered);
+
   public:
     void setupCleanup ();
   };
@@ -154,6 +165,9 @@ namespace MUSIC {
 			  public OutputRedistributionPort {
     EventRoutingMap* routingMap;
     EventRouter router;
+    /*
+     * remedius
+     */
     FIBO* buffer_;
   public:
     EventOutputPort (Setup* s, std::string id);
@@ -163,6 +177,9 @@ namespace MUSIC {
     void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
+    /*
+     * remedius
+     */
     void setBuffer(FIBO* buffer){buffer_ = buffer;};
   };
 /*
@@ -195,7 +212,13 @@ namespace MUSIC {
 			 public InputRedistributionPort {
   private:
     Index::Type type_;
+    /*
+     * remedius
+     */
     EventHandlerPtr handleEvent_;
+    /*
+     * remedius
+     */
     std::vector<IndexInterval> intervals;
   public:
     EventInputPort (Setup* s, std::string id);
@@ -213,7 +236,13 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
+    /*
+     * remedius
+     */
     EventHandlerPtr getEventHandler(){return handleEvent_; }
+    /*
+     * remedius
+     */
     std::vector<IndexInterval> getIntervals(){return intervals; }
   protected:
     void mapImpl (IndexMap* indices,

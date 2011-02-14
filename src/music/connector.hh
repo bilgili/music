@@ -66,8 +66,10 @@ namespace MUSIC {
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
     int remoteLeader () const { return info.remoteLeader (); }
-    
-    int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
+    /*
+     * remedius
+     */
+    int maxLocalWidth () { return spatialNegotiator_!=NULL ? spatialNegotiator_->maxLocalWidth ():info.portWidth(); }
     bool isLeader ();
     virtual Synchronizer* synchronizer () = 0;
     void createIntercomm ();

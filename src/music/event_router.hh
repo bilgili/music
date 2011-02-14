@@ -66,28 +66,45 @@ namespace MUSIC {
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
   };
-
+  /*
+    * remedius
+    */
+  class CommonEventRoutingData {
+     IndexInterval interval_;
+     EventHandlerGlobalIndex *handleEvent_;
+   public:
+     CommonEventRoutingData () { }
+     CommonEventRoutingData (IndexInterval i, EventHandlerGlobalIndex *handleEvent)
+       : interval_ (i), handleEvent_ (handleEvent) { }
+     int begin () const { return interval_.begin (); }
+     int end () const { return interval_.end (); }
+    // int offset () const { return interval_.local (); }
+     void handle (double t, int id) {
+    	 (*handleEvent_) (t, id);
+     }
+   };
   /*
    * remedius
    */
   class CommonEventRouter {
-	  class EventHandler : public IntervalTree<int, IndexInterval>::Action {
+	  class EventHandler : public IntervalTree<int, CommonEventRoutingData>::Action {
 		  double t_;
 		  int id_;
-		  EventHandlerGlobalIndex *handleEvent_;
 	  public:
-		  EventHandler ( EventHandlerGlobalIndex *handleEvent, double t, int id) : t_ (t), id_ (id), handleEvent_(handleEvent) { };
-		  void operator() (IndexInterval& data)
+		  EventHandler (double t, int id) : t_ (t), id_ (id) { };
+		  void operator() (CommonEventRoutingData& data)
 		  {
-			  (*handleEvent_) (t_, id_);
+			  data.handle(t_, id_);
 		  }
 	  };
-
-     IntervalTree<int, IndexInterval> routingTable;
+	 int current;
+     std::vector< IntervalTree<int, CommonEventRoutingData> > routingTables;
    public:
-     void insertRoutingInterval (IndexInterval i);
+     CommonEventRouter():current(-1){};
+     void newTable();
+     void insertRoutingInterval (IndexInterval i, EventHandlerPtr *handleEvent);
      void buildTable ();
-     void processEvent (EventHandlerPtr *handleEvent, double t, GlobalIndex id);
+     void processEvent (double t, GlobalIndex id);
    };
     
 

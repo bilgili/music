@@ -36,7 +36,8 @@ namespace MUSIC {
 					       recName,
 					       recCode,
 					       rLeader,
-					       nProc));
+					       nProc,
+					       width_));
   }
 
 

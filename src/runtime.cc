@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include <mpi.h>
@@ -36,16 +36,12 @@ namespace MUSIC {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
     // Setup the MUSIC clock
 	localTime = Clock (s->timebase (), h);
-
 	comm = s->communicator ();
+	Connections* connections = s->connections ();
 #ifndef ALLGATHER
     
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;
-    
-    
-
-    Connections* connections = s->connections ();
     
     if (s->launchedByMusic ())
       {
@@ -86,33 +82,31 @@ namespace MUSIC {
      */
     if (s->launchedByMusic ())
     {
+    	specializeConnectors (connections);
     	std::vector<Port*>::iterator p;
     	CommonEventSubconnector *subconn = NULL;
+    	subconn = new CommonEventSubconnector();
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
     		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
     		EventInputPort* bp = dynamic_cast<EventInputPort*> (*p);
     		if (bp != NULL){
-    			subconn = new CommonEventSubconnector(bp->getIntervals(),bp->getEventHandler());
-    			break;
+    			subconn->add(bp->getIntervals(),bp->getEventHandler());
     		}
     	}
-
-    	if(subconn == NULL)
-    		subconn = new CommonEventSubconnector(std::vector<IndexInterval>(),EventHandlerPtr());
-
+    	subconn->build();
 
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
     		EventOutputPort* bp = dynamic_cast<EventOutputPort*> (*p);
     		if (bp != NULL){
     			bp->setBuffer(subconn->buffer());
-    			break;
     		}
     	}
     	schedule.push_back (subconn);
-    	//should be called because otherwise the program will crash due to the destructor of TemporalNegotiator
     	temporalNegotiation (s, s->connections());
+    	initialize ();
+
     }
 #endif
     delete s;
@@ -381,7 +375,6 @@ namespace MUSIC {
     MPI::Finalize ();
   }
 
-
   void
   Runtime::tick ()
   {
@@ -417,7 +410,20 @@ namespace MUSIC {
 	 ++c)
       (*c)->postCommunication ();
 #else
-   schedule.front()->maybeCommunicate();
+    /*
+     * remedius
+     */
+    bool requestCommunication =  false ;
+    std::vector<Connector*>::iterator c;
+
+    for (c = connectors.begin (); c != connectors.end (); ++c)
+    	(*c)->tick (requestCommunication);
+
+    // Communicate data through non-interlocking pair-wise exchange
+    if (requestCommunication)
+    {
+    	schedule.front()->maybeCommunicate();
+    }
 #endif
   }
 

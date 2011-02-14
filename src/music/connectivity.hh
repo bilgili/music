@@ -30,21 +30,34 @@ namespace MUSIC {
     int recCode_;
     int remoteLeader_;
     int nProc_;
+    /*
+     * remedius
+     */
+    int port_width;
   public:
     ConnectorInfo () { }
+    /*
+     * remedius
+     */
     ConnectorInfo (std::string recApp,
 		   std::string recName,
 		   int recCode,
 		   int rLeader,
-		   int nProc)
+		   int nProc,
+		   int pWidth)
       : recApp_ (recApp),
 	recPort_ (recName),
 	recCode_ (recCode),
 	remoteLeader_ (rLeader),
-	nProc_ (nProc)
+	nProc_ (nProc),
+	port_width(pWidth)
     { }
     std::string receiverAppName () const { return recApp_; }
     std::string receiverPortName () const { return recPort_; }
+    /*
+     * remedius
+     */
+    int portWidth() const {return port_width;}
     int receiverPortCode () const { return recCode_; }
     int remoteLeader () const { return remoteLeader_; }
     // NOTE: nProcesses should have "remote" in name

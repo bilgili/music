@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include "music/communication.hh"
@@ -57,14 +57,19 @@ namespace MUSIC {
   /*
    * remediuds
    */
-  CommonEventSubconnector::CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent):BufferingOutputSubconnector(sizeof (Event)){
-	  this->handleEvent_ = handleEvent;
-
+ void
+ CommonEventSubconnector::add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent){
+	 router.newTable();
 	  std::vector<IndexInterval>::iterator i;
 	  for( i = intervals.begin(); i != intervals.end(); ++i)
-		  router.insertRoutingInterval(*i);
+		  router.insertRoutingInterval(*i, &handleEvent);
+  }
+ /*
+  * remediuds
+  */
+  void
+  CommonEventSubconnector::build(){
 	  router.buildTable();
-
   }
   /*
    * remedius
@@ -100,7 +105,7 @@ namespace MUSIC {
 	  int sEvent = sizeof(Event);
 	  for(int i=0; i < dsize; i+=sEvent){
 		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
-		  router.processEvent(&handleEvent_, e->t, e->id);
+		  router.processEvent(e->t, e->id);
 	 }
 
 	  delete ppBytes;

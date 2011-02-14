@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #define ALLGATHER
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #include "music/setup.hh" // Must be included first on BG/L
@@ -149,8 +149,27 @@ namespace MUSIC {
 						     dataSize));
       }
   }
+  /*
+   * remedius
+   */
+  void
+    OutputRedistributionPort::mapImpl (IndexMap* indices,int maxBuffered, int dataSize)
+    {
 
-
+	  if (maxBuffered != MAX_BUFFERED_NO_VALUE)
+	        maxBuffered -= 1;
+      PortConnectorInfo portConnections
+        = ConnectivityInfo_->connections ();
+      for (PortConnectorInfo::iterator info = portConnections.begin ();
+  	 info != portConnections.end ();
+  	 ++info)
+        {
+  	OutputConnector* connector = makeOutputConnector (*info);
+  	setup_->addConnection (new OutputConnection (connector,
+  						     maxBuffered,
+  						     dataSize));
+        }
+    }
   void
   InputRedistributionPort::setupCleanup ()
   {
@@ -187,6 +206,25 @@ namespace MUSIC {
 						integerLatency,
 						interpolate));
   }
+  /*
+   * remedius
+   */
+  void
+    InputRedistributionPort::mapImpl (IndexMap* indices,
+  				    double accLatency, int maxBuffered)
+    {
+	  if (maxBuffered != MAX_BUFFERED_NO_VALUE)
+	        maxBuffered -= 1;
+      PortConnectorInfo portConnections
+        = ConnectivityInfo_->connections ();
+      PortConnectorInfo::iterator info = portConnections.begin ();
+      InputConnector* connector = makeInputConnector (*info);
+      ClockState integerLatency (accLatency, setup_->timebase ());
+      setup_->addConnection (new InputConnection (connector,
+  						maxBuffered,
+  						integerLatency,
+  						false));
+    }
 
   
   /********************************************************************
@@ -327,19 +365,24 @@ namespace MUSIC {
 	  buffer_ = NULL;
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
+	 int maxBuffered = MAX_BUFFERED_NO_VALUE;
 #ifndef ALLGATHER
     assertOutput ();
-    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices, type, maxBuffered, sizeof (Event));
 #else
+    OutputRedistributionPort::mapImpl(indices, maxBuffered, sizeof (Event));
 #endif
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventOutputPort::map (IndexMap* indices,
 			Index::Type type,
@@ -353,6 +396,7 @@ namespace MUSIC {
       }
     mapImpl (indices, type, maxBuffered, sizeof (Event));
 #else
+    OutputRedistributionPort::mapImpl(indices, maxBuffered, sizeof (Event));
 #endif
   }
 
@@ -375,7 +419,9 @@ namespace MUSIC {
     router.buildTable ();
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventOutputPort::insertEvent (double t, GlobalIndex id)
   {
@@ -437,15 +483,18 @@ namespace MUSIC {
   {
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
 		       double accLatency)
   {
+	  int maxBuffered = MAX_BUFFERED_NO_VALUE;
 #ifndef ALLGATHER
     assertInput ();
-    int maxBuffered = MAX_BUFFERED_NO_VALUE;
+
     mapImpl (indices,
 	     Index::GLOBAL,
 	     EventHandlerPtr (handleEvent),
@@ -455,10 +504,13 @@ namespace MUSIC {
 	 handleEvent_ =  EventHandlerPtr (handleEvent);
 	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
 		 intervals.push_back(*iindx);
+	 InputRedistributionPort::mapImpl (indices, accLatency, maxBuffered);
 #endif
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -477,7 +529,9 @@ namespace MUSIC {
 #endif
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
@@ -499,10 +553,13 @@ namespace MUSIC {
 	 handleEvent_ =  EventHandlerPtr (handleEvent);
 	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
 		 intervals.push_back(*iindx);
+	 InputRedistributionPort::mapImpl (indices,  accLatency, maxBuffered);
 #endif
   }
 
-  
+  /*
+   * remedius
+   */
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
@@ -551,6 +608,7 @@ namespace MUSIC {
 				    handleEvent_,
 				    type_,
 				    setup_->communicator ());
+   // return conn;
   }
 
   

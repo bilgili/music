@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG
+#define MUSIC_DEBUG
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include "music/communication.hh"
@@ -75,20 +75,22 @@ namespace MUSIC {
    * remedius
    */
  void CommonEventSubconnector::maybeCommunicate(){
-
 	  void* data;
 	  int size, nProcesses;
 	  unsigned int dsize;
 	  int* ppBytes, *displ;
 	  char* cur_buff, *recv_buff;
-
+	  if(flushed)
+		  return;
 	  buffer_.nextBlock (data, size);
 	  cur_buff = static_cast <char*> (data);
 	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
 
 	  ppBytes = new int[nProcesses];
 	  //distributing the size of the buffer
+	 // MUSIC_LOGN(0,size);
 	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, MPI_COMM_WORLD );
+	 // MUSIC_LOGN(0,"after");
 	  MPI_Barrier(MPI_COMM_WORLD);
 	  //could it be that dsize is more then unsigned int?
 	  dsize = 0;
@@ -101,18 +103,48 @@ namespace MUSIC {
 	  recv_buff = new char[dsize];
 	  //distributing the data
 	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, MPI_COMM_WORLD);
+
 	  //processing the data
 	  int sEvent = sizeof(Event);
+	  flushed = true;
 	  for(int i=0; i < dsize; i+=sEvent){
 		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
-		  router.processEvent(e->t, e->id);
+		  if (e->id == FLUSH_MARK){
+		  	    continue;
+		  }
+		  else{
+			  router.processEvent(e->t, e->id);
+			  flushed = false;
+		  }
+
 	 }
+	 if(dsize/sEvent != nProcesses || flushed)
+		 flushed = false;
 
 	  delete ppBytes;
 	  delete displ;
 	  delete recv_buff;
   }
-  
+ /*
+  * remedius
+  */
+ void CommonEventSubconnector::flush(bool &dataStillFlowing){
+	 if (!buffer_.isEmpty ())
+	 {
+		 MUSIC_LOGR ("sending data remaining in buffers");
+		 maybeCommunicate ();
+		 dataStillFlowing = true;
+	 }
+	 else if (!flushed)
+	 {
+		 Event* e = static_cast<Event*> (buffer_.insert ());
+		 e->id = FLUSH_MARK;
+		 maybeCommunicate ();
+		 if(!flushed)
+			 dataStillFlowing = true;
+	 }
+ }
+
   InputSubconnector::InputSubconnector ()
   {
     flushed = false;

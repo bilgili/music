@@ -79,19 +79,23 @@ namespace MUSIC {
     BufferingOutputSubconnector (int elementSize);
     FIBO* buffer () { return &buffer_; }
   };
-  
+  class EventSubconnector : virtual public Subconnector {
+  protected:
+    static const int FLUSH_MARK = -1;
+  };
   /*
    * remedius
    */
-  class CommonEventSubconnector:public BufferingOutputSubconnector{
+  class CommonEventSubconnector:public BufferingOutputSubconnector,public EventSubconnector{
 	  CommonEventRouter router;
+	  bool flushed;
   public:
-	  CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)){};
+	  CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)),flushed(false){};
 	  //CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
 	  void maybeCommunicate ();
 	  void build();
 	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
-	  void flush (bool& dataStillFlowing){};
+	  void flush (bool& dataStillFlowing);
   };
 
   class InputSubconnector : virtual public Subconnector {
@@ -144,10 +148,7 @@ namespace MUSIC {
     void flush (bool& dataStillFlowing);
   };
 
-  class EventSubconnector : virtual public Subconnector {
-  protected:
-    static const int FLUSH_MARK = -1;
-  };
+
   
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {

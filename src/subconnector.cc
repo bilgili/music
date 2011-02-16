@@ -55,6 +55,10 @@ namespace MUSIC {
   {
   }
   /*
+   * remedius
+   */
+  int CommonEventSubconnector::max_size = 0;
+  /*
    * remediuds
    */
  void
@@ -74,6 +78,7 @@ namespace MUSIC {
   /*
    * remedius
    */
+
  void CommonEventSubconnector::maybeCommunicate(){
 	  void* data;
 	  int size, nProcesses;
@@ -82,10 +87,21 @@ namespace MUSIC {
 	  char* cur_buff, *recv_buff;
 	  if(flushed)
 		  return;
+	  unsigned int sEvent = sizeof(Event);
+#ifdef ALLGATHER_ONE_COMM
+	  buffer_.nextBlockNoClear (data, size);
+	  while(size < MAX_BUF_SIZE){
+		  Event* e = static_cast<Event*> (buffer_.insert ());
+		  e->id = EMPTY_MARK;
+		  size+=sEvent;
+	  }
+#endif
 	  buffer_.nextBlock (data, size);
 	  cur_buff = static_cast <char*> (data);
+
 	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
 
+#ifndef ALLGATHER_ONE_COMM
 	  ppBytes = new int[nProcesses];
 	  //distributing the size of the buffer
 	 // MUSIC_LOGN(0,size);
@@ -98,31 +114,53 @@ namespace MUSIC {
 	  for(int i=0; i < nProcesses; ++i){
 		  displ[i] = dsize;
 		  dsize += ppBytes[i];
+#ifdef MAX_SIZE_CALC
+		  if(ppBytes[i] > max_size)
+			  max_size = ppBytes[i];
+#endif
 	  }
 
 	  recv_buff = new char[dsize];
 	  //distributing the data
 	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, MPI_COMM_WORLD);
-
+#else
+	  dsize = MAX_BUF_SIZE*nProcesses;
+	  recv_buff = new char[dsize];
+	  MPI_Allgather(cur_buff, MAX_BUF_SIZE, MPI::BYTE, recv_buff, MAX_BUF_SIZE, MPI::BYTE, MPI_COMM_WORLD);
+#endif
 	  //processing the data
-	  int sEvent = sizeof(Event);
+
 	  flushed = true;
-	  for(int i=0; i < dsize; i+=sEvent){
+	  for(unsigned int i=0; i < dsize; i+=sEvent){
 		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
 		  if (e->id == FLUSH_MARK){
 		  	    continue;
 		  }
-		  else{
+#ifdef ALLGATHER_ONE_COMM
+		  else if(e->id != EMPTY_MARK){
 			  router.processEvent(e->t, e->id);
 			  flushed = false;
 		  }
+		  else if(i%MAX_BUF_SIZE == 0)
+		  			  flushed = false;
+#else
+		  else{
+			  router.processEvent(e->t, e->id);
+			  flushed = false;
+
+		  }
+#endif
+
 
 	 }
-	 if(dsize/sEvent != nProcesses)
-		 flushed = false;
 
+
+#ifndef ALLGATHER_ONE_COMM
+	  if(dsize/sEvent != nProcesses)
+	  		 flushed = false;
 	  delete ppBytes;
 	  delete displ;
+#endif
 	  delete recv_buff;
   }
  /*

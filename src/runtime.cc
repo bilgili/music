@@ -347,7 +347,7 @@ namespace MUSIC {
 
   }
 
-  
+//#define MAX_SIZE_CALC
   void
   Runtime::finalize ()
   {
@@ -371,6 +371,9 @@ namespace MUSIC {
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
+#endif
+#ifdef MAX_SIZE_CALC
+    MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());
 #endif
     MPI::Finalize ();
   }

@@ -170,6 +170,16 @@ namespace MUSIC {
 	 if (!buffer_.isEmpty ())
 	 {
 		 MUSIC_LOGR ("sending data remaining in buffers");
+		 void* data;
+		 int size;
+		 char*cur_buff;
+		 unsigned int sEvent = sizeof(Event);
+		 buffer_.nextBlock (data, size);
+		 cur_buff = static_cast <char*> (data);
+		 for(unsigned int i=0; i < size; i+=sEvent){
+			 Event* e = static_cast<Event*> ((void*)(cur_buff+i));
+			 MUSIC_LOGR("("<<e->id<<","<<e->t<<")");
+		 }
 		 maybeCommunicate ();
 		 dataStillFlowing = true;
 	 }

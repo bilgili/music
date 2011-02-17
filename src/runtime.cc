@@ -358,6 +358,8 @@ namespace MUSIC {
 	std::vector<Subconnector*>::iterator c;
 	for (c = schedule.begin (); c != schedule.end (); ++c)
 	  (*c)->flush (dataStillFlowing);
+	if(dataStillFlowing)
+		MUSIC_LOGR("dataStillFlowing:"<<time());
       }
     while (dataStillFlowing);
 
@@ -423,7 +425,8 @@ namespace MUSIC {
     for (c = connectors.begin (); c != connectors.end (); ++c){
     	(*c)->tick (requestCommunication);
     }
-
+    if(!requestCommunication)
+    	MUSIC_LOGR(time());
     // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
     {

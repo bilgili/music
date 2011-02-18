@@ -35,6 +35,7 @@ namespace MUSIC {
    */
   
   class Runtime {
+	  static std::string max_size_file;
   public:
     Runtime (Setup* s, double h);
     ~Runtime ();
@@ -72,6 +73,10 @@ namespace MUSIC {
     void buildTables (Setup* s);
     void temporalNegotiation (Setup* s, Connections* connections);
     void initialize ();
+    /*
+     * remedius
+     */
+    int readMaxSize() const;
   };
 
 }

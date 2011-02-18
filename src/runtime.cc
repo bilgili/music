@@ -22,7 +22,7 @@
 #include <mpi.h>
 
 #include <algorithm>
-
+#include <fstream>
 #include "music/runtime.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
@@ -85,7 +85,7 @@ namespace MUSIC {
     	specializeConnectors (connections);
     	std::vector<Port*>::iterator p;
     	CommonEventSubconnector *subconn = NULL;
-    	subconn = new CommonEventSubconnector();
+    	subconn = new CommonEventSubconnector(readMaxSize());
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
     		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
@@ -358,8 +358,6 @@ namespace MUSIC {
 	std::vector<Subconnector*>::iterator c;
 	for (c = schedule.begin (); c != schedule.end (); ++c)
 	  (*c)->flush (dataStillFlowing);
-	if(dataStillFlowing)
-		MUSIC_LOGR("dataStillFlowing:"<<time());
       }
     while (dataStillFlowing);
 
@@ -374,9 +372,8 @@ namespace MUSIC {
 	 ++connector)
       (*connector)->freeIntercomm ();
 #endif
-#ifdef MAX_SIZE_CALC
-    MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());
-#endif
+    if(CommonEventSubconnector::wasMaxSizeCalc())
+    	MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());
     MPI::Finalize ();
   }
 
@@ -425,8 +422,7 @@ namespace MUSIC {
     for (c = connectors.begin (); c != connectors.end (); ++c){
     	(*c)->tick (requestCommunication);
     }
-    if(!requestCommunication)
-    	MUSIC_LOGR(time());
+
     // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
     {
@@ -441,6 +437,26 @@ namespace MUSIC {
   Runtime::time ()
   {
     return localTime.time ();
+  }
+  /*
+   * remedius
+   */
+  std::string Runtime::max_size_file = "maxsize";
+  int
+  Runtime::readMaxSize()const{
+	  int max_size = -1;
+	  char line[256];
+	  std::ifstream infile( max_size_file.c_str(), std::ifstream::in );
+	  if (infile.is_open())
+	  {
+		  infile.getline(line,256);
+		  max_size = atoi (line);
+		  if(max_size <=0)
+			  error("max_buffer_size value is set not correct.");
+		  infile.close();
+	  }
+	  return max_size;
+
   }
   
 }

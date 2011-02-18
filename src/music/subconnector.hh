@@ -86,25 +86,25 @@ namespace MUSIC {
   /*
    * remedius
    */
-  //#define ALLGATHER_ONE_COMM
-  #ifdef ALLGATHER_ONE_COMM
-  #define MAX_BUF_SIZE 16
-  #else
-  #define MAX_SIZE_CALC
-  #endif
+
   class CommonEventSubconnector:public BufferingOutputSubconnector,public EventSubconnector{
 	  CommonEventRouter router;
 	  bool flushed;
-	  static  int max_size;
-	  static const int EMPTY_MARK = -2;
+	  static int max_size;
+	  int max_buf_size_;
+
   public:
-	  CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)),flushed(false){};
+	  CommonEventSubconnector(int max_buf_size = -1);
 	  //CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
 	  void maybeCommunicate ();
 	  void build();
+	  static bool wasMaxSizeCalc(){return max_size >= 0;}
 	  static int getMaxSize(){return max_size;}
 	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
 	  void flush (bool& dataStillFlowing);
+  private:
+	  void communicate1();
+	  void communicate2();
   };
 
   class InputSubconnector : virtual public Subconnector {

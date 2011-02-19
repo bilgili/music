@@ -96,7 +96,7 @@ namespace MUSIC {
   	  void* data;
   	  int size, nProcesses;
   	  unsigned int dsize, pdsize;
-  	  char* cur_buff, *recv_buff, *send_buff;
+  	  unsigned char* cur_buff, *recv_buff, *send_buff;
   	  if(flushed)
   		  return;
   	  unsigned int sEvent = sizeof(Event);
@@ -104,7 +104,7 @@ namespace MUSIC {
   	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
 
   	  buffer_.nextBlock (data, size);
-  	  cur_buff = static_cast <char*> (data);
+  	  cur_buff = static_cast <unsigned char*> (data);
 
   	  //possible size of the data that is send by each of the process
   	  pdsize = max_buf_size_+4;
@@ -114,14 +114,14 @@ namespace MUSIC {
   	   * filling in sending buffer,
   	   * first 4 bytes are the size of the buffer
   	   */
-  	  send_buff = new char[pdsize];
+  	  send_buff = new unsigned char[pdsize];
   	  memcpy(send_buff+4,cur_buff,size);
   	  for(int k = 0; k < 4 ; ++k){
-  		  send_buff[k] = (char )(size & 0xff);
+  		  send_buff[k] = (unsigned char )(size & 0xff);
   		  size >>= 8;
   	  }
   	  //sending data
-  	  recv_buff = new char[dsize];
+  	  recv_buff = new unsigned char[dsize];
   	  MPI_Allgather(send_buff, pdsize, MPI::BYTE, recv_buff, pdsize, MPI::BYTE, MPI_COMM_WORLD);
   	  //processing the data
   	  flushed = true;
@@ -131,16 +131,16 @@ namespace MUSIC {
   		   * that was received from each process.
   		   */
   		  unsigned int iSize = 0;
-  		  char *cur_size = (char*)(recv_buff+i);
+  		  unsigned char *cur_size = ( unsigned char*)(recv_buff+i);
   		  for(int k = 3; k >=0; --k)
-  			iSize =(iSize<<8) | cur_size[k];
+  			  iSize =(iSize<<8) | cur_size[k];
   		  /*
   		   * flushed flag controls that all processes finished their job
   		   * and sent FLUSH_MARK flag, otherwise processes should participate
   		   * in communication even if they send no data (iSize = 0)
   		   */
   		  if(iSize == 0)
-  			 flushed = false;
+  			  flushed = false;
   		  //data is stored in 4 bytes further
   		  i+=4;
   		  //processing the data

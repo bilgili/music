@@ -30,13 +30,13 @@ namespace MUSIC {
   // NOTE: Could check here that obligatory parameters exists
   ApplicationMapper::ApplicationMapper (std::istream* configFile, int rank)
   {
-    rude::Config* cfile = new rude::Config ();
+    cfile = new rude::Config ();
     cfile->load (*configFile);
 
     mapSections (cfile);
     mapApplications ();
     selectApplication (rank);
-    mapConnectivity (cfile);
+    mapConnectivity (selectedName);
   }
 
 
@@ -108,7 +108,7 @@ namespace MUSIC {
 
 
   void
-  ApplicationMapper::mapConnectivity (rude::Config* cfile)
+  ApplicationMapper::mapConnectivity (std::string thisName)
   {
     std::map<std::string, int> receiverPortCodes;
     int nextPortCode = 0;
@@ -167,12 +167,12 @@ namespace MUSIC {
 
 	    ConnectivityInfo::PortDirection dir;
 	    ApplicationInfo* remoteInfo;
-	    if (selectedName == senderApp)
+	    if (thisName == senderApp)
 	      {
 		dir = ConnectivityInfo::OUTPUT;
 		remoteInfo = applications_->lookup (receiverApp);
 	      }
-	    else if (selectedName == receiverApp)
+	    else if (thisName == receiverApp)
 	      {
 		dir = ConnectivityInfo::INPUT;
 		remoteInfo = applications_->lookup (senderApp);
@@ -207,7 +207,14 @@ namespace MUSIC {
   MUSIC::Configuration*
   ApplicationMapper::config ()
   {
-    Configuration* config = configs[selectedName];
+    return config (selectedName);
+  }
+
+  
+  MUSIC::Configuration*
+  ApplicationMapper::config (std::string name)
+  {
+    Configuration* config = configs[name];
     config->setApplications (applications_);
     config->setConnectivityMap (connectivityMap_);
     return config;

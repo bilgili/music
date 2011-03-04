@@ -8,7 +8,7 @@ if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
 fi
 
-AC_PROG_CXX([mpiCC mpixlcxx mpicxx])
+AC_PROG_CXX([mpiCC mpixlcxx mpicxx CC])
 MPI_CXX="$CXX"
 
 AC_MSG_CHECKING([which MPI system we think we are using])
@@ -52,6 +52,17 @@ Please set them manually.])
        SYSGUESS=bgl
     fi
     ;;
+  CC)
+    # We should be checking MPI version but for the Cray we do it differently
+    if uname -r | grep -q cray_gem_s; then
+      SYSGUESS=cray_xe6
+      AC_DEFINE(CRAY_XE6, 1, [Define if this is a Cray XE6 system.])
+      CC=cc
+      CXX=CC
+    else
+      SYSGUESS=unknown
+    fi
+    ;;
   *)
     SYSGUESS=unknown
     ;;
@@ -74,6 +85,9 @@ else
     bgl)
       MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
       enable_shared=no
+      ;;
+    cray_xe6)
+      MPI_CXXFLAGS=""
       ;;
     *)
       AC_MSG_ERROR([
@@ -100,6 +114,9 @@ else
       MPI_CFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
       enable_shared=no
       ;;
+    cray_xe6)
+      MPI_CFLAGS=""
+      ;;
     *)
       AC_MSG_ERROR([
 Could not determine proper value for MPI_CFLAGS.  Please see README.])
@@ -121,7 +138,7 @@ else
     openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
-    bgl)
+    bgl|cray_xe6)
       MPI_LDFLAGS=""
       ;;
     *)

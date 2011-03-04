@@ -28,6 +28,7 @@
 namespace MUSIC {
 
   class ApplicationMapper {
+    rude::Config* cfile;
     std::map<std::string, MUSIC::Configuration*> configs;
     ApplicationMap* applications_;
     Connectivity* connectivityMap_;
@@ -35,10 +36,11 @@ namespace MUSIC {
     void mapSections (rude::Config* cfile);
     void mapApplications ();
     void selectApplication (int rank);
-    void mapConnectivity (rude::Config* cfile);
   public:
     ApplicationMapper (std::istream* configFile, int rank);
+    void mapConnectivity (std::string name);
     MUSIC::Configuration* config ();
+    MUSIC::Configuration* config (std::string name);
   };
 
 }

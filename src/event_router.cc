@@ -56,18 +56,20 @@ namespace MUSIC {
 /*
  * remedius
  */
-  void
+/*  void
   CommonEventRouter::newTable(){
 	  current++;
 	  IntervalTree<int, CommonEventRoutingData> newTbl;
 	  routingTables.push_back(newTbl);
-  }
+  }*/
   /*
    * remedius
    */
   void
   CommonEventRouter::insertRoutingInterval(IndexInterval i, EventHandlerPtr *handleEvent){
-	  routingTables[current].add (CommonEventRoutingData(i,handleEvent->global()));
+	 // routingTables[current].add (CommonEventRoutingData(i,handleEvent->global()));
+	  routingTable.add (CommonEventRoutingData(i,handleEvent->global()));
+
   }
   /*
    * remedius
@@ -75,8 +77,9 @@ namespace MUSIC {
  void
  CommonEventRouter::buildTable(){
 	 MUSIC_LOGR ("Routing table size = " << routingTables.size ());
-	 for(int i =0; i < routingTables.size(); ++i )
-		 routingTables[i].build ();
+/*	 for(int i =0; i < routingTables.size(); ++i )
+		 routingTables[i].build ();*/
+	 routingTable.build ();
  }
  /*
   * remedius
@@ -84,9 +87,10 @@ namespace MUSIC {
  void
  CommonEventRouter::processEvent( double t, GlobalIndex id){
 	 EventHandler h(t, id);
-	 for(int i =0; i < routingTables.size(); ++i ){
+/*	 for(int i =0; i < routingTables.size(); ++i ){
 		 routingTables[i].search (id, &h);
-	 }
+	 }*/
+	 routingTable.search (id, &h);
  }
 
   void

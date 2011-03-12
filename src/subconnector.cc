@@ -71,7 +71,7 @@ namespace MUSIC {
    */
  void
  CommonEventSubconnector::add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent){
-	 router.newTable();
+	 //router.newTable();
 	  std::vector<IndexInterval>::iterator i;
 	  for( i = intervals.begin(); i != intervals.end(); ++i)
 		  router.insertRoutingInterval(*i, &handleEvent);

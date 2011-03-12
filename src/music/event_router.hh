@@ -25,7 +25,6 @@
 #include <music/interval_tree.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>
-
 namespace MUSIC {
 
   class EventRoutingData {
@@ -97,11 +96,13 @@ namespace MUSIC {
 			  data.handle(t_, id_);
 		  }
 	  };
-	 int current;
-     std::vector< IntervalTree<int, CommonEventRoutingData> > routingTables;
+	 //int current;
+     //std::vector< IntervalTree<int, CommonEventRoutingData> > routingTables;
+	  IntervalTree<int, CommonEventRoutingData> routingTable;
    public:
-     CommonEventRouter():current(-1){};
-     void newTable();
+     //CommonEventRouter():current(-1){};
+     CommonEventRouter(){ };
+     //void newTable();
      void insertRoutingInterval (IndexInterval i, EventHandlerPtr *handleEvent);
      void buildTable ();
      void processEvent (double t, GlobalIndex id);

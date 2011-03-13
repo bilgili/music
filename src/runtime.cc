@@ -91,7 +91,7 @@ namespace MUSIC {
     		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
     		EventInputPort* bp = dynamic_cast<EventInputPort*> (*p);
     		if (bp != NULL){
-    			subconn->add(bp->getIntervals(),bp->getEventHandler());
+    			subconn->add(bp->getIntervals(),bp->getEventHandler(), bp->width ());
     		}
     	}
     	subconn->build();

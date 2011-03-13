@@ -68,6 +68,7 @@ namespace MUSIC {
   /*
     * remedius
     */
+
   class CommonEventRoutingData {
      IndexInterval interval_;
      EventHandlerGlobalIndex *handleEvent_;
@@ -98,13 +99,15 @@ namespace MUSIC {
 	  };
 	 //int current;
      //std::vector< IntervalTree<int, CommonEventRoutingData> > routingTables;
-	  IntervalTree<int, CommonEventRoutingData> routingTable;
+	//  IntervalTree<int, CommonEventRoutingData> routingTable;
+	 std::vector<EventHandlerGlobalIndex *> routingTable;
    public:
      //CommonEventRouter():current(-1){};
-     CommonEventRouter(){ };
+     CommonEventRouter(){};
      //void newTable();
      void insertRoutingInterval (IndexInterval i, EventHandlerPtr *handleEvent);
      void buildTable ();
+     void adjustMaxWidth(int tbl_size);
      void processEvent (double t, GlobalIndex id);
    };
     

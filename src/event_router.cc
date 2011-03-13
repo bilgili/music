@@ -56,6 +56,12 @@ namespace MUSIC {
 /*
  * remedius
  */
+  void CommonEventRouter::adjustMaxWidth(int tbl_size){
+	  if(tbl_size > routingTable.size())
+		  for(int i=routingTable.size(); i < tbl_size; ++i){
+			  routingTable.push_back(NULL);
+		  }
+  }
 /*  void
   CommonEventRouter::newTable(){
 	  current++;
@@ -66,9 +72,13 @@ namespace MUSIC {
    * remedius
    */
   void
-  CommonEventRouter::insertRoutingInterval(IndexInterval i, EventHandlerPtr *handleEvent){
+  CommonEventRouter::insertRoutingInterval(IndexInterval itrvl, EventHandlerPtr *handleEvent){
 	 // routingTables[current].add (CommonEventRoutingData(i,handleEvent->global()));
-	  routingTable.add (CommonEventRoutingData(i,handleEvent->global()));
+	  for(int i=itrvl.begin(); i < itrvl.end(); ++i){
+		  if(routingTable[i] != NULL)
+			  MUSIC_LOGR ("overlap indx: " << i);
+		  routingTable[i] = handleEvent->global();
+	  }
 
   }
   /*
@@ -79,7 +89,7 @@ namespace MUSIC {
 	 MUSIC_LOGR ("Routing table size = " << routingTables.size ());
 /*	 for(int i =0; i < routingTables.size(); ++i )
 		 routingTables[i].build ();*/
-	 routingTable.build ();
+	 //routingTable.build ();
  }
  /*
   * remedius
@@ -87,10 +97,14 @@ namespace MUSIC {
  void
  CommonEventRouter::processEvent( double t, GlobalIndex id){
 	 EventHandler h(t, id);
+	 CommonEventRoutingData();
 /*	 for(int i =0; i < routingTables.size(); ++i ){
 		 routingTables[i].search (id, &h);
 	 }*/
-	 routingTable.search (id, &h);
+	 if(routingTable[id] != NULL){
+		 (*routingTable[id]) (t, id);
+	 }
+	 //routingTable.search (id, &h);
  }
 
   void

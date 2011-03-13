@@ -61,6 +61,7 @@ namespace MUSIC {
 		  flushed(false),
 		  max_buf_size_(max_buf_size){
 
+
   }
   /*
    * remedius
@@ -70,8 +71,9 @@ namespace MUSIC {
    * remediuds
    */
  void
- CommonEventSubconnector::add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent){
+ CommonEventSubconnector::add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent, int port_width){
 	 //router.newTable();
+	 router.adjustMaxWidth(port_width);
 	  std::vector<IndexInterval>::iterator i;
 	  for( i = intervals.begin(); i != intervals.end(); ++i)
 		  router.insertRoutingInterval(*i, &handleEvent);

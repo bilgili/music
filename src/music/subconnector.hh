@@ -100,7 +100,7 @@ namespace MUSIC {
 	  void build();
 	  static bool wasMaxSizeCalc(){return max_size >= 0;}
 	  static int getMaxSize(){return max_size;}
-	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
+	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent, int port_width );
 	  void flush (bool& dataStillFlowing);
   private:
 	  void communicate1();

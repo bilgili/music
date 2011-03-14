@@ -89,13 +89,15 @@ namespace MUSIC {
    * remedius
    */
   void CommonEventSubconnector::maybeCommunicate(){
+
+
 	  if(max_buf_size_ > 0)
 		  communicate1();
 	  else
 		  communicate2();
   }
   void CommonEventSubconnector::communicate1(){
-  	  void* data;
+	  void* data;
   	  int size, nProcesses;
   	  unsigned int dsize, pdsize;
   	  unsigned char* cur_buff, *recv_buff, *send_buff;
@@ -136,6 +138,7 @@ namespace MUSIC {
   		  unsigned char *cur_size = ( unsigned char*)(recv_buff+i);
   		  for(int k = 3; k >=0; --k)
   			  iSize =(iSize<<8) | cur_size[k];
+  		  MUSIC_LOGR("size"<<iSize);
   		  /*
   		   * flushed flag controls that all processes finished their job
   		   * and sent FLUSH_MARK flag, otherwise processes should participate

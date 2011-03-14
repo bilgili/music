@@ -33,6 +33,7 @@ namespace MUSIC {
 
   Runtime::Runtime (Setup* s, double h)
   {
+	  MUSIC_LOGR("hello");
     checkInstantiatedOnce (isInstantiated_, "Runtime");
     // Setup the MUSIC clock
 	localTime = Clock (s->timebase (), h);

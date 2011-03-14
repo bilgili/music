@@ -97,11 +97,10 @@ namespace MUSIC {
  void
  CommonEventRouter::processEvent( double t, GlobalIndex id){
 	 EventHandler h(t, id);
-	 CommonEventRoutingData();
 /*	 for(int i =0; i < routingTables.size(); ++i ){
 		 routingTables[i].search (id, &h);
 	 }*/
-	 if(routingTable[id] != NULL){
+	 if(id< routingTable.size() && routingTable[id] != NULL){
 		 (*routingTable[id]) (t, id);
 	 }
 	 //routingTable.search (id, &h);

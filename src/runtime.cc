@@ -85,7 +85,7 @@ namespace MUSIC {
     	specializeConnectors (connections);
     	std::vector<Port*>::iterator p;
     	CommonEventSubconnector *subconn = NULL;
-    	subconn = new CommonEventSubconnector(readMaxSize());
+    	subconn = new CommonEventSubconnector();//readMaxSize());
     	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
     	{
     		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
@@ -372,8 +372,8 @@ namespace MUSIC {
 	 ++connector)
       (*connector)->freeIntercomm ();
 #endif
-    if(CommonEventSubconnector::wasMaxSizeCalc())
-    	MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());
+/*    if(CommonEventSubconnector::wasMaxSizeCalc())
+    	MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());*/
     MPI::Finalize ();
   }
 

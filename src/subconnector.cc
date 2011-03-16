@@ -57,16 +57,21 @@ namespace MUSIC {
   /*
    * remedius
    */
-  CommonEventSubconnector::CommonEventSubconnector(int max_buf_size):BufferingOutputSubconnector(sizeof (Event)),
+/*  CommonEventSubconnector::CommonEventSubconnector(int max_buf_size):BufferingOutputSubconnector(sizeof (Event)),
 		  flushed(false),
 		  max_buf_size_(max_buf_size){
 
 
-  }
+  }*/
+  CommonEventSubconnector::CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)),
+		  flushed(false){
+
+
+	  }
   /*
    * remedius
    */
-  int CommonEventSubconnector::max_size = -1;
+ // int CommonEventSubconnector::max_size = -1;
   /*
    * remediuds
    */
@@ -91,12 +96,12 @@ namespace MUSIC {
   void CommonEventSubconnector::maybeCommunicate(){
 
 
-	  if(max_buf_size_ > 0)
-		  communicate1();
-	  else
+//	  if(max_buf_size_ > 0)
+//		  communicate1();
+//	  else
 		  communicate2();
   }
-  void CommonEventSubconnector::communicate1(){
+/*  void CommonEventSubconnector::communicate1(){
 	  void* data;
   	  int size, nProcesses;
   	  unsigned int dsize;
@@ -109,9 +114,9 @@ namespace MUSIC {
 
   	  buffer_.nextBlock (data, size);
   	  cur_buff = static_cast <unsigned char*> (data);
-  	  /*
+
   	   * marking the end of the sending buffer
-  	   */
+
   	  send_buff = new unsigned char[max_buf_size_];
   	  memcpy(send_buff,cur_buff,size);
   	  if(size < max_buf_size_){
@@ -125,11 +130,11 @@ namespace MUSIC {
   	  MPI_Allgather(send_buff, max_buf_size_, MPI::BYTE, recv_buff, max_buf_size_, MPI::BYTE, MPI_COMM_WORLD);
 
 
-  	  /*
+
   	   * flushed flag controls whether all processes have finished their job
   	   * and have sent FLUSH_MARK flag, otherwise processes should participate
   	   * in communication even if they send no data.
-  	   */
+
   	  flushed = true;
   	  //processing the data
   	  for(unsigned int j = 0; j < dsize;){
@@ -149,7 +154,7 @@ namespace MUSIC {
   	  }
   	  delete send_buff;
   	  delete recv_buff;
-    }
+    }*/
  void CommonEventSubconnector::communicate2(){
 	  void* data;
 	  int size, nProcesses;
@@ -170,15 +175,15 @@ namespace MUSIC {
 	 // MUSIC_LOGN(0,size);
 	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, MPI_COMM_WORLD );
 	 // MUSIC_LOGN(0,"after");
-	  MPI_Barrier(MPI_COMM_WORLD);
+	 // MPI_Barrier(MPI_COMM_WORLD);
 	  //could it be that dsize is more then unsigned int?
 	  dsize = 0;
 	  displ = new int[nProcesses];
 	  for(int i=0; i < nProcesses; ++i){
 		  displ[i] = dsize;
 		  dsize += ppBytes[i];
-		  if(ppBytes[i] > max_size)
-			  max_size = ppBytes[i];
+/*		  if(ppBytes[i] > max_size)
+			  max_size = ppBytes[i];*/
 	  }
 
 	  recv_buff = new char[dsize];

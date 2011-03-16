@@ -109,55 +109,42 @@ namespace MUSIC {
 
   	  buffer_.nextBlock (data, size);
   	  cur_buff = static_cast <unsigned char*> (data);
-
-  	  //possible size of the data that is send by each of the process
-  	  pdsize = max_buf_size_+4;
-  	  //possible size of the data that is exchanged between all processes
-  	  dsize = pdsize*nProcesses;
   	  /*
-  	   * filling in sending buffer,
-  	   * first 4 bytes are the size of the buffer
+  	   * marking the end of the sending buffer
   	   */
-  	  send_buff = new unsigned char[pdsize];
-  	  memcpy(send_buff+4,cur_buff,size);
-  	  for(int k = 0; k < 4 ; ++k){
-  		  send_buff[k] = (unsigned char )(size & 0xff);
-  		  size >>= 8;
+  	  send_buff = new unsigned char[max_buf_size_];
+  	  memcpy(send_buff,cur_buff,size);
+  	  if(size < max_buf_size_){
+  		  Event* e = static_cast<Event*> ((void*)(send_buff+size));
+  		  e->id = END_MARK;
   	  }
+  	  //possible size of the data that is exchanged between all processes
+  	  dsize = max_buf_size_*nProcesses;
   	  //sending data
   	  recv_buff = new unsigned char[dsize];
   	  MPI_Allgather(send_buff, pdsize, MPI::BYTE, recv_buff, pdsize, MPI::BYTE, MPI_COMM_WORLD);
-  	  //processing the data
+
+
+  	  /*
+  	   * flushed flag controls whether all processes have finished their job
+  	   * and have sent FLUSH_MARK flag, otherwise processes should participate
+  	   * in communication even if they send no data.
+  	   */
   	  flushed = true;
-  	  for(unsigned int i = 0; i < dsize; i+=max_buf_size_){
-  		  /*
-  		   * getting information about the size of the buffer,
-  		   * that was received from each process.
-  		   */
-  		  unsigned int iSize = 0;
-  		  unsigned char *cur_size = ( unsigned char*)(recv_buff+i);
-  		  for(int k = 3; k >=0; --k)
-  			  iSize =(iSize<<8) | cur_size[k];
-  		  MUSIC_LOGR("size"<<iSize);
-  		  /*
-  		   * flushed flag controls that all processes finished their job
-  		   * and sent FLUSH_MARK flag, otherwise processes should participate
-  		   * in communication even if they send no data (iSize = 0)
-  		   */
-  		  if(iSize == 0)
+  	  //processing the data
+  	  for(unsigned int j = 0; j < dsize;){
+  		  Event* e = static_cast<Event*> ((void*)(recv_buff+j));
+  		  if (e->id == FLUSH_MARK){
+  			 j+=(-j%max_buf_size_+max_buf_size_);
+  		  }
+  		  else if(e->id == END_MARK){
   			  flushed = false;
-  		  //data is stored in 4 bytes further
-  		  i+=4;
-  		  //processing the data
-  		  for(unsigned int j = 0; j < iSize; j+=sEvent){
-  			  Event* e = static_cast<Event*> ((void*)(recv_buff+i+j));
-  			  if (e->id == FLUSH_MARK){
-  				  break;
-  			  }
-  			  else{
-  				  router.processEvent(e->t, e->id);
-  				  flushed = false;
-  			  }
+  			  j+=(-j%max_buf_size_+max_buf_size_);
+  		  }
+  		  else{
+  			  router.processEvent(e->t, e->id);
+  			  flushed = false;
+  			  j+=sEvent;
   		  }
   	  }
   	  delete send_buff;

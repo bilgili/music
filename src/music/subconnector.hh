@@ -92,6 +92,7 @@ namespace MUSIC {
 	  bool flushed;
 	  static int max_size;
 	  int max_buf_size_;
+	  static const int END_MARK = -2;
 
   public:
 	  CommonEventSubconnector(int max_buf_size = -1);

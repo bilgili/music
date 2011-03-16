@@ -99,7 +99,7 @@ namespace MUSIC {
   void CommonEventSubconnector::communicate1(){
 	  void* data;
   	  int size, nProcesses;
-  	  unsigned int dsize, pdsize;
+  	  unsigned int dsize;
   	  unsigned char* cur_buff, *recv_buff, *send_buff;
   	  if(flushed)
   		  return;
@@ -122,7 +122,7 @@ namespace MUSIC {
   	  dsize = max_buf_size_*nProcesses;
   	  //sending data
   	  recv_buff = new unsigned char[dsize];
-  	  MPI_Allgather(send_buff, pdsize, MPI::BYTE, recv_buff, pdsize, MPI::BYTE, MPI_COMM_WORLD);
+  	  MPI_Allgather(send_buff, max_buf_size_, MPI::BYTE, recv_buff, max_buf_size_, MPI::BYTE, MPI_COMM_WORLD);
 
 
   	  /*

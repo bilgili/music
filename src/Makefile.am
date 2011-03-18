@@ -53,6 +53,7 @@ libmusic_c_la_LDFLAGS = \
 	-version-info 1:0:0 -export-dynamic -Wl,-z,defs \
 	$(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 libmusic_c_ladir = $(includedir)
+libmusic_c_la_DEPENDENCIES = libmusic.la
 
 musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/runtime.hh music/setup.hh \

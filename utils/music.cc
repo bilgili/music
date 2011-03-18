@@ -17,6 +17,7 @@
  */
 
 #include <string>
+#include <fstream>
 
 #include "config.h"
 
@@ -44,6 +45,7 @@ usage (int rank)
 		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl
 		<< "  -m, --map             print application rank map" << std::endl
+		<< "  -e, --export-scripts  export launcher scripts" << std::endl
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
@@ -68,6 +70,35 @@ print_map (MUSIC::Configuration* config)
     }
 }
 
+// NOTE: This must match the definition in src/configuration.cc
+const static char* const configEnvVarName = "_MUSIC_CONFIG_";
+
+void
+export_scripts (MUSIC::ApplicationMapper* map)
+{
+  MUSIC::Configuration* config = map->config ();
+  MUSIC::ApplicationMap* a = config->applications ();
+  for (MUSIC::ApplicationMap::iterator i = a->begin (); i != a->end (); ++i)
+    {
+      std::string name = i->name ();
+      std::string fname = name + ".sh";
+      std::ofstream script (fname.c_str ());
+      script << "#!/bin/sh" << std::endl << std::endl;
+      map->mapConnectivity (name);
+      MUSIC::Configuration* config = map->config (name);
+      config->writeEnv ();
+      script << "export " << configEnvVarName
+	     << "=\"" << getenv (configEnvVarName)
+	     << '"' << std::endl;
+      std::string binary;
+      config->lookup ("binary", &binary);
+      std::string args;
+      config->lookup ("args", &args);
+      script << binary << ' ' << args << std::endl;
+      script.close ();
+    }
+}
+
 
 void
 print_version (int rank)
@@ -75,7 +106,7 @@ print_version (int rank)
   if (rank <= 0)
     {
       std::cout << "MUSIC " << MUSIC::version () << std::endl
-		<< "Copyright (C) 2007-2009 INCF." << std::endl
+		<< "Copyright (C) 2007-2011 INCF." << std::endl
 		<< "You may redistribute copies of MUSIC" << std::endl
 		<< "under the terms of the GNU General Public License." << std::endl
 		<< "For more information about these matters, see the file named COPYING." << std::endl;
@@ -114,22 +145,24 @@ main (int argc, char *argv[])
   int rank = getRank (argc, argv);
 
   bool do_print_map = false;
+  bool do_export_scripts = false;
   
   opterr = 0; // handle errors ourselves
   while (1)
     {
       static struct option longOptions[] =
 	{
-	  {"help",         no_argument,       0, 'h'},
-	  {"map",          required_argument, 0, 'm'},
-	  {"version",      no_argument,       0, 'v'},
+	  {"help",           no_argument,       0, 'h'},
+	  {"map",            required_argument, 0, 'm'},
+	  {"export-scripts", no_argument,       0, 'e'},
+	  {"version",        no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+hm:v", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+hm:ev", longOptions, &option_index);
 
       /* detect the end of the options */
       if (c == -1)
@@ -143,7 +176,10 @@ main (int argc, char *argv[])
 	  usage (rank);
 	case 'm':
 	  do_print_map = true;
-	  break;
+	  continue;
+	case 'e':
+	  do_export_scripts = true;
+	  continue;
 	case 'v':
 	  print_version (rank);
 
@@ -170,8 +206,16 @@ main (int argc, char *argv[])
     {
       if (rank <= 0)
 	print_map (map.config ());
-      return 0;
     }
+
+  if (do_export_scripts)
+    {
+      if (rank <= 0)
+	export_scripts (&map);
+    }
+
+  if (do_print_map || do_export_scripts)
+    return 0;
   
   if (rank == -1)
     {

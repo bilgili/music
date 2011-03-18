@@ -31,6 +31,7 @@ extern "C" {
 
 // Implementation-dependent code
 
+#ifndef CRAY_XE6
 #ifdef HAVE_RTS_GET_PERSONALITY
 #define BGL
 #else
@@ -44,9 +45,16 @@ extern "C" {
 #endif
 #endif
 #endif
+#endif
 
 #ifdef BGL
 #include <rts.h>
+#endif
+
+#ifdef CRAY_XE6
+extern "C" {
+#include <sched.h>
+}
 #endif
 
 /*
@@ -107,6 +115,26 @@ getRank (int argc, char *argv[])
   int rank;
   iss >> rank;
   return rank;
+#endif
+#ifdef CRAY_XE
+  ifstream fnid ("/proc/cray_xt/nid");
+  int nid;
+  fnid >> nid;
+  fnid.close ();
+  ifstream fnids (getenv ("MUSIC_NODEFILE"));
+  int n = 0;
+  int i;
+  while (fnids)
+    {
+      fnids >> i;
+      if (i == nid)
+	{
+	  int core = sched_getcpu ();
+	  return 24 * n + core;
+	}
+      ++n;
+    }
+  return -1;
 #endif
 }
 

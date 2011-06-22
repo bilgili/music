@@ -30,14 +30,19 @@ namespace MUSIC {
 				   std::string recName,
 				   int recCode,
 				   int rLeader,
-				   int nProc)
+				   int nProc,
+				   int commType,
+				   int procMethod
+					)
   {
     portConnections_.push_back (ConnectorInfo (recApp,
 					       recName,
 					       recCode,
 					       rLeader,
 					       nProc,
-					       width_));
+						   commType,
+						   procMethod
+							));
   }
 
 
@@ -55,7 +60,10 @@ namespace MUSIC {
 		     std::string recPort,
 		     int recPortCode,
 		     int remoteLeader,
-		     int remoteNProc)
+		     int remoteNProc,
+		     int commType,
+			 int procMethod
+				)
   {
     std::map<std::string, int>::iterator cmapInfo
       = connectivityMap.find (localPort);
@@ -80,7 +88,10 @@ namespace MUSIC {
 			 recPort,
 			 recPortCode,
 			 remoteLeader,
-			 remoteNProc);
+			 remoteNProc,
+			 commType,
+			 procMethod
+				);
   }
 
 
@@ -146,6 +157,8 @@ namespace MUSIC {
 	    out << ':' << c->receiverPortCode ();
 	    out << ':' << c->remoteLeader ();
 	    out << ':' << c->nProcesses ();
+	    out << ':' << c->communicationType();
+	    out << ':' << c->processingMethod();
 	  }
       }
   }
@@ -186,6 +199,12 @@ namespace MUSIC {
 	    in.ignore ();
 	    int nProc;
 	    in >> nProc;
+	    in.ignore ();
+	    int commType;
+	    in >> commType;
+	    in.ignore ();
+	    int procMethod;
+	    in >> procMethod;
 	    add (portName,
 		 pdir,
 		 width,
@@ -193,7 +212,10 @@ namespace MUSIC {
 		 recPort,
 		 recPortCode,
 		 rLeader,
-		 nProc);
+		 nProc,
+		 commType,
+		 procMethod
+		 );
 	    MUSIC_LOG ("add (portName = " << portName
 		       << ", pdir = " << pdir
 		       << ", width = " << width
@@ -201,6 +223,8 @@ namespace MUSIC {
 		       << ", recPort = " << recPort
 		       << ", rLeader = " << rLeader
 		       << ", nProc = " << nProc
+		       << ", commType = " << commType
+		       << ", procMethod = " << procMethod
 		       << ")");
 	  }
       }

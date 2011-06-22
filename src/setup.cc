@@ -39,7 +39,9 @@ namespace MUSIC {
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
     MPI::Init (argc, argv);
+
     init (argc, argv);
+
   }
 
   
@@ -63,11 +65,13 @@ namespace MUSIC {
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();
+
     connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
       {
 	// launched by the music utility
 	errorChecks ();
+
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
 	if (!config ("timebase", &timebase_))
 	  timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
@@ -102,9 +106,9 @@ namespace MUSIC {
       }
   }
 
+
   Setup::~Setup ()
   {
-
     for (std::vector<Port*>::iterator i = ports_.begin ();
 	 i != ports_.end ();
 	 ++i)
@@ -222,22 +226,8 @@ namespace MUSIC {
   {
     return new EventOutputPort (this, identifier);
   }
+
   
-/*
-   * remedius
-
-  EventCommonOutputPort*
-  Setup::publishEventCommonOutput (string identifier){
-	  return new EventCommonOutputPort(this, identifier);
-  }
-
-   * remedius
-
-  EventCommonInputPort*
-  Setup::publishEventCommonInput(string identifier){
-	  return new EventCommonInputPort(this, identifier);
-  }*/
-
   MessageInputPort*
   Setup::publishMessageInput (std::string identifier)
   {

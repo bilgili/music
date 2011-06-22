@@ -15,8 +15,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#define ALLGATHER
-//#define MUSIC_DEBUG
+
+//#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
 #include "music/setup.hh" // Must be included first on BG/L
@@ -143,33 +143,14 @@ namespace MUSIC {
 	 ++info)
       {
 	// Create connector
-	OutputConnector* connector = makeOutputConnector (*info);
+	Connector* connector = makeOutputConnector (*info);
 	setup_->addConnection (new OutputConnection (connector,
 						     maxBuffered,
 						     dataSize));
       }
   }
-  /*
-   * remedius
-   */
-  void
-    OutputRedistributionPort::mapImpl (IndexMap* indices,int maxBuffered, int dataSize)
-    {
 
-	  if (maxBuffered != MAX_BUFFERED_NO_VALUE)
-	        maxBuffered -= 1;
-      PortConnectorInfo portConnections
-        = ConnectivityInfo_->connections ();
-      for (PortConnectorInfo::iterator info = portConnections.begin ();
-  	 info != portConnections.end ();
-  	 ++info)
-        {
-  	OutputConnector* connector = makeOutputConnector (*info);
-  	setup_->addConnection (new OutputConnection (connector,
-  						     maxBuffered,
-  						     dataSize));
-        }
-    }
+
   void
   InputRedistributionPort::setupCleanup ()
   {
@@ -199,32 +180,13 @@ namespace MUSIC {
       = ConnectivityInfo_->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
-    InputConnector* connector = makeInputConnector (*info);
+    Connector* connector = makeInputConnector (*info);
     ClockState integerLatency (accLatency, setup_->timebase ());
     setup_->addConnection (new InputConnection (connector,
 						maxBuffered,
 						integerLatency,
 						interpolate));
   }
-  /*
-   * remedius
-   */
-  void
-    InputRedistributionPort::mapImpl (IndexMap* indices,
-  				    double accLatency, int maxBuffered)
-    {
-	  if (maxBuffered != MAX_BUFFERED_NO_VALUE)
-	        maxBuffered -= 1;
-      PortConnectorInfo portConnections
-        = ConnectivityInfo_->connections ();
-      PortConnectorInfo::iterator info = portConnections.begin ();
-      InputConnector* connector = makeInputConnector (*info);
-      ClockState integerLatency (accLatency, setup_->timebase ());
-      setup_->addConnection (new InputConnection (connector,
-  						maxBuffered,
-  						integerLatency,
-  						false));
-    }
 
   
   /********************************************************************
@@ -267,7 +229,7 @@ namespace MUSIC {
   }
 
 
-  OutputConnector*
+  Connector*
   ContOutputPort::makeOutputConnector (ConnectorInfo connInfo)
   {
     return new ContOutputConnector (connInfo,
@@ -341,7 +303,7 @@ namespace MUSIC {
   }
 
   
-  InputConnector*
+  Connector*
   ContInputPort::makeInputConnector (ConnectorInfo connInfo)
   {
     return new ContInputConnector (connInfo,
@@ -358,165 +320,122 @@ namespace MUSIC {
    * Event Ports
    *
    ********************************************************************/
-  
+
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
-    : Port (s, id), routingMap (new EventRoutingMap ())
+  : Port (s, id), routingMap (new OutputRoutingMap ())
   {
-	  buffer_ = NULL;
+	  int commType = ConnectivityInfo_->connections()[0].communicationType();
+	  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
+	  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::PAIRWISE)
+		  router = new TreeProcessingRouter();
+	  else
+		  router = new TableProcessingRouter();
+
   }
 
-  /*
-   * remedius
-   */
+  
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
-	 int maxBuffered = MAX_BUFFERED_NO_VALUE;
-#ifndef ALLGATHER
     assertOutput ();
+    type_ = type;
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices, type, maxBuffered, sizeof (Event));
-#else
-    OutputRedistributionPort::mapImpl(indices, maxBuffered, sizeof (Event));
-#endif
   }
 
-  /*
-   * remedius
-   */
+  
   void
   EventOutputPort::map (IndexMap* indices,
 			Index::Type type,
 			int maxBuffered)
   {
-#ifndef ALLGATHER
     assertOutput ();
+    type_ = type;
     if (maxBuffered <= 0)
       {
 	error ("EventOutputPort::map: maxBuffered should be a positive integer");
       }
     mapImpl (indices, type, maxBuffered, sizeof (Event));
-#else
-    OutputRedistributionPort::mapImpl(indices, maxBuffered, sizeof (Event));
-#endif
   }
 
   
-  OutputConnector*
+  Connector*
   EventOutputPort::makeOutputConnector (ConnectorInfo connInfo)
   {
-    return new EventOutputConnector (connInfo,
+	  Connector *conn;
+	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
+		  conn = new EventOutputConnector (connInfo,
 				     spatialNegotiator,
 				     setup_->communicator (),
+				     Index::UNDEFINED,
 				     routingMap);
-  }
-  
-  
-  void
-  EventOutputPort::buildTable ()
-  {
-    routingMap->fillRouter (router);
-    delete routingMap;
-    router.buildTable ();
-  }
+	  else
+		  conn = new CollectiveConnector(connInfo,
+	  	 			   spatialNegotiator,
+	  	 			setup_->communicator (),
+	  	 			  routingMap);
 
-  /*
-   * remedius
-   */
+	 return conn;
+  }
+  
+  
+
+  
   void
   EventOutputPort::insertEvent (double t, GlobalIndex id)
   {
-#ifndef ALLGATHER
-    router.insertEvent (t, id);
-#else
-    if(buffer_== NULL)
-   		  errorRank("buffer is not set");
-
-   	  Event* e = static_cast<Event*> (buffer_->insert ());
-   	  e->t = t;
-   	  e->id = (int)id;
-#endif
+    router->processEvent(t, id);
   }
 
   
   void
   EventOutputPort::insertEvent (double t, LocalIndex id)
   {
-    router.insertEvent (t, id);
+    router->processEvent (t, id);
   }
-
-/*
- * remedius
-
   void
-  EventCommonOutputPort::insertEvent(double t, GlobalIndex id)
+  EventOutputPort::buildTable()
   {
-
-	  if(buffer_== NULL)
-		  errorRank("buffer is not set");
-
-	  Event* e = static_cast<Event*> (buffer_->insert ());
-	  e->t = t;
-	  e->id = (int)id;
-
-
+	  routingMap->build(router);
   }
 
-   * remedius
-
- void EventCommonInputPort::map(IndexMap* indices,
- 	      EventHandlerGlobalIndex* handleEvent)
- {
-
-	 handleEvent_ =  EventHandlerPtr (handleEvent);
-	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
-		 intervals.push_back(*iindx);
-
-	 std::vector<IndexInterval>::iterator i;
-	 for( i = intervals.begin(); i != intervals.end(); ++i){
-			 std::cerr << (*i).begin() << "::" << (*i).end() << std::endl << std::flush;
-	 }
-
- }*/
-  
   EventInputPort::EventInputPort (Setup* s, std::string id)
-    : Port (s, id)
+    : Port (s, id),routingMap(new InputRoutingMap())
   {
-  }
+	  int commType = ConnectivityInfo_->connections()[0].communicationType();
+	  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
+	  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::COLLECTIVE)
+		  router = new TreeProcessingRouter();
+	  else
+		  router = new TableProcessingRouter();
 
-  /*
-   * remedius
-   */
+  }
+  void
+  EventInputPort::buildTable()
+  {
+	  routingMap->build(router);
+  }
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
 		       double accLatency)
   {
-	  int maxBuffered = MAX_BUFFERED_NO_VALUE;
-#ifndef ALLGATHER
     assertInput ();
-
+    int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
 	     Index::GLOBAL,
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
-#else
-	 handleEvent_ =  EventHandlerPtr (handleEvent);
-	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
-		 intervals.push_back(*iindx);
-	 InputRedistributionPort::mapImpl (indices, accLatency, maxBuffered);
-#endif
   }
 
-  /*
-   * remedius
-   */
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
 		       double accLatency)
   {
-#ifndef ALLGATHER
     assertInput ();
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices,
@@ -524,21 +443,15 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
-#else
-    error("ALLGATHER doesn't support LocalIndex.");
-#endif
   }
 
-  /*
-   * remedius
-   */
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,
 		       double accLatency,
 		       int maxBuffered)
   {
-#ifndef ALLGATHER
     assertInput ();
     if (maxBuffered <= 0)
       {
@@ -549,24 +462,15 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
-#else
-	 handleEvent_ =  EventHandlerPtr (handleEvent);
-	 for(IndexMap::iterator iindx = indices->begin (); iindx !=indices->end(); ++iindx)
-		 intervals.push_back(*iindx);
-	 InputRedistributionPort::mapImpl (indices,  accLatency, maxBuffered);
-#endif
   }
 
-  /*
-   * remedius
-   */
+  
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerLocalIndex* handleEvent,
 		       double accLatency,
 		       int maxBuffered)
   {
-#ifndef ALLGATHER
     assertInput ();
     if (maxBuffered <= 0)
       {
@@ -577,9 +481,6 @@ namespace MUSIC {
 	     EventHandlerPtr (handleEvent),
 	     accLatency,
 	     maxBuffered);
-#else
-    error("ALLGATHER doesn't support LocalIndex.");
-#endif
   }
 
   
@@ -600,15 +501,26 @@ namespace MUSIC {
   }
 
   
-  InputConnector*
+  Connector*
   EventInputPort::makeInputConnector (ConnectorInfo connInfo)
   {
-    return new EventInputConnector (connInfo,
-				    spatialNegotiator,
-				    handleEvent_,
-				    type_,
-				    setup_->communicator ());
-   // return conn;
+	  Connector *conn;
+	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
+		  conn =   new EventInputConnector (connInfo,
+		  			  spatialNegotiator,
+		  			  setup_->communicator (),
+		  			  type_,
+		  			  routingMap,
+		  			  handleEvent_);
+	  else
+		  conn = new CollectiveConnector(connInfo,
+	  	 			   spatialNegotiator,
+	  	 			setup_->communicator (),
+	  	 			  routingMap,
+	  	 			handleEvent_,
+	  	 			router);
+
+	 return conn;
   }
 
   
@@ -626,7 +538,6 @@ namespace MUSIC {
     cEventHandlerLocalIndex = EventHandlerLocalIndexProxy (eh);
     return &cEventHandlerLocalIndex;
   }
-  
 
   /********************************************************************
    *
@@ -679,7 +590,7 @@ namespace MUSIC {
   }
   
   
-  OutputConnector*
+  Connector*
   MessageOutputPort::makeOutputConnector (ConnectorInfo connInfo)
   {
     return new MessageOutputConnector (connInfo,
@@ -799,7 +710,7 @@ namespace MUSIC {
   }
 
   
-  InputConnector*
+  Connector*
   MessageInputPort::makeInputConnector (ConnectorInfo connInfo)
   {
     return new MessageInputConnector (connInfo,

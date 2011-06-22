@@ -16,17 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG 1
 #include "music/debug.hh"
 
 #include <mpi.h>
 
 #include <algorithm>
-#include <fstream>
+
 #include "music/runtime.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
-#define ALLGATHER
+
 namespace MUSIC {
 
   bool Runtime::isInstantiated_ = false;
@@ -34,14 +34,17 @@ namespace MUSIC {
   Runtime::Runtime (Setup* s, double h)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
-    // Setup the MUSIC clock
-	localTime = Clock (s->timebase (), h);
-	comm = s->communicator ();
-	Connections* connections = s->connections ();
-#ifndef ALLGATHER
     
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;
+    CollectiveSubconnectors collectiveSubconnectors;
+    // Setup the MUSIC clock
+    localTime = Clock (s->timebase (), h);
+    
+    comm = s->communicator ();
+
+    ports = new std::vector<Port*> (s->ports()->begin(),s->ports()->end());
+    Connections* connections = s->connections ();
     
     if (s->launchedByMusic ())
       {
@@ -57,60 +60,24 @@ namespace MUSIC {
 	// from here we can start using the vector `connectors'
 
 	// negotiate where to route data and fill up subconnector vectors
-	spatialNegotiation (outputSubconnectors, inputSubconnectors);
-
+	spatialNegotiation (outputSubconnectors, inputSubconnectors, collectiveSubconnectors);
 	// build data routing tables
 	buildTables (s);
-
 	// build a total order of subconnectors
 	// for non-blocking pairwise exchange
 	buildSchedule (MPI::COMM_WORLD.Get_rank (),
 		       outputSubconnectors,
-		       inputSubconnectors);
-	
+		       inputSubconnectors,
+		       collectiveSubconnectors);
 	takePostCommunicators ();
-	
 	// negotiate timing constraints for synchronizers
 	temporalNegotiation (s, connections);
-	
+	//std::cerr<<"after temporal"<<std::endl;
 	// final initialization before simulation starts
 	initialize ();
       }
-#else
-    /*
-     * remedius
-     */
-    if (s->launchedByMusic ())
-    {
-    	specializeConnectors (connections);
-    	std::vector<Port*>::iterator p;
-    	CommonEventSubconnector *subconn = NULL;
-    	subconn = new CommonEventSubconnector();//readMaxSize());
-    	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
-    	{
-    		//EventCommonInputPort* bp = dynamic_cast<EventCommonInputPort*> (*p);
-    		EventInputPort* bp = dynamic_cast<EventInputPort*> (*p);
-    		if (bp != NULL){
-    			subconn->add(bp->getIntervals(),bp->getEventHandler(), bp->width ());
-    		}
-    	}
-    	subconn->build();
-
-    	for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
-    	{
-    		EventOutputPort* bp = dynamic_cast<EventOutputPort*> (*p);
-    		if (bp != NULL){
-    			bp->setBuffer(subconn->buffer());
-    		}
-    	}
-    	schedule.push_back (subconn);
-    	temporalNegotiation (s, s->connections());
-    	initialize ();
-
-    }
-#endif
+    
     delete s;
-
   }
 
 
@@ -128,6 +95,13 @@ namespace MUSIC {
 	 ++connector)
       delete *connector;
 
+    //delete ports
+     for (std::vector<Port *>::iterator port = ports->begin ();
+ 	 port != ports->end ();
+ 	 ++port){
+       delete *port;
+     }
+    delete ports;
     isInstantiated_ = false;
   }
   
@@ -136,7 +110,7 @@ namespace MUSIC {
   Runtime::takeTickingPorts (Setup* s)
   {
     std::vector<Port*>::iterator p;
-    for (p = s->ports ()->begin (); p != s->ports ()->end (); ++p)
+    for (p = ports->begin (); p != ports->end (); ++p)
       {
 	TickingPort* tp = dynamic_cast<TickingPort*> (*p);
 	if (tp != NULL)
@@ -217,20 +191,45 @@ namespace MUSIC {
       }
   }
 
-  
+
   void
   Runtime::spatialNegotiation (OutputSubconnectors& outputSubconnectors,
-			       InputSubconnectors& inputSubconnectors)
+			       InputSubconnectors& inputSubconnectors, CollectiveSubconnectors& collectiveSubconnectors)
   {
     // Let each connector pair setup their inter-communicators
     // and create all required subconnectors.
-
+	Subconnectors subconnectors;
+    int type;
     for (std::vector<Connector*>::iterator c = connectors.begin ();
 	 c != connectors.end ();
 	 ++c)
       {
 	// negotiate and fill up vectors passed as arguments
-	(*c)->spatialNegotiation (outputSubconnectors, inputSubconnectors);
+    	type = (*c)->spatialNegotiation (subconnectors);
+
+    	int rsize = subconnectors.size();
+    	if(type == Connector::OUTPUT_SUBCONNECTORS){
+    		outputSubconnectors.resize(outputSubconnectors.size()+rsize);
+    		transform( subconnectors.begin(), subconnectors.end(),
+    				outputSubconnectors.end()-rsize,
+    				Subconnector2Target<OutputSubconnector>() );
+    	}
+    	else if( type == Connector::INPUT_SUBCONNECTORS){
+    		inputSubconnectors.resize(inputSubconnectors.size()+rsize);
+    		transform( subconnectors.begin(), subconnectors.end(),
+    				inputSubconnectors.end()-rsize,
+    				Subconnector2Target<InputSubconnector>() );
+    	}
+    	else if(type == Connector::COLLECTIVE_SUBCONNECTORS){
+    		collectiveSubconnectors.resize(collectiveSubconnectors.size()+rsize);
+    		transform( subconnectors.begin(), subconnectors.end(),
+    				collectiveSubconnectors.end()-rsize,
+    				Subconnector2Target<CollectiveSubconnector>() );
+    	}
+    	else{
+
+    		error0(" Runtime::spatialNegotiation::undefined subconnector");
+    	}
       }
   }
 
@@ -238,7 +237,8 @@ namespace MUSIC {
   void
   Runtime::buildSchedule (int localRank,
 			  OutputSubconnectors& outputSubconnectors,
-			  InputSubconnectors& inputSubconnectors)
+			  InputSubconnectors& inputSubconnectors,
+			  CollectiveSubconnectors& collectiveSubconnectors)
   {
     // Build the communication schedule.
     
@@ -288,15 +288,18 @@ namespace MUSIC {
 	;
       for (; c != inputSubconnectors.end (); ++c)
 	schedule.push_back (*c);
+
     }
 
+    for (std::vector<CollectiveSubconnector*>::iterator c = collectiveSubconnectors.begin ();
+         	 c != collectiveSubconnectors.end ();	 ++c)
+               schedule.push_back (*c);
   }
 
   
   void
   Runtime::buildTables (Setup* s)
   {
-    std::vector<Port*>* ports = s->ports ();
     for (std::vector<Port*>::iterator p = ports->begin ();
 	 p != ports->end ();
 	 ++p)
@@ -330,7 +333,6 @@ namespace MUSIC {
 
     // receive first chunk of data from sender application and fill
     // cont buffers according to Synchronizer::initialBufferedTicks ()
-
     for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	 s != schedule.end ();
 	 ++s)
@@ -344,10 +346,9 @@ namespace MUSIC {
 
     // the time zero tick () (where we may or may not communicate)
     tick ();
-
   }
 
-//#define MAX_SIZE_CALC
+  
   void
   Runtime::finalize ()
   {
@@ -366,24 +367,22 @@ namespace MUSIC {
     // intercommunicators to go well
     MPI::COMM_WORLD.Barrier ();
 #endif
-#ifndef ALLGATHER
+    
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
-#endif
-/*    if(CommonEventSubconnector::wasMaxSizeCalc())
-    	MUSIC_LOG0("MAX_SIZE (in bytes):"<<CommonEventSubconnector::getMaxSize());*/
+    
     MPI::Finalize ();
   }
+
 
   void
   Runtime::tick ()
   {
-
     // Update local time
     localTime.tick ();
-#ifndef ALLGATHER
+    
     // ContPorts do some per-tick initialization here
     std::vector<TickingPort*>::iterator p;
     for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
@@ -412,24 +411,7 @@ namespace MUSIC {
 	 c != postCommunication.end ();
 	 ++c)
       (*c)->postCommunication ();
-#else
-    /*
-     * remedius
-     */
-    bool requestCommunication =  false ;
-    std::vector<Connector*>::iterator c;
-
-    for (c = connectors.begin (); c != connectors.end (); ++c){
-    	(*c)->tick (requestCommunication);
-    }
-
-    // Communicate data through non-interlocking pair-wise exchange
-    if (requestCommunication)
-    {
-    	schedule.front()->maybeCommunicate();
-    }
-
-#endif
+	
   }
 
 
@@ -437,26 +419,6 @@ namespace MUSIC {
   Runtime::time ()
   {
     return localTime.time ();
-  }
-  /*
-   * remedius
-   */
-  std::string Runtime::max_size_file = "maxsize";
-  int
-  Runtime::readMaxSize()const{
-	  int max_size = -1;
-	  char line[256];
-	  std::ifstream infile( max_size_file.c_str(), std::ifstream::in );
-	  if (infile.is_open())
-	  {
-		  infile.getline(line,256);
-		  max_size = atoi (line);
-		  if(max_size <=0)
-			  error("max_buffer_size value is set not correct.");
-		  infile.close();
-	  }
-	  return max_size;
-
   }
   
 }

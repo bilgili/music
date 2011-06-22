@@ -38,7 +38,6 @@ namespace MUSIC {
     
   }
 
-  
   Configuration::Configuration ()
     : defaultConfig (0)
   {
@@ -54,6 +53,7 @@ namespace MUSIC {
       {
 	launchedByMusic_ = true;
 	std::istringstream env (configStr);
+
 	applicationName_ = IOUtils::read (env);
 	env.ignore ();
 	env >> color_;
@@ -61,12 +61,14 @@ namespace MUSIC {
 	applications_ = new ApplicationMap (env);
 	env.ignore ();
 	connectivityMap_ = new Connectivity (env);
+
 	// parse config string
 	while (!env.eof ())
 	  {
 	    env.ignore ();
 	    std::string name = IOUtils::read (env, '=');
 	    env.ignore ();
+
 	    insert (name, IOUtils::read (env));
 	  }
       }
@@ -120,10 +122,12 @@ namespace MUSIC {
   bool
   Configuration::lookup (std::string name, std::string* result)
   {
+  //std::cerr << "looking..."<<name << std::endl;
     std::map<std::string, std::string>::iterator pos = dict.find (name);
     if (pos != dict.end ())
       {
 	*result = pos->second;
+	// std::cerr << "found:"<< pos->second << std::endl;
 	return true;
       }
     else
@@ -176,6 +180,7 @@ namespace MUSIC {
   void
   Configuration::insert (std::string name, std::string value)
   {
+
     dict.insert (std::make_pair (name, value));
   }
 

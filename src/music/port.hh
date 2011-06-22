@@ -28,7 +28,7 @@
 #include <music/message.hh>
 #include <music/connector.hh>
 #include <music/sampler.hh>
-#include <music/event_router.hh>
+#include <music/event_routingmap.hh>
 #include <music/connectivity.hh>
 #include <music/spatial.hh>
 
@@ -40,6 +40,7 @@ namespace MUSIC {
   public:
     Port () { }
     Port (Setup* s, std::string identifier);
+
     virtual void buildTable () { };
     virtual void setupCleanup () { };
     bool isConnected ();
@@ -52,10 +53,13 @@ namespace MUSIC {
     ConnectivityInfo* ConnectivityInfo_;
     void assertOutput ();
     void assertInput ();
+    virtual ~Port(){};
 
   private:
+
     void checkConnected (std::string action);
     bool isMapped_;
+    friend class Runtime;
   };
 
   // A redistribution_port is a port with the ability to route
@@ -64,6 +68,8 @@ namespace MUSIC {
   // event_ports.
   
   class RedistributionPort : public virtual Port {
+  protected:
+	  virtual ~RedistributionPort(){}
   };
 
   // A ticking port is a port which needs to be updated at every tick ()
@@ -74,24 +80,25 @@ namespace MUSIC {
   };
 
   class OutputPort : public virtual Port {
+  protected:
+  	  virtual ~OutputPort(){}
   };
 
   class InputPort : public virtual Port {
+  protected:
+  	  virtual ~InputPort(){}
   };
 
   class OutputRedistributionPort : public OutputPort,
 				   public RedistributionPort {
   protected:
+	  virtual ~OutputRedistributionPort(){}
     SpatialOutputNegotiator* spatialNegotiator;
-    virtual OutputConnector* makeOutputConnector (ConnectorInfo connInfo) = 0;
+    virtual Connector* makeOutputConnector (ConnectorInfo connInfo) = 0;
     virtual void mapImpl (IndexMap* indices,
 			  Index::Type type,
 			  int maxBuffered,
 			  int dataSize);
-    /*
-     * remedius
-     */
-    void mapImpl (IndexMap* indices, int maxBuffered, int dataSize);
   public:
     OutputRedistributionPort () : spatialNegotiator (0) { }
     void setupCleanup ();
@@ -99,22 +106,16 @@ namespace MUSIC {
 
   class InputRedistributionPort : public OutputPort,
 				  public RedistributionPort {
-
   protected:
-
     InputRedistributionPort () : spatialNegotiator (0) { }
+    virtual ~InputRedistributionPort(){}
     SpatialInputNegotiator* spatialNegotiator;
-    virtual InputConnector* makeInputConnector (ConnectorInfo connInfo) = 0;
+    virtual Connector* makeInputConnector (ConnectorInfo connInfo) = 0;
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  double accLatency,
 		  int maxBuffered,
 		  bool interpolate);
-    /*
-     * remedius
-     */
-    void mapImpl (IndexMap* indices,  double accLatency, int maxBuffered);
-
   public:
     void setupCleanup ();
   };
@@ -129,7 +130,7 @@ namespace MUSIC {
 			 public OutputRedistributionPort,
 			 public TickingPort {
     void mapImpl (DataMap* indices, int maxBuffered);
-    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
+    Connector* makeOutputConnector (ConnectorInfo connInfo);
   public:
     ContOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -144,7 +145,7 @@ namespace MUSIC {
 		  double delay,
 		  int maxBuffered,
 		  bool interpolate);
-    InputConnector* makeInputConnector (ConnectorInfo connInfo);
+    Connector* makeInputConnector (ConnectorInfo connInfo);
   public:
     ContInputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -158,70 +159,37 @@ namespace MUSIC {
 
   
   class EventPort : public virtual Port {
+  protected:
+	    EventRouter *router;
+	   	Index::Type type_;
+	   	virtual ~EventPort(){}
   };
 
   
   class EventOutputPort : public EventPort,
 			  public OutputRedistributionPort {
-    EventRoutingMap* routingMap;
-    EventRouter router;
-    /*
-     * remedius
-     */
-    FIBO* buffer_;
+    EventRoutingMap<FIBO*>* routingMap;
   public:
-    EventOutputPort (Setup* s, std::string id);
     void map (IndexMap* indices, Index::Type type);
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
-    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
-    void buildTable ();
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
-    /*
-     * remedius
-     */
-    void setBuffer(FIBO* buffer){buffer_ = buffer;};
-  };
-/*
-   * remedius
-
-  class EventCommonOutputPort:  public EventPort{
-	  FIBO* buffer_;
-  public:
-	  EventCommonOutputPort(Setup* s, std::string id):Port(s,id), buffer_(NULL){};
-	  void insertEvent(double , GlobalIndex);
-	  void setBuffer(FIBO* buffer){buffer_ = buffer;};
+    ~EventOutputPort(){/*delete router; delete routingMap;*/}
+  private:
+    EventOutputPort (Setup* s, std::string id);
+    Connector* makeOutputConnector (ConnectorInfo connInfo);
+    void buildTable ();
+    friend class Setup;
+   // friend class Runtime;
   };
 
-
-   * remedius
-
-  class EventCommonInputPort: public EventPort{
-	  std::vector<IndexInterval> intervals;
-	  EventHandlerPtr handleEvent_;
-  public:
-	  EventCommonInputPort(Setup* s, std::string id): Port (s, id){};
-	  void map (IndexMap* ,
-	  	      EventHandlerGlobalIndex* );
-	  EventHandlerPtr getEventHandler(){return handleEvent_; }
-	  std::vector<IndexInterval> getIntervals(){return intervals; }
-
-  };*/
 
   class EventInputPort : public EventPort,
 			 public InputRedistributionPort {
   private:
-    Index::Type type_;
-    /*
-     * remedius
-     */
     EventHandlerPtr handleEvent_;
-    /*
-     * remedius
-     */
-    std::vector<IndexInterval> intervals;
+    EventRoutingMap<EventHandlerGlobalIndex*>* routingMap;
   public:
-    EventInputPort (Setup* s, std::string id);
     void map (IndexMap* indices,
 	      EventHandlerGlobalIndex* handleEvent,
 	      double accLatency = 0.0);
@@ -236,21 +204,17 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
-    /*
-     * remedius
-     */
-    EventHandlerPtr getEventHandler(){return handleEvent_; }
-    /*
-     * remedius
-     */
-    std::vector<IndexInterval> getIntervals(){return intervals; }
+    ~EventInputPort(){/*delete router; delete routingMap;*/}
   protected:
+    EventInputPort (Setup* s, std::string id);
+
+    void buildTable ();
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  EventHandlerPtr handleEvent,
 		  double accLatency,
 		  int maxBuffered);
-    InputConnector* makeInputConnector (ConnectorInfo connInfo);
+    Connector* makeInputConnector (ConnectorInfo connInfo);
     // Facilities to support the C interface
   public:
     EventHandlerGlobalIndexProxy*
@@ -260,6 +224,9 @@ namespace MUSIC {
   private:
     EventHandlerGlobalIndexProxy cEventHandlerGlobalIndex;
     EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
+
+    friend class Setup;
+    //friend class Runtime;
   };
 
 
@@ -280,7 +247,7 @@ namespace MUSIC {
     void insertMessage (double t, void* msg, size_t size);
   protected:
     void mapImpl (int maxBuffered);
-    OutputConnector* makeOutputConnector (ConnectorInfo connInfo);
+    Connector* makeOutputConnector (ConnectorInfo connInfo);
   };
 
   class MessageInputPort : public MessagePort,
@@ -297,7 +264,7 @@ namespace MUSIC {
     void mapImpl (MessageHandler* handleEvent,
 		  double accLatency,
 		  int maxBuffered);
-    InputConnector* makeInputConnector (ConnectorInfo connInfo);
+    Connector* makeInputConnector (ConnectorInfo connInfo);
   public:
     MessageHandlerProxy*
     allocMessageHandlerProxy (void (*) (double, void*, size_t));

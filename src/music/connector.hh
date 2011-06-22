@@ -31,10 +31,9 @@
 #include <music/sampler.hh>
 #include <music/collector.hh>
 #include <music/distributor.hh>
-#include <music/event_router.hh>
+#include <music/event_routingmap.hh>
 
 #include <music/subconnector.hh>
-
 namespace MUSIC {
 
   // The Connector is responsible for one side of the communication
@@ -44,6 +43,8 @@ namespace MUSIC {
   // process we will communicate with on the remote side.
 
   class Connector {
+  public:
+	  enum SubconnectorsType{OUTPUT_SUBCONNECTORS,INPUT_SUBCONNECTORS,COLLECTIVE_SUBCONNECTORS,UNDEFINED_SUBCONNECTORS};
   protected:
     ConnectorInfo info;
     SpatialNegotiator* spatialNegotiator_;
@@ -66,42 +67,25 @@ namespace MUSIC {
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
     int remoteLeader () const { return info.remoteLeader (); }
-    /*
-     * remedius
-     */
-    int maxLocalWidth () { return spatialNegotiator_!=NULL ? spatialNegotiator_->maxLocalWidth ():info.portWidth(); }
+    
+    int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
     bool isLeader ();
     virtual Synchronizer* synchronizer () = 0;
-    void createIntercomm ();
-    void freeIntercomm ();
-    virtual void
-    spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			std::vector<InputSubconnector*>& isubconn) { }
+    virtual void createIntercomm ();
+    virtual void freeIntercomm ();
+    virtual int spatialNegotiation (std::vector<Subconnector*>& subconn);
     virtual void initialize () = 0;
     virtual void prepareForSimulation () { }
     virtual void tick (bool& requestCommunication) = 0;
+
+    virtual void addRoutingInterval (IndexInterval i, Subconnector* s){};
+    virtual Subconnector* makeSubconnector (int remoteRank) = 0;
   };
+
 
   class PostCommunicationConnector : virtual public Connector {
   public:
     virtual void postCommunication () = 0;    
-  };
-
-  class OutputConnector : virtual public Connector {
-  public:
-    virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-				     std::vector<InputSubconnector*>& isubconn);
-    virtual void addRoutingInterval (IndexInterval i, OutputSubconnector* s);
-    virtual OutputSubconnector* makeOutputSubconnector (int remoteRank) = 0;
-  };
-  
-  class InputConnector : virtual public Connector {
-  public:
-    virtual void spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-				     std::vector<InputSubconnector*>& isubconn);
-    virtual void addRoutingInterval (IndexInterval i, InputSubconnector* s);
-    virtual InputSubconnector* makeInputSubconnector (int remoteRank,
-						      int receiverRank) = 0;
   };
 
   class ContConnector : virtual public Connector {
@@ -123,7 +107,7 @@ namespace MUSIC {
   class InterpolatingConnector : virtual public Connector {
   };
   
-  class ContOutputConnector : public ContConnector, public OutputConnector {
+  class ContOutputConnector : public ContConnector {
   protected:
     Distributor distributor_;
   public:
@@ -132,7 +116,7 @@ namespace MUSIC {
 			 MPI::Intracomm comm,
 			 Sampler& sampler,
 			 MPI::Datatype type);
-    OutputSubconnector* makeOutputSubconnector (int remoteRank);
+    Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Connector* specialize (Clock& localTime);
   };
@@ -157,7 +141,6 @@ namespace MUSIC {
   };
   
   class ContInputConnector : public ContConnector,
-			     public InputConnector,
 			     public PostCommunicationConnector {
   protected:
     Collector collector_;
@@ -170,7 +153,7 @@ namespace MUSIC {
 			Sampler& sampler,
 			MPI::Datatype type,
 			double delay);
-    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
+    Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
     Connector* specialize (Clock& localTime);
     // We need to allocate instances of ContInputConnector and, therefore
@@ -200,50 +183,104 @@ namespace MUSIC {
     void postCommunication ();
   };
 
-  class EventConnector : virtual public Connector {
+  class EventConnector :  public Connector {
+  protected:
+	  Synchronizer *synch;
+	  Index::Type type_;
+  public:
+	  EventConnector(ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Index::Type type):Connector(connInfo,spatialNegotiator,comm),type_(type){}
+	  virtual ~EventConnector(){};
+	//  SpatialNegotiator *spatialNegotiator(){return spatialNegotiator_;}
+	//  MPI::Intracomm communicator(){return comm;}
+	  Synchronizer* synchronizer () { return synch; }
+	  void initialize ();
+	  void tick (bool& requestCommunication);
+  protected:
+	  virtual void createSynchronizer()=0;
+	  virtual void destroySynchronizer()=0;
   };
-  
-  class EventOutputConnector : public OutputConnector, public EventConnector {
+
+  class EventOutputConnector : public EventConnector {
   private:
-    OutputSynchronizer synch;
-    EventRoutingMap* routingMap_;
-    void send ();
+    EventRoutingMap<FIBO*>* routingMap_;
   public:
     EventOutputConnector (ConnectorInfo connInfo,
-			  SpatialOutputNegotiator* spatialNegotiator,
+			  SpatialNegotiator* spatialNegotiator,
 			  MPI::Intracomm comm,
-			  EventRoutingMap* routingMap);
-    OutputSubconnector* makeOutputSubconnector (int remoteRank);
-    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
-    Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void tick (bool& requestCommunication);
+			  Index::Type type,
+			  EventRoutingMap<FIBO*>* routingMap):EventConnector(connInfo,spatialNegotiator,comm,type),
+			  routingMap_(routingMap){createSynchronizer();};
+    ~EventOutputConnector(){destroySynchronizer();}
+    Subconnector* makeSubconnector (int remoteRank);
+    void addRoutingInterval (IndexInterval i, Subconnector* subconn);
+    int spatialNegotiation(std::vector<Subconnector*>& subconn);
+  protected:
+    void createSynchronizer();
+    void destroySynchronizer();
   };
   
-  class EventInputConnector : public InputConnector, public EventConnector {
-    
+  class EventInputConnector : public EventConnector {
   private:
-    InputSynchronizer synch;
+	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
     EventHandlerPtr handleEvent_;
-    Index::Type type_;
   public:
     EventInputConnector (ConnectorInfo connInfo,
-			 SpatialInputNegotiator* spatialNegotiator,
-			 EventHandlerPtr handleEvent,
-			 Index::Type type,
-			 MPI::Intracomm comm);
-    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
-    Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void tick (bool& requestCommunication);
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Index::Type type,
+			  EventRoutingMap<EventHandlerGlobalIndex*>* routingMap,
+			  EventHandlerPtr handleEvent):EventConnector(connInfo,spatialNegotiator,comm,type),
+			  routingMap_(routingMap),handleEvent_(handleEvent){createSynchronizer();};
+    ~EventInputConnector(){destroySynchronizer();}
+    Subconnector* makeSubconnector (int remoteRank);
+    int spatialNegotiation(std::vector<Subconnector*>& subconn);
+    void addRoutingInterval (IndexInterval i, Subconnector* subconn);
+
+  protected:
+    void createSynchronizer();
+    void destroySynchronizer();
   };
-  
-  class MessageConnector : virtual public Connector {
-  };
-  
-  class MessageOutputConnector : public OutputConnector,
-				 public MessageConnector,
-				 public PostCommunicationConnector {
+
+ class CollectiveConnector: public Connector {
+  	EventConnector *conn;
+  	Subconnector *subconnector;
+  	EventRouter *router_;
+  	EventRouter *empty_router;
+  public:
+  	CollectiveConnector(ConnectorInfo connInfo,
+  	 			  SpatialNegotiator* spatialNegotiator,
+  	 			  MPI::Intracomm comm,
+  	 			  EventRoutingMap<EventHandlerGlobalIndex *>* routingMap,
+  	 			  EventHandlerPtr handleEvent,
+  	 			  EventRouter *router):
+  	 			  Connector(connInfo,spatialNegotiator,comm),
+  	 			  subconnector(0),router_(router),empty_router(NULL)
+  	{ conn = new EventInputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap,handleEvent);};
+  	CollectiveConnector(ConnectorInfo connInfo,
+  	  	 			  SpatialNegotiator* spatialNegotiator,
+  	  	 			  MPI::Intracomm comm,
+  	  	 			  EventRoutingMap<FIBO *>* routingMap):
+  	  	 		      Connector(connInfo,spatialNegotiator,comm),
+  	  	 			  subconnector(0)
+  	{ conn = new EventOutputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap);
+  	empty_router = new EventRouter();
+  	router_ = empty_router;};
+  	~CollectiveConnector(){delete conn;if(empty_router != NULL) delete empty_router;}
+  	int spatialNegotiation (std::vector<Subconnector*>& subconn);
+  	Synchronizer* synchronizer () { return conn->synchronizer(); }
+  	void initialize (){conn->initialize();}
+  	void tick(bool& requestCommunication){conn->tick(requestCommunication);}
+  	void createIntercomm(){}
+  	void freeIntercomm (){}
+  private:
+  	Subconnector* makeSubconnector (int remoteRank);
+  	void addRoutingInterval(IndexInterval i, Subconnector* subconn);
+    };
+
+  class MessageOutputConnector : public PostCommunicationConnector {
   private:
     OutputSynchronizer synch;
     FIBO buffer;
@@ -255,7 +292,7 @@ namespace MUSIC {
 			    SpatialOutputNegotiator* spatialNegotiator,
 			    MPI::Intracomm comm,
 			    std::vector<FIBO*>& buffers);
-    OutputSubconnector* makeOutputSubconnector (int remoteRank);
+    Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
@@ -263,7 +300,7 @@ namespace MUSIC {
     void postCommunication ();
   };
   
-  class MessageInputConnector : public InputConnector, public MessageConnector {
+  class MessageInputConnector : public Connector {
     
   private:
     InputSynchronizer synch;
@@ -275,7 +312,7 @@ namespace MUSIC {
 			   MessageHandler* handleMessage,
 			   Index::Type type,
 			   MPI::Intracomm comm);
-    InputSubconnector* makeInputSubconnector (int remoteRank, int receiverRank);
+    Subconnector* makeSubconnector (int remoteRank);
     Synchronizer* synchronizer () { return &synch; }
     void initialize ();
     void tick (bool& requestCommunication);

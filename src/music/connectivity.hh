@@ -25,43 +25,42 @@
 namespace MUSIC {
 
   class ConnectorInfo {
+  public:
+	enum CommunicationType { COLLECTIVE, PAIRWISE };
+	enum ProcessingMethod { TREE, TABLE };
     std::string recApp_;
     std::string recPort_;
     int recCode_;
     int remoteLeader_;
     int nProc_;
-    /*
-     * remedius
-     */
-    int port_width;
+    int commType_;
+    int procMethod_;
   public:
     ConnectorInfo () { }
-    /*
-     * remedius
-     */
     ConnectorInfo (std::string recApp,
 		   std::string recName,
 		   int recCode,
 		   int rLeader,
 		   int nProc,
-		   int pWidth)
+		   int commType,
+		   int procMethod
+			)
       : recApp_ (recApp),
 	recPort_ (recName),
 	recCode_ (recCode),
 	remoteLeader_ (rLeader),
 	nProc_ (nProc),
-	port_width(pWidth)
+	commType_(commType),
+	procMethod_(procMethod)
     { }
     std::string receiverAppName () const { return recApp_; }
     std::string receiverPortName () const { return recPort_; }
-    /*
-     * remedius
-     */
-    int portWidth() const {return port_width;}
     int receiverPortCode () const { return recCode_; }
     int remoteLeader () const { return remoteLeader_; }
     // NOTE: nProcesses should have "remote" in name
     int nProcesses () const { return nProc_; }
+    int communicationType() const {return commType_;}
+    int processingMethod() const {return procMethod_;}
   };
 
 
@@ -71,6 +70,7 @@ namespace MUSIC {
   class ConnectivityInfo {
   public:
     enum PortDirection { OUTPUT, INPUT };
+
     static const int NO_WIDTH = -1;
   private:
     std::string portName_;
@@ -88,7 +88,10 @@ namespace MUSIC {
 			std::string recName,
 			int recCode,
 			int rLeader,
-			int nProc);
+			int nProc,
+			int commType,
+			int procMethod
+			);
   };
 
   
@@ -107,7 +110,10 @@ namespace MUSIC {
 	      std::string recPort,
 	      int recPortCode,
 	      int remoteLeader,
-	      int remoteNProc);
+	      int remoteNProc,
+		  int commType,
+		  int procMethod
+			);
     ConnectivityInfo* info (std::string portName);
     bool isConnected (std::string portName);
     ConnectivityInfo::PortDirection direction (std::string portName);

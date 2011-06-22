@@ -21,11 +21,11 @@
 #include <mpi.h>
 
 #include <string>
-
+#include <music/event_router.hh>
 #include <music/synchronizer.hh>
 #include <music/FIBO.hh>
 #include <music/BIFO.hh>
-#include <music/event_router.hh>
+#include <music/event.hh>
 #include <music/message.hh>
 
 namespace MUSIC {
@@ -79,34 +79,8 @@ namespace MUSIC {
     BufferingOutputSubconnector (int elementSize);
     FIBO* buffer () { return &buffer_; }
   };
-  class EventSubconnector : virtual public Subconnector {
-  protected:
-    static const int FLUSH_MARK = -1;
-  };
-  /*
-   * remedius
-   */
+  
 
-  class CommonEventSubconnector:public BufferingOutputSubconnector,public EventSubconnector{
-	  CommonEventRouter router;
-	  bool flushed;
-	  //static int max_size;
-	 // int max_buf_size_;
-	 // static const int END_MARK = -2;
-
-  public:
-	  CommonEventSubconnector();//int max_buf_size = -1);
-	  //CommonEventSubconnector(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent );
-	  void maybeCommunicate ();
-	  void build();
-	  //static bool wasMaxSizeCalc(){return max_size >= 0;}
-	  //static int getMaxSize(){return max_size;}
-	  void add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent, int port_width );
-	  void flush (bool& dataStillFlowing);
-  private:
-	  //void communicate1();
-	  void communicate2();
-  };
 
   class InputSubconnector : virtual public Subconnector {
   protected:
@@ -158,8 +132,27 @@ namespace MUSIC {
     void flush (bool& dataStillFlowing);
   };
 
-
-  
+  class EventSubconnector : virtual public Subconnector {
+  protected:
+    static const int FLUSH_MARK = -1;
+  };
+  class CollectiveSubconnector:  public BufferingOutputSubconnector{
+  protected:
+	  MPI::Intracomm _intracomm;
+	  static const int FLUSH_MARK = -1;
+	  EventRouter *router_;
+	  bool flushed;
+  public:
+	  CollectiveSubconnector(Synchronizer* _synch,
+			     MPI::Intracomm intracomm,  EventRouter *router):Subconnector (),
+			     BufferingOutputSubconnector (sizeof (Event)),
+			     router_(router),flushed(false)
+	      { synch =_synch;_intracomm = intracomm; };
+	  void maybeCommunicate ();
+	  void flush (bool& dataStillFlowing);
+  private:
+	  void communicate();
+  };
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
   public:

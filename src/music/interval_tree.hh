@@ -31,12 +31,13 @@ namespace MUSIC {
 
     class NodeType {
       PointType maxEnd_;
-      DataType data_;
+      static DataType noMean;
+      DataType &data_;
     public:
-      NodeType () : maxEnd_ (noNode ()) { }
-      NodeType (const DataType& d) : maxEnd_ (noNode ()), data_ (d) { }
-      NodeType (const PointType m, const DataType& d)
-	: maxEnd_ (m), data_ (d) { }
+      NodeType () : maxEnd_ (noNode ()), data_(noMean) { }
+      NodeType (const DataType& d) : maxEnd_ (noNode ()),data_( const_cast<DataType&>(d)){}
+      NodeType (const PointType m, const DataType& d): maxEnd_ (m),data_ (const_cast<DataType&>(d)){}
+      ~NodeType (){};
       static PointType noNode () {
 	return std::numeric_limits<PointType>::min ();
       }
@@ -47,6 +48,14 @@ namespace MUSIC {
       PointType begin () const { return data_.begin (); }
       PointType end () const { return data_.end (); }
       PointType maxEnd () const { return maxEnd_; }
+      //should be overloaded due to the reference(data_) initialization
+      NodeType &operator= (const NodeType &node) {
+      	    if (this != &node) {
+      	        this->NodeType::~NodeType(); // explicit non-virtual destructor
+      	        new (this) NodeType(node.maxEnd_,node.data_); // placement new
+      	    }
+      	    return *this;
+      	}
     };
 
     std::vector<NodeType> nodes;
@@ -67,6 +76,8 @@ namespace MUSIC {
     void search (PointType point, Action* a);
     int size () const { return nodes.size (); }
   };
+template<class PointType, class DataType>
+DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
 
   template<class PointType, class DataType>
   void

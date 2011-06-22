@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MUSIC_DEBUG 1
+//#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include <cmath>
@@ -39,7 +39,6 @@ namespace MUSIC {
     // still ensuring that oldest data arrives in time
     ClockState limit
       = nextSend.integerTime () + latency_ - nextReceive.tickInterval ();
-
     while (nextReceive.integerTime () <= limit)
       nextReceive.tick ();
     // Advance send time to match receive time
@@ -50,7 +49,6 @@ namespace MUSIC {
 	nextSend.tick ();
 	++bCount;
       }
-
     // Advance send time according to precalculated buffer
     if (bCount < maxBuffered_)
       nextSend.ticks (maxBuffered_ - bCount);
@@ -61,7 +59,6 @@ namespace MUSIC {
     MUSIC_LOGRE ("next send at " << nextSend.time ()
 		 << ", next receive at " << nextReceive.time ()
 		 << ", bCount = " << bCount);
-
   }
 
   // The following set of mutators are used by the TemporalNegotiator
@@ -90,7 +87,7 @@ namespace MUSIC {
   Synchronizer::setReceiverTickInterval (ClockState ti)
   {
     nextReceive.setTickInterval (ti);
-    MUSIC_LOGRE("nextReceive.ti := " << ti);
+    MUSIC_LOGRE ("nextReceive.ti := " << ti);
   }
 
   
@@ -204,8 +201,6 @@ namespace MUSIC {
     if (*localTime > nextReceive)
       nextCommunication ();
     communicate_ = *localTime == nextReceive;
-
-
   }
 
 

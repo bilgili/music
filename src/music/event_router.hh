@@ -25,105 +25,84 @@
 #include <music/interval_tree.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>
+
 namespace MUSIC {
 
   class EventRoutingData {
     IndexInterval interval_;
-    FIBO* buffer_;
   public:
     EventRoutingData () { }
-    EventRoutingData (IndexInterval i, FIBO* b)
-      : interval_ (i), buffer_ (b) { }
+    EventRoutingData (IndexInterval i): interval_ (i){ }
+    virtual ~EventRoutingData(){};
+
     int begin () const { return interval_.begin (); }
     int end () const { return interval_.end (); }
     int offset () const { return interval_.local (); }
-    void insert (double t, int id) {
-      Event* e = static_cast<Event*> (buffer_->insert ());
-      e->t = t;
-      e->id = id;
-    }
+    virtual void *Data(){return NULL;}
+    virtual void process (double t, int id){};
   };
 
+  class InputRoutingData : public EventRoutingData{
+	  EventHandlerGlobalIndex *handler;
+  public:
+	  InputRoutingData(IndexInterval i, EventHandlerGlobalIndex* h):EventRoutingData(i),handler (h){};
+	  void *Data(){return handler;}
+  	  void process (double t, int id) {
+  		(*handler) (t, id);
+  	  }
+  };
+  class OutputRoutingData: public EventRoutingData {
+	  FIBO* buffer_;
+  public:
+	  OutputRoutingData(IndexInterval i, FIBO* b):EventRoutingData(i),buffer_ (b){};
+	  void *Data(){return buffer_;}
+	  void process (double t, int id) {
+		  Event* e = static_cast<Event*> (buffer_->insert ());
+		  e->t = t;
+		  e->id = id;
+	  }
+  };
 
   class EventRouter {
-    class Inserter : public IntervalTree<int, EventRoutingData>::Action {
-    protected:
-      double t_;
-      int id_;
-    public:
-      Inserter (double t, int id) : t_ (t), id_ (id) { };
-      void operator() (EventRoutingData& data)
-      {
-	data.insert (t_, id_ - data.offset ());
-      }
-    };
-    
-    IntervalTree<int, EventRoutingData> routingTable;
   public:
-    void insertRoutingInterval (IndexInterval i, FIBO* b);
-    void buildTable ();
-    void insertEvent (double t, GlobalIndex id);
-    void insertEvent (double t, LocalIndex id);
+      virtual ~EventRouter(){}
+	  virtual void insertRoutingData (EventRoutingData& data){};
+	  virtual void buildTable (){};
+	  virtual void processEvent (double t, GlobalIndex id){};
+	  virtual void processEvent (double t, LocalIndex id){};
   };
-  /*
-    * remedius
-    */
-
-  class CommonEventRoutingData {
-     IndexInterval interval_;
-     EventHandlerGlobalIndex *handleEvent_;
-   public:
-     CommonEventRoutingData () { }
-     CommonEventRoutingData (IndexInterval i, EventHandlerGlobalIndex *handleEvent)
-       : interval_ (i), handleEvent_ (handleEvent) { }
-     int begin () const { return interval_.begin (); }
-     int end () const { return interval_.end (); }
-    // int offset () const { return interval_.local (); }
-     void handle (double t, int id) {
-    	 (*handleEvent_) (t, id);
-     }
-   };
-  /*
-   * remedius
-   */
-  class CommonEventRouter {
-	  class EventHandler : public IntervalTree<int, CommonEventRoutingData>::Action {
+  class TableProcessingRouter: public EventRouter{
+	  std::map<void*, int> indexer;
+	  std::map<int, std::vector<EventRoutingData*> > routingTable;
+  public:
+	  TableProcessingRouter(){};
+	  ~TableProcessingRouter();
+	  void insertRoutingData (EventRoutingData& data);
+	  void processEvent (double t, GlobalIndex id);
+	  void processEvent (double t, LocalIndex id){};
+  };
+  class TreeProcessingRouter: public EventRouter{
+	  class Processor : public IntervalTree<int, EventRoutingData>::Action {
+	  protected:
 		  double t_;
 		  int id_;
 	  public:
-		  EventHandler (double t, int id) : t_ (t), id_ (id) { };
-		  void operator() (CommonEventRoutingData& data)
+		  Processor (double t, int id) : t_ (t), id_ (id) { };
+		  void operator() (EventRoutingData& data)
 		  {
-			  data.handle(t_, id_);
+			  data.process (t_, id_ - data.offset ());
 		  }
 	  };
-	 //int current;
-     //std::vector< IntervalTree<int, CommonEventRoutingData> > routingTables;
-	//  IntervalTree<int, CommonEventRoutingData> routingTable;
-	 std::vector<EventHandlerGlobalIndex *> routingTable;
-   public:
-     //CommonEventRouter():current(-1){};
-     CommonEventRouter(){};
-     //void newTable();
-     void insertRoutingInterval (IndexInterval i, EventHandlerPtr *handleEvent);
-     void buildTable ();
-     void adjustMaxWidth(int tbl_size);
-     void processEvent (double t, GlobalIndex id);
-   };
-    
 
-  class EventRoutingMap {
-    std::vector<Interval>* intervals;
-    typedef std::map<FIBO*, std::vector<IndexInterval> > BufferMap;
-    BufferMap bufferMap;
-  public:
-    EventRoutingMap () { intervals = new std::vector<Interval>; }
-    ~EventRoutingMap () { delete intervals; }
-    void insert (IndexInterval i, FIBO* buffer);
-    void rebuildIntervals ();
-    void fillRouter (EventRouter& router);
+	  IntervalTree<int, EventRoutingData> routingTable;
+	  public:
+	  TreeProcessingRouter(){};
+	  void insertRoutingData (EventRoutingData &data);
+	  void buildTable ();
+	  void processEvent (double t, GlobalIndex id);
+	  void processEvent (double t, LocalIndex id);
   };
-}
 
+}
 #define MUSIC_EVENT_ROUTER_HH
 #endif

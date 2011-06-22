@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include "music/communication.hh"
@@ -54,182 +54,8 @@ namespace MUSIC {
     : buffer_ (elementSize)
   {
   }
-  /*
-   * remedius
-   */
-/*  CommonEventSubconnector::CommonEventSubconnector(int max_buf_size):BufferingOutputSubconnector(sizeof (Event)),
-		  flushed(false),
-		  max_buf_size_(max_buf_size){
 
-
-  }*/
-  CommonEventSubconnector::CommonEventSubconnector():BufferingOutputSubconnector(sizeof (Event)),
-		  flushed(false){
-
-
-	  }
-  /*
-   * remedius
-   */
- // int CommonEventSubconnector::max_size = -1;
-  /*
-   * remediuds
-   */
- void
- CommonEventSubconnector::add(std::vector<IndexInterval> intervals, EventHandlerPtr handleEvent, int port_width){
-	 //router.newTable();
-	 router.adjustMaxWidth(port_width);
-	  std::vector<IndexInterval>::iterator i;
-	  for( i = intervals.begin(); i != intervals.end(); ++i)
-		  router.insertRoutingInterval(*i, &handleEvent);
-  }
- /*
-  * remediuds
-  */
-  void
-  CommonEventSubconnector::build(){
-	  router.buildTable();
-  }
-  /*
-   * remedius
-   */
-  void CommonEventSubconnector::maybeCommunicate(){
-
-
-//	  if(max_buf_size_ > 0)
-//		  communicate1();
-//	  else
-		  communicate2();
-  }
-/*  void CommonEventSubconnector::communicate1(){
-	  void* data;
-  	  int size, nProcesses;
-  	  unsigned int dsize;
-  	  unsigned char* cur_buff, *recv_buff, *send_buff;
-  	  if(flushed)
-  		  return;
-  	  unsigned int sEvent = sizeof(Event);
-
-  	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
-
-  	  buffer_.nextBlock (data, size);
-  	  cur_buff = static_cast <unsigned char*> (data);
-
-  	   * marking the end of the sending buffer
-
-  	  send_buff = new unsigned char[max_buf_size_];
-  	  memcpy(send_buff,cur_buff,size);
-  	  if(size < max_buf_size_){
-  		  Event* e = static_cast<Event*> ((void*)(send_buff+size));
-  		  e->id = END_MARK;
-  	  }
-  	  //possible size of the data that is exchanged between all processes
-  	  dsize = max_buf_size_*nProcesses;
-  	  //sending data
-  	  recv_buff = new unsigned char[dsize];
-  	  MPI_Allgather(send_buff, max_buf_size_, MPI::BYTE, recv_buff, max_buf_size_, MPI::BYTE, MPI_COMM_WORLD);
-
-
-
-  	   * flushed flag controls whether all processes have finished their job
-  	   * and have sent FLUSH_MARK flag, otherwise processes should participate
-  	   * in communication even if they send no data.
-
-  	  flushed = true;
-  	  //processing the data
-  	  for(unsigned int j = 0; j < dsize;){
-  		  Event* e = static_cast<Event*> ((void*)(recv_buff+j));
-  		  if (e->id == FLUSH_MARK){
-  			 j+=(-j%max_buf_size_+max_buf_size_);
-  		  }
-  		  else if(e->id == END_MARK){
-  			  flushed = false;
-  			  j+=(-j%max_buf_size_+max_buf_size_);
-  		  }
-  		  else{
-  			  router.processEvent(e->t, e->id);
-  			  flushed = false;
-  			  j+=sEvent;
-  		  }
-  	  }
-  	  delete send_buff;
-  	  delete recv_buff;
-    }*/
- void CommonEventSubconnector::communicate2(){
-	  void* data;
-	  int size, nProcesses;
-	  unsigned int dsize;
-	  int* ppBytes, *displ;
-	  char* cur_buff, *recv_buff;
-	  if(flushed)
-		  return;
-	  unsigned int sEvent = sizeof(Event);
-
-	  buffer_.nextBlock (data, size);
-	  cur_buff = static_cast <char*> (data);
-
-	  MPI_Comm_size(MPI_COMM_WORLD,&nProcesses);
-
-	  ppBytes = new int[nProcesses];
-	  //distributing the size of the buffer
-	 // MUSIC_LOGN(0,size);
-	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, MPI_COMM_WORLD );
-	 // MUSIC_LOGN(0,"after");
-	 // MPI_Barrier(MPI_COMM_WORLD);
-	  //could it be that dsize is more then unsigned int?
-	  dsize = 0;
-	  displ = new int[nProcesses];
-	  for(int i=0; i < nProcesses; ++i){
-		  displ[i] = dsize;
-		  dsize += ppBytes[i];
-/*		  if(ppBytes[i] > max_size)
-			  max_size = ppBytes[i];*/
-	  }
-
-	  recv_buff = new char[dsize];
-	  //distributing the data
-	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, MPI_COMM_WORLD);
-	  //processing the data
-
-	  flushed = true;
-	  for(unsigned int i = 0; i < dsize; i+=sEvent){
-		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
-		  if (e->id == FLUSH_MARK)
-			  continue;
-		  else{
-			  router.processEvent(e->t, e->id);
-			  flushed = false;
-
-		  }
-	  }
-	  if(dsize/sEvent != nProcesses)
-	  		 flushed = false;
-	  delete ppBytes;
-	  delete displ;
-	  delete recv_buff;
-  }
-
- /*
-  * remedius
-  */
- void CommonEventSubconnector::flush(bool &dataStillFlowing){
-	 if (!buffer_.isEmpty ())
-	 {
-		 MUSIC_LOGR ("sending data remaining in buffers");
-		 maybeCommunicate ();
-		 dataStillFlowing = true;
-	 }
-	 else if (!flushed)
-	 {
-		 Event* e = static_cast<Event*> (buffer_.insert ());
-		 e->id = FLUSH_MARK;
-		// MUSIC_LOGR("sending FLUSH_MARK");
-		 maybeCommunicate ();
-		 if(!flushed)
-			 dataStillFlowing = true;
-	 }
- }
-
+  
   InputSubconnector::InputSubconnector ()
   {
     flushed = false;
@@ -281,6 +107,7 @@ namespace MUSIC {
     void* data;
     int size;
     buffer_.nextBlock (data, size);
+
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
     while (size >= CONT_BUFFER_MAX)
@@ -396,7 +223,82 @@ namespace MUSIC {
       }
   }
 
-  
+  /********************************************************************
+   *
+   * Collective Subconnector
+   *
+   ********************************************************************/
+  void CollectiveSubconnector::maybeCommunicate(){
+	  communicate();
+  }
+  void CollectiveSubconnector::communicate(){
+	 // std::cerr << "coomunicate" <<std::endl;
+	  void* data;
+	  int size, nProcesses;
+	  unsigned int dsize;
+	  int* ppBytes, *displ;
+	  char* cur_buff, *recv_buff;
+	  if(flushed)
+		  return;
+	  unsigned int sEvent = sizeof(Event);
+
+	  buffer_.nextBlock (data, size);
+	  cur_buff = static_cast <char*> (data);
+
+	  MPI_Comm_size(_intracomm,&nProcesses);
+
+	  ppBytes = new int[nProcesses];
+	  //distributing the size of the buffer
+	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, _intracomm );
+	  //could it be that dsize is more then unsigned int?
+	  dsize = 0;
+	  displ = new int[nProcesses];
+	  for(int i=0; i < nProcesses; ++i){
+		  displ[i] = dsize;
+		  dsize += ppBytes[i];
+  /*		  if(ppBytes[i] > max_size)
+			  max_size = ppBytes[i];*/
+	  }
+
+	  recv_buff = new char[dsize];
+	  //distributing the data
+	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, _intracomm);
+	  //processing the data
+
+	  flushed = true;
+	  for(unsigned int i = 0; i < dsize; i+=sEvent){
+		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
+		  if (e->id == FLUSH_MARK)
+			  continue;
+		  else{
+			  router_->processEvent(e->t, (GlobalIndex)e->id);
+			  flushed = false;
+
+		  }
+	  }
+	  if(dsize/sEvent != nProcesses)
+			 flushed = false;
+	  delete ppBytes;
+	  delete displ;
+	  delete recv_buff;
+  }
+  void CollectiveSubconnector::flush(bool& dataStillFlowing){
+	 if (!buffer_.isEmpty ())
+	 {
+		 MUSIC_LOGR ("sending data remaining in buffers");
+		 maybeCommunicate ();
+		 dataStillFlowing = true;
+	 }
+	 else if (!flushed)
+	 {
+		 Event* e = static_cast<Event*> (buffer_.insert ());
+		 e->id = FLUSH_MARK;
+		// MUSIC_LOGR("sending FLUSH_MARK");
+		 maybeCommunicate ();
+		 if(!flushed)
+			 dataStillFlowing = true;
+	 }
+  }
   /********************************************************************
    *
    * Event Subconnectors
@@ -573,12 +475,12 @@ namespace MUSIC {
 	if (ev[0].id == FLUSH_MARK)
 	  {
 	    flushed = true;
-	    //MUSIC_LOGR ("received flush message");
+	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
-	//MUSIC_LOGR ("received " << nEvents << "events");
+
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
       }

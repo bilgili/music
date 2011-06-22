@@ -63,6 +63,7 @@ namespace MUSIC {
     
     void nextCommunication ();
   public:
+    virtual ~Synchronizer(){};
     void setLocalTime (Clock* lt);
     virtual void setSenderTickInterval (ClockState ti);
     virtual void setReceiverTickInterval (ClockState ti);
@@ -74,6 +75,7 @@ namespace MUSIC {
     virtual void initialize ();
     virtual int initialBufferedTicks () { return 0; };
     bool communicate ();
+    virtual void tick ()=0;
   };
 
 

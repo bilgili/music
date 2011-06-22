@@ -33,9 +33,8 @@ namespace MUSIC {
    *
    * It is documented in section 4.4 of the MUSIC manual
    */
-  
+
   class Runtime {
-	  static std::string max_size_file;
   public:
     Runtime (Setup* s, double h);
     ~Runtime ();
@@ -51,32 +50,39 @@ namespace MUSIC {
   private:
     Clock localTime;
     MPI::Intracomm comm;
+    std::vector<Port*> *ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
     std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
     static bool isInstantiated_;
 
-
     typedef std::vector<Connection*> Connections;
     typedef std::vector<OutputSubconnector*> OutputSubconnectors;
     typedef std::vector<InputSubconnector*> InputSubconnectors;
+    typedef std::vector<CollectiveSubconnector*> CollectiveSubconnectors;
+    typedef std::vector<Subconnector*> Subconnectors;
     
     void takeTickingPorts (Setup* s);
     void connectToPeers (Connections* connections);
     void specializeConnectors (Connections* connections);
-    void spatialNegotiation (OutputSubconnectors&, InputSubconnectors&);
+    void spatialNegotiation (OutputSubconnectors&, InputSubconnectors&, CollectiveSubconnectors&);
     void buildSchedule (int localRank,
 			OutputSubconnectors&,
-			InputSubconnectors&);
+			InputSubconnectors&,
+			CollectiveSubconnectors& );
     void takePostCommunicators ();
     void buildTables (Setup* s);
     void temporalNegotiation (Setup* s, Connections* connections);
     void initialize ();
-    /*
-     * remedius
-     */
-    int readMaxSize() const;
+
+    template<class Target>
+    class Subconnector2Target {
+    public:
+    	Target* operator ()( Subconnector* value ) const
+    	{  return dynamic_cast<Target*>(value);  }
+    };
+
   };
 
 }

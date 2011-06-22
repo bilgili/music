@@ -88,6 +88,7 @@ namespace MUSIC {
 	if (leader == localRank)
 	  localNode = i;
       }
+
     groupWorld = MPI::COMM_WORLD.Get_group ();
     applicationLeaders = groupWorld.Incl (nApplications, ranks);
     delete[] ranks;
@@ -187,7 +188,6 @@ namespace MUSIC {
 				       setup_->timebase ());
 	negotiationData->connection[i].accLatency = 0;
       }
-
     for (int i = 0; i < nIn; ++i)
       {
 	int remote = inputConnections[i].connector ()->remoteLeader ();
@@ -480,7 +480,7 @@ namespace MUSIC {
   {
     separateConnections (connections);
     //MUSIC_LOGR (printconns ("NOut: ", outputConnections));
-    //MUSIC_LOGR (printconns ("NIn: ", inputConnections));
+   // MUSIC_LOGR (printconns ("NIn: ", inputConnections));
     createNegotiationCommunicator ();
     if (isLeader ())
       {
@@ -492,8 +492,9 @@ namespace MUSIC {
 	if (hasPeers ())
 	  broadcastNegotiationData ();
       }
-    else
-      receiveNegotiationData ();
+    else{
+    	receiveNegotiationData ();
+    }
     distributeNegotiationData (localTime);
   }
 

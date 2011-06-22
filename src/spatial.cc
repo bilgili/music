@@ -502,8 +502,24 @@ namespace MUSIC {
     for (unsigned int i = localRank + 1; i < nProcesses; ++i)
       receive (comm, i, in[i]);
   }
-  
-  
+  IndexMap*
+  SpatialNegotiator::negotiateSimple(MPI::Intracomm c)
+  {
+	  comm = c;
+	  nProcesses = comm.Get_size ();
+	  localRank = comm.Get_rank ();
+	  negotiateWidth();
+/*	  NegotiationIntervals intvls;
+	  for (IndexMap::iterator i = indices->begin(); i != indices->end(); ++i)
+	  {
+		  intvls.push_back(SpatialNegotiationData(*i,-1));
+	  }
+	  std::vector<NegotiationIntervals> data;
+	  data.push_back(intvls);*/
+
+
+	  return indices;
+  }
   SpatialOutputNegotiator::SpatialOutputNegotiator (IndexMap* indices,
 						    Index::Type type)
       : SpatialNegotiator (indices, type)

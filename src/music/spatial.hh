@@ -155,6 +155,7 @@ namespace MUSIC {
 					   MPI::Intercomm intercomm,
 					   int remoteNProc,
 					   Connector* connector) = 0;
+    virtual IndexMap* negotiateSimple(MPI::Intracomm c);
   };
 
 

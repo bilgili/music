@@ -60,10 +60,11 @@ string imaptype = "linear";
 string indextype = "global";
 string prefix;
 string suffix = ".dat";
-
+#include "music/debug.hh"
 void
 getargs (int rank, int argc, char* argv[])
 {
+
   opterr = 0; // handle errors ourselves
   while (1)
     {
@@ -89,6 +90,7 @@ getargs (int rank, int argc, char* argv[])
 
       switch (c)
 	{
+      MUSIC_LOG0("option:"+c);
 	case 't':
 	  timestep = atof (optarg); // NOTE: could do error checking
 	  continue;
@@ -130,20 +132,14 @@ getargs (int rank, int argc, char* argv[])
     suffix = argv[optind + 2];
 }
 
-#define MUSIC_DEBUG
-#include "../src/music/debug.hh"
-
 int
 main (int argc, char *argv[])
 {
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
-  
   MPI::Intracomm comm = setup->communicator ();
   int nProcesses = comm.Get_size ();
   int rank = comm.Get_rank ();
-  
   getargs (rank, argc, argv);
-
   MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
   if (!out->isConnected ())
     {
@@ -172,7 +168,6 @@ main (int argc, char *argv[])
       else
 	firstId += rest;
       MUSIC::LinearIndex indices (firstId, nLocalUnits);
-
       if (maxbuffered > 0)
 	out->map (&indices, type, maxbuffered);
       else
@@ -217,8 +212,10 @@ main (int argc, char *argv[])
       double nextTime = time + timestep;
       while (moreSpikes && t < nextTime)
 	{
+
 	  out->insertEvent (t, MUSIC::GlobalIndex (id));
 	  in >> t >> id;
+
 	  moreSpikes = !in.eof ();
 	}
       // Make data available for other programs
@@ -233,4 +230,3 @@ main (int argc, char *argv[])
 
   return 0;
 }
-

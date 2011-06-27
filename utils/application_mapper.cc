@@ -20,6 +20,9 @@
 
 #include "music/error.hh"
 #include "music/debug.hh"
+#include <iostream>
+#include <stdlib.h>
+#include <algorithm>
 
 #include "application_mapper.hh"
 
@@ -31,12 +34,16 @@ namespace MUSIC {
   ApplicationMapper::ApplicationMapper (std::istream* configFile, int rank)
   {
     cfile = new rude::Config ();
-    cfile->load (*configFile);
-
-    mapSections (cfile);
-    mapApplications ();
-    selectApplication (rank);
-    mapConnectivity (selectedName);
+    if(cfile->load (*configFile))
+    {
+    	mapSections (cfile);
+    	mapApplications ();
+    	selectApplication (rank);
+    	mapConnectivity (selectedName);
+    }
+    else{
+    	error0("Configuration file load: " + std::string(cfile->getError()));
+    }
   }
 
 
@@ -127,6 +134,8 @@ namespace MUSIC {
 	    std::string receiverApp (cfile->getDestAppAt (c));
 	    std::string receiverPort (cfile->getDestObjAt (c));
 	    std::string width (cfile->getWidthAt (c));
+	    std::string commType(cfile->getCommTypeAt(c));
+	    std::string procMethod(cfile->getProcMethodAt(c));
 
 	    if (senderApp == "")
 	      {
@@ -144,6 +153,15 @@ namespace MUSIC {
 	      }
 	    if (senderApp == receiverApp)
 	      error ("port " + senderPort + " of application " + senderApp + " connected to the same application");
+
+	    std::transform(commType.begin(), commType.end(), commType.begin(), ::tolower);
+	    std::transform(procMethod.begin(), procMethod.end(), procMethod.begin(), ::tolower);
+
+	    if(commType.length() > 0 && commType.compare("collective") && commType.compare("pairwise"))
+	    	error ("communication type " + commType + " is not supported");
+
+	    if(procMethod.length() > 0 && procMethod.compare("table") && procMethod.compare("tree"))
+	    	    	error ("processing method " + procMethod + " is not supported");
 
 	    // Generate a unique "port code" for each receiver port
 	    // name.  This will later be used during temporal
@@ -188,7 +206,22 @@ namespace MUSIC {
 		if (!(ws >> w))
 		  error ("could not interpret width");
 	      }
+	    int iCommType;
+	    if(commType.length()==0 || !commType.compare("pairwise")){
+	    	iCommType = ConnectorInfo::PAIRWISE;
+	    }
 
+	    else{
+	    	iCommType = ConnectorInfo::COLLECTIVE;
+	    }
+	    int iProcMethod;
+	    if(procMethod.length()==0 || !procMethod.compare("tree")){
+	    	iProcMethod = ConnectorInfo::TREE;
+	    }
+
+	    else{
+	    	iProcMethod = ConnectorInfo::TABLE;
+	    }
 	    connectivityMap_->add (dir == ConnectivityInfo::OUTPUT
 				   ? senderPort
 				   : receiverPort,
@@ -198,9 +231,12 @@ namespace MUSIC {
 				   receiverPort,
 				   portCode,
 				   remoteInfo->leader (),
-				   remoteInfo->nProc ());
+				   remoteInfo->nProc (),
+				   iCommType,
+				   iProcMethod);
 	  }
       }
+
   }
 
 

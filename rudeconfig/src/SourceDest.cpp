@@ -30,9 +30,12 @@ SourceDest::SourceDest()
 	d_destObj = "";
 	d_width = "";
 	d_comment = "";
+	d_commType = "";
+	d_procMethod = "";
 }
 
-SourceDest::SourceDest(const char *srcApp, const char *srcObj, const char *destApp,  const char *destObj, const char *width, const char *comment)
+SourceDest::SourceDest(const char *srcApp, const char *srcObj, const char *destApp,  const char *destObj,
+		const char *width,const char* commType, const char *procMethod, const char *comment)
 {
 	d_srcApp  = srcApp  ? srcApp  : "";
 	d_srcObj  = srcObj  ? srcObj  : "";
@@ -40,6 +43,8 @@ SourceDest::SourceDest(const char *srcApp, const char *srcObj, const char *destA
 	d_destObj = destObj ? destObj : "";
 	d_width   = width   ? width   : "";
 	d_comment = comment ? comment : "";
+	d_commType = commType ? commType : "";
+	d_procMethod = procMethod ? procMethod : "";
 }
 
 void SourceDest::acceptWriter(AbstractWriter& writer) const
@@ -47,7 +52,9 @@ void SourceDest::acceptWriter(AbstractWriter& writer) const
   std::cout << "writer.visitSourceDest not implemented yet!";
   std::cout << "\nsrcApp: \"" << d_srcApp << "\", srcObj: \"" << d_srcObj << "\"";
   std::cout << "\ndestApp: \"" << d_srcApp << "\", destObj: \"" << d_srcObj << "\"";
-  std::cout << "\nwidth; " << d_width;
+  std::cout << "\nwidth: " << d_width;
+  std::cout << "\ncommType: " << d_commType;
+  std::cout << "\nprocMethod: " << d_procMethod;
   std::cout << "\ncomment: \"" << d_comment << "\"\n";
   //writer.visitKeyValue(*this);
 }
@@ -58,7 +65,9 @@ std::string SourceDest::toString()
 
   return   "\nsrcApp: \"" + d_srcApp + "\", srcObj: \"" + d_srcObj + "\"" 
            + "\ndestApp: \"" + d_destApp + "\", destObj: \"" + d_destObj + "\""
-           + "\nwidth; " + d_width
+           + "\nwidth: " + d_width
+           + "\ncommType: " + d_commType
+           + "\nprocMethod: " + d_procMethod
            + "\ncomment: \"" + d_comment + "\"\n";
 }
 
@@ -87,7 +96,14 @@ const char *SourceDest::getWidth() const
 {
 	return d_width.c_str();
 }
-
+const char *SourceDest::getCommType() const
+{
+	return d_commType.c_str();
+}
+const char *SourceDest::getProcMethod() const
+{
+	return d_procMethod.c_str();
+}
 const char *SourceDest::getComment() const
 {
 	return d_comment.c_str();
@@ -117,7 +133,14 @@ void SourceDest::setWidth(const char *width)
 {
 	d_width = width ? width : "";
 }
-
+void SourceDest::setCommType(const char *commType)
+{
+	d_commType = commType ? commType : "";
+}
+void SourceDest::setProcMethod(const char *procMethod)
+{
+	d_procMethod = procMethod ? procMethod : "";
+}
 void SourceDest::setComment(const char *comment)
 {
 	d_comment = comment ? comment : "";

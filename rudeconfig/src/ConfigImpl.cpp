@@ -537,8 +537,14 @@ const char *ConfigImpl::getWidthAt(int index) const
 {
   return d_file->getWidthAt(index);
 }
-
-
+const char *ConfigImpl::getCommTypeAt(int index) const
+{
+	return d_file->getCommTypeAt(index);
+}
+const char *ConfigImpl::getProcMethodAt(int index) const
+{
+	return d_file->getProcMethodAt(index);
+}
 
 int ConfigImpl::getNumDataMembers() const
 {

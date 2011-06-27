@@ -45,12 +45,15 @@ class SourceDest: public DataLine{
 	std::string d_destObj;
 	std::string d_width;
 	std::string d_comment;
+	std::string d_commType;
+	std::string d_procMethod;
 
 public:
 
 	// default constructor
 	SourceDest();
-	SourceDest(const char *srcApp, const char *srcObj, const char *destApp,  const char *destObj, const char *width, const char *comment);
+	SourceDest(const char *srcApp, const char *srcObj, const char *destApp,  const char *destObj,
+			const char *width, const char* commType, const char *procMethod, const char *comment);
 	
 	void acceptWriter(AbstractWriter& writer) const;
         std::string toString();
@@ -61,6 +64,8 @@ public:
 	const char *getDestApp() const;
 	const char *getDestObj() const;
 	const char *getWidth() const;
+	const char *getCommType() const;
+	const char *getProcMethod() const;
 
 	//= 
 	// Returns the comment associated with the data member
@@ -79,6 +84,8 @@ public:
 	void setDestApp(const char *name);
 	void setDestObj(const char *name);
 	void setWidth(const char *name);
+	void setCommType(const char *commType);
+	void setProcMethod(const char *procMethod);
 
 	//= 
 	// Sets the comment associated with the data member

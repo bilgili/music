@@ -48,7 +48,7 @@ namespace rude{
 namespace config{
 
 enum SectionState{ STARTSECTION, SECTIONID, ESCAPEID, ENDSECTIONID, SECTIONCOMMENT, FOUNDIDONLY, FOUNDIDCOMMENT, SECTIONERROR, ENDSECTION };
-enum KeyValueState{ KEY, KEYESCAPE, STARTVALUE, COMMENT, FINDCOMMENT, KVERROR, ENDKV, VALUE, QUOTEVALUE, NONQUOTEVALUE, QUOTEESCAPE, NONQUOTEESCAPE, ENDKEYVALUE, LEFTARROW, RIGHTARROW, GETSOURCE, GETDEST, GETWIDTH, SDCOMMENT, ENDSOURCEDEST};
+enum KeyValueState{ KEY, KEYESCAPE, STARTVALUE, COMMENT, FINDCOMMENT, KVERROR, ENDKV, VALUE, QUOTEVALUE, NONQUOTEVALUE, QUOTEESCAPE, NONQUOTEESCAPE, ENDKEYVALUE, LEFTARROW, RIGHTARROW, GETSOURCE, GETDEST, GETWIDTH, GETCOMMTYPE, GETPROCMETHOD, SDCOMMENT, ENDSOURCEDEST};
 
 void ParserJuly2004::stripTrailing(std::string& buffer)
 {
@@ -150,12 +150,12 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							c = infile.peek();
 							if(c == EOF)
 							{
-								setError("102", "End of stream found before section ID");
+								setError("102", "End of stream found before section ID.");
 								sectionState = SECTIONERROR;
 							}
 							else if(isEOL(c))
 							{
-								setError("101", "End of line found before section ID");
+								setError("101", "End of line found before section ID.");
 								sectionState = SECTIONERROR;   
 							}
 							else if(c == ' ' || c == '\t')
@@ -185,12 +185,12 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							c = infile.peek();
 							if(c == EOF)
 							{
-								setError("104", "End of stream found before end-of-section marker");
+								setError("104", "End of stream found before end-of-section marker.");
 								sectionState = SECTIONERROR;
 							}
 							else if(isEOL(c))
 							{
-								setError("103", "End of line found before end-of-section marker");
+								setError("103", "End of line found before end-of-section marker.");
 								sectionState = SECTIONERROR;	     
 							}
 							else if(c == '\\')
@@ -226,12 +226,12 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							c = infile.peek();
 							if(c == EOF)
 							{
-								setError("107", "End of stream found after un-escaped backslash");
+								setError("107", "End of stream found after un-escaped backslash.");
 								sectionState = SECTIONERROR;
 							}
 							else if(isEOL(c))
 							{
-								setError("108", "Escaped new-line is not allowed in section ID or key");
+								setError("108", "Escaped new-line is not allowed in section ID or key.");
 								sectionState = SECTIONERROR;
 							}
 							else
@@ -266,7 +266,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							}
 							else
 							{
-								setError("105", "Illegal character found after end-of-section marker");
+								setError("105", "Illegal character found after end-of-section marker.");
 								sectionState = SECTIONERROR;
 							}
 							break;
@@ -353,6 +353,8 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                         std::string destApp = "";
                         std::string destObj = "";
                         std::string width = "";
+                        std::string commType = "";
+                        std::string procMethod = "";
 
 			while (kvState != ENDKEYVALUE)
 			{						
@@ -483,12 +485,12 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							int c = infile.peek();
 							if(c == EOF)
 							{
-								setError("107", "End of stream found after un-escaped backslash");
+								setError("107", "End of stream found after un-escaped backslash.");
 								kvState = KVERROR;
 							}
 							else if(isEOL(c))
 							{
-								setError("108", "Escaped new-line is not allowed in key");
+								setError("108", "Escaped new-line is not allowed in key.");
 								kvState = KVERROR;
 							}
 							else
@@ -617,7 +619,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							int c = infile.peek();
 							if(c == EOF)
 							{
-								setError("106", "End of stream found before final quote (\") in value");
+								setError("106", "End of stream found before final quote (\") in value.");
 								kvState = KVERROR;
 							}
 							else if(c == '"')
@@ -653,7 +655,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							int c = infile.peek();
 							if(c == EOF)
 							{
-								setError("107", "End of stream found after un-escaped backslash");
+								setError("107", "End of stream found after un-escaped backslash.");
 								kvState = KVERROR;
 							}
 							else
@@ -712,7 +714,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 							int c = infile.peek();
 							if(c == EOF)
 							{
-								setError("107", "End of stream found after un-escaped backslash");
+								setError("107", "End of stream found after un-escaped backslash.");
 								kvState = KVERROR;
 							}
 							else
@@ -1012,12 +1014,19 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 if('0' <= c && c <= '9' && width.length() > 0)
                                                   {
-                                                    setError("902", "Two numbers detected in the width declaration");
+                                                    setError("902", "Two numbers detected in the width declaration.");
                                                     kvState = KVERROR;
                                                   }
 
                                                 // LOOP
                                               }
+                                            else if(c == ',')
+                                            {
+                                            	stripTrailing(width);
+                                            	infile.get(); // Throw away ,
+                                            	kvState = GETCOMMTYPE;
+
+                                            }
                                             else if(c == ']')
                                               {
                                                 stripTrailing(width);
@@ -1031,11 +1040,104 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                                 width += infile.get();
                                               }
                                             else {
-                                              setError("903", "Non integer number detected");
+                                              setError("903", "Non integer number detected.");
                                               kvState = KVERROR;
                                             }
                                             break;
                                           }
+                                        case GETCOMMTYPE:
+                                        {
+                                            int c = infile.peek();
+
+                                            if(c == EOF || isEOL(c))
+                                              {
+                                                setError("901", "Partial communication type is found. No terminating ']'.");
+                                                kvState = KVERROR;
+                                              }
+                                            else if(d_commentchar != 0 && c == d_commentchar)
+                                              {
+                                                // discard '#'
+                                                //
+                                                infile.get();
+
+                                                kvState = SDCOMMENT;
+                                              }
+                                            else if(c == ' ' || c == '\t')
+                                              {
+                                                // discard whitespace
+                                                //
+                                                infile.get();
+
+                                                // LOOP
+                                              }
+                                            else if(c == ']')
+                                              {
+                                                stripTrailing(commType);
+                                                infile.get(); // Throw away ]
+                                                kvState = ENDSOURCEDEST;
+
+                                                // Ignoring any comments that might be here...
+                                              }
+                                            else if(c == ',')
+                                            {
+                                            	stripTrailing(commType);
+                                            	infile.get(); // Throw away ,
+                                            	kvState = GETPROCMETHOD;
+                                            }
+                                            else
+                                              {
+                                                commType += infile.get();
+                                              }
+
+                                            break;
+
+                                        }
+                                        case GETPROCMETHOD:
+                                        {
+                                        	int c = infile.peek();
+
+                                        	if(c == EOF || isEOL(c))
+                                        	{
+                                        		setError("901", "Partial processing mathod is found. No terminating ']'.");
+                                        		kvState = KVERROR;
+                                        	}
+                                        	else if(d_commentchar != 0 && c == d_commentchar)
+                                        	{
+                                        		// discard '#'
+                                        		//
+                                        		infile.get();
+
+                                        		kvState = SDCOMMENT;
+                                        	}
+                                        	else if(c == ' ' || c == '\t')
+                                        	{
+                                        		// discard whitespace
+                                        		//
+                                        		infile.get();
+
+                                        		// LOOP
+                                        	}
+                                        	else if(c == ']')
+                                        	{
+                                        		stripTrailing(commType);
+                                        		infile.get(); // Throw away ]
+                                        		kvState = ENDSOURCEDEST;
+
+                                        		// Ignoring any comments that might be here...
+                                        	}
+                                        	else if(c != ',')
+                                        	{
+                                        		procMethod += infile.get();
+                                        	}
+                                        	else
+                                        	{
+                                        		setError("904", "Unexpected symbol.");
+                                        		kvState = KVERROR;
+                                        	}
+
+                                        	break;
+
+                                        }
                                         case SDCOMMENT:
                                           {
                                             //std::cout << "SDCOMMENT\n";
@@ -1068,8 +1170,10 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                             stripTrailing(destApp);
                                             stripTrailing(destObj);
                                             stripTrailing(width);
+                                            stripTrailing(commType);
+                                            stripTrailing(procMethod);
 
-                                            organiser.foundSourceDest(srcApp.c_str(), srcObj.c_str(), destApp.c_str(), destObj.c_str(), width.c_str(), comment.c_str());
+                                            organiser.foundSourceDest(srcApp.c_str(), srcObj.c_str(), destApp.c_str(), destObj.c_str(), width.c_str(), commType.c_str(), procMethod.c_str(), comment.c_str());
                                             
                                             kvState = ENDKEYVALUE;
                                             break;

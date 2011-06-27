@@ -235,7 +235,14 @@ const char *Config::getWidthAt(int index) const
 {
   return d_implementation->getWidthAt(index);
 }
-
+const char *Config::getCommTypeAt(int index) const
+{
+	return d_implementation->getCommTypeAt(index);
+}
+const char *Config::getProcMethodAt(int index) const
+{
+	return d_implementation->getProcMethodAt(index);
+}
 
 
 int Config::getNumDataMembers() const

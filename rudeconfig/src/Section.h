@@ -163,6 +163,8 @@ namespace rude{
       const char *getSrcObjAt(int index) const;
 
       const char *getWidthAt(int index) const;
+      const char *getCommTypeAt(int index) const;
+      const char *getProcMethodAt(int index) const;
 
 
       //=
@@ -220,7 +222,8 @@ namespace rude{
       void setValue(const char *name, const char *value, const char *comment);
 
 
-      void addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment);
+      void addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
+    		  const char *width, const char *commType, const char *procMethod, const char *comment);
 
 
       //=

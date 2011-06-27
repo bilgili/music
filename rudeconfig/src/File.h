@@ -72,6 +72,8 @@ public:
         const char *getSrcAppAt(int index) const;
         const char *getDestAppAt(int index) const;
         const char *getWidthAt(int index) const;
+        const char *getCommTypeAt(int index) const;
+        const char *getProcMethodAt(int index) const;
 
 	const char *getDataNameAt(int index) const;
 	const char *getDataValueAt(int index) const;

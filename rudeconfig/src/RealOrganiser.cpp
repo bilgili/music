@@ -65,7 +65,8 @@ void RealOrganiser::foundData(const char *key, const char *value, const char *co
 	d_section->setValue(key, value, comment);
 }
 
-void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
+void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
+		const char *width, const char *commType, const char *procMethod, const char *comment)
 {
 
   /*
@@ -74,11 +75,13 @@ void RealOrganiser::foundSourceDest(const char *srcApp, const char *srcObj, cons
             << " destApp " << destApp 
             << " destObj " << destObj
             << " width " << width 
+            << " commType " << commType
+            << " procMethod " << procMethod
             << " comment " << comment << "\n";
 
   */
 
-  d_section->addSourceDest(srcApp,srcObj,destApp,destObj,width,comment);
+  d_section->addSourceDest(srcApp,srcObj,destApp,destObj,width,commType, procMethod, comment);
 }
 
 }} // end namespaces

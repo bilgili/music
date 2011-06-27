@@ -199,7 +199,25 @@ namespace rude{
 	}
       return "";
     }
+    const char *Section::getCommTypeAt(int index) const
+    {
+    	SourceDest *sd = d_sd_vector[index];
+    	if(sd)
+    	{
+    		return sd->getCommType();
+    	}
+    	return "";
 
+    }
+    const char *Section::getProcMethodAt(int index) const
+    {
+    	SourceDest *sd = d_sd_vector[index];
+    	if(sd)
+    	{
+    		return sd->getProcMethod();
+    	}
+    	return "";
+    }
     const char *Section::getDataValueAt(int index) const
     {
       KeyValue *kv = d_kv_vector[index];
@@ -327,10 +345,11 @@ namespace rude{
 
     // CREATES
     //
-    void Section::addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment)
+    void Section::addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
+    		const char *width, const char *commType, const char *procMethod, const char *comment)
     {
 	
-      SourceDest *newsd = new SourceDest(srcApp, srcObj, destApp, destObj, width, comment);
+      SourceDest *newsd = new SourceDest(srcApp, srcObj, destApp, destObj, width, commType, procMethod, comment);
 
       d_allDataVector.push_back(newsd);
       d_sd_vector.push_back(newsd);

@@ -197,7 +197,23 @@ const char *File::getWidthAt(int index) const
     }
   return 0;
 }
+const char *File::getCommTypeAt(int index) const
+{
+	if(d_currentSection)
+	{
+		return d_currentSection->getCommTypeAt(index);
+	}
+	return 0;
 
+}
+const char *File::getProcMethodAt(int index) const
+{
+	if(d_currentSection)
+	{
+		return d_currentSection->getProcMethodAt(index);
+	}
+	return 0;
+}
 bool File::exists(const char *name) const
 {
 	if(d_currentSection)

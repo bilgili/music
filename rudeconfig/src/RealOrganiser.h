@@ -47,7 +47,8 @@ public:
 	virtual void foundComment(const char *comment);
 	virtual void foundWhiteSpace(const char *whitespace);
 	virtual void foundData(const char *key, const char *value, const char *comment);
-	virtual void foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj, const char *width, const char *comment);
+	virtual void foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
+			const char *width, const char *commType, const char *procMethod, const char *comment);
 	
 
 };

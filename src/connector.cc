@@ -90,10 +90,10 @@ namespace MUSIC {
 				  << i->local () << ") -> " << i->rank ());
 		  addRoutingInterval (i->interval (), subconn);
 	  }*/
+	  rsubconn.push_back (subconn);
 	  IndexMap *indices = spatialNegotiator_->negotiateSimple(comm);
 	  for (IndexMap::iterator i = indices->begin(); i != indices->end(); ++i)
 	  	  {
-		  		  rsubconn.push_back (subconn);
 		  		  addRoutingInterval (*i, subconn);
 	  	  }
 	  return COLLECTIVE_SUBCONNECTORS;

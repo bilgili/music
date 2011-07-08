@@ -22,7 +22,7 @@
 #include <mpi.h>
 
 #include <algorithm>
-
+#include <iostream>
 #include "music/runtime.hh"
 #include "music/temporal.hh"
 #include "music/error.hh"
@@ -198,12 +198,13 @@ namespace MUSIC {
   {
     // Let each connector pair setup their inter-communicators
     // and create all required subconnectors.
-	Subconnectors subconnectors;
+
     int type;
     for (std::vector<Connector*>::iterator c = connectors.begin ();
 	 c != connectors.end ();
 	 ++c)
       {
+    	Subconnectors subconnectors;
 	// negotiate and fill up vectors passed as arguments
     	type = (*c)->spatialNegotiation (subconnectors);
 
@@ -404,6 +405,7 @@ namespace MUSIC {
 	     ++s)
 	  (*s)->maybeCommunicate ();
       }
+
 
     // ContInputConnectors write data to application here
     for (std::vector<PostCommunicationConnector*>::iterator c

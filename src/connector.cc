@@ -101,9 +101,10 @@ namespace MUSIC {
   Subconnector*
   CollectiveConnector::makeSubconnector(int remoteRank)
   {
-	  if(subconnector == NULL)
+	  if(subconnector == NULL){
 		  subconnector = new CollectiveSubconnector(synchronizer(),
-				  MPI::COMM_WORLD,router_);
+				  intercomm.Merge(high),router_);
+	  }
 	  return subconnector;
   }
   void

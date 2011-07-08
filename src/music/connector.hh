@@ -249,6 +249,7 @@ namespace MUSIC {
   	Subconnector *subconnector;
   	EventRouter *router_;
   	EventRouter *empty_router;
+  	bool high;
   public:
   	CollectiveConnector(ConnectorInfo connInfo,
   	 			  SpatialNegotiator* spatialNegotiator,
@@ -257,14 +258,14 @@ namespace MUSIC {
   	 			  EventHandlerPtr handleEvent,
   	 			  EventRouter *router):
   	 			  Connector(connInfo,spatialNegotiator,comm),
-  	 			  subconnector(0),router_(router),empty_router(NULL)
+  	 			  subconnector(0),router_(router),empty_router(NULL),high(true)
   	{ conn = new EventInputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap,handleEvent);};
   	CollectiveConnector(ConnectorInfo connInfo,
   	  	 			  SpatialNegotiator* spatialNegotiator,
   	  	 			  MPI::Intracomm comm,
   	  	 			  EventRoutingMap<FIBO *>* routingMap):
   	  	 		      Connector(connInfo,spatialNegotiator,comm),
-  	  	 			  subconnector(0)
+  	  	 			  subconnector(0),high(false)
   	{ conn = new EventOutputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap);
   	empty_router = new EventRouter();
   	router_ = empty_router;};
@@ -273,8 +274,8 @@ namespace MUSIC {
   	Synchronizer* synchronizer () { return conn->synchronizer(); }
   	void initialize (){conn->initialize();}
   	void tick(bool& requestCommunication){conn->tick(requestCommunication);}
-  	void createIntercomm(){}
-  	void freeIntercomm (){}
+  //	void createIntercomm(){}
+  //	void freeIntercomm (){}
   private:
   	Subconnector* makeSubconnector (int remoteRank);
   	void addRoutingInterval(IndexInterval i, Subconnector* subconn);

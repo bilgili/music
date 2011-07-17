@@ -228,13 +228,18 @@ namespace MUSIC {
 
     // Now, build up the schedule to be used later during
     // communication of data.
+
+    // Receive from ranks < localRank
     for (std::vector<InputSubconnector*>::iterator c = inputSubconnectors.begin ();
 	 (c != inputSubconnectors.end ()
 	  && (*c)->remoteWorldRank () < localRank);
 	 ++c)
       schedule.push_back (*c);
+
+    // Send to ranks >= localRank
     {
       std::vector<OutputSubconnector*>::iterator c = outputSubconnectors.begin ();
+      // Skip ranks < localRank
       for (;
 	   (c != outputSubconnectors.end ()
 	    && (*c)->remoteWorldRank () < localRank);
@@ -243,13 +248,19 @@ namespace MUSIC {
       for (; c != outputSubconnectors.end (); ++c)
 	schedule.push_back (*c);
     }
+
+    // Send to ranks < localRank
     for (std::vector<OutputSubconnector*>::iterator c = outputSubconnectors.begin ();
 	 (c != outputSubconnectors.end ()
 	  && (*c)->remoteWorldRank () < localRank);
 	 ++c)
       schedule.push_back (*c);
+
+    // Receive from ranks >= localRank
     {
       std::vector<InputSubconnector*>::iterator c = inputSubconnectors.begin ();
+
+      // Skip ranks < localRank
       for (;
 	   (c != inputSubconnectors.end ()
 	    && (*c)->remoteWorldRank () < localRank);

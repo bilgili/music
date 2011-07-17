@@ -547,6 +547,7 @@ namespace MUSIC {
       receive (intercomm, i, remote[i]);
     
     results.resize (remoteNProc);
+    // core operation of virtual connector:
     intersectToBuffers (local, remote, results);
 
     // Send to remote connector

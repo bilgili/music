@@ -203,10 +203,10 @@ namespace MUSIC {
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (type_);
-	buffer_.trimBlock (type_.Get_size () * size);
+	size = status.Get_count (MPI::BYTE);
+	buffer_.trimBlock (size);
       }
-    while (type_.Get_size () * size == CONT_BUFFER_MAX);
+    while (size == CONT_BUFFER_MAX);
   }
 
 

@@ -111,7 +111,7 @@ namespace MUSIC {
     char* buffer = static_cast <char*> (data);
     while (size >= CONT_BUFFER_MAX)
       {
-	MUSIC_LOGR ("Sending to rank " << remoteRank_);
+	MUSIC_LOGR ("Sending " << CONT_BUFFER_MAX << " bytes to rank " << remoteRank_);
 	intercomm.Send (buffer,
 			CONT_BUFFER_MAX / type_.Get_size (),
 			type_,
@@ -120,7 +120,7 @@ namespace MUSIC {
 	buffer += CONT_BUFFER_MAX;
 	size -= CONT_BUFFER_MAX;
       }
-    MUSIC_LOGR ("Last send to rank " << remoteRank_);
+    MUSIC_LOGR ("Last send " << size << " bytes to rank " << remoteRank_);
     intercomm.Send (buffer,
 		    size / type_.Get_size (),
 		    type_,
@@ -206,7 +206,7 @@ namespace MUSIC {
 	size = status.Get_count (type_);
 	buffer_.trimBlock (type_.Get_size () * size);
       }
-    while (size == CONT_BUFFER_MAX);
+    while (type_.Get_size () * size == CONT_BUFFER_MAX);
   }
 
 

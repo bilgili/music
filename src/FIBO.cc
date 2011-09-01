@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//#define MUSIC_DEBUG 1
+#include "music/debug.hh"
+
 #include <cstring>
 
 #include "music/FIBO.hh"
@@ -32,6 +35,7 @@ namespace MUSIC {
   void
   FIBO::configure (int es)
   {
+    MUSIC_LOGR ("FIBO::configure (" << es << ")");
     elementSize = es;
     size = elementSize * nInitial;
     buffer.resize (size);

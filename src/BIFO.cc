@@ -30,6 +30,7 @@ namespace MUSIC {
   void
   BIFO::configure (int elementSize, int maxBlockSize)
   {
+    MUSIC_LOGR ("BIFO::configure (" << elementSize << ", " << maxBlockSize << ")");
     elementSize_ = elementSize;
     maxBlockSize_ = maxBlockSize;
     size = maxBlockSize_;
@@ -131,6 +132,7 @@ namespace MUSIC {
 	    top += delta;
 	  }
       }
+    MUSIC_LOGR ("BIFO::insertBlock () -> beg = " << beginning << ", end = " << end << ", cur = " << current << ", top = " << top << ", size = " << size)
     return static_cast<void*> (&buffer[beginning]);
   }
 
@@ -153,6 +155,7 @@ namespace MUSIC {
 	if (current <= end)
 	  top = end;
       }
+    MUSIC_LOGR ("BIFO::trimBlock () -> beg = " << beginning << ", end = " << end << ", cur = " << current << ", top = " << top << ", size = " << size)
   }
 
 
@@ -177,6 +180,7 @@ namespace MUSIC {
     // first version of the report is not clear about this.
     void* memory = static_cast<void*> (&buffer[current]);
     current += elementSize_;
+    MUSIC_LOGR ("BIFO::next () -> beg = " << beginning << ", end = " << end << ", cur = " << current << ", top = " << top << ", size = " << size)
     return memory;
   }
 

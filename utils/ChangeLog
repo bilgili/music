@@ -1,3 +1,7 @@
+2011-11-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (music_LDADD): Changed libmpidep.a -> libmpidep.la.
+
 2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* application_mapper.cc, application_mapper.hh, music.cc: Added an

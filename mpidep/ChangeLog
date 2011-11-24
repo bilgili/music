@@ -1,3 +1,8 @@
+2011-11-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Build libmpidep as a LIBTOOL convenience library in
+	order to be able to use it from libmusic.
+
 2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* mpidep.cc (getRank): Support for Cray XE6.  (However, execvp in

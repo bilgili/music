@@ -45,9 +45,10 @@ libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la \
 libmusic_ladir = $(includedir)
 
 libmusic_c_la_SOURCES = \
-	music-c.cc music-c-c.c music-c.h
+	music-c.cc music-c-c.c music-c.h \
+	predict_rank-c.cc
 
-libmusic_c_la_HEADERS = music-c.h
+libmusic_c_la_HEADERS = music-c.h  music/predict_rank-c.h
 libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
 libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
 libmusic_c_la_LDFLAGS = \
@@ -74,7 +75,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/collector.hh music/distributor.hh \
 		       music/cont_data.hh music/event.hh \
 		       music/message.hh music/music-config.hh \
-		       music/predict_rank.hh \
+		       music/predict_rank.hh  music/predict_rank-c.h \
 		       music/communication.hh music/version.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

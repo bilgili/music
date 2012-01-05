@@ -48,6 +48,8 @@ namespace MUSIC {
     double time ();
     
   private:
+   bool first;
+    double total;
     Clock localTime;
     MPI::Intracomm comm;
     std::vector<Port*> *ports;

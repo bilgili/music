@@ -33,6 +33,8 @@ namespace MUSIC {
 
   Runtime::Runtime (Setup* s, double h)
   {
+    total = 0.0;
+    first = true;
     checkInstantiatedOnce (isInstantiated_, "Runtime");
     
     OutputSubconnectors outputSubconnectors;
@@ -96,11 +98,11 @@ namespace MUSIC {
       delete *connector;
 
     //delete ports
-     for (std::vector<Port *>::iterator port = ports->begin ();
+/*     for (std::vector<Port *>::iterator port = ports->begin ();
  	 port != ports->end ();
  	 ++port){
        delete *port;
-     }
+     }*/
     delete ports;
     isInstantiated_ = false;
   }
@@ -373,7 +375,9 @@ namespace MUSIC {
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
-    
+    int r = MPI::COMM_WORLD.Get_rank ();
+    if(r == 15 || r == 47)
+    std::cerr << "t:" << r <<"::" <<total<<std::endl;
     MPI::Finalize ();
   }
 
@@ -381,6 +385,7 @@ namespace MUSIC {
   void
   Runtime::tick ()
   {
+    
     // Update local time
     localTime.tick ();
     
@@ -399,21 +404,26 @@ namespace MUSIC {
     // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
       {
+	double st, et;
+       st = MPI_Wtime();
 	// Loop through the schedule of subconnectors
 	for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	     s != schedule.end ();
 	     ++s)
 	  (*s)->maybeCommunicate ();
+       et = MPI_Wtime();
+       if(!first)
+       total+=(et-st);
       }
 
-
+     first = false;
     // ContInputConnectors write data to application here
     for (std::vector<PostCommunicationConnector*>::iterator c
 	   = postCommunication.begin ();
 	 c != postCommunication.end ();
 	 ++c)
       (*c)->postCommunication ();
-	
+ //   MPI_Barrier(comm);	
   }
 
 

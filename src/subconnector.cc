@@ -23,6 +23,11 @@
 
 #include "music/subconnector.hh"
 
+extern "C" {
+#include <unistd.h>
+#include <getopt.h>
+#include <sys/time.h>
+}
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
 #endif
@@ -319,6 +324,8 @@ namespace MUSIC {
 		    receiverPortCode),
       BufferingOutputSubconnector (sizeof (Event))
   {
+tt=0.0;
+cur_rank = MPI::COMM_WORLD.Get_rank();
   }
   
 
@@ -327,8 +334,7 @@ namespace MUSIC {
   {
     if (synch->communicate ())
       send ();
-    else
-      MUSIC_LOGRE ("will not send");
+    
   }
 
 
@@ -341,17 +347,31 @@ namespace MUSIC {
     buffer_.nextBlock (data, size);
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
+    double starttime, endtime; 
+    starttime = MPI_Wtime(); 
+
     while (size >= SPIKE_BUFFER_MAX)
       {
-	intercomm.Send (buffer,
+	/*intercomm.Send (buffer,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
 			remoteRank_,
-			SPIKE_MSG);
+			SPIKE_MSG);*/
+                 intercomm.Ssend (buffer,
+                        SPIKE_BUFFER_MAX,
+                        MPI::BYTE,
+                        remoteRank_,
+                        SPIKE_MSG);
 	buffer += SPIKE_BUFFER_MAX;
 	size -= SPIKE_BUFFER_MAX;
       }
-    intercomm.Send (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+    intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+    endtime = MPI_Wtime();
+    endtime = endtime-starttime;
+    if(tt < endtime){
+
+    tt = endtime;
+}
   }
 
   
@@ -412,6 +432,8 @@ namespace MUSIC {
 			      receiverPortCode),
       handleEvent (eh)
   {
+tt = 0.0;
+ss = 0;
   }
 
 
@@ -452,7 +474,7 @@ namespace MUSIC {
   EventInputSubconnector::maybeCommunicate ()
   {
     if (!flushed && synch->communicate ())
-      receive ();    
+      receive ();
   }
 
 
@@ -463,14 +485,27 @@ namespace MUSIC {
     char data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
+double starttime, endtime; 
+starttime = MPI_Wtime(); 
+
     do
       {
-	intercomm.Recv (data,
+  //struct timeval tv;
+  //gettimeofday (&tv, NULL);
+  //time_t start = tv.tv_sec;
+/*	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
 			remoteRank_,
 			SPIKE_MSG,
-			status);
+			status);*/
+        intercomm.Recv (data,
+                        SPIKE_BUFFER_MAX,
+                        MPI::BYTE,
+                        remoteRank_,
+                        SPIKE_MSG,status);
+   //gettimeofday (&tv, NULL);
+   //tt += tv.tv_sec-start;
 	Event* ev = (Event*) data;
 	if (ev[0].id == FLUSH_MARK)
 	  {
@@ -479,12 +514,22 @@ namespace MUSIC {
 	    return;
 	  }
 	size = status.Get_count (MPI::BYTE);
+ //  if ( size == 0)
+	MUSIC_LOG0 ("received");
+	
 	int nEvents = size / sizeof (Event);
 
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);
+
       }
     while (size == SPIKE_BUFFER_MAX);
+endtime = MPI_Wtime();
+endtime = endtime-starttime;
+if(tt < endtime){
+
+tt = endtime;
+}
   }
 
 

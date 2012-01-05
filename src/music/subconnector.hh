@@ -19,7 +19,7 @@
 #ifndef MUSIC_SUBCONNECTOR_HH
 
 #include <mpi.h>
-
+#include <iostream>
 #include <string>
 #include <music/event_router.hh>
 #include <music/synchronizer.hh>
@@ -155,6 +155,8 @@ namespace MUSIC {
   };
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
+double tt;
+int cur_rank;
   public:
     EventOutputSubconnector (Synchronizer* synch,
 			     MPI::Intercomm intercomm,
@@ -164,6 +166,8 @@ namespace MUSIC {
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
+  //  ~EventOutputSubconnector(){if(cur_rank == 15) std::cerr << "out:15->"<<remoteRank_ <<"::"<<tt<<std::endl;}
+
   };
   
   class EventInputSubconnector : public InputSubconnector,
@@ -175,7 +179,7 @@ namespace MUSIC {
 			    int remoteRank,
 			    int receiverRank,
 			    int receiverPortCode);
-    void maybeCommunicate ();
+	 void maybeCommunicate ();
     virtual void receive () = 0;
     virtual void flush (bool& dataStillFlowing);
   };
@@ -183,6 +187,8 @@ namespace MUSIC {
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
     static EventHandlerGlobalIndexDummy dummyHandler;
+    int ss;
+    double tt;
   public:
     EventInputSubconnectorGlobal (Synchronizer* synch,
 				  MPI::Intercomm intercomm,
@@ -193,6 +199,7 @@ namespace MUSIC {
 				  EventHandlerGlobalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
+   // ~EventInputSubconnectorGlobal(){if (receiverRank_ == 15)std::cerr<< "in:" << remoteWorldRank_ << "->15::"<<tt<<std::endl;}
   };
 
   class EventInputSubconnectorLocal : public EventInputSubconnector {

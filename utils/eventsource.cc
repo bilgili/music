@@ -135,6 +135,7 @@ getargs (int rank, int argc, char* argv[])
 int
 main (int argc, char *argv[])
 {
+
   MUSIC::Setup* setup = new MUSIC::Setup (argc, argv);
   MPI::Intracomm comm = setup->communicator ();
   int nProcesses = comm.Get_size ();
@@ -222,7 +223,9 @@ main (int argc, char *argv[])
       runtime->tick ();
 
       time = runtime->time ();
+
     }
+
 
   runtime->finalize ();
 

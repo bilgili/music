@@ -22,15 +22,16 @@
 extern "C" {
 #include <stdlib.h>
 }
-
+#include <mpi.h>
 #include "music/configuration.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
-
+#include <iostream>
+#include <fstream>
 namespace MUSIC {
   
   const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";
-
+  const char* const Configuration::mapFileName = "music.map";
   
   Configuration::Configuration (std::string name, int color, Configuration* def)
     : applicationName_ (name), color_ (color), defaultConfig (def)
@@ -41,9 +42,10 @@ namespace MUSIC {
   Configuration::Configuration ()
     : defaultConfig (0)
   {
-    char* configStr = getenv (configEnvVarName);
+    std::string configStr;
+    getEnv (&configStr);
     MUSIC_LOG0 ("config: " << configStr);
-    if (configStr == NULL)
+    if (configStr.length() == 0)
       {
 	launchedByMusic_ = false;
 	applications_ = new ApplicationMap ();
@@ -81,7 +83,60 @@ namespace MUSIC {
     delete applications_;
   }
 
-  
+  void
+  Configuration::getEnv( std::string* result)
+  {
+#ifdef __bgp__
+	  int rank = MPI::COMM_WORLD.Get_rank ();
+	  std::ifstream mapFile;
+	  char* buffer;
+	  int size = 0;
+	  if(rank == 0){
+		  mapFile.open(mapFileName);
+          size = mapFile.tellg();
+          mapFile.seekg( 0, std::ios_base::end );
+          long cur_pos = mapFile.tellg();
+		  size = cur_pos - size;
+		  mapFile.seekg( 0, std::ios_base::beg );
+	  }
+	  MPI::COMM_WORLD.Bcast(&size, 1,  MPI::INT, 0);
+	  buffer = new char[size];
+
+	  if(rank == 0)
+		  mapFile.read ( buffer, size );
+
+	  MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
+
+	  parseMapFile(rank, std::string(buffer), result);
+	  if(rank == 0)
+		  mapFile.close();
+#else
+	  result->assign(getenv(configEnvVarName));
+#endif
+
+  }
+  void
+  Configuration::parseMapFile(int rank, std::string map_file, std::string *result)
+  {
+	  int first, last;
+	  do{
+	  size_t occ_m = map_file.find_first_of ("-");
+	  size_t occ_s = map_file.find_first_of ("\t ");
+	  first = atoi( map_file.substr(0,occ_m > occ_s ? occ_s:occ_m).c_str());
+	  if(occ_m > occ_s){
+		  occ_m=occ_s;
+		  last = first;
+	  }
+	  else
+		  last = atoi( map_file.substr(occ_m+1,occ_s-occ_m-1).c_str());
+	  size_t occ_e = map_file.find_first_of ("\n");
+	  *result = map_file.substr(occ_s+1,occ_e-occ_s-1);
+	  map_file.erase(0,occ_e+1);
+	  if (rank <= last && rank >= first)
+		  break;
+	  }while(1);
+
+  }
   void
   Configuration::write (std::ostringstream& env, Configuration* mask)
   {

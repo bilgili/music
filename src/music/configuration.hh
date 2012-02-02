@@ -29,6 +29,7 @@ namespace MUSIC {
   class Configuration {
   private:
     static const char* const configEnvVarName;
+    static const char* const mapFileName;
     bool launchedByMusic_;
     std::string applicationName_;
     int color_;
@@ -37,6 +38,8 @@ namespace MUSIC {
     Connectivity* connectivityMap_;
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
+    void getEnv( std::string* result);
+    void parseMapFile(int rank, std::string map_file, std::string *result);
   public:
     Configuration ();
     Configuration (std::string name, int color, Configuration* def);

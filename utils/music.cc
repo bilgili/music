@@ -72,7 +72,7 @@ print_map (MUSIC::Configuration* config)
 
 // NOTE: This must match the definition in src/configuration.cc
 const static char* const configEnvVarName = "_MUSIC_CONFIG_";
-
+const static char* const mapFName = "music.map";
 void
 export_scripts (MUSIC::ApplicationMapper* map)
 {
@@ -97,6 +97,27 @@ export_scripts (MUSIC::ApplicationMapper* map)
       script << binary << ' ' << args << std::endl;
       script.close ();
     }
+}
+
+void export_map(MUSIC::ApplicationMapper* map)
+{
+	MUSIC::Configuration* config = map->config ();
+	MUSIC::ApplicationMap* a = config->applications ();
+    std::ofstream map_file (mapFName);
+	  for (MUSIC::ApplicationMap::iterator i = a->begin (); i != a->end (); ++i)
+	    {
+		  std::string name = i->name ();
+		  map->mapConnectivity (name);
+		  MUSIC::Configuration* config = map->config (name);
+		  config->writeEnv ();
+		  int first = i->leader ();
+		  int nProc = i->nProc ();
+		  map_file << first;
+		  if(nProc > 1)
+			 map_file << "-" << first + nProc-1;
+		  map_file << '\t' <<  getenv (configEnvVarName) << std::endl;
+	    }
+	  map_file.close ();
 }
 
 
@@ -146,6 +167,7 @@ main (int argc, char *argv[])
 
   bool do_print_map = false;
   bool do_export_scripts = false;
+  bool do_export_map = false;
   
   opterr = 0; // handle errors ourselves
   while (1)
@@ -154,7 +176,8 @@ main (int argc, char *argv[])
 	{
 	  {"help",           no_argument,       0, 'h'},
 	  {"map",            required_argument, 0, 'm'},
-	  {"export-scripts", no_argument,       0, 'e'},
+	  {"export-scripts", required_argument,       0, 'e'},
+	  {"file-export",        required_argument,       0, 'f'},
 	  {"version",        no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};
@@ -162,12 +185,10 @@ main (int argc, char *argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+hm:ev", longOptions, &option_index);
-
+      int c = getopt_long (argc, argv, "+hm:e:vf:", longOptions, &option_index);
       /* detect the end of the options */
       if (c == -1)
 	break;
-
       switch (c)
 	{
 	case '?':
@@ -179,6 +200,9 @@ main (int argc, char *argv[])
 	  continue;
 	case 'e':
 	  do_export_scripts = true;
+	  continue;
+	case 'f':
+		do_export_map = true;
 	  continue;
 	case 'v':
 	  print_version (rank);
@@ -213,8 +237,13 @@ main (int argc, char *argv[])
       if (rank <= 0)
 	export_scripts (&map);
     }
+  if(do_export_map)
+  {
+	  if (rank <=0)
+		  export_map(&map);
 
-  if (do_print_map || do_export_scripts)
+  }
+  if (do_print_map || do_export_scripts || do_export_map)
     return 0;
   
   if (rank == -1)

@@ -8,7 +8,7 @@ if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
 fi
 
-AC_PROG_CXX([mpiCC mpixlcxx mpicxx CC])
+AC_PROG_CXX([mpiCC mpixlcxx_r mpixlcxx mpicxx CC])
 MPI_CXX="$CXX"
 
 AC_MSG_CHECKING([which MPI system we think we are using])
@@ -33,6 +33,13 @@ Please set them manually.])
       fi
     fi
     changequote([, ])
+    ;;
+  mpixlcxx_r)
+    MPI_C=mpixlc_r
+    SYSGUESS=bgp
+    CXX="$MPI_CXX"
+    #CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
+    CC="$MPI_C"
     ;;
   mpixlcxx)
     MPI_C=mpixlc
@@ -82,6 +89,10 @@ else
     openmpi)
       MPI_CXXFLAGS="`mpicxx -showme:compile`"
       ;;
+    bgp)
+      MPI_CXXFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
+      enable_shared=no
+      ;;
     bgl)
       MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
       enable_shared=no
@@ -109,6 +120,10 @@ else
       ;;
     openmpi)
       MPI_CFLAGS="`mpicc -showme:compile`"
+      ;;
+    bgp)
+      MPI_CFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
+      enable_shared=no
       ;;
     bgl)
       MPI_CFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
@@ -138,7 +153,7 @@ else
     openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
-    bgl|cray_xe6)
+    bgp|bgl|cray_xe6)
       MPI_LDFLAGS=""
       ;;
     *)
@@ -148,17 +163,20 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   esac
   echo "$MPI_LDFLAGS"
 fi
-
 if test "$ac_test_CXXFLAGS" != set; then
   if test "$CXXFLAGS" = "-O2"; then
     CXXFLAGS="-O3"
   else
+  #  CXXFLAGS="-O2"
     CXXFLAGS="-g -O3"
     if test $CXX = g++; then
       CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
     fi
   fi
 fi
+if test "$SYSGUESS" == bgp; then
+  CXXFLAGS="$CXXFLAGS -I/bgsys/drivers/ppcfloor/arch/include"
+fi 
 
 AC_PROG_CC
 AC_PROG_LIBTOOL

@@ -17,7 +17,9 @@
  */
 
 #include "music/configuration.hh" // Must be included first on BG/L
+#ifdef USE_MPI
 #include <mpi.h>
+#endif
 extern "C" {
 #include <stdlib.h>
 }

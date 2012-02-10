@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_SYNCHRONIZER_HH
-
 #include <music/clock.hh>
 
 namespace MUSIC {
@@ -124,6 +123,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_SYNCHRONIZER_HH
 #endif

@@ -17,11 +17,9 @@
  */
 
 #ifndef MUSIC_PARSE_HH
-
 #include <string>
 #include <vector>
 #include <istream>
-
 namespace MUSIC {
   
   class Parser {
@@ -38,6 +36,5 @@ namespace MUSIC {
 		     std::string args,
 		     int* argc);
 }
-
 #define MUSIC_PARSE_HH
 #endif

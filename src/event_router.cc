@@ -16,13 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
-#include <mpi.h>
-#include "music/debug.hh"
 #include <iostream>
-#include "music/event_router.hh"
+#include "music/debug.hh"
 #include "music/event.hh"
-
+#include "music/event_router.hh"
 namespace MUSIC {
 
 void

@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_FIBO_HH
-
+#include "music/debug.hh"
 #include <vector>
 
 namespace MUSIC {
@@ -48,6 +48,5 @@ namespace MUSIC {
   
   
 }
-
 #define MUSIC_FIBO_HH
 #endif

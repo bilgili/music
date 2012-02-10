@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_INDEX_MAP_HH
-
 #include <memory>
 
 #include <music/interval.hh>
@@ -108,6 +107,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_INDEX_MAP_HH
 #endif

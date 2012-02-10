@@ -16,10 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/setup.hh"
-#include "music/runtime.hh"
 #include "music/index_map_factory.hh"
-
+#include <algorithm>
 namespace MUSIC {
   
   IndexMapFactory::IndexMapFactory ()

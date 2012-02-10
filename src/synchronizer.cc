@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
 #include <cmath>

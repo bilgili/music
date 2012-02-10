@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_CONNECTION_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <music/connector.hh>
 
 namespace MUSIC {
@@ -66,6 +67,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_CONNECTION_HH
 #endif

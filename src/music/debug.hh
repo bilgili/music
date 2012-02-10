@@ -15,16 +15,18 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-//#define MUSIC_DEBUG
 #ifndef MUSIC_DEBUG_HH
+#include "config.h"
 
 #ifdef MUSIC_DEBUG
 
+#ifdef USE_MPI
 #include <mpi.h> // Must be included first on BG/L
+#endif
 #include <iostream>
 
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
-
+#ifdef USE_MPI
 #define MUSIC_LOGN(N, X) \
   { if (MPI::COMM_WORLD.Get_rank () == N) MUSIC_LOG (X); }
 
@@ -60,6 +62,7 @@
   }
 
 #define MUSIC_LOGX(X)
+#endif
 
 #else
 

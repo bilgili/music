@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_DATA_MAP_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 
 #include "music/index_map.hh"
@@ -46,6 +47,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_DATA_MAP_HH
 #endif

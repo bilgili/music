@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_ARRAY_DATA_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include "music/data_map.hh"
 
 namespace MUSIC {
@@ -40,6 +41,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_ARRAY_DATA_HH
 #endif

@@ -15,10 +15,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "music/spatial.hh" // Must be included first on BG/Ls
+#ifdef USE_MPI
 
-//#define MUSIC_DEBUG 1
-
-#include "music/spatial.hh" // Must be included first on BG/L
 
 #include <sstream>
 
@@ -153,6 +152,7 @@ namespace MUSIC {
     // First determine local least upper bound and width
     int u = 0;
     int w = 0;
+    int rank = MPI::COMM_WORLD.Get_rank ();
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
@@ -160,7 +160,9 @@ namespace MUSIC {
 	if (i->end () > u)
 	  u = i->end ();
 	w += i->end () - i->begin ();
+
       }
+
     // Now take maximum over all processes
     std::vector<int> m (nProcesses);
     comm.Allgather (&u, 1, MPI::INT, &m[0], 1, MPI::INT);
@@ -172,10 +174,11 @@ namespace MUSIC {
     for (unsigned int i = 0; i < nProcesses; ++i)
       if (m[i] > w)
 	w = m[i];
+
     maxLocalWidth_ = w;
   }
 
-  
+
   void
   SpatialOutputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
@@ -196,7 +199,7 @@ namespace MUSIC {
       }
   }
 
-  
+
   void
   SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
@@ -210,7 +213,7 @@ namespace MUSIC {
 	// receiver side with index larger than the sender side width,
 	// we will still choose sender side width as receiver side
 	// width.
-	if (width == Index::WILDCARD_MAX)
+	if (width == Index::WILDCARD_MAX && width < remoteWidth )
 	  width = remoteWidth;
 	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
       }
@@ -526,7 +529,7 @@ namespace MUSIC {
   {
   }
 
-  
+
   NegotiationIterator
   SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
 				      MPI::Intercomm intercomm,
@@ -578,14 +581,14 @@ namespace MUSIC {
     return NegotiationIterator (local);
   }
   
-  
+
   SpatialInputNegotiator::SpatialInputNegotiator (IndexMap* indices,
 						  Index::Type type)
     : SpatialNegotiator (indices, type)
   {
   }
 
-  
+
   NegotiationIterator
   SpatialInputNegotiator::negotiate (MPI::Intracomm c,
 				     MPI::Intercomm intercomm,
@@ -620,5 +623,6 @@ namespace MUSIC {
     
     return NegotiationIterator (remote);
   }
-  
+
 }
+#endif

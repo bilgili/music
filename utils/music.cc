@@ -33,7 +33,6 @@ extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
 }
-
 using std::string;
 
 void
@@ -163,7 +162,10 @@ main (int argc, char *argv[])
 {
   // predict the rank MPI::Init will give us using
   // mpi implementation dependent code from ../mpidep
-  int rank = getRank (argc, argv);
+  int rank = -1;
+#ifdef USE_MPI
+  rank = getRank (argc, argv);
+#endif
 
   bool do_print_map = false;
   bool do_export_scripts = false;

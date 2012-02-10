@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_PORT_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 
 #include <string>
@@ -273,6 +274,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_PORT_HH
 #endif

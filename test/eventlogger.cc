@@ -77,10 +77,6 @@ double latency = 0.0;
 int    maxbuffered = 0;
 std::string imaptype = "linear";
 std::string indextype = "global";
-#define MUSIC_DEBUG
-#include "../src/music/debug.hh"
-
-
 
 int
 main (int argc, char* argv[])

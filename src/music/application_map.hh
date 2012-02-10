@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_APPLICATION_MAP_HH
-
 #include <sstream>
 #include <vector>
 

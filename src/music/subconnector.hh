@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_SUBCONNECTOR_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 #include <iostream>
 #include <string>
@@ -255,6 +256,6 @@ int cur_rank;
   };
 
 }
-
+#endif
 #define MUSIC_SUBCONNECTOR_HH
 #endif

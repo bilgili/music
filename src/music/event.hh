@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_EVENT_HH
-
 #include <music/index_map.hh>
 
 namespace MUSIC {
@@ -90,6 +89,5 @@ namespace MUSIC {
   };
   
 }
-
 #define MUSIC_EVENT_HH
 #endif

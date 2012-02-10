@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_RUNTIME_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 #include <vector>
 
@@ -69,7 +70,7 @@ namespace MUSIC {
     void connectToPeers (Connections* connections);
     void specializeConnectors (Connections* connections);
     void spatialNegotiation (OutputSubconnectors&, InputSubconnectors&, CollectiveSubconnectors&);
-    void buildSchedule (int localRank,
+    void buildSchedule (
 			OutputSubconnectors&,
 			InputSubconnectors&,
 			CollectiveSubconnectors& );
@@ -88,6 +89,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_RUNTIME_HH
 #endif

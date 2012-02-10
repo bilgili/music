@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_BIFO_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <vector>
 
 #include <music/FIBO.hh>
@@ -61,6 +62,6 @@ namespace MUSIC {
   
   
 }
-
+#endif
 #define MUSIC_BIFO_HH
 #endif

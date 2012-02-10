@@ -15,15 +15,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-//#define MUSIC_DEBUG 1
-#include "music/debug.hh"
+#include "music/runtime.hh"
+#ifdef USE_MPI
 
 #include <mpi.h>
 
 #include <algorithm>
 #include <iostream>
-#include "music/runtime.hh"
+
 #include "music/temporal.hh"
 #include "music/error.hh"
 
@@ -67,7 +66,7 @@ namespace MUSIC {
 	buildTables (s);
 	// build a total order of subconnectors
 	// for non-blocking pairwise exchange
-	buildSchedule (MPI::COMM_WORLD.Get_rank (),
+	buildSchedule (
 		       outputSubconnectors,
 		       inputSubconnectors,
 		       collectiveSubconnectors);
@@ -238,11 +237,12 @@ namespace MUSIC {
 
 
   void
-  Runtime::buildSchedule (int localRank,
+  Runtime::buildSchedule (
 			  OutputSubconnectors& outputSubconnectors,
 			  InputSubconnectors& inputSubconnectors,
 			  CollectiveSubconnectors& collectiveSubconnectors)
   {
+	  int localRank = MPI::COMM_WORLD.Get_rank ();
     // Build the communication schedule.
     
     // The following communication schedule prevents dead-locking,
@@ -318,7 +318,6 @@ namespace MUSIC {
     s->temporalNegotiator ()->negotiate (localTime, connections);
   }
 
-
   MPI::Intracomm
   Runtime::communicator ()
   {
@@ -375,9 +374,9 @@ namespace MUSIC {
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
-    int r = MPI::COMM_WORLD.Get_rank ();
+ /*   int r = MPI::COMM_WORLD.Get_rank ();
     if(r == 15 || r == 47)
-    std::cerr << "t:" << r <<"::" <<total<<std::endl;
+    std::cerr << "t:" << r <<"::" <<total<<std::endl;*/
     MPI::Finalize ();
   }
 
@@ -434,3 +433,4 @@ namespace MUSIC {
   }
   
 }
+#endif

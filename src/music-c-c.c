@@ -1,3 +1,4 @@
+#ifdef USE_MPI
 #include <mpi.h>
 
 #include "music-c.h"
@@ -11,3 +12,4 @@ MUSIC_setupCommunicator (MUSIC_Setup *setup)
 {
   return (MPI_Comm) MUSIC_setupCommunicatorGlue (setup);
 }
+#endif

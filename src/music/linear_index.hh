@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_LINEAR_INDEX_HH
-
 #include "music/index_map.hh"
 
 namespace MUSIC {
@@ -51,6 +50,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_LINEAR_INDEX_HH
 #endif

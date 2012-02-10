@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_IOUTILS_HH
-
 #include <sstream>
 
 namespace MUSIC {

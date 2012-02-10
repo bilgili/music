@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_CONFIGURATION_HH
-
+#include "music/debug.hh"
 #include <string>
 #include <map>
 
@@ -38,10 +38,14 @@ namespace MUSIC {
     Connectivity* connectivityMap_;
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
+#ifdef USE_MPI
     void getEnv( std::string* result);
+#endif
     void parseMapFile(int rank, std::string map_file, std::string *result);
   public:
+#ifdef USE_MPI
     Configuration ();
+#endif
     Configuration (std::string name, int color, Configuration* def);
     ~Configuration ();
     bool launchedByMusic () { return launchedByMusic_; }

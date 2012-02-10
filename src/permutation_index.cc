@@ -15,11 +15,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "music/setup.hh"
-#include "music/runtime.hh"
 #include "music/permutation_index.hh"
-
+#include <algorithm>
 namespace MUSIC {
   
   PermutationIndex::PermutationIndex (GlobalIndex* indices, int size)

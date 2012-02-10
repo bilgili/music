@@ -15,10 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <mpi.h>
-#include "music/runtime.hh"
-
+#include "music/index_map.hh"
 namespace MUSIC {
   
   event_data::event_data (index_map* map)

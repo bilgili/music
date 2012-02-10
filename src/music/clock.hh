@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_CLOCK_HH
-
 #include "music/music-config.hh"
 
 namespace MUSIC {
@@ -77,6 +76,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_CLOCK_HH
 #endif

@@ -15,14 +15,13 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "music/collector.hh"
 
-//#define MUSIC_DEBUG 1
-#include "music/debug.hh"
-
+#ifdef USE_MPI
 // collector.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other
 // header files on BG/L
-#include "music/collector.hh"
+
 
 #include <algorithm>
 #include <cstring>
@@ -149,3 +148,4 @@ namespace MUSIC {
   }
 
 }
+#endif

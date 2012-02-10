@@ -15,11 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <mpi.h>
-#include "music/setup.hh"
-#include "music/runtime.hh"
-
+#include "music/linear_index.hh"
 namespace MUSIC {
   
   LinearIndex::iterator::iterator (LinearIndex* li)

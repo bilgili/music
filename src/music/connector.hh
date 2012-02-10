@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_CONNECTOR_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 
 #include <vector>
@@ -320,6 +321,6 @@ namespace MUSIC {
   };
   
 }
-
+#endif
 #define MUSIC_CONNECTOR_HH
 #endif

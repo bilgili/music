@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_EVENT_ROUTER_HH
-
 #include <map>
 #include <vector>
 

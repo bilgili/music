@@ -15,15 +15,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include "music/BIFO.hh"
 
-//#define MUSIC_DEBUG 1
-#include "music/debug.hh"
-
+#ifdef USE_MPI
 #include <cstring>
 
 #include "music/error.hh"
 
-#include "music/BIFO.hh"
+
 
 namespace MUSIC {
 
@@ -188,3 +187,4 @@ namespace MUSIC {
   }
     
 }
+#endif

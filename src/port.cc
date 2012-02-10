@@ -15,12 +15,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-//#define MUSIC_DEBUG 1
-#include "music/debug.hh"
-
-#include "music/setup.hh" // Must be included first on BG/L
 #include "music/port.hh"
+#ifdef USE_MPI
+#include "music/setup.hh" // Must be included first on BG/L
 #include "music/error.hh"
 
 namespace MUSIC {
@@ -732,3 +729,4 @@ namespace MUSIC {
 
   
 }
+#endif

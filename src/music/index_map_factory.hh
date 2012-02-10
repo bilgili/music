@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_INDEX_MAP_FACTORY_HH
-
 #include <vector>
 
 #include "music/index_map.hh"
@@ -54,6 +53,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_INDEX_MAP_FACTORY_HH
 #endif

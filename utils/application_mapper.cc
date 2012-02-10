@@ -16,8 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
-
 #include "music/error.hh"
 #include "music/debug.hh"
 #include <iostream>
@@ -93,6 +91,7 @@ namespace MUSIC {
   void
   ApplicationMapper::selectApplication (int rank)
   {
+#ifdef USE_MPI
     int rankEnd = 0;
     ApplicationMap::iterator ai;
     for (ai = applications_->begin (); ai != applications_->end (); ++ai)
@@ -105,12 +104,14 @@ namespace MUSIC {
 	    return;
 	  }
       }
+#endif
 
     // postpone error reporting to setup
     // NOTE: consider doing error checking here
 
     // for now, choose the first application
     selectedName = applications_->begin ()->name ();
+
   }
 
 

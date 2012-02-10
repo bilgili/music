@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef MUSIC_EVENT_ROUTINGMAP_HH
-
 #include <map>
 #include <vector>
 #include <music/event_router.hh>

@@ -17,9 +17,7 @@
  */
 
 #ifndef MUSIC_PERMUTATION_INDEX_HH
-
 #include <vector>
-
 #include "music/index_map.hh"
 
 namespace MUSIC {
@@ -57,6 +55,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_PERMUTATION_INDEX_HH
 #endif

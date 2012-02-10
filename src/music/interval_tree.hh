@@ -18,7 +18,6 @@
  */
 
 #ifndef MUSIC_INTERVAL_TREE_HH
-
 #include <vector>
 #include <limits>
 #include <algorithm>
@@ -165,6 +164,5 @@ DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
     search (rightChild (i), p, a);
   }
 }
-
 #define MUSIC_INTERVAL_TREE_HH
 #endif

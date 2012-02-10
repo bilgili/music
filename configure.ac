@@ -212,6 +212,8 @@ int main (int argc, char **argv)
 AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=yes
 )
+#AC_DEFINE([USE_MPI], [1], [Define to 1 if you want debug output])
+
 AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 CXX="$save_CXX"
 AC_LANG_POP(C++)

@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_TEMPORAL_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #define MAX_BUFFERED_NO_VALUE -1
 #define DEFAULT_PACKET_SIZE 64000
 #define EVENT_FREQUENCY_ESTIMATE 10.0
@@ -148,6 +149,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_TEMPORAL_HH
 #endif

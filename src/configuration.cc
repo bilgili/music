@@ -16,14 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//#define MUSIC_DEBUG 1
-#include "music/debug.hh" // Must be included first on BG/L
+#include "music/configuration.hh" // Must be included first on BG/L
 
 extern "C" {
 #include <stdlib.h>
 }
-#include <mpi.h>
-#include "music/configuration.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
 #include <iostream>
@@ -38,7 +35,7 @@ namespace MUSIC {
   {
     
   }
-
+#ifdef USE_MPI
   Configuration::Configuration ()
     : defaultConfig (0)
   {
@@ -75,14 +72,14 @@ namespace MUSIC {
 	  }
       }
   }
-
+#endif
 
   Configuration::~Configuration ()
   {
     delete connectivityMap_;
     delete applications_;
   }
-
+#ifdef USE_MPI
   void
   Configuration::getEnv( std::string* result)
   {
@@ -93,6 +90,13 @@ namespace MUSIC {
 	  int size = 0;
 	  if(rank == 0){
 		  mapFile.open(mapFileName);
+		  if (!mapFile.is_open())
+		  {
+			  std::ostringstream oss;
+			  oss << "File <music.map> is not found. To generate the file run MUSIC with -f option.";
+			  error (oss.str ());
+		  }
+
           size = mapFile.tellg();
           mapFile.seekg( 0, std::ios_base::end );
           long cur_pos = mapFile.tellg();
@@ -104,10 +108,9 @@ namespace MUSIC {
 
 	  if(rank == 0)
 		  mapFile.read ( buffer, size );
-
 	  MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
-
 	  parseMapFile(rank, std::string(buffer), result);
+	  //std::cerr << rank << ":"<<*result<<std::endl;
 	  if(rank == 0)
 		  mapFile.close();
 #else
@@ -115,13 +118,16 @@ namespace MUSIC {
 #endif
 
   }
+#endif
   void
   Configuration::parseMapFile(int rank, std::string map_file, std::string *result)
   {
-	  int first, last;
+	  int first, last, pos, sLen;
+	  pos = 0;
+	  sLen = map_file.length();
 	  do{
-	  size_t occ_m = map_file.find_first_of ("-");
-	  size_t occ_s = map_file.find_first_of ("\t ");
+	  size_t occ_m = map_file.find_first_of ("-", pos);
+	  size_t occ_s = map_file.find_first_of ("\t ", pos);
 	  first = atoi( map_file.substr(0,occ_m > occ_s ? occ_s:occ_m).c_str());
 	  if(occ_m > occ_s){
 		  occ_m=occ_s;
@@ -129,12 +135,17 @@ namespace MUSIC {
 	  }
 	  else
 		  last = atoi( map_file.substr(occ_m+1,occ_s-occ_m-1).c_str());
-	  size_t occ_e = map_file.find_first_of ("\n");
+	  size_t occ_e = map_file.find_first_of ("\n", pos);
 	  *result = map_file.substr(occ_s+1,occ_e-occ_s-1);
-	  map_file.erase(0,occ_e+1);
 	  if (rank <= last && rank >= first)
-		  break;
-	  }while(1);
+		  return;
+	  pos = occ_e+1;
+	  }while(pos < sLen);
+	  std::ostringstream oss;
+	  oss << "There is a mismatch between the information in the file <music.map> and the amount of given ranks." << std::endl
+			  << "Try to generate the file (run MUSIC with -f option) again.";
+	  error (oss.str ());
+
 
   }
   void

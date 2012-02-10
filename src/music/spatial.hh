@@ -17,7 +17,8 @@
  */
 
 #ifndef MUSIC_NEGOTIATOR_HH
-
+#include "music/debug.hh"
+#ifdef USE_MPI
 #include <mpi.h>
 #include <vector>
 #include <memory>
@@ -183,6 +184,6 @@ namespace MUSIC {
   };
 
 }
-
+#endif
 #define MUSIC_NEGOTIATOR_HH
 #endif

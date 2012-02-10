@@ -17,7 +17,6 @@
  */
 
 #ifndef MUSIC_INTERVAL_HH
-
 namespace MUSIC {
 
   class Interval {
@@ -37,6 +36,5 @@ namespace MUSIC {
   };
 
 }
-
 #define MUSIC_INTERVAL_HH
 #endif

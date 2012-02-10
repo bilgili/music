@@ -1,7 +1,7 @@
+#include "music-c.h"
 #ifdef USE_MPI
 #include <mpi.h>
 
-#include "music-c.h"
 
 /* Communicators */
 

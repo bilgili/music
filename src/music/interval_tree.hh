@@ -27,7 +27,7 @@ namespace MUSIC {
   template<class PointType, class DataType>
   class IntervalTree {
     static const int ROOT = 0;
-
+public:
     class NodeType {
       PointType maxEnd_;
       static DataType noMean;
@@ -56,13 +56,13 @@ namespace MUSIC {
       	    return *this;
       	}
     };
-
+private:
     std::vector<NodeType> nodes;
     int leftChild (int i) const { return 2 * i + 1; }
     int rightChild (int i) const { return 2 * i + 2; }
     int computeSize () const;
     PointType build (std::vector<NodeType>& dest, int l, int r, int i);
-  public:
+public:
     class Action {
     public:
       virtual void operator() (DataType& data) = 0;

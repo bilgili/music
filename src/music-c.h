@@ -17,9 +17,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifdef USE_MPI
 #include "music/music-config.hh"
 
+#ifdef USE_MPI
+#include <mpi.h>
 #if MUSIC_HAVE_SIZE_T
 #include <sys/types.h>
 #else
@@ -199,7 +200,6 @@ double MUSIC_time (MUSIC_Runtime *runtime);
 /* Finalization */
 
 void MUSIC_destroyRuntime (MUSIC_Runtime *runtime);
-
 #endif
 #define MUSIC_C_H
 #endif /* MUSIC_C_H */

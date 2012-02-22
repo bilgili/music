@@ -1,5 +1,10 @@
 2012-02-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/subconnector.h, subconnector.cc (Subconnector): Moved
+	member flushed from InputSubconnector to Subconnector. Mark
+	OutputSubconnectors as flushed once a flush message has been sent
+	and only send the flush message once.
+
 	* subconnector.cc (EventInputSubconnectorGlobal::receive)
 	(EventInputSubconnectorLocal::receive): Check that message
 	size > 0 before checking for FLUSH_MARK.

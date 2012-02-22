@@ -396,13 +396,13 @@ namespace MUSIC {
 			SPIKE_MSG,
 			status);
 	Event* ev = (Event*) data;
-	if (ev[0].id == FLUSH_MARK)
+	size = status.Get_count (MPI::BYTE);
+	if (size > 0 && ev[0].id == FLUSH_MARK)
 	  {
 	    flushed = true;
 	    //MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
 	//MUSIC_LOGR ("received " << nEvents << "events");
 	for (int i = 0; i < nEvents; ++i)
@@ -428,12 +428,12 @@ namespace MUSIC {
 			SPIKE_MSG,
 			status);
 	Event* ev = (Event*) data;
-	if (ev[0].id == FLUSH_MARK)
+	size = status.Get_count (MPI::BYTE);
+	if (size > 0 && ev[0].id == FLUSH_MARK)
 	  {
 	    flushed = true;
 	    return;
 	  }
-	size = status.Get_count (MPI::BYTE);
 	int nEvents = size / sizeof (Event);
 	for (int i = 0; i < nEvents; ++i)
 	  (*handleEvent) (ev[i].t, ev[i].id);

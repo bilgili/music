@@ -42,6 +42,7 @@ namespace MUSIC {
       receiverRank_ (receiverRank),
       receiverPortCode_ (receiverPortCode)
   {
+    flushed = false;
   }
 
 
@@ -58,7 +59,6 @@ namespace MUSIC {
   
   InputSubconnector::InputSubconnector ()
   {
-    flushed = false;
   }
 
 
@@ -132,16 +132,20 @@ namespace MUSIC {
   void
   ContOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!buffer_.isEmpty ())
+    if (!flushed)
       {
-	MUSIC_LOGR ("sending data remaining in buffers");
-	send ();
-	dataStillFlowing = true;
-      }
-    else
-      {
-	char dummy;
-	intercomm.Send (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	if (!buffer_.isEmpty ())
+	  {
+	    MUSIC_LOGR ("sending data remaining in buffers");
+	    send ();
+	    dataStillFlowing = true;
+	  }
+	else
+	  {
+	    char dummy;
+	    intercomm.Send (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+	    flushed = true;
+	  }
       }
   }
   
@@ -282,17 +286,21 @@ namespace MUSIC {
   void
   EventOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!buffer_.isEmpty ())
+    if (!flushed)
       {
-	MUSIC_LOGR ("sending data remaining in buffers");
-	send ();
-	dataStillFlowing = true;
-      }
-    else
-      {
-	Event* e = static_cast<Event*> (buffer_.insert ());
-	e->id = FLUSH_MARK;
-	send ();
+	if (!buffer_.isEmpty ())
+	  {
+	    MUSIC_LOGR ("sending data remaining in buffers");
+	    send ();
+	    dataStillFlowing = true;
+	  }
+	else
+	  {
+	    Event* e = static_cast<Event*> (buffer_.insert ());
+	    e->id = FLUSH_MARK;
+	    send ();
+	    flushed = true;
+	  }
       }
   }
   
@@ -526,16 +534,20 @@ namespace MUSIC {
   void
   MessageOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!buffer_->isEmpty ())
+    if (!flushed)
       {
-	MUSIC_LOGRE ("sending data remaining in buffers");
-	send ();
-	dataStillFlowing = true;
-      }
-    else
-      {
-	char dummy;
-	intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);	
+	if (!buffer_->isEmpty ())
+	  {
+	    MUSIC_LOGRE ("sending data remaining in buffers");
+	    send ();
+	    dataStillFlowing = true;
+	  }
+	else
+	  {
+	    char dummy;
+	    intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);	
+	    flushed = true;
+	  }
       }
   }
   

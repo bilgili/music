@@ -49,6 +49,7 @@ namespace MUSIC {
     int remoteWorldRank_;	// rank in COMM_WORLD
     int receiverRank_;
     int receiverPortCode_;
+    bool flushed;
   public:
     Subconnector () { }
     Subconnector (Synchronizer* synch,
@@ -83,7 +84,6 @@ namespace MUSIC {
   class InputSubconnector : virtual public Subconnector {
   protected:
     InputSubconnector ();
-    bool flushed;
   public:
     virtual BIFO* buffer () { return NULL; }
   };

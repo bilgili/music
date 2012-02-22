@@ -6,7 +6,7 @@ stoptime=1.0
   args=-b 2 10 spikes
 [mid]
   binary=./eventdelay
-  args=-d 0.3
+  args=-L 0 -d 0.3
 [to]
   binary=/usr/local/bin/eventlogger
   args=-b 2

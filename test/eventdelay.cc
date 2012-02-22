@@ -66,7 +66,7 @@ public:
   {
     eventBuffer.push_back (MUSIC::Event (t + delay, id));
     std::cout << label << ":Got(" << id <<
-      ", " << t + delay << ")" << std::endl;
+      ", " << t << ")" << std::endl;
   }
 };
 

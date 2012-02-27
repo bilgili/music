@@ -23,7 +23,11 @@
 #include <map>
 
 namespace MUSIC {
-
+/* remedius
+ * Communication Type (<COLLECTIVE, PAIRWISE>) and
+ * Processing Method (<TREE, TABLE>) configuration options were added.
+ * According class' fields and class' methods, methods' parameters were added to the ConnectorInfo class.
+ */
   class ConnectorInfo {
   public:
 	enum CommunicationType { COLLECTIVE, PAIRWISE };

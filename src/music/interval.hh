@@ -18,8 +18,14 @@
 
 #ifndef MUSIC_INTERVAL_HH
 namespace MUSIC {
-
-  class Interval {
+/* remedius
+ * ICloneable class was created in order to support polymorphism for Inteval_Tree template.
+ */
+class ICloneable {
+public:
+	virtual ICloneable * Clone()const=0;
+};
+  class Interval: public ICloneable {
     int begin_;
     int end_;
   public:
@@ -29,6 +35,7 @@ namespace MUSIC {
     int end () const { return end_; }
     void setBegin (int begin) { begin_ = begin; }
     void setEnd (int end) { end_ = end; }
+    Interval *Clone()const {return new Interval(this->begin(),this->end());}
     bool operator< (const Interval& data) const
     {
       return begin () < data.begin ();

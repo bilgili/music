@@ -47,6 +47,10 @@ public:
 	virtual void foundComment(const char *comment);
 	virtual void foundWhiteSpace(const char *whitespace);
 	virtual void foundData(const char *key, const char *value, const char *comment);
+	/* remedius
+	 * two more parameters: commType and procMethod were added due to the runtime opportunity
+     * of choosing communication type and pre-/post-processing method.
+     */
 	virtual void foundSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
 			const char *width, const char *commType, const char *procMethod, const char *comment);
 	

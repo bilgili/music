@@ -163,7 +163,14 @@ namespace rude{
       const char *getSrcObjAt(int index) const;
 
       const char *getWidthAt(int index) const;
+
+      /* remedius
+       * returns <collective>, <pairwise> or "" type of communication.
+       */
       const char *getCommTypeAt(int index) const;
+      /* remedius
+       * returns <tree>, <table> or  "" processing method.
+       */
       const char *getProcMethodAt(int index) const;
 
 
@@ -221,7 +228,10 @@ namespace rude{
       //=
       void setValue(const char *name, const char *value, const char *comment);
 
-
+      /* remedius
+       * two more parameters: commType and procMethod were added due to the runtime opportunity
+       * of choosing communication type and pre-/post-processing method.
+       */
       void addSourceDest(const char *srcApp, const char *srcObj, const char *destApp, const char *destObj,
     		  const char *width, const char *commType, const char *procMethod, const char *comment);
 

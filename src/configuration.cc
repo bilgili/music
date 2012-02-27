@@ -42,6 +42,10 @@ namespace MUSIC {
     : defaultConfig (0)
   {
     std::string configStr;
+    /* remedius
+     * getenv system call was replaced with local method getEnv call
+     * in order to support reading configStr from the file (BG/P).
+     */
     getEnv (&configStr);
     MUSIC_LOG0 ("config: " << configStr);
     if (configStr.length() == 0)
@@ -90,6 +94,7 @@ namespace MUSIC {
 	  std::ifstream mapFile;
 	  char* buffer;
 	  int size = 0;
+	  // Rank #0 is reading a file and broadcast it to each rank in the launch
 	  if(rank == 0){
 		  mapFile.open(mapFileName);
 		  if (!mapFile.is_open())
@@ -105,14 +110,15 @@ namespace MUSIC {
 		  size = cur_pos - size;
 		  mapFile.seekg( 0, std::ios_base::beg );
 	  }
+	  // first broadcast the size of the file
 	  MPI::COMM_WORLD.Bcast(&size, 1,  MPI::INT, 0);
 	  buffer = new char[size];
 
 	  if(rank == 0)
 		  mapFile.read ( buffer, size );
+	  // then broadcast the file but itself
 	  MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
 	  parseMapFile(rank, std::string(buffer), result);
-	  //std::cerr << rank << ":"<<*result<<std::endl;
 	  if(rank == 0)
 		  mapFile.close();
 #else
@@ -121,6 +127,10 @@ namespace MUSIC {
 
   }
 #endif
+  /* remedius
+   * Each rank is responsible for parsing <map_file> and
+   * retrieving according environment variable value (<result>)
+   */
   void
   Configuration::parseMapFile(int rank, std::string map_file, std::string *result)
   {
@@ -190,12 +200,10 @@ namespace MUSIC {
   bool
   Configuration::lookup (std::string name, std::string* result)
   {
-  //std::cerr << "looking..."<<name << std::endl;
     std::map<std::string, std::string>::iterator pos = dict.find (name);
     if (pos != dict.end ())
       {
 	*result = pos->second;
-	// std::cerr << "found:"<< pos->second << std::endl;
 	return true;
       }
     else

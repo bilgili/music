@@ -72,7 +72,11 @@ public:
         const char *getSrcAppAt(int index) const;
         const char *getDestAppAt(int index) const;
         const char *getWidthAt(int index) const;
+        /* remedius
+         */
         const char *getCommTypeAt(int index) const;
+        /* remedius
+         */
         const char *getProcMethodAt(int index) const;
 
 	const char *getDataNameAt(int index) const;

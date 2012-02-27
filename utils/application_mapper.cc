@@ -155,6 +155,13 @@ namespace MUSIC {
 	    if (senderApp == receiverApp)
 	      error ("port " + senderPort + " of application " + senderApp + " connected to the same application");
 
+
+	    /* remedius
+	     *  Since two runtime configuration options were added: communication type (<commType>) and
+	     *  processing method (<procMethod>), there is a basic check for the match of the reserved words to these options.
+	     *  Communication type option can be either *pairwise* or *collective* written in any case letters.
+	     *  Processing method can be either *tree* or *table* also written in any case letters.
+	     */
 	    std::transform(commType.begin(), commType.end(), commType.begin(), ::tolower);
 	    std::transform(procMethod.begin(), procMethod.end(), procMethod.begin(), ::tolower);
 
@@ -207,6 +214,9 @@ namespace MUSIC {
 		if (!(ws >> w))
 		  error ("could not interpret width");
 	      }
+	    /* remedius
+	     * The default communication type is *pairwise*
+	     */
 	    int iCommType;
 	    if(commType.length()==0 || !commType.compare("pairwise")){
 	    	iCommType = ConnectorInfo::PAIRWISE;
@@ -215,6 +225,9 @@ namespace MUSIC {
 	    else{
 	    	iCommType = ConnectorInfo::COLLECTIVE;
 	    }
+	    /* remedius
+	     * The default processing method is *tree*
+	     */
 	    int iProcMethod;
 	    if(procMethod.length()==0 || !procMethod.compare("tree")){
 	    	iProcMethod = ConnectorInfo::TREE;

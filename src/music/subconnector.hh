@@ -69,8 +69,12 @@ namespace MUSIC {
   };
   
   class OutputSubconnector : virtual public Subconnector {
+  protected:
+	  OutputSubconnector ():flushed(false){};
+
+	  bool flushed;
   public:
-    virtual FIBO* buffer () { return 0; }
+    virtual FIBO* buffer () { return NULL; }
   };
   
   class BufferingOutputSubconnector : virtual public OutputSubconnector {
@@ -80,12 +84,10 @@ namespace MUSIC {
     BufferingOutputSubconnector (int elementSize);
     FIBO* buffer () { return &buffer_; }
   };
-  
-
 
   class InputSubconnector : virtual public Subconnector {
   protected:
-    InputSubconnector ();
+    InputSubconnector ():flushed(false){};
     bool flushed;
   public:
     virtual BIFO* buffer () { return NULL; }
@@ -137,17 +139,19 @@ namespace MUSIC {
   protected:
     static const int FLUSH_MARK = -1;
   };
-  class CollectiveSubconnector:  public BufferingOutputSubconnector{
+  /* remedius
+   * CollectiveSubconnector class is used for collective communication
+   * based on MPI::ALLGATHER function.
+   */
+  class CollectiveSubconnector:  public BufferingOutputSubconnector, public EventSubconnector{
   protected:
 	  MPI::Intracomm _intracomm;
-	  static const int FLUSH_MARK = -1;
 	  EventRouter *router_;
-	  bool flushed;
   public:
 	  CollectiveSubconnector(Synchronizer* _synch,
 			     MPI::Intracomm intracomm,  EventRouter *router):Subconnector (),
 			     BufferingOutputSubconnector (sizeof (Event)),
-			     router_(router),flushed(false)
+			     router_(router)
 	      { synch =_synch;_intracomm = intracomm; };
 	  void maybeCommunicate ();
 	  void flush (bool& dataStillFlowing);
@@ -156,8 +160,6 @@ namespace MUSIC {
   };
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
-double tt;
-int cur_rank;
   public:
     EventOutputSubconnector (Synchronizer* synch,
 			     MPI::Intercomm intercomm,
@@ -167,7 +169,6 @@ int cur_rank;
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
-  //  ~EventOutputSubconnector(){if(cur_rank == 15) std::cerr << "out:15->"<<remoteRank_ <<"::"<<tt<<std::endl;}
 
   };
   
@@ -188,8 +189,6 @@ int cur_rank;
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
     static EventHandlerGlobalIndexDummy dummyHandler;
-    int ss;
-    double tt;
   public:
     EventInputSubconnectorGlobal (Synchronizer* synch,
 				  MPI::Intercomm intercomm,
@@ -200,7 +199,6 @@ int cur_rank;
 				  EventHandlerGlobalIndex* eh);
     void receive ();
     void flush (bool& dataStillFlowing);
-   // ~EventInputSubconnectorGlobal(){if (receiverRank_ == 15)std::cerr<< "in:" << remoteWorldRank_ << "->15::"<<tt<<std::endl;}
   };
 
   class EventInputSubconnectorLocal : public EventInputSubconnector {

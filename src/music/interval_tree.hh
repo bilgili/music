@@ -18,77 +18,97 @@
  */
 
 #ifndef MUSIC_INTERVAL_TREE_HH
+
 #include <vector>
 #include <limits>
 #include <algorithm>
-
+#include <music/interval.hh>
 namespace MUSIC {
 
-  template<class PointType, class DataType>
+  template<class PointType>
   class IntervalTree {
     static const int ROOT = 0;
+    /* remedius
+     * The access specifier of the class NodeType has been changed to public
+     * due to compilation problems on BG machines.
+     */
 public:
     class NodeType {
       PointType maxEnd_;
-      static DataType noMean;
-      DataType &data_;
+      /* remedius
+       * Since the hierarchy of EventRoutingData was introduced and the base class became Interval,
+       * there is no need in the second template parameter Datatype,
+       * so the field DataType IntervalTree::NodeType::data_ was changed to  Interval *IntervalTree::NodeType::data_
+       * and according changes were made.
+       * IntervalTree contains the whole data, so that there is no deen to keep data outside the tree
+       * (for that purpose ICloneable interface and Clone method were introduced).
+       */
+      Interval *data_;
     public:
-      NodeType () : maxEnd_ (noNode ()), data_(noMean) { }
-      NodeType (const DataType& d) : maxEnd_ (noNode ()),data_( const_cast<DataType&>(d)){}
-      NodeType (const PointType m, const DataType& d): maxEnd_ (m),data_ (const_cast<DataType&>(d)){}
-      ~NodeType (){};
+      NodeType () : maxEnd_ (noNode ()), data_(NULL) { }
+      NodeType (const Interval& d) : maxEnd_ (noNode ()),data_(d.Clone()){}
+      NodeType (const PointType m, const Interval& d): maxEnd_ (m),data_ (d.Clone()){}
+      ~NodeType (){if(data_!= NULL) delete data_;};
+      // Copy constructor
+      NodeType(const NodeType &node)
+      {
+    	  if(node.data_ != NULL)
+    		  data_ = node.data_->Clone();
+    	  else
+    		  data_ = NULL;
+    	  maxEnd_ = node.maxEnd();
+      }
+      NodeType& operator=(const NodeType &node) {
+    	  if (this != &node) {
+    		  this->NodeType::~NodeType(); // explicit non-virtual destructor
+    		  new (this) NodeType(node.maxEnd_,*node.data_); // placement new
+    	  }
+    	  return *this;
+      }
       static PointType noNode () {
 	return std::numeric_limits<PointType>::min ();
       }
       bool operator< (const NodeType& other) const {
 	return begin () < other.begin ();
       }
-      DataType& data () { return data_; }
-      PointType begin () const { return data_.begin (); }
-      PointType end () const { return data_.end (); }
+      Interval& data () { return *data_; }
+      PointType begin () const { return data_->begin (); }
+      PointType end () const { return data_->end (); }
       PointType maxEnd () const { return maxEnd_; }
-      //should be overloaded due to the reference(data_) initialization
-      NodeType &operator= (const NodeType &node) {
-      	    if (this != &node) {
-      	        this->NodeType::~NodeType(); // explicit non-virtual destructor
-      	        new (this) NodeType(node.maxEnd_,node.data_); // placement new
-      	    }
-      	    return *this;
-      	}
     };
-private:
+
     std::vector<NodeType> nodes;
     int leftChild (int i) const { return 2 * i + 1; }
     int rightChild (int i) const { return 2 * i + 2; }
     int computeSize () const;
     PointType build (std::vector<NodeType>& dest, int l, int r, int i);
-public:
+  public:
     class Action {
     public:
-      virtual void operator() (DataType& data) = 0;
+      virtual void operator() (Interval& data) = 0;
     };
   private:
     void search (int i, PointType point, Action* a);
   public:
-    void add (const DataType& data);
+    void add (const Interval& data);
     void build ();
     void search (PointType point, Action* a);
     int size () const { return nodes.size (); }
   };
-template<class PointType, class DataType>
-DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
+//template<class PointType, class DataType>
+//DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
 
-  template<class PointType, class DataType>
+  template<class PointType>
   void
-  IntervalTree<PointType, DataType>::add (const DataType& data)
+  IntervalTree<PointType>::add (const Interval& data)
   {
     nodes.push_back (NodeType (data));
   }
 
 
-  template<class PointType, class DataType>
+  template<class PointType>
   int
-  IntervalTree<PointType, DataType>::computeSize () const
+  IntervalTree<PointType>::computeSize () const
   {
     int b = 2;
     int s = nodes.size () + 1;
@@ -101,20 +121,21 @@ DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
   }
 
   
-  template<class PointType, class DataType>
+  template<class PointType>
   void
-  IntervalTree<PointType, DataType>::build ()
+  IntervalTree<PointType>::build ()
   {
     sort (nodes.begin (), nodes.end ());
-    std::vector<NodeType> newNodes (computeSize ());
+    int size = computeSize ();
+    std::vector<NodeType> newNodes (size);
     build (newNodes, 0, nodes.size (), ROOT);
     nodes = newNodes;
   }
   
   
-  template<class PointType, class DataType>
+  template<class PointType>
   PointType
-  IntervalTree<PointType, DataType>::build (std::vector<NodeType>& dest,
+  IntervalTree<PointType>::build (std::vector<NodeType>& dest,
 					    int l,
 					    int r,
 					    int i)
@@ -135,16 +156,16 @@ DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
   }
 
 
-  template<class PointType, class DataType>
+  template<class PointType>
   void
-  IntervalTree<PointType, DataType>::search (PointType p, Action* a)
+  IntervalTree<PointType>::search (PointType p, Action* a)
   {
     search (ROOT, p, a);
   }
 
-  template<class PointType, class DataType>
+  template<class PointType>
   void
-  IntervalTree<PointType, DataType>::search (int i, PointType p, Action* a)
+  IntervalTree<PointType>::search (int i, PointType p, Action* a)
   {
     // this condition both checks if the point is to the right of all
     // nodes in this subtree and stops recursion at NO_NODE values
@@ -164,5 +185,6 @@ DataType IntervalTree<PointType, DataType>::NodeType::noMean = DataType();
     search (rightChild (i), p, a);
   }
 }
+
 #define MUSIC_INTERVAL_TREE_HH
 #endif

@@ -17,7 +17,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+#include "config.h"
 #define MUSIC_HAVE_SIZE_T @MUSIC_HAVE_SIZE_T@
 #define MUSIC_HAVE_LONG_LONG @MUSIC_HAVE_LONG_LONG@
 

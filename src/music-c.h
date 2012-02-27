@@ -21,6 +21,7 @@
 
 #ifdef USE_MPI
 #include <mpi.h>
+
 #if MUSIC_HAVE_SIZE_T
 #include <sys/types.h>
 #else
@@ -59,13 +60,16 @@ MUSIC_EventInputPort *MUSIC_publishEventInput (MUSIC_Setup *setup, char *id);
 MUSIC_MessageOutputPort *MUSIC_publishMessageOutput (MUSIC_Setup *setup, char *id);
 MUSIC_MessageInputPort *MUSIC_publishMessageInput (MUSIC_Setup *setup, char *id);
 
-void MUSIC_destroyContOutput (MUSIC_ContOutputPort* port);
+/* remedius
+ *  Free of the ports is done by the Runtime instance
+ */
+/*void MUSIC_destroyContOutput (MUSIC_ContOutputPort* port);
 void MUSIC_destroyContInput (MUSIC_ContInputPort* port);
 void MUSIC_destroyEventOutput (MUSIC_EventOutputPort* port);
 void MUSIC_destroyEventInput (MUSIC_EventInputPort* port);
 void MUSIC_destroyMessageOutput (MUSIC_MessageOutputPort* port);
 void MUSIC_destroyMessageInput (MUSIC_MessageInputPort* port);
-
+*/
 /* General port methods */
 
 int MUSIC_ContOutputPort_isConnected (MUSIC_ContOutputPort *port);

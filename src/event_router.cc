@@ -15,8 +15,8 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <iostream>
+#include <mpi.h>
 #include "music/debug.hh"
 #include "music/event.hh"
 #include "music/event_router.hh"
@@ -55,37 +55,40 @@ TreeProcessingRouter::processEvent (double t, LocalIndex id)
 void
 TableProcessingRouter::processEvent(double t, GlobalIndex id)
 {
-	int size = routingTable.size();
-	for(int i = 0; i < size; ++i)
-		if(id < routingTable[i].size()){
-			if(routingTable[i][id] != NULL)
-				routingTable[i][id]->process(t, id);
+	std::map<void*, std::vector<EventRoutingData*> >::iterator it;
+	for ( it=routingTable.begin() ; it != routingTable.end(); it++ )
+		if(id < (int)((*it).second).size()){
+			if(((*it).second)[id] != NULL)
+				((*it).second)[id]->process(t, id);
+		}
+}
+void
+TableProcessingRouter::processEvent(double t, LocalIndex id)
+{
+	std::map<void*, std::vector<EventRoutingData*> >::iterator it;
+	for ( it=routingTable.begin() ; it != routingTable.end(); it++ )
+		if(id < (int)((*it).second).size()){
+			if(((*it).second)[id] != NULL)
+				((*it).second)[id]->process(t, id - ((*it).second)[id]->offset ());
 		}
 }
 
 void
 TableProcessingRouter::insertRoutingData(EventRoutingData &data)
 {
-
-	std::map<void*,int>::iterator it;
-	int size = indexer.size();
-	int idx = size;
-	it = indexer.find(data.Data());
-	if(it != indexer.end() )
-		idx = it->second;
-	else
-		indexer[data.Data()]= size;
-
-	if(data.end() > routingTable[idx].size())
-		routingTable[idx].resize(data.end());
+	routingData.push_back(data.Clone());
+	void *data_ = data.Data();
+	//if it's additional index range for the existing Data
+	//or it's a new Data with its new index range
+	if(data.end() > (int)routingTable[data_].size())
+		routingTable[data_].resize(data.end());
+    // for each element i in the index range
+	// data should be the same (buffer or event handler)
 	for(int i=data.begin(); i < data.end(); ++i)
-		routingTable[idx][i] = &data;
+		routingTable[data_][i] = routingData.back();
 }
-TableProcessingRouter::~TableProcessingRouter()
-{
-	for(int i = 0; i < routingTable.size(); ++i)
-		for(int j=0; j< routingTable[i].size(); ++j)
-			if(routingTable[i][j] != NULL)
-				delete routingTable[i][j];
+TableProcessingRouter::~TableProcessingRouter(){
+	std::vector<EventRoutingData*>::iterator it =routingData.begin();
+	while(it != routingData.end()){delete (*it); it++;}
 }
 }

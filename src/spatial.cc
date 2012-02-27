@@ -152,7 +152,6 @@ namespace MUSIC {
     // First determine local least upper bound and width
     int u = 0;
     int w = 0;
-    int rank = MPI::COMM_WORLD.Get_rank ();
     for (IndexMap::iterator i = indices->begin ();
 	 i != indices->end ();
 	 ++i)
@@ -213,7 +212,10 @@ namespace MUSIC {
 	// receiver side with index larger than the sender side width,
 	// we will still choose sender side width as receiver side
 	// width.
-	if (width == Index::WILDCARD_MAX && width < remoteWidth )
+	/* remedius
+	 * temporal fix is width = remoteWidth; shouldn't be like this!!!
+	 */
+	if (width == Index::WILDCARD_MAX || width < remoteWidth )
 	  width = remoteWidth;
 	intercomm.Send (&width, 1, MPI::INT, 0, WIDTH_MSG);
       }
@@ -505,23 +507,17 @@ namespace MUSIC {
     for (unsigned int i = localRank + 1; i < nProcesses; ++i)
       receive (comm, i, in[i]);
   }
-  IndexMap*
+  NegotiationIterator
   SpatialNegotiator::negotiateSimple(MPI::Intracomm c)
   {
 	  comm = c;
 	  nProcesses = comm.Get_size ();
 	  localRank = comm.Get_rank ();
 	  negotiateWidth();
-/*	  NegotiationIntervals intvls;
-	  for (IndexMap::iterator i = indices->begin(); i != indices->end(); ++i)
-	  {
-		  intvls.push_back(SpatialNegotiationData(*i,-1));
-	  }
-	  std::vector<NegotiationIntervals> data;
-	  data.push_back(intvls);*/
-
-
-	  return indices;
+      return wrapIntervals (indices->begin (),
+			    indices->end (),
+			    type,
+			    localRank);
   }
   SpatialOutputNegotiator::SpatialOutputNegotiator (IndexMap* indices,
 						    Index::Type type)

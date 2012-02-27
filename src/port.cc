@@ -109,7 +109,7 @@ namespace MUSIC {
 
 
   void
-  OutputRedistributionPort::setupCleanup ()
+  OutputPort::setupCleanup ()
   {
     // NOTE: Cleanup resources only used during setup phase,
     if (spatialNegotiator)
@@ -118,7 +118,7 @@ namespace MUSIC {
   
 
   void
-  OutputRedistributionPort::mapImpl (IndexMap* indices,
+  OutputPort::mapImpl (IndexMap* indices,
 				     Index::Type type,
 				     int maxBuffered,
 				     int dataSize)
@@ -140,7 +140,7 @@ namespace MUSIC {
 	 ++info)
       {
 	// Create connector
-	Connector* connector = makeOutputConnector (*info);
+	Connector* connector = makeConnector (*info);
 	setup_->addConnection (new OutputConnection (connector,
 						     maxBuffered,
 						     dataSize));
@@ -149,7 +149,7 @@ namespace MUSIC {
 
 
   void
-  InputRedistributionPort::setupCleanup ()
+  InputPort::setupCleanup ()
   {
     // NOTE: Cleanup resources only used during setup phase,
     if (spatialNegotiator)
@@ -158,7 +158,7 @@ namespace MUSIC {
 
   
   void
-  InputRedistributionPort::mapImpl (IndexMap* indices,
+  InputPort::mapImpl (IndexMap* indices,
 				    Index::Type type,
 				    double accLatency,
 				    int maxBuffered,
@@ -177,7 +177,7 @@ namespace MUSIC {
       = ConnectivityInfo_->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
     spatialNegotiator = new SpatialInputNegotiator (indices, type);
-    Connector* connector = makeInputConnector (*info);
+    Connector* connector = makeConnector (*info);
     ClockState integerLatency (accLatency, setup_->timebase ());
     setup_->addConnection (new InputConnection (connector,
 						maxBuffered,
@@ -219,7 +219,7 @@ namespace MUSIC {
   {
     sampler.configure (dmap);
     type_ = dmap->type ();
-    OutputRedistributionPort::mapImpl (dmap->indexMap (),
+    OutputPort::mapImpl (dmap->indexMap (),
 				       Index::GLOBAL,
 				       maxBuffered,
 				       0);
@@ -227,7 +227,7 @@ namespace MUSIC {
 
 
   Connector*
-  ContOutputPort::makeOutputConnector (ConnectorInfo connInfo)
+  ContOutputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new ContOutputConnector (connInfo,
 				    spatialNegotiator,
@@ -292,7 +292,7 @@ namespace MUSIC {
     sampler.configure (dmap);
     delay_ = delay;
     type_ = dmap->type ();
-    InputRedistributionPort::mapImpl (dmap->indexMap (),
+    InputPort::mapImpl (dmap->indexMap (),
 				      Index::GLOBAL,
 				      delay,
 				      maxBuffered,
@@ -301,7 +301,7 @@ namespace MUSIC {
 
   
   Connector*
-  ContInputPort::makeInputConnector (ConnectorInfo connInfo)
+  ContInputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new ContInputConnector (connInfo,
 				   spatialNegotiator,
@@ -321,21 +321,39 @@ namespace MUSIC {
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
   : Port (s, id), routingMap (new OutputRoutingMap ())
   {
-	  int commType = ConnectivityInfo_->connections()[0].communicationType();
-	  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-	  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::PAIRWISE)
-		  router = new TreeProcessingRouter();
-	  else
-		  router = new TableProcessingRouter();
+	  /* remedius
+	   * Depending on the communication type (<commType>) and
+	   * processing method (<procMethod>) that was introduced as
+	   * runtime configuration options,
+	   * particular processing router should be created on the output side.
+	   * When collective communication type is used,
+	   * then the processing method has to be TABLE on the output side, as in this case
+	   * the processing on the output side means just an insertion of the event to the buffer.
+	   * The difference between pairwise and collective communication types is that on the output side
+	   * in the latest case we have only one buffer (one CollectiveSubconnector).
+	   */
+	  if(isConnected()){
+		  int commType = ConnectivityInfo_->connections()[0].communicationType();
+		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
+		  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::PAIRWISE)
+			  router = new TreeProcessingRouter();
+		  else{
+			  router = new TableProcessingRouter();
+		  }
+	  }
 
   }
 
+ EventOutputPort::~EventOutputPort()
+ {
+	 if(router != NULL)
+		 delete router;
+ }
   
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
     assertOutput ();
-    type_ = type;
     int maxBuffered = MAX_BUFFERED_NO_VALUE;
     mapImpl (indices, type, maxBuffered, sizeof (Event));
   }
@@ -347,7 +365,6 @@ namespace MUSIC {
 			int maxBuffered)
   {
     assertOutput ();
-    type_ = type;
     if (maxBuffered <= 0)
       {
 	error ("EventOutputPort::map: maxBuffered should be a positive integer");
@@ -357,14 +374,14 @@ namespace MUSIC {
 
   
   Connector*
-  EventOutputPort::makeOutputConnector (ConnectorInfo connInfo)
+  EventOutputPort::makeConnector (ConnectorInfo connInfo)
   {
 	  Connector *conn;
+	  // we need to choose a right connector according to the communication type
 	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
 		  conn = new EventOutputConnector (connInfo,
 				     spatialNegotiator,
 				     setup_->communicator (),
-				     Index::UNDEFINED,
 				     routingMap);
 	  else
 		  conn = new CollectiveConnector(connInfo,
@@ -397,20 +414,39 @@ namespace MUSIC {
   }
 
   EventInputPort::EventInputPort (Setup* s, std::string id)
-    : Port (s, id),routingMap(new InputRoutingMap())
+    : Port (s, id),routingMap(NULL)
   {
-	  int commType = ConnectivityInfo_->connections()[0].communicationType();
-	  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-	  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::COLLECTIVE)
-		  router = new TreeProcessingRouter();
-	  else
-		  router = new TableProcessingRouter();
+	  /* remedius
+	   * Depending on the communication type (<commType>) and
+	   * processing method (<procMethod>) that was introduced as runtime configuration options,
+	   * particular processing router should be created on the input side.
+	   * When pairwise communication type is used,then there is no need in the routingMap or router.
+	   */
+	  if(isConnected()){
+		  int commType = ConnectivityInfo_->connections()[0].communicationType();
+		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
+		  if(commType != ConnectorInfo::PAIRWISE)
+		  {
+			  routingMap = new InputRoutingMap();
+			  if(procMethod == ConnectorInfo::TREE )
+				  router = new TreeProcessingRouter();
+			  else
+				  router = new TableProcessingRouter();
+		  }
+	  }
 
+
+  }
+  EventInputPort::~EventInputPort()
+  {
+	 if(router != NULL)
+		 delete router;
   }
   void
   EventInputPort::buildTable()
   {
-	  routingMap->build(router);
+	  if(routingMap != NULL)
+		  routingMap->build(router);
   }
   
   void
@@ -490,7 +526,7 @@ namespace MUSIC {
   {
     type_ = type;
     handleEvent_ = handleEvent;
-    InputRedistributionPort::mapImpl (indices,
+    InputPort::mapImpl (indices,
 				      type,
 				      accLatency,
 				      maxBuffered,
@@ -499,15 +535,15 @@ namespace MUSIC {
 
   
   Connector*
-  EventInputPort::makeInputConnector (ConnectorInfo connInfo)
+  EventInputPort::makeConnector (ConnectorInfo connInfo)
   {
+	  // we need to choose a right connector according to the communication type
 	  Connector *conn;
 	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
 		  conn =   new EventInputConnector (connInfo,
 		  			  spatialNegotiator,
 		  			  setup_->communicator (),
 		  			  type_,
-		  			  routingMap,
 		  			  handleEvent_);
 	  else
 		  conn = new CollectiveConnector(connInfo,
@@ -580,7 +616,7 @@ namespace MUSIC {
   {
     // Identify ourselves
     LinearIndex indices (rank_, 1);
-    OutputRedistributionPort::mapImpl (&indices,
+    OutputPort::mapImpl (&indices,
 				       Index::GLOBAL,
 				       maxBuffered,
 				       1);
@@ -588,7 +624,7 @@ namespace MUSIC {
   
   
   Connector*
-  MessageOutputPort::makeOutputConnector (ConnectorInfo connInfo)
+  MessageOutputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new MessageOutputConnector (connInfo,
 				       spatialNegotiator,
@@ -699,7 +735,7 @@ namespace MUSIC {
     handleMessage_ = handleMessage;
     // Receive from everybody
     LinearIndex indices (0, handleMessage ? Index::WILDCARD_MAX : 0);
-    InputRedistributionPort::mapImpl (&indices,
+    InputPort::mapImpl (&indices,
 				      Index::GLOBAL,
 				      accLatency,
 				      maxBuffered,
@@ -708,7 +744,7 @@ namespace MUSIC {
 
   
   Connector*
-  MessageInputPort::makeInputConnector (ConnectorInfo connInfo)
+  MessageInputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new MessageInputConnector (connInfo,
 				      spatialNegotiator,

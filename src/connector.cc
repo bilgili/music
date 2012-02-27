@@ -70,6 +70,39 @@ namespace MUSIC {
   {
     intercomm.Free ();
   }
+  int Connector::spatialNegotiation (std::vector<Subconnector*>& rsubconn)
+    {
+
+      std::map<int, Subconnector*> subconnectors;
+      for (NegotiationIterator i
+  	   = spatialNegotiator_->negotiate (comm,
+  					    intercomm,
+  					    info.nProcesses (),
+  					    this); // only for debugging
+  	 !i.end ();
+  	 ++i)
+        {
+  	std::map<int, Subconnector*>::iterator c
+  	  = subconnectors.find (i->rank ());
+  	Subconnector* subconn;
+  	if (c != subconnectors.end ())
+  	  subconn = c->second;
+  	else
+  	  {
+  	    subconn = makeSubconnector (i->rank ());
+  	    subconnectors.insert (std::make_pair (i->rank (), subconn));
+  	    rsubconn.push_back (subconn);
+  	  }
+  	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+  		   << ": ("
+  		   << i->begin () << ", "
+  		   << i->end () << ", "
+  		   << i->local () << ") -> " << i->rank ());
+  	addRoutingInterval (i->interval (), subconn);
+        }
+      return UNDEFINED_SUBCONNECTORS;
+    }
+
   /********************************************************************
    *
    * Collective Connector
@@ -77,21 +110,14 @@ namespace MUSIC {
    ********************************************************************/
   int CollectiveConnector::spatialNegotiation(std::vector<Subconnector*>& rsubconn){
 	  Subconnector *subconn = makeSubconnector(-1);
-/*	  for (NegotiationIterator i = connector->spatialNegotiator()->negotiateSimple(); !i.end (); ++i)
-	  {
-		  rsubconn.push_back (subconn);
-		  MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
-				  << ": ("
-				  << i->begin () << ", "
-				  << i->end () << ", "
-				  << i->local () << ") -> " << i->rank ());
-		  addRoutingInterval (i->interval (), subconn);
-	  }*/
 	  rsubconn.push_back (subconn);
-	  IndexMap *indices = spatialNegotiator_->negotiateSimple(comm);
-	  for (IndexMap::iterator i = indices->begin(); i != indices->end(); ++i)
-	  	  {
-		  		  addRoutingInterval (*i, subconn);
+	  for (NegotiationIterator i
+	    	   = spatialNegotiator_->negotiateSimple (comm); // only for debugging
+	    	 !i.end ();
+	    	 ++i)
+	          {
+
+		  		  addRoutingInterval (i->interval (), subconn);
 	  	  }
 	  return COLLECTIVE_SUBCONNECTORS;
   }
@@ -107,41 +133,14 @@ namespace MUSIC {
   void
   CollectiveConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
   {
-	  conn->addRoutingInterval (i, subconn);
-  }
-
-  int Connector::spatialNegotiation (std::vector<Subconnector*>& rsubconn)
-  {
-
-    std::map<int, Subconnector*> subconnectors;
-    for (NegotiationIterator i
-	   = spatialNegotiator_->negotiate (comm,
-					    intercomm,
-					    info.nProcesses (),
-					    this); // only for debugging
-	 !i.end ();
-	 ++i)
-      {
-	std::map<int, Subconnector*>::iterator c
-	  = subconnectors.find (i->rank ());
-	Subconnector* subconn;
-	if (c != subconnectors.end ())
-	  subconn = c->second;
-	else
-	  {
-	    subconn = makeSubconnector (i->rank ());
-	    subconnectors.insert (std::make_pair (i->rank (), subconn));
-	    rsubconn.push_back (subconn);
+	  if(routingMap_ != NULL) {// if we are on the input side, we have to insert an interval since addRoutingInterval
+		                      // of the EventInputConnector does nothing.
+		  routingMap_-> insert (i, handleEvent_.global());
 	  }
-	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
-		   << ": ("
-		   << i->begin () << ", "
-		   << i->end () << ", "
-		   << i->local () << ") -> " << i->rank ());
-	addRoutingInterval (i->interval (), subconn);
-      }
-    return UNDEFINED_SUBCONNECTORS;
+	  else
+		  conn->addRoutingInterval (i, subconn);
   }
+
 
 
   /********************************************************************
@@ -438,31 +437,31 @@ namespace MUSIC {
    *
    ********************************************************************/
   void
-    EventConnector::tick (bool& requestCommunication)
-    {
-      synch->tick ();
-      // Only assign requestCommunication if true
-      if (synch->communicate ())
-        requestCommunication = true;
-    }
+    EventOutputConnector::tick (bool& requestCommunication)
+      {
+        synch.tick ();
+        // Only assign requestCommunication if true
+        if (synch.communicate ())
+          requestCommunication = true;
+      }
 
-    void
-    EventConnector::initialize ()
-    {
-      synch->initialize ();
-    }
+      void
+      EventOutputConnector::initialize ()
+      {
+        synch.initialize ();
+      }
 
 
   Subconnector*
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
-    return new EventOutputSubconnector (synch,
+    return new EventOutputSubconnector (&synch,
 					intercomm,
 					remoteLeader (),
 					remoteRank,
 					receiverPortCode ());
   }
-  int EventOutputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
+  int OutputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
   {
 	  Connector::spatialNegotiation(subconn);
 	  return OUTPUT_SUBCONNECTORS;
@@ -476,17 +475,8 @@ namespace MUSIC {
     routingMap_-> insert (i, osubconn->buffer ());
   }
   
-void EventOutputConnector::createSynchronizer()
-  {
-	  synch = new OutputSynchronizer();
-  }
-void EventOutputConnector::destroySynchronizer()
-{
-	delete synch;
-}
-  
 
-  int EventInputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
+  int InputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
   {
 	  Connector::spatialNegotiation(subconn);
 	  return INPUT_SUBCONNECTORS;
@@ -496,7 +486,7 @@ void EventOutputConnector::destroySynchronizer()
   {
 	int receiverRank = intercomm.Get_rank ();
     if (type_ == Index::GLOBAL)
-      return new EventInputSubconnectorGlobal (synch,
+      return new EventInputSubconnectorGlobal (&synch,
 					       intercomm,
 					       remoteLeader (),
 					       remoteRank,
@@ -504,7 +494,7 @@ void EventOutputConnector::destroySynchronizer()
 					       receiverPortCode (),
 					       handleEvent_.global ());
     else
-      return new EventInputSubconnectorLocal (synch,
+      return new EventInputSubconnectorLocal (&synch,
 					      intercomm,
 					      remoteLeader (),
 					      remoteRank,
@@ -512,18 +502,24 @@ void EventOutputConnector::destroySynchronizer()
 					      receiverPortCode (),
 					      handleEvent_.local ());
   }
- void EventInputConnector::createSynchronizer()
+  void
+  EventInputConnector::tick (bool& requestCommunication)
   {
-  	  synch = new InputSynchronizer();
-
+	  synch.tick ();
+	  // Only assign requestCommunication if true
+	  if (synch.communicate ())
+		  requestCommunication = true;
   }
- void EventInputConnector::destroySynchronizer()
- {
- 	delete synch;
- }
+
+  void
+  EventInputConnector::initialize ()
+  {
+	  synch.initialize ();
+  }
+
  void EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
  {
-	 routingMap_-> insert (i, handleEvent_.global());
+	 //routingMap_-> insert (i, handleEvent_.global());
  }
 
 

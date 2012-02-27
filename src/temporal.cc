@@ -491,9 +491,8 @@ namespace MUSIC {
 	if (hasPeers ())
 	  broadcastNegotiationData ();
       }
-    else{
+    else
     	receiveNegotiationData ();
-    }
     distributeNegotiationData (localTime);
   }
 

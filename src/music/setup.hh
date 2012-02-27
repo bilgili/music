@@ -92,8 +92,8 @@ namespace MUSIC {
     // one user API part and one internal interface part.
     friend class Runtime;
     friend class Port;
-    friend class OutputRedistributionPort;
-    friend class InputRedistributionPort;
+    friend class OutputPort;
+    friend class InputPort;
     friend class TemporalNegotiator;
     friend class ApplicationNode;
     

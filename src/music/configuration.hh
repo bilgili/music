@@ -29,6 +29,10 @@ namespace MUSIC {
   class Configuration {
   private:
     static const char* const configEnvVarName;
+    /* remedius
+     * name of the file that contains mapping of the ranks to applications
+     * and according configEnvVarName.
+     */
     static const char* const mapFileName;
     bool launchedByMusic_;
     std::string applicationName_;
@@ -41,6 +45,9 @@ namespace MUSIC {
 #ifdef USE_MPI
     void getEnv( std::string* result);
 #endif
+    /* remedius
+     * Parses <map_file> in order to read configEnvVarName(<result>) that belongs to the current <rank>.
+     */
     void parseMapFile(int rank, std::string map_file, std::string *result);
   public:
 #ifdef USE_MPI

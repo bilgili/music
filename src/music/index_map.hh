@@ -53,6 +53,7 @@ namespace MUSIC {
       : Interval (b, e), local_ (l) { }
     LocalIndex local () const { return local_; }
     void setLocal (int l) { local_ = l; }
+    Interval *Clone()const {return new IndexInterval(this->begin(),this->end(), this->local());}
   };
 
   bool operator< (const IndexInterval& a, const IndexInterval& b);

@@ -45,13 +45,23 @@ class SourceDest: public DataLine{
 	std::string d_destObj;
 	std::string d_width;
 	std::string d_comment;
+	/* remedius
+	 * <collective> or <pairwise>
+	 */
 	std::string d_commType;
+	/* remedius
+	 * <tree> or <table>
+	*/
 	std::string d_procMethod;
 
 public:
 
 	// default constructor
 	SourceDest();
+	/* remedius
+	 * two more parameters: commType and procMethod were added due to the runtime opportunity
+	 * of choosing communication type and pre-/post-processing method.
+	 */
 	SourceDest(const char *srcApp, const char *srcObj, const char *destApp,  const char *destObj,
 			const char *width, const char* commType, const char *procMethod, const char *comment);
 	
@@ -64,7 +74,13 @@ public:
 	const char *getDestApp() const;
 	const char *getDestObj() const;
 	const char *getWidth() const;
+    /* remedius
+     *
+     */
 	const char *getCommType() const;
+	/* remedius
+	 *
+	 */
 	const char *getProcMethod() const;
 
 	//= 
@@ -84,7 +100,13 @@ public:
 	void setDestApp(const char *name);
 	void setDestObj(const char *name);
 	void setWidth(const char *name);
+	/* remedius
+	 *
+	 */
 	void setCommType(const char *commType);
+	/* remedius
+	 *
+	 */
 	void setProcMethod(const char *procMethod);
 
 	//= 

@@ -48,6 +48,9 @@ namespace rude{
 namespace config{
 
 enum SectionState{ STARTSECTION, SECTIONID, ESCAPEID, ENDSECTIONID, SECTIONCOMMENT, FOUNDIDONLY, FOUNDIDCOMMENT, SECTIONERROR, ENDSECTION };
+/* remedius
+ * GETCOMMTYPE, GETPROCMETHOD were added in order to support runtime configuration options for choosing communication type and pre-/post-processing method
+ */
 enum KeyValueState{ KEY, KEYESCAPE, STARTVALUE, COMMENT, FINDCOMMENT, KVERROR, ENDKV, VALUE, QUOTEVALUE, NONQUOTEVALUE, QUOTEESCAPE, NONQUOTEESCAPE, ENDKEYVALUE, LEFTARROW, RIGHTARROW, GETSOURCE, GETDEST, GETWIDTH, GETCOMMTYPE, GETPROCMETHOD, SDCOMMENT, ENDSOURCEDEST};
 
 void ParserJuly2004::stripTrailing(std::string& buffer)
@@ -353,7 +356,9 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                         std::string destApp = "";
                         std::string destObj = "";
                         std::string width = "";
+                        /* remedius */
                         std::string commType = "";
+                        /* remedius */
                         std::string procMethod = "";
 
 			while (kvState != ENDKEYVALUE)
@@ -1020,6 +1025,9 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
 
                                                 // LOOP
                                               }
+                                            /* remedius
+                                             * communication type (GETCOMMTYPE) and processing method(GETPROCMETHOD) parameters are optional.
+                                             */
                                             else if(c == ',')
                                             {
                                             	stripTrailing(width);
@@ -1045,6 +1053,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                             }
                                             break;
                                           }
+                                          /* remedius */
                                         case GETCOMMTYPE:
                                         {
                                             int c = infile.peek();
@@ -1092,6 +1101,7 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                             break;
 
                                         }
+                                        /* remedius */
                                         case GETPROCMETHOD:
                                         {
                                         	int c = infile.peek();
@@ -1170,9 +1180,11 @@ bool ParserJuly2004::parse(std::istream& infile, AbstractOrganiser& organiser)
                                             stripTrailing(destApp);
                                             stripTrailing(destObj);
                                             stripTrailing(width);
+                                            /* remedius */
                                             stripTrailing(commType);
+                                            /* remedius */
                                             stripTrailing(procMethod);
-
+                                            /* remedius */
                                             organiser.foundSourceDest(srcApp.c_str(), srcObj.c_str(), destApp.c_str(), destObj.c_str(), width.c_str(), commType.c_str(), procMethod.c_str(), comment.c_str());
                                             
                                             kvState = ENDKEYVALUE;

@@ -16,7 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <cstring>
-
+#include <iostream>
+#include <mpi.h>
 #include "music/FIBO.hh"
 
 namespace MUSIC {
@@ -84,6 +85,7 @@ namespace MUSIC {
   void
   FIBO::nextBlockNoClear (void*& data, int& blockSize)
   {
+
     data = static_cast<void*> (&buffer[0]);
     blockSize = current;
   }

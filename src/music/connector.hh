@@ -36,16 +36,23 @@
 
 #include <music/subconnector.hh>
 namespace MUSIC {
-
+/* remedius
+ * New type of Connector was introduced: CollectiveConnector.
+ * So that Connector class hierarchy undergoes the following changes:
+ * the common functionality for OutputConnector and InputConnector classes was moved to the base Connector class.
+ */
   // The Connector is responsible for one side of the communication
   // between the ports of a port pair.  An output port can have
   // multiple connectors while an input port only has one.  The method
   // connector::connect () creates one subconnector for each MPI
   // process we will communicate with on the remote side.
 
+   /* remedius
+  */
+  enum SubconnectorType{OUTPUT_SUBCONNECTORS,INPUT_SUBCONNECTORS,COLLECTIVE_SUBCONNECTORS,UNDEFINED_SUBCONNECTORS};
+
   class Connector {
-  public:
-	  enum SubconnectorsType{OUTPUT_SUBCONNECTORS,INPUT_SUBCONNECTORS,COLLECTIVE_SUBCONNECTORS,UNDEFINED_SUBCONNECTORS};
+
   protected:
     ConnectorInfo info;
     SpatialNegotiator* spatialNegotiator_;
@@ -74,11 +81,24 @@ namespace MUSIC {
     virtual Synchronizer* synchronizer () = 0;
     virtual void createIntercomm ();
     virtual void freeIntercomm ();
+    /* remedius
+     * since there can be different types of Subconnectors,
+     * Instead of adding new type of Subconnector,
+     * function parameters' were changed to one parameter without specifying the type of Subconnector and
+     * the common functionality for InputConnector::spatialNegotiation and OutputConnector::spatialNegotiation
+     * was coded in this base Connector::spatialNegotiation() method.
+     * Returns SubconnectorType.
+     */
     virtual int spatialNegotiation (std::vector<Subconnector*>& subconn);
     virtual void initialize () = 0;
     virtual void prepareForSimulation () { }
     virtual void tick (bool& requestCommunication) = 0;
-
+    /* remedius
+     * In order to carry out the base functionality to the spatialNegotiation() method
+     * the two following common virtual methods were added so that
+     * all successors of this class had to override abstract makeSubconnector method
+     * instead of implementing it's own make^SpecificType^Subconnector() method.
+     */
     virtual void addRoutingInterval (IndexInterval i, Subconnector* s){};
     virtual Subconnector* makeSubconnector (int remoteRank) = 0;
   };
@@ -87,6 +107,15 @@ namespace MUSIC {
   class PostCommunicationConnector : virtual public Connector {
   public:
     virtual void postCommunication () = 0;    
+  };
+  class OutputConnector : virtual public Connector {
+  public:
+    virtual int spatialNegotiation (std::vector<Subconnector*>& subconn);
+  };
+
+  class InputConnector : virtual public Connector {
+  public:
+    virtual int spatialNegotiation (std::vector<Subconnector*>& subconn);
   };
 
   class ContConnector : virtual public Connector {
@@ -108,7 +137,7 @@ namespace MUSIC {
   class InterpolatingConnector : virtual public Connector {
   };
   
-  class ContOutputConnector : public ContConnector {
+  class ContOutputConnector : public ContConnector, public OutputConnector  {
   protected:
     Distributor distributor_;
   public:
@@ -142,6 +171,7 @@ namespace MUSIC {
   };
   
   class ContInputConnector : public ContConnector,
+  	  	  	  	  public InputConnector,
 			     public PostCommunicationConnector {
   protected:
     Collector collector_;
@@ -184,70 +214,74 @@ namespace MUSIC {
     void postCommunication ();
   };
 
-  class EventConnector :  public Connector {
-  protected:
-	  Synchronizer *synch;
-	  Index::Type type_;
-  public:
-	  EventConnector(ConnectorInfo connInfo,
-			  SpatialNegotiator* spatialNegotiator,
-			  MPI::Intracomm comm,
-			  Index::Type type):Connector(connInfo,spatialNegotiator,comm),type_(type){}
-	  virtual ~EventConnector(){};
-	//  SpatialNegotiator *spatialNegotiator(){return spatialNegotiator_;}
-	//  MPI::Intracomm communicator(){return comm;}
-	  Synchronizer* synchronizer () { return synch; }
-	  void initialize ();
-	  void tick (bool& requestCommunication);
-  protected:
-	  virtual void createSynchronizer()=0;
-	  virtual void destroySynchronizer()=0;
-  };
+  class EventConnector : virtual public Connector {
+    };
 
-  class EventOutputConnector : public EventConnector {
+  class EventOutputConnector : public OutputConnector, public EventConnector {
   private:
+	OutputSynchronizer synch;
     EventRoutingMap<FIBO*>* routingMap_;
   public:
     EventOutputConnector (ConnectorInfo connInfo,
 			  SpatialNegotiator* spatialNegotiator,
 			  MPI::Intracomm comm,
-			  Index::Type type,
-			  EventRoutingMap<FIBO*>* routingMap):EventConnector(connInfo,spatialNegotiator,comm,type),
-			  routingMap_(routingMap){createSynchronizer();};
-    ~EventOutputConnector(){destroySynchronizer();}
+			  EventRoutingMap<FIBO*>* routingMap): Connector(connInfo,spatialNegotiator,comm),
+			  routingMap_(routingMap){};
+    ~EventOutputConnector(){}
     Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, Subconnector* subconn);
-    int spatialNegotiation(std::vector<Subconnector*>& subconn);
-  protected:
-    void createSynchronizer();
-    void destroySynchronizer();
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+   	void tick (bool& requestCommunication);
   };
-  
-  class EventInputConnector : public EventConnector {
+  /* remedius
+   * routingMap field was added to the EventInputConnector class
+   * in order to make it usable both for collective and pairwise algorithms'.
+   */
+  class EventInputConnector : public InputConnector, public EventConnector {
   private:
-	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
+	InputSynchronizer synch;
+//	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
     EventHandlerPtr handleEvent_;
+    Index::Type type_;
   public:
+
     EventInputConnector (ConnectorInfo connInfo,
 			  SpatialNegotiator* spatialNegotiator,
 			  MPI::Intracomm comm,
 			  Index::Type type,
-			  EventRoutingMap<EventHandlerGlobalIndex*>* routingMap,
-			  EventHandlerPtr handleEvent):EventConnector(connInfo,spatialNegotiator,comm,type),
-			  routingMap_(routingMap),handleEvent_(handleEvent){createSynchronizer();};
-    ~EventInputConnector(){destroySynchronizer();}
+			  EventHandlerPtr handleEvent):Connector(connInfo,spatialNegotiator,comm),
+			  handleEvent_(handleEvent),type_(type){};
+    ~EventInputConnector(){}
     Subconnector* makeSubconnector (int remoteRank);
-    int spatialNegotiation(std::vector<Subconnector*>& subconn);
+    /* remedius
+     * original version of the following function does nothing,
+     * however this function could perform inserting interval to the routingMap_ as well,
+     * that is currently done in CollectiveConnector::addRoutingInterval method in order to keep original functionality.
+     * Otherwise this could give an opportunity to have different event handlers for different ranges of indexes as in collective algorithm.
+     * Do we need this? If not, then it's better to leave as it is.
+     */
     void addRoutingInterval (IndexInterval i, Subconnector* subconn);
-
-  protected:
-    void createSynchronizer();
-    void destroySynchronizer();
+    Synchronizer* synchronizer () { return &synch; }
+    void initialize ();
+   	void tick (bool& requestCommunication);
   };
-
- class CollectiveConnector: public Connector {
-  	EventConnector *conn;
+/* remedius
+ * New class CollectiveConnector was introduced in order to create CollectiveSubconnector object.
+ * The difference between EventInputConnector, EventOutputConnector instances and  CollectiveConnector is
+ * the latest creates one CollectiveSubconnector responsible for the collective communication
+ * among all ranks on the output and input side, while EventInputConnector and EventOutputConnector
+ * instances are responsible for creating as much Subconnectors as necessary for each point2point connectivity
+ * for output and input sides.
+ * Substantially CollectiveConnector class realizes Connector interface, however it also contains
+ * the Connector instance (<conn>) that implements EventInputConnector or EventOutputConnector
+ * functionality depending whether CollectiveConnector is created on the output or input side.
+ */
+ class CollectiveConnector:  public EventConnector {
+  	Connector *conn;
   	Subconnector *subconnector;
+  	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
+  	EventHandlerPtr handleEvent_;
   	EventRouter *router_;
   	EventRouter *empty_router;
   	bool high;
@@ -259,15 +293,17 @@ namespace MUSIC {
   	 			  EventHandlerPtr handleEvent,
   	 			  EventRouter *router):
   	 			  Connector(connInfo,spatialNegotiator,comm),
-  	 			  subconnector(0),router_(router),empty_router(NULL),high(true)
-  	{ conn = new EventInputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap,handleEvent);};
+  	 			  subconnector(0),  routingMap_(routingMap), handleEvent_(handleEvent),router_(router),empty_router(NULL),high(true)
+  	{ conn = new EventInputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,handleEvent);};
   	CollectiveConnector(ConnectorInfo connInfo,
   	  	 			  SpatialNegotiator* spatialNegotiator,
   	  	 			  MPI::Intracomm comm,
   	  	 			  EventRoutingMap<FIBO *>* routingMap):
-  	  	 		      Connector(connInfo,spatialNegotiator,comm),
-  	  	 			  subconnector(0),high(false)
-  	{ conn = new EventOutputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,routingMap);
+  	  	 		      Connector(connInfo, spatialNegotiator,comm),
+  	  	 			  subconnector(0), routingMap_(NULL), high(false)
+  	{ conn = new EventOutputConnector(connInfo,spatialNegotiator,comm,routingMap);
+  	// we decided to perform event processing on the receiver side in the collective communication algorithm,
+  	// so that there is no need for the router on the output side;
   	empty_router = new EventRouter();
   	router_ = empty_router;};
   	~CollectiveConnector(){delete conn;if(empty_router != NULL) delete empty_router;}
@@ -275,14 +311,15 @@ namespace MUSIC {
   	Synchronizer* synchronizer () { return conn->synchronizer(); }
   	void initialize (){conn->initialize();}
   	void tick(bool& requestCommunication){conn->tick(requestCommunication);}
-  //	void createIntercomm(){}
-  //	void freeIntercomm (){}
   private:
   	Subconnector* makeSubconnector (int remoteRank);
   	void addRoutingInterval(IndexInterval i, Subconnector* subconn);
     };
-
-  class MessageOutputConnector : public PostCommunicationConnector {
+ class MessageConnector : virtual public Connector {
+ };
+  class MessageOutputConnector : public OutputConnector,
+  	  	  	  	  	  	  	  	  public MessageConnector,
+  	  	  	  	  	  	  	  	  public PostCommunicationConnector {
   private:
     OutputSynchronizer synch;
     FIBO buffer;
@@ -302,7 +339,7 @@ namespace MUSIC {
     void postCommunication ();
   };
   
-  class MessageInputConnector : public Connector {
+  class MessageInputConnector : public InputConnector, public MessageConnector {
     
   private:
     InputSynchronizer synch;

@@ -17,16 +17,7 @@
  */
 #include "music/subconnector.hh"
 #ifdef USE_MPI
-
 #include "music/communication.hh"
-
-
-
-extern "C" {
-#include <unistd.h>
-#include <getopt.h>
-#include <sys/time.h>
-}
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
 #endif
@@ -60,10 +51,7 @@ namespace MUSIC {
   }
 
   
-  InputSubconnector::InputSubconnector ()
-  {
-    flushed = false;
-  }
+
 
 
   /********************************************************************
@@ -114,8 +102,10 @@ namespace MUSIC {
 
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
+
     while (size >= CONT_BUFFER_MAX)
       {
+
 	MUSIC_LOGR ("Sending to rank " << remoteRank_);
 	intercomm.Send (buffer,
 			CONT_BUFFER_MAX / type_.Get_size (),
@@ -174,6 +164,7 @@ namespace MUSIC {
   ContInputSubconnector::initialCommunication ()
   {
     receive ();
+
     buffer_.fill (synch->initialBufferedTicks ());
   }
   
@@ -196,6 +187,7 @@ namespace MUSIC {
       {
 	data = static_cast<char*> (buffer_.insertBlock ());
 	MUSIC_LOGR ("Receiving from rank " << remoteRank_);
+
 	intercomm.Recv (data,
 			CONT_BUFFER_MAX / type_.Get_size (),
 			type_,
@@ -235,8 +227,13 @@ namespace MUSIC {
   void CollectiveSubconnector::maybeCommunicate(){
 	  communicate();
   }
+  /* remedius
+   * current collective communication is realized through two times calls of
+   * mpi allgather function: first time the size of the data is distributed,
+   * the second time the data by itself is distributed.
+   * Probably that could be not optimal for a huge # of ranks.
+   */
   void CollectiveSubconnector::communicate(){
-	 // std::cerr << "coomunicate" <<std::endl;
 	  void* data;
 	  int size, nProcesses;
 	  unsigned int dsize;
@@ -253,7 +250,7 @@ namespace MUSIC {
 
 	  ppBytes = new int[nProcesses];
 	  //distributing the size of the buffer
-	  MPI_Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT, _intracomm );
+	  _intracomm.Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT);
 	  //could it be that dsize is more then unsigned int?
 	  dsize = 0;
 	  displ = new int[nProcesses];
@@ -266,9 +263,8 @@ namespace MUSIC {
 
 	  recv_buff = new char[dsize];
 	  //distributing the data
-	  MPI_Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE, _intracomm);
+	  _intracomm.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
 	  //processing the data
-
 	  flushed = true;
 	  for(unsigned int i = 0; i < dsize; i+=sEvent){
 		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
@@ -277,10 +273,9 @@ namespace MUSIC {
 		  else{
 			  router_->processEvent(e->t, (GlobalIndex)e->id);
 			  flushed = false;
-
 		  }
 	  }
-	  if(dsize/sEvent != nProcesses)
+	  if((int)(dsize/sEvent) != nProcesses)
 			 flushed = false;
 	  delete ppBytes;
 	  delete displ;
@@ -323,8 +318,6 @@ namespace MUSIC {
 		    receiverPortCode),
       BufferingOutputSubconnector (sizeof (Event))
   {
-tt=0.0;
-cur_rank = MPI::COMM_WORLD.Get_rank();
   }
   
 
@@ -346,9 +339,8 @@ cur_rank = MPI::COMM_WORLD.Get_rank();
     buffer_.nextBlock (data, size);
     // NOTE: marshalling
     char* buffer = static_cast <char*> (data);
-    double starttime, endtime; 
-    starttime = MPI_Wtime(); 
-
+   // double starttime, endtime;
+   // starttime = MPI_Wtime();
     while (size >= SPIKE_BUFFER_MAX)
       {
 	/*intercomm.Send (buffer,
@@ -356,6 +348,11 @@ cur_rank = MPI::COMM_WORLD.Get_rank();
 			MPI::BYTE,
 			remoteRank_,
 			SPIKE_MSG);*/
+    	/* remedius
+    	 * blocking non-synchronous send was replaced to
+    	 * blocking synchronous send due to the communication overhead on the HPS systems.
+    	 *
+    	 */
                  intercomm.Ssend (buffer,
                         SPIKE_BUFFER_MAX,
                         MPI::BYTE,
@@ -365,30 +362,33 @@ cur_rank = MPI::COMM_WORLD.Get_rank();
 	size -= SPIKE_BUFFER_MAX;
       }
     intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
-    endtime = MPI_Wtime();
-    endtime = endtime-starttime;
-    if(tt < endtime){
-
-    tt = endtime;
-}
+   // endtime = MPI_Wtime();
+    //endtime = endtime-starttime;
+    //if(tt < endtime)
+    //tt = endtime;
   }
 
   
   void
   EventOutputSubconnector::flush (bool& dataStillFlowing)
   {
-    if (!buffer_.isEmpty ())
-      {
-	MUSIC_LOGR ("sending data remaining in buffers");
-	send ();
-	dataStillFlowing = true;
-      }
-    else
-      {
-	Event* e = static_cast<Event*> (buffer_.insert ());
-	e->id = FLUSH_MARK;
-	send ();
-      }
+
+	  if (!buffer_.isEmpty ())
+	  {
+		  MUSIC_LOGR ("sending data remaining in buffers");
+		  send ();
+		  dataStillFlowing = true;
+	  }
+	  /* remedius
+	   * flushed flag was added since synchronous communication demands equal sends and receives
+	   */
+	  else if(!flushed)
+	  {
+		  Event* e = static_cast<Event*> (buffer_.insert ());
+		  e->id = FLUSH_MARK;
+		  send ();
+		  flushed = true;
+	  }
   }
   
 
@@ -431,8 +431,6 @@ cur_rank = MPI::COMM_WORLD.Get_rank();
 			      receiverPortCode),
       handleEvent (eh)
   {
-tt = 0.0;
-ss = 0;
   }
 
 
@@ -484,38 +482,32 @@ ss = 0;
     char data[SPIKE_BUFFER_MAX]; 
     MPI::Status status;
     int size;
-double starttime, endtime; 
-starttime = MPI_Wtime(); 
+//double starttime, endtime;
+//starttime = MPI_Wtime();
 
     do
       {
-  //struct timeval tv;
-  //gettimeofday (&tv, NULL);
-  //time_t start = tv.tv_sec;
-/*	intercomm.Recv (data,
+	intercomm.Recv (data,
 			SPIKE_BUFFER_MAX,
 			MPI::BYTE,
 			remoteRank_,
 			SPIKE_MSG,
-			status);*/
-        intercomm.Recv (data,
-                        SPIKE_BUFFER_MAX,
-                        MPI::BYTE,
-                        remoteRank_,
-                        SPIKE_MSG,status);
-   //gettimeofday (&tv, NULL);
-   //tt += tv.tv_sec-start;
+			status);
+
+	size = status.Get_count (MPI::BYTE);
 	Event* ev = (Event*) data;
-	if (ev[0].id == FLUSH_MARK)
+	/* remedius
+	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
+	 * the check for the size of the message was added.
+	 */
+	if (ev[0].id == FLUSH_MARK  && size > 0)
 	  {
 	    flushed = true;
 	    MUSIC_LOGR ("received flush message");
 	    return;
 	  }
-	size = status.Get_count (MPI::BYTE);
- //  if ( size == 0)
-	MUSIC_LOG0 ("received");
 	
+
 	int nEvents = size / sizeof (Event);
 
 	for (int i = 0; i < nEvents; ++i)
@@ -523,12 +515,11 @@ starttime = MPI_Wtime();
 
       }
     while (size == SPIKE_BUFFER_MAX);
-endtime = MPI_Wtime();
-endtime = endtime-starttime;
-if(tt < endtime){
+//endtime = MPI_Wtime();
+//endtime = endtime-starttime;
+//if(tt < endtime)
+//tt = endtime;
 
-tt = endtime;
-}
   }
 
 
@@ -547,8 +538,13 @@ tt = endtime;
 			remoteRank_,
 			SPIKE_MSG,
 			status);
+	size = status.Get_count (MPI::BYTE);
 	Event* ev = (Event*) data;
-	if (ev[0].id == FLUSH_MARK)
+	/* remedius
+	 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
+     * the check for the size of the message was added.
+	 */
+	if (ev[0].id == FLUSH_MARK && size > 0)
 	  {
 	    flushed = true;
 	    return;

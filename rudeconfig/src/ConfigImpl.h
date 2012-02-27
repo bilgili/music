@@ -166,7 +166,13 @@ public:
         const char *getSrcObjAt(int index) const;
         const char *getDestObjAt(int index) const;
         const char *getWidthAt(int index) const;
+        /* remedius
+         *
+         */
         const char *getCommTypeAt(int index) const;
+        /* remedius
+         *
+         */
         const char *getProcMethodAt(int index) const;
 
 	int getNumDataMembers() const;

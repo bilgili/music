@@ -18,6 +18,7 @@
 #include "music.hh"
 #ifdef USE_MPI
 
+
 #include <string>
 #include <cstring>
 
@@ -100,7 +101,7 @@ MUSIC_publishMessageInput (MUSIC_Setup *setup, char *id)
   return (MUSIC_MessageInputPort *) cxxSetup->publishMessageInput(id);
 }
 
-
+/*
 void
 MUSIC_destroyContOutput (MUSIC_ContOutputPort* Port)
 {
@@ -141,7 +142,7 @@ MUSIC_destroyMessageInput (MUSIC_MessageInputPort* Port)
 {
   delete (MUSIC::MessageInputPort *) Port;
 }
-
+*/
 
 /* General port methods */
 

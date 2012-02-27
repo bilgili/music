@@ -32,19 +32,25 @@ namespace MUSIC {
 
   Runtime::Runtime (Setup* s, double h)
   {
-    total = 0.0;
-    first = true;
     checkInstantiatedOnce (isInstantiated_, "Runtime");
     
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;
+    /* remedius
+     * new type of subconnectors for collective communication was created.
+     */
     CollectiveSubconnectors collectiveSubconnectors;
     // Setup the MUSIC clock
     localTime = Clock (s->timebase (), h);
     
     comm = s->communicator ();
 
-    ports = new std::vector<Port*> (s->ports()->begin(),s->ports()->end());
+    /* remedius
+     * copy ports in order to delete them afterwards (it was memory leak)
+     */
+    for ( std::vector<Port *>::iterator it=s->ports()->begin() ; it < s->ports()->end(); it++ )
+    	ports.push_back((*it));
+
     Connections* connections = s->connections ();
     
     if (s->launchedByMusic ())
@@ -61,6 +67,7 @@ namespace MUSIC {
 	// from here we can start using the vector `connectors'
 
 	// negotiate where to route data and fill up subconnector vectors
+
 	spatialNegotiation (outputSubconnectors, inputSubconnectors, collectiveSubconnectors);
 	// build data routing tables
 	buildTables (s);
@@ -73,11 +80,10 @@ namespace MUSIC {
 	takePostCommunicators ();
 	// negotiate timing constraints for synchronizers
 	temporalNegotiation (s, connections);
-	//std::cerr<<"after temporal"<<std::endl;
 	// final initialization before simulation starts
 	initialize ();
       }
-    
+
     delete s;
   }
 
@@ -96,13 +102,9 @@ namespace MUSIC {
 	 ++connector)
       delete *connector;
 
-    //delete ports
-/*     for (std::vector<Port *>::iterator port = ports->begin ();
- 	 port != ports->end ();
- 	 ++port){
-       delete *port;
-     }*/
-    delete ports;
+    // delete ports
+    for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
+        delete (*it);
     isInstantiated_ = false;
   }
   
@@ -111,7 +113,7 @@ namespace MUSIC {
   Runtime::takeTickingPorts (Setup* s)
   {
     std::vector<Port*>::iterator p;
-    for (p = ports->begin (); p != ports->end (); ++p)
+    for (p = ports.begin (); p != ports.end (); ++p)
       {
 	TickingPort* tp = dynamic_cast<TickingPort*> (*p);
 	if (tp != NULL)
@@ -206,23 +208,28 @@ namespace MUSIC {
 	 ++c)
       {
     	Subconnectors subconnectors;
-	// negotiate and fill up vectors passed as arguments
+	   // negotiate and fill up a vector passed as an argument
     	type = (*c)->spatialNegotiation (subconnectors);
 
+        /* remedius
+         * cast subconnectors to an appropriate type.
+         */
     	int rsize = subconnectors.size();
-    	if(type == Connector::OUTPUT_SUBCONNECTORS){
+    	if(type == OUTPUT_SUBCONNECTORS){
     		outputSubconnectors.resize(outputSubconnectors.size()+rsize);
     		transform( subconnectors.begin(), subconnectors.end(),
     				outputSubconnectors.end()-rsize,
     				Subconnector2Target<OutputSubconnector>() );
+
+
     	}
-    	else if( type == Connector::INPUT_SUBCONNECTORS){
+    	else if( type == INPUT_SUBCONNECTORS){
     		inputSubconnectors.resize(inputSubconnectors.size()+rsize);
     		transform( subconnectors.begin(), subconnectors.end(),
     				inputSubconnectors.end()-rsize,
     				Subconnector2Target<InputSubconnector>() );
     	}
-    	else if(type == Connector::COLLECTIVE_SUBCONNECTORS){
+    	else if(type == COLLECTIVE_SUBCONNECTORS){
     		collectiveSubconnectors.resize(collectiveSubconnectors.size()+rsize);
     		transform( subconnectors.begin(), subconnectors.end(),
     				collectiveSubconnectors.end()-rsize,
@@ -233,6 +240,7 @@ namespace MUSIC {
     		error0(" Runtime::spatialNegotiation::undefined subconnector");
     	}
       }
+
   }
 
 
@@ -303,8 +311,8 @@ namespace MUSIC {
   void
   Runtime::buildTables (Setup* s)
   {
-    for (std::vector<Port*>::iterator p = ports->begin ();
-	 p != ports->end ();
+    for (std::vector<Port*>::iterator p = ports.begin ();
+	 p != ports.end ();
 	 ++p)
       (*p)->buildTable ();
   }
@@ -339,7 +347,6 @@ namespace MUSIC {
 	 s != schedule.end ();
 	 ++s)
       (*s)->initialCommunication ();
-
     for (c = connectors.begin (); c != connectors.end (); ++c)
       (*c)->prepareForSimulation ();
 
@@ -357,26 +364,21 @@ namespace MUSIC {
     bool dataStillFlowing;
     do
       {
-	dataStillFlowing = false;
 	std::vector<Subconnector*>::iterator c;
+	 dataStillFlowing = false;
 	for (c = schedule.begin (); c != schedule.end (); ++c)
 	  (*c)->flush (dataStillFlowing);
       }
     while (dataStillFlowing);
-
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
     // This is needed in OpenMPI version <= 1.2 for the freeing of the
     // intercommunicators to go well
     MPI::COMM_WORLD.Barrier ();
 #endif
-    
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->freeIntercomm ();
- /*   int r = MPI::COMM_WORLD.Get_rank ();
-    if(r == 15 || r == 47)
-    std::cerr << "t:" << r <<"::" <<total<<std::endl;*/
     MPI::Finalize ();
   }
 
@@ -403,26 +405,19 @@ namespace MUSIC {
     // Communicate data through non-interlocking pair-wise exchange
     if (requestCommunication)
       {
-	double st, et;
-       st = MPI_Wtime();
 	// Loop through the schedule of subconnectors
 	for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	     s != schedule.end ();
 	     ++s)
 	  (*s)->maybeCommunicate ();
-       et = MPI_Wtime();
-       if(!first)
-       total+=(et-st);
       }
 
-     first = false;
     // ContInputConnectors write data to application here
     for (std::vector<PostCommunicationConnector*>::iterator c
 	   = postCommunication.begin ();
 	 c != postCommunication.end ();
 	 ++c)
       (*c)->postCommunication ();
- //   MPI_Barrier(comm);	
   }
 
 

@@ -44,6 +44,7 @@ usage (int rank)
 		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl
 		<< "  -m, --map             print application rank map" << std::endl
+		<< "  -f, --file-map     creates a file with the map of the rank to the according launching environment variable" << std::endl
 		<< "  -e, --export-scripts  export launcher scripts" << std::endl
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
@@ -156,7 +157,12 @@ launch (MUSIC::Configuration* config, char** argv)
   exit (1);
 }
 
-
+/* remedius
+ * option -f to the music launcher tool is added.  This option causes the
+ *	music launcher tool to write a file  that contains mapping information of the rank (rank range)
+ *	to the according launching environment variable.
+ *	This file can be used while launching multiple applications in MPMD mode.
+ */
 int
 main (int argc, char *argv[])
 {
@@ -179,7 +185,7 @@ main (int argc, char *argv[])
 	  {"help",           no_argument,       0, 'h'},
 	  {"map",            required_argument, 0, 'm'},
 	  {"export-scripts", required_argument,       0, 'e'},
-	  {"file-export",        required_argument,       0, 'f'},
+	  {"file-map",        required_argument,       0, 'f'},
 	  {"version",        no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};

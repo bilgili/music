@@ -49,11 +49,9 @@ namespace MUSIC {
     double time ();
     
   private:
-   bool first;
-    double total;
     Clock localTime;
     MPI::Intracomm comm;
-    std::vector<Port*> *ports;
+    std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
     std::vector<Subconnector*> schedule;
@@ -63,6 +61,10 @@ namespace MUSIC {
     typedef std::vector<Connection*> Connections;
     typedef std::vector<OutputSubconnector*> OutputSubconnectors;
     typedef std::vector<InputSubconnector*> InputSubconnectors;
+    /* remedius
+     * new type of subconnectors- CollectiveSubconnectors was introduced
+     * in order to implement collective communication
+     */
     typedef std::vector<CollectiveSubconnector*> CollectiveSubconnectors;
     typedef std::vector<Subconnector*> Subconnectors;
     
@@ -78,7 +80,11 @@ namespace MUSIC {
     void buildTables (Setup* s);
     void temporalNegotiation (Setup* s, Connections* connections);
     void initialize ();
-
+    /* remedius
+     * cast Subconnector* returned by spatialNegotiation() to an appropriate type of Subconnector:
+     * OutputSubconnectors, InputSubconnectors or CollectiveSubconnectors.
+     * Type separation is needed by buildSchedule() function.
+     */
     template<class Target>
     class Subconnector2Target {
     public:

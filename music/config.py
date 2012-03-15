@@ -19,21 +19,28 @@
 # This API allows for querying the MPI rank and specification of the
 # information in MUSIC configuration files
 
-def predictRank ():
-    """
-    Returns the predicted MPI rank of this process
-    
-    :rtype: Integer
-    """
-    return 0
+import os
 
+# This function now defined in predict_rank.py
+#
+#def predictRank ():
+#    """
+#    Returns the predicted MPI rank of this process
+#    
+#    :rtype: Integer
+#    """
+#    return 0
 
+CONFIGVARNAME = '_MUSIC_CONFIG_'
+
+# This function now defined in predict_rank.py
+#
 def postponeSetup ():
     """
     Postpones processing of configuration info until the creation of
     the first port.  Must be called before creation of MUSIC::Setup.
     """
-    pass
+    os.environ[CONFIGVARNAME] = 'POSTPONE'
 
 
 class Application (object):

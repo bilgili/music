@@ -19,9 +19,8 @@
 //#define MUSIC_DEBUG 1
 #include "music/debug.hh" // Must be included first on BG/L
 
-extern "C" {
-#include <stdlib.h>
-}
+#include <cstdlib>
+#include <cstring>
 
 #include "music/configuration.hh"
 #include "music/ioutils.hh"
@@ -40,13 +39,20 @@ namespace MUSIC {
 
   
   Configuration::Configuration ()
-    : defaultConfig (0)
+    : postponeSetup_ (false), defaultConfig (0)
   {
     char* configStr = getenv (configEnvVarName);
     MUSIC_LOG0 ("config: " << configStr);
     if (configStr == NULL)
       {
 	launchedByMusic_ = false;
+	applications_ = new ApplicationMap ();
+	connectivityMap_ = new Connectivity ();
+      }
+    else if (strcmp (configStr, "POSTPONE") == 0)
+      {
+	launchedByMusic_ = true;
+	postponeSetup_ = true;
 	applications_ = new ApplicationMap ();
 	connectivityMap_ = new Connectivity ();
       }

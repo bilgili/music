@@ -36,6 +36,20 @@ def postponeSetup ():
     pass
 
 
+class Application (object):
+    def define (varName, value):
+        """
+        Define configuration variable varName to value value.
+        """
+        pass
+
+    def connect (fromPort, toPort):
+        """
+        Connect fromPort to toPort.
+        """
+        pass
+
+
 def define (varName, value):
     """
     Define configuration variable varName to value value.
@@ -59,15 +73,10 @@ def connect (fromPort, toPort):
     """
     pass
 
-class Application (object):
-    def define (varName, value):
-        """
-        Define configuration variable varName to value value.
-        """
-        pass
 
-    def connect (fromPort, toPort):
-        """
-        Connect fromPort to toPort.
-        """
-        pass
+def configure ():
+    """
+    Configure the MUSIC library using the information provided by
+    define and connect.
+    """
+    pass

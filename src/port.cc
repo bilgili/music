@@ -28,6 +28,7 @@ namespace MUSIC {
   Port::Port (Setup* s, std::string identifier)
     : portName_ (identifier), setup_ (s), isMapped_ (false)
   {
+    s->maybePostponedSetup ();
     ConnectivityInfo_ = s->portConnectivity (portName_);
     setup_->addPort (this);
   }

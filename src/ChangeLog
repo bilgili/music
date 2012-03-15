@@ -1,3 +1,11 @@
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (maybePostponedSetup, fullInit): New
+	functions.
+
+	* music/configuration.hh, configuration.cc
+	(Configuration::postponeSetup): New function.
+
 2012-02-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/subconnector.h, subconnector.cc (Subconnector): Moved

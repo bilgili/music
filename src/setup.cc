@@ -34,6 +34,7 @@ namespace MUSIC {
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
   Setup::Setup (int& argc, char**& argv)
+    : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
@@ -44,6 +45,7 @@ namespace MUSIC {
 
   
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
+    : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
@@ -67,16 +69,9 @@ namespace MUSIC {
     if (launchedByMusic ())
       {
 	// launched by the music utility
-	errorChecks ();
+	if (!config_->postponeSetup ())
+	  fullInit ();
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
-	if (!config ("timebase", &timebase_))
-	  timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
-	string binary;
-	config_->lookup ("binary", &binary);
-	string args;
-	config_->lookup ("args", &args);
-	argv = parseArgs (binary, args, &argc);
-	temporalNegotiator_ = new TemporalNegotiator (this);
       }
     else
       {
@@ -85,6 +80,19 @@ namespace MUSIC {
 	timebase_ = MUSIC_DEFAULT_TIMEBASE;
       }
   }
+
+
+  void
+  Setup::maybePostponedSetup ()
+  {
+    if (config_->postponeSetup ())
+      {
+	delete config_;
+	config_ = new Configuration ();
+	fullInit ();
+      }
+  }
+
 
   void
   Setup::errorChecks ()
@@ -100,6 +108,20 @@ namespace MUSIC {
 	    << std::endl;
 	error0 (msg.str ());
       }
+  }
+
+  void
+  Setup::fullInit ()
+  {
+    errorChecks ();
+    if (!config ("timebase", &timebase_))
+      timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
+    string binary;
+    config_->lookup ("binary", &binary);
+    string args;
+    config_->lookup ("args", &args);
+    argv_ = parseArgs (binary, args, &argc_);
+    temporalNegotiator_ = new TemporalNegotiator (this);
   }
 
 

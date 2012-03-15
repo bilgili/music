@@ -30,6 +30,7 @@ namespace MUSIC {
   private:
     static const char* const configEnvVarName;
     bool launchedByMusic_;
+    bool postponeSetup_;
     std::string applicationName_;
     int color_;
     Configuration* defaultConfig;
@@ -42,6 +43,7 @@ namespace MUSIC {
     Configuration (std::string name, int color, Configuration* def);
     ~Configuration ();
     bool launchedByMusic () { return launchedByMusic_; }
+    bool postponeSetup () { return postponeSetup_; }
     void writeEnv ();
     int color () { return color_; };
     bool lookup (std::string name);

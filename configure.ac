@@ -160,6 +160,9 @@ if test "$ac_test_CXXFLAGS" != set; then
   fi
 fi
 
+AM_PATH_PYTHON
+AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
+
 AC_PROG_CC
 AC_PROG_LIBTOOL
 
@@ -228,6 +231,7 @@ AC_CONFIG_FILES([
   test/Makefile
   rudeconfig/Makefile
   utils/Makefile
+  music/Makefile
   doc/Makefile
 ])
 

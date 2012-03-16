@@ -21,6 +21,8 @@
 
 import os
 
+from music.predict_rank import predictRank
+
 # This function now defined in predict_rank.py
 #
 #def predictRank ():
@@ -42,15 +44,31 @@ def postponeSetup ():
     """
     os.environ[CONFIGVARNAME] = 'POSTPONE'
 
+configDict = {}
+
+applications = []
 
 class Application (object):
-    def define (varName, value):
+    configDict = {}
+
+    number = 0
+
+    def __init__ (self, name):
+        self.name = name
+        Application.number += 1
+
+    def __getitem__ (self, varName):
+        if varName in self.configDict:
+            return self.configDict[varname]
+        return configDict[varname]
+    
+    def define (self, varName, value):
         """
         Define configuration variable varName to value value.
         """
-        pass
+        configDict[varName] = value
 
-    def connect (fromPort, toPort):
+    def connect (self, fromPort, toPort, width):
         """
         Connect fromPort to toPort.
         """
@@ -61,7 +79,7 @@ def define (varName, value):
     """
     Define configuration variable varName to value value.
     """
-    pass
+    configDict[varName] = value
 
 
 def application (name):
@@ -71,12 +89,17 @@ def application (name):
 
     :rtype: Application
     """
-    return lookupCreate (name)
+    for app in applications:
+        if app.name == name:
+            return app
+    app = Application (name)
+    applications.append (app)
+    return app
 
 
-def connect (fromPort, toPort):
+def connect (fromPort, toPort, width):
     """
-    Connect fromPort to toPort.
+    Connect fromPort to toPort specifying port width width.
     """
     pass
 
@@ -86,4 +109,19 @@ def configure ():
     Configure the MUSIC library using the information provided by
     define and connect.
     """
-    pass
+    rank = predictRank ()
+
+    app = applicationMap[rank]
+
+    conf = app.name \
+           + ':' + app.number \
+           + ':' + applicationMap.conf () \
+           + ':' + connectivityMap.conf ()
+
+    configDict.update (app.configDict)
+
+    for key in configDict:
+        conf += ':' + key + ':' + configDict[key]
+
+    os.environ[CONFIGVARNAME] = conf
+

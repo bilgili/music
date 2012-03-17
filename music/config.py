@@ -204,6 +204,8 @@ def connect (fromPort, toPort, width):
     connections.append ((False, fromPort, toPort, str (width)))
 
 
+configured = False
+
 def configure ():
     """
     Configure the MUSIC library using the information provided by
@@ -232,3 +234,14 @@ def configure ():
         conf += ':' + key + '=' + configDict[key]
 
     os.environ[CONFIGVARNAME] = conf
+
+    configured = True
+
+    
+def launch ():
+    if not configured:
+        configure ()
+    rank = predictRank ()
+    app = applicationMap.rankLookup (rank)
+    binary = app['binary']
+    os.execvp (binary, [binary] + app['args'].split (' '))

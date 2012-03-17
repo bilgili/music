@@ -88,13 +88,34 @@ class ConnectivityMap (object):
 
 
 configDict = {}
+appNumber = 0
+rankSum = 0
+thisRank = predictRank ()
+thisApp = None
 
 class Application (object):
-    def __init__ (self, name, number):
+    def __init__ (self, np = None, binary = None, args = None, name = None):
+        global appNumber, rankSum, thisApp
         self.name = name
-        self.number = number
+        self.number = appNumber
+        appNumber += 1
+        self.np = np
+        self.leader = rankSum
+        rankSum += np
+        self.this = False
+        if self.leader <= thisRank and thisRank < rankSum:
+            self.this = True
+            thisApp = self
+
         self.configDict = {}
         self.connectivityMap = ConnectivityMap ()
+
+        if binary:
+            self.define ('binary', binary)
+        if args:
+            self.define ('args', args)
+
+        applicationMap.register (self)
 
     def __getitem__ (self, varName):
         if varName in self.configDict:
@@ -107,62 +128,58 @@ class Application (object):
         """
         self.configDict[varName] = str (value)
 
-    def connect (self, fromPort, toPort, width):
+    def connect (self, fromPort, toApp, toPort, width):
         """
         Connect fromPort to toPort.
         """
-        connections.append ((self, fromPort, toPort, str (width)))
+        connections.append ((self, fromPort, toApp, toPort, str (width)))
 
 
 class ApplicationMap (object):
     def __init__ (self):
         self.applications = []
-        self.appMap = {}
-        self.appNumber = 0
+        self.nameMap = {}
 
-    def __getitem__ (self, name):
-        return self.appMap[name]
-
-    def registerCreate (self, name):
-        if name in self.appMap:
-            return self.appMap[name]
-        app = Application (name, self.appNumber)
-        self.appNumber += 1
+    def register (self, app):
+        if not app.name:
+            app.name = 'application'
+        if app.name in self.nameMap:
+            # Adjust the name to become unique
+            record = self.nameMap[app.name]
+            base, suffix = record
+            if base == app.name:
+                suffix += 1
+                record[1] = suffix
+            else:
+                base = app.name
+                suffix = 0
+                self.nameMap[base] = [base, suffix]
+            app.name += str (suffix)
+        else:
+            self.nameMap[app.name] = [app.name, 0]
         self.applications.append (app)
-        self.appMap[name] = app
-        return app
     
-    def rankLookup (self, rank):
-        rankSum = 0
-        for app in self.applications:
-            rankSum += app.np
-            if rank < rankSum:
-                return app
-
     def conf (self):
         conf = str (len (self.applications))
         for app in self.applications:
-            conf += ':' + app.name + ':' + app['np']
+            conf += ':' + app.name + ':' + str (app.np)
         return conf
 
 applicationMap = ApplicationMap ()
 
 
-def registerConnection (app, fromPort, toPort, width):
-    if '.' in fromPort:
-        fromAppName, fromPort = fromPort.split ('.')
-        fromApp = applicationMap[fromAppName]
-    elif not app:
-        raise RuntimeError, 'incomplete port name: ' + fromPort
-    else:
-        fromApp = app
-    if '.' in toPort:
-        toAppName, toPort = toPort.split ('.')
-        toApp = applicationMap[toAppName]
-    elif not app:
-        raise RuntimeError, 'incomplete port name: ' + toPort
-    else:
-        toApp = app
+def define (varName, value):
+    """
+    Define configuration variable varName to value value.
+    """
+    configDict[varName] = str (value)
+
+
+def connect (fromApp, fromPort, toApp, toPort, width):
+    """
+    Connect fromPort to toPort specifying port width width.
+    """
+    width = str (width)
     fromApp.connectivityMap.register (fromPort, OUTPUT, width,
                                       toApp.name, toPort,
                                       str (portCode (toApp.name, toPort)),
@@ -173,37 +190,6 @@ def registerConnection (app, fromPort, toPort, width):
                                     str (fromApp.leader), str (fromApp.np))
 
 
-def define (varName, value):
-    """
-    Define configuration variable varName to value value.
-    """
-    configDict[varName] = str (value)
-
-
-def application (name, binary = None, args = None):
-    """
-    Return configuration object for application name.  Create it if it
-    does not already exist.
-
-    :rtype: Application
-    """
-    app = applicationMap.registerCreate (name)
-    if binary:
-        app.define ('binary', binary)
-    if args:
-        app.define ('args', args)
-    return app
-
-
-connections = []
-
-def connect (fromPort, toPort, width):
-    """
-    Connect fromPort to toPort specifying port width width.
-    """
-    connections.append ((False, fromPort, toPort, str (width)))
-
-
 configured = False
 
 def configure ():
@@ -211,24 +197,12 @@ def configure ():
     Configure the MUSIC library using the information provided by
     define and connect.
     """
-    rankSum = 0
-    for app in applicationMap.applications:
-        app.np = int (app['np'])
-        app.leader = rankSum
-        rankSum += app.np
-
-    for connection in connections:
-        registerConnection (*connection)
-    
-    rank = predictRank ()
-    app = applicationMap.rankLookup (rank)
-
-    conf = app.name \
-           + ':' + str (app.number) \
+    conf = thisApp.name \
+           + ':' + str (thisApp.number) \
            + ':' + applicationMap.conf () \
-           + ':' + app.connectivityMap.conf ()
+           + ':' + thisApp.connectivityMap.conf ()
 
-    configDict.update (app.configDict)
+    configDict.update (thisApp.configDict)
 
     for key in configDict:
         conf += ':' + key + '=' + configDict[key]
@@ -241,7 +215,5 @@ def configure ():
 def launch ():
     if not configured:
         configure ()
-    rank = predictRank ()
-    app = applicationMap.rankLookup (rank)
-    binary = app['binary']
-    os.execvp (binary, [binary] + app['args'].split (' '))
+    binary = thisApp['binary']
+    os.execvp (binary, [binary] + thisApp['args'].split (' '))

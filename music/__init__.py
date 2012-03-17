@@ -17,4 +17,4 @@
 #
 
 from predict_rank import predictRank
-from config import postponeSetup, define, application, connect, configure
+from config import postponeSetup, define, application, connect, configure, launch

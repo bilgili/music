@@ -22,6 +22,17 @@
 
 #include <mpi.h> // Must be included first on BG/L
 #include <iostream>
+// MUSIC_LOGLR:
+#include <sstream>
+#include <fstream>
+#include <iomanip>
+extern "C" {
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/time.h>
+}
 
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)
 
@@ -30,11 +41,13 @@
 
 #define MUSIC_LOG0(X) MUSIC_LOGN (0, X)
 
-#define MUSIC_LOGR(X)					\
+#define MUSIC_SLOGR(S, X)				\
   {							\
-    std::cerr << MPI::COMM_WORLD.Get_rank () << ": "	\
-              << X << std::endl << std::flush;		\
+    (S) << MPI::COMM_WORLD.Get_rank () << ": "		\
+	<< X << std::endl << std::flush;		\
   }
+
+#define MUSIC_LOGR(X) MUSIC_SLOGR (std::cerr, X)
 
 #define MUSIC_LOGRE(X)					\
   {							\
@@ -59,6 +72,42 @@
       }						\
   }
 
+namespace MUSIC {
+  static int debug_fd = 0;
+}
+
+#define MUSIC_LOGLR(X)							\
+  {									\
+    if (MUSIC::debug_fd == 0)						\
+      MUSIC::debug_fd = open ("/tmp/music_debug",			\
+			      O_CREAT | O_WRONLY | O_APPEND,		\
+			      00755);					\
+    lockf (MUSIC::debug_fd, F_LOCK, 0);					\
+    std::ostringstream ostr;						\
+    MUSIC_LOGR (X);                                                     \
+    MUSIC_SLOGR (ostr, X);						\
+    write (MUSIC::debug_fd, ostr.str ().c_str (), ostr.str ().length ()); \
+    lockf (MUSIC::debug_fd, F_ULOCK, 0);				\
+  }
+
+namespace MUSIC {
+  static std::ofstream logfile;
+}
+
+#define MUSIC_TLOGR(X)							\
+  {									\
+    if (!logfile.is_open ())						\
+      {									\
+	std::ostringstream name;					\
+	name << "/tmp/music_log" << MPI::COMM_WORLD.Get_rank ();	\
+	logfile.open (name.str ().c_str ());				\
+      }									\
+    struct timeval tv;							\
+    gettimeofday (&tv, NULL);						\
+    logfile << std::setw (10) << std::setfill ('0') << tv.tv_sec << std::setw (10) << std::setfill ('0') << tv.tv_usec << ' '; \
+    MUSIC_SLOGR (logfile, X);						\
+  }
+
 #define MUSIC_LOGX(X)
 
 #else
@@ -69,7 +118,9 @@
 #define MUSIC_LOGR(X)
 #define MUSIC_LOGRE(X)
 #define MUSIC_LOGBR(C, X)
+#define MUSIC_LOGLR(X)
 #define MUSIC_LOGX(X)
+#define MUSIC_TLOGR(X)
 
 #endif
 

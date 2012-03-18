@@ -30,6 +30,54 @@ namespace MUSIC {
   
   const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";
 
+  /*
+   * This is the syntax of the _MUSIC_CONFIG_ variable:
+   *
+   * POSTPONE means that configuration is postponed until the first port is
+   * created.  At this time, the variable is expected to contain the full
+   * configuration information:
+   *
+   *
+   * APPLICATIONNAME:COLOR:APPLICATIONMAP:CONNECTIVITYMAP:CONFIGDICT
+   *
+   * APPLICATIONNAME = name of this application (string)
+   *
+   * COLOR = index of section in music configuration file
+   *
+   * APPLICATIONMAP = SIZE:...:NAMEk:NPROCk:...
+   *
+   * SIZE = number of applications (integer)
+   *
+   * NAMEk = name of application k
+   *
+   * NPROCk = number of processes in application k
+   *
+   * CONNECTIVITYMAP = SIZE:...:PORTNAMEk:DIRECTIONk:WIDTHk:CONNECTIONSk:...
+   *
+   * SIZE = number of ports of this application
+   *
+   * PORTNAMEk = port name
+   *
+   * DIRECTIONk = port direction, 0 = OUTPUT, 1 = INPUT
+   *
+   * WIDTHk = port width
+   *
+   * CONNECTIONSk = SIZE:...:
+   *                RECAPPNAME:RECPORTNAME:RECPORTCODE:REMOTELEADER:NREMOTEPROCS
+   *                :...
+   *
+   * RECAPPNAME = name of receiving application
+   *
+   * RECPORTNAME = name of receiver port
+   *
+   * RECPORTCODE = code unique for every receiver port
+   *
+   * REMOTELEADER = lowest rank of the remote application
+   *
+   * NREMOTEPROCS = number of processes in the remote application
+   *
+   * CONFIGDICT = ...:VARNAMEk:VALUEk:...
+   */
   
   Configuration::Configuration (std::string name, int color, Configuration* def)
     : applicationName_ (name), color_ (color), defaultConfig (def)

@@ -33,9 +33,9 @@ namespace MUSIC {
   /*
    * This is the syntax of the _MUSIC_CONFIG_ variable:
    *
-   * POSTPONE means that configuration is postponed until the first port is
-   * created.  At this time, the variable is expected to contain the full
-   * configuration information:
+   * POSTPONE:COLOR means that configuration is postponed until the
+   * first port is created.  At this time, the variable is expected to
+   * contain the full configuration information:
    *
    *
    * APPLICATIONNAME:COLOR:APPLICATIONMAP:CONNECTIVITYMAP:CONFIGDICT
@@ -97,10 +97,11 @@ namespace MUSIC {
 	applications_ = new ApplicationMap ();
 	connectivityMap_ = new Connectivity ();
       }
-    else if (strcmp (configStr, "POSTPONE") == 0)
+    else if (strncmp (configStr, "POSTPONE", 8) == 0)
       {
 	launchedByMusic_ = true;
 	postponeSetup_ = true;
+	color_ = atoi (&configStr[9]); // after "POSTPONE:"
 	applications_ = new ApplicationMap ();
 	connectivityMap_ = new Connectivity ();
       }

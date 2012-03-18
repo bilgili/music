@@ -1,5 +1,7 @@
 2012-03-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* runtime.cc (Runtime::Runtime): Call maybepostponedSetup ().
+
 	* configuration.cc (MUSIC): Added comment with syntax of
 	_MUSIC_CONFIG_.
 
@@ -10,6 +12,8 @@
 
 	* music/configuration.hh, configuration.cc
 	(Configuration::postponeSetup): New function.
+
+	* port.cc (Port::Port): Call maybepostponedSetup ().
 
 2012-02-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

@@ -45,7 +45,10 @@ def postponeSetup ():
     Postpones processing of configuration info until the creation of
     the first port.  Must be called before creation of MUSIC::Setup.
     """
-    os.environ[CONFIGVARNAME] = 'POSTPONE'
+    if not thisApp:
+        raise RuntimeError, \
+              'must define Application before calling postponeSetup ()'
+    os.environ[CONFIGVARNAME] = 'POSTPONE:' + str (thisApp.number)
 
 
 portCodes = {}

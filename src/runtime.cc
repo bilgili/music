@@ -34,7 +34,7 @@ namespace MUSIC {
   Runtime::Runtime (Setup* s, double h)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
-    s->maybePostponedSetup ()
+    s->maybePostponedSetup ();
     
     OutputSubconnectors outputSubconnectors;
     InputSubconnectors inputSubconnectors;

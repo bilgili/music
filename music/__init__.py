@@ -17,4 +17,5 @@
 #
 
 from predict_rank import predictRank
-from config import postponeSetup, define, Application, connect, configure, launch
+from config import launchedByMusic, supersedeArgv, postponeSetup, \
+                   define, Application, connect, configure, launch

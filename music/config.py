@@ -38,8 +38,22 @@ CONFIGVARNAME = '_MUSIC_CONFIG_'
 OUTPUT = '0'
 INPUT = '1'
 
-# This function now defined in predict_rank.py
-#
+
+def launchedByMusic ():
+    return CONFIGVARNAME in os.environ
+
+
+def supersedeArgv (argv):
+    """
+    Replace argc and argv before MUSIC initialization
+    """
+    # Should insert escape characters
+    args = argv[0]
+    for arg in argv[1:]:
+        args += ' ' + arg
+    os.environ['MUSIC_ARGV'] = args
+
+
 def postponeSetup ():
     """
     Postpones processing of configuration info until the creation of

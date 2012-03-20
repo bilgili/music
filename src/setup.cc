@@ -39,6 +39,7 @@ namespace MUSIC {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
+    maybeProcessMusicArgv (argc, argv);
     MPI::Init (argc, argv);
     init (argc, argv);
   }
@@ -50,6 +51,7 @@ namespace MUSIC {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
+    maybeProcessMusicArgv (argc, argv);
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
 #else
@@ -78,6 +80,33 @@ namespace MUSIC {
 	// launched with mpirun
 	comm = MPI::COMM_WORLD;
 	timebase_ = MUSIC_DEFAULT_TIMEBASE;
+      }
+  }
+
+
+  void
+  Setup::maybeProcessMusicArgv (int& argc, char**& argv)
+  {
+    char* MUSIC_ARGV = getenv ("MUSIC_ARGV");
+    if (MUSIC_ARGV != NULL)
+      {
+	std::string cmd;
+	std::string argstring;
+	char* s = index (MUSIC_ARGV, ' ');
+	if (s == NULL)
+	  {
+	    cmd = std::string (MUSIC_ARGV);
+	    argstring = "";
+	  }
+	else
+	  {
+	    cmd = std::string (MUSIC_ARGV, s - MUSIC_ARGV);
+	    argstring = std::string (s + 1);
+	  }
+	char** newArgv = parseArgs (cmd, argstring, &argc);
+	for (int i = 0; i < argc; ++i)
+	  argv[i] = newArgv[i];
+	delete[] newArgv;
       }
   }
 

@@ -1,3 +1,8 @@
+2012-03-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc, music/setup.hh (Setup::maybeProcessMusicArgv): New
+	method.  Get argc and argv from MUSIC_ARGV, if available.
+
 2012-03-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* runtime.cc (Runtime::Runtime): Call maybepostponedSetup ().

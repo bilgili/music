@@ -26,7 +26,9 @@
 #include <GL/gl.h>
 #include <sys/time.h>
 
+#include <vector>
 #include <queue>
+#include <string>
 
 #define DEFAULT_TIMESTEP 1e-3
 #define PI 3.141592653589793

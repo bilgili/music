@@ -31,7 +31,6 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <string.h>
-#include <vector>
 
 #include "VisualiseNeurons.h"
 

@@ -1,3 +1,10 @@
+2012-04-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* VisualiseNeurons.h, VisualiseNeurons.cpp: Reorganized includes.
+
+	* VisualiseNeurons.cpp: Added #include <unistd.h> (for
+	usleep). (Thanks to Matthias Klose.)
+
 2011-11-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am (music_LDADD): Changed libmpidep.a -> libmpidep.la.

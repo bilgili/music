@@ -19,26 +19,14 @@
 // VisualiseNeurons.h written by Johannes Hjorth, hjorth@nada.kth.se
 
 
-#include <GL/gl.h>
-#include <GL/freeglut.h>
-#include <math.h>
-#include <mpi.h>
-#include <music.hh>
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include "datafile.h"
-#include <assert.h>
-#include <pthread.h>
-#include <sys/time.h>
-#include <sys/select.h>
-#include <getopt.h>
-#include <string.h>
-#include <vector>
-#include <queue>
-
 #ifndef _VISUALISE_NEURONS
 #define _VISUALISE_NEURONS
+
+#include <music.hh>
+#include <GL/gl.h>
+#include <sys/time.h>
+
+#include <queue>
 
 #define DEFAULT_TIMESTEP 1e-3
 #define PI 3.141592653589793

@@ -18,6 +18,20 @@
 
 // VisualiseNeurons.cpp written by Johannes Hjorth, hjorth@nada.kth.se
 
+#include <GL/freeglut.h>
+#include <math.h>
+#include <mpi.h>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include "datafile.h"
+#include <assert.h>
+#include <pthread.h>
+#include <sys/select.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <string.h>
+#include <vector>
 
 #include "VisualiseNeurons.h"
 

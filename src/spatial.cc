@@ -203,6 +203,7 @@ namespace MUSIC {
   SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
   {
     SpatialNegotiator::negotiateWidth ();
+
     if (localRank == 0)
       {
 	int remoteWidth;
@@ -543,7 +544,6 @@ namespace MUSIC {
     local.resize (nProcesses);
     remote.resize (remoteNProc);
     results.resize (nProcesses);
-
     negotiateWidth (intercomm);
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						    indices->end (),
@@ -551,6 +551,7 @@ namespace MUSIC {
 						    localRank);
     NegotiationIterator canonicalDist
       = canonicalDistribution (width, nProcesses);
+
     // NOTE: Find a better name for variable `results'
     intersectToBuffers (mappedDist, canonicalDist, results);
 
@@ -608,12 +609,9 @@ namespace MUSIC {
 						    localRank);
     NegotiationIterator canonicalDist
       = canonicalDistribution (width, remoteNProc);
-
     intersectToBuffers (mappedDist, canonicalDist, remote);
-
     for (int i = 0; i < remoteNProc; ++i)
       send (intercomm, i, remote[i]);
-    
     for (int i = 0; i < remoteNProc; ++i)
       receive (intercomm, i, remote[i]);
     

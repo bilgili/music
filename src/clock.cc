@@ -76,7 +76,7 @@ namespace MUSIC {
   
 
   double
-  Clock::time ()
+  Clock::time () const
   {
     return timebase_ * state_;
   }

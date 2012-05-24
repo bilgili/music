@@ -24,13 +24,13 @@
 
 namespace MUSIC {
 
-  Subconnector::Subconnector (Synchronizer* synch_,
+  Subconnector::Subconnector (//Synchronizer* synch_,
 			      MPI::Intercomm intercomm_,
 			      int remoteLeader,
 			      int remoteRank,
 			      int receiverRank,
 			      int receiverPortCode)
-    : synch (synch_),
+    : //synch (synch_),
       intercomm (intercomm_),
       remoteRank_ (remoteRank),
       remoteWorldRank_ (remoteLeader + remoteRank),
@@ -60,13 +60,13 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  ContOutputSubconnector::ContOutputSubconnector (Synchronizer* synch_,
+  ContOutputSubconnector::ContOutputSubconnector (//Synchronizer* synch_,
 						  MPI::Intercomm intercomm_,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverPortCode_,
 						  MPI::Datatype type)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm_,
 		    remoteLeader,
 		    remoteRank,
@@ -88,7 +88,7 @@ namespace MUSIC {
   void
   ContOutputSubconnector::maybeCommunicate ()
   {
-    if (synch->communicate ())
+   // if (synch->communicate ())
       send ();
   }
 
@@ -141,14 +141,14 @@ namespace MUSIC {
   }
   
 
-  ContInputSubconnector::ContInputSubconnector (Synchronizer* synch_,
+  ContInputSubconnector::ContInputSubconnector (//Synchronizer* synch_,
 						MPI::Intercomm intercomm,
 						int remoteLeader,
 						int remoteRank,
 						int receiverRank,
 						int receiverPortCode,
 						MPI::Datatype type)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -165,15 +165,15 @@ namespace MUSIC {
   {
     receive ();
 
-    buffer_.fill (synch->initialBufferedTicks ());
+   // buffer_.fill (synch->initialBufferedTicks ());
   }
   
 
   void
   ContInputSubconnector::maybeCommunicate ()
   {
-    if (!flushed && synch->communicate ())
-      receive ();    
+ //   if (!flushed) && synch->communicate ())
+ //     receive ();
   }
 
 
@@ -234,6 +234,7 @@ namespace MUSIC {
    * Probably that could be not optimal for a huge # of ranks.
    */
   void CollectiveSubconnector::communicate(){
+
 	  void* data;
 	  int size, nProcesses;
 	  unsigned int dsize;
@@ -248,6 +249,7 @@ namespace MUSIC {
 
 	  MPI_Comm_size(_intracomm,&nProcesses);
 
+
 	  ppBytes = new int[nProcesses];
 	  //distributing the size of the buffer
 	  _intracomm.Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT);
@@ -257,29 +259,28 @@ namespace MUSIC {
 	  for(int i=0; i < nProcesses; ++i){
 		  displ[i] = dsize;
 		  dsize += ppBytes[i];
-  /*		  if(ppBytes[i] > max_size)
+		  /*		  if(ppBytes[i] > max_size)
 			  max_size = ppBytes[i];*/
 	  }
-
-	  recv_buff = new char[dsize];
-	  //distributing the data
-	  _intracomm.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
-	  //processing the data
-	  flushed = true;
-	  for(unsigned int i = 0; i < dsize; i+=sEvent){
-		  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
-		  if (e->id == FLUSH_MARK)
-			  continue;
-		  else{
-			  router_->processEvent(e->t, (GlobalIndex)e->id);
-			  flushed = false;
+	  if(dsize > 0){
+		  recv_buff = new char[dsize];
+		  //distributing the data
+		  _intracomm.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
+		  //processing the data
+		  flushed =  dsize == 0 ? false : true;
+		  for(unsigned int i = 0; i < dsize; i+=sEvent){
+			  Event* e = static_cast<Event*> ((void*)(recv_buff+i));
+			  if (e->id != FLUSH_MARK)
+			  {
+				  router_->processEvent(e->t, (GlobalIndex)e->id);
+				  flushed = false;
+			  }
 		  }
+		  delete recv_buff;
 	  }
-	  if((int)(dsize/sEvent) != nProcesses)
-			 flushed = false;
 	  delete ppBytes;
 	  delete displ;
-	  delete recv_buff;
+
   }
   void CollectiveSubconnector::flush(bool& dataStillFlowing){
 	 if (!buffer_.isEmpty ())
@@ -305,12 +306,12 @@ namespace MUSIC {
    ********************************************************************/
 
 
-  EventOutputSubconnector::EventOutputSubconnector (Synchronizer* synch_,
+  EventOutputSubconnector::EventOutputSubconnector (//Synchronizer* synch_,
 						    MPI::Intercomm intercomm,
 						    int remoteLeader,
 						    int remoteRank,
 						    int receiverPortCode)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -324,7 +325,7 @@ namespace MUSIC {
   void
   EventOutputSubconnector::maybeCommunicate ()
   {
-    if (synch->communicate ())
+    if (!flushed )//&&  synch->communicate ())
       send ();
     
   }
@@ -362,6 +363,7 @@ namespace MUSIC {
 	size -= SPIKE_BUFFER_MAX;
       }
     intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+    MUSIC_LOGR ("sending to" << this->remoteWorldRank_ );
    // endtime = MPI_Wtime();
     //endtime = endtime-starttime;
     //if(tt < endtime)
@@ -392,13 +394,13 @@ namespace MUSIC {
   }
   
 
-  EventInputSubconnector::EventInputSubconnector (Synchronizer* synch_,
+  EventInputSubconnector::EventInputSubconnector (//Synchronizer* synch_,
 						  MPI::Intercomm intercomm,
 						  int remoteLeader,
 						  int remoteRank,
 						  int receiverRank,
 						  int receiverPortCode)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -410,20 +412,20 @@ namespace MUSIC {
 
 
   EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
-  (Synchronizer* synch_,
+  (//Synchronizer* synch_,
    MPI::Intercomm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
    int receiverPortCode,
    EventHandlerGlobalIndex* eh)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
 		    receiverPortCode),
-      EventInputSubconnector (synch_,
+      EventInputSubconnector (//synch_,
 			      intercomm,
 			      remoteLeader,
 			      remoteRank,
@@ -439,20 +441,20 @@ namespace MUSIC {
 
   
   EventInputSubconnectorLocal::EventInputSubconnectorLocal
-  (Synchronizer* synch_,
+  (//Synchronizer* synch_,
    MPI::Intercomm intercomm,
    int remoteLeader,
    int remoteRank,
    int receiverRank,
    int receiverPortCode,
    EventHandlerLocalIndex* eh)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
 		    receiverRank,
 		    receiverPortCode),
-      EventInputSubconnector (synch_,
+      EventInputSubconnector (//synch_,
 			      intercomm,
 			      remoteLeader,
 			      remoteRank,
@@ -470,7 +472,7 @@ namespace MUSIC {
   void
   EventInputSubconnector::maybeCommunicate ()
   {
-    if (!flushed && synch->communicate ())
+    if (!flushed ) //&& synch->communicate ())
       receive ();
   }
 
@@ -519,6 +521,7 @@ namespace MUSIC {
 //endtime = endtime-starttime;
 //if(tt < endtime)
 //tt = endtime;
+    MUSIC_LOGR ("receiving from " << this->remoteWorldRank_ );
 
   }
 
@@ -592,13 +595,13 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  MessageOutputSubconnector::MessageOutputSubconnector (Synchronizer* synch_,
+  MessageOutputSubconnector::MessageOutputSubconnector (//Synchronizer* synch_,
 							MPI::Intercomm intercomm,
 							int remoteLeader,
 							int remoteRank,
 							int receiverPortCode,
 							FIBO* buffer)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -612,8 +615,8 @@ namespace MUSIC {
   void
   MessageOutputSubconnector::maybeCommunicate ()
   {
-    if (synch->communicate ())
-      send ();
+    //if (synch->communicate ())
+    //  send ();
   }
 
 
@@ -656,14 +659,14 @@ namespace MUSIC {
   }
   
 
-  MessageInputSubconnector::MessageInputSubconnector (Synchronizer* synch_,
+  MessageInputSubconnector::MessageInputSubconnector (//Synchronizer* synch_,
 						      MPI::Intercomm intercomm,
 						      int remoteLeader,
 						      int remoteRank,
 						      int receiverRank,
 						      int receiverPortCode,
 						      MessageHandler* mh)
-    : Subconnector (synch_,
+    : Subconnector (//synch_,
 		    intercomm,
 		    remoteLeader,
 		    remoteRank,
@@ -681,8 +684,8 @@ namespace MUSIC {
   void
   MessageInputSubconnector::maybeCommunicate ()
   {
-    if (!flushed && synch->communicate ())
-      receive ();    
+  //  if (!flushed && synch->communicate ())
+  //    receive ();
   }
 
 

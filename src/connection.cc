@@ -28,6 +28,7 @@ namespace MUSIC {
     : Connection (connector, maxBuffered),
       elementSize_ (elementSize)
   {
+
   }
 
   InputConnection::InputConnection (Connector* connector,
@@ -37,6 +38,7 @@ namespace MUSIC {
     : Connection (connector, maxBuffered),
       accLatency_ (accLatency),
       interpolate_ (interpolate)
+
   {
   }
 

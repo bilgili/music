@@ -23,7 +23,7 @@
 #include <iostream>
 #include <string>
 #include <music/event_router.hh>
-#include <music/synchronizer.hh>
+//#include <music/synchronizer.hh>
 #include <music/FIBO.hh>
 #include <music/BIFO.hh>
 #include <music/event.hh>
@@ -44,7 +44,7 @@ namespace MUSIC {
   class Subconnector {
   private:
   protected:
-    Synchronizer* synch;
+    //Synchronizer* synch;
     MPI::Intercomm intercomm;
     int remoteRank_;		// rank in inter-communicatir
     int remoteWorldRank_;	// rank in COMM_WORLD
@@ -52,7 +52,7 @@ namespace MUSIC {
     int receiverPortCode_;
   public:
     Subconnector () { }
-    Subconnector (Synchronizer* synch,
+    Subconnector (//Synchronizer* synch,
 		  MPI::Intercomm intercomm,
 		  int remoteLeader,
 		  int remoteRank,
@@ -104,7 +104,7 @@ namespace MUSIC {
   class ContOutputSubconnector : public BufferingOutputSubconnector,
 				 public ContSubconnector {
   public:
-    ContOutputSubconnector (Synchronizer* synch,
+    ContOutputSubconnector (//Synchronizer* synch,
 			    MPI::Intercomm intercomm,
 			    int remoteLeader,
 			    int remoteRank,
@@ -121,7 +121,7 @@ namespace MUSIC {
   protected:
     BIFO buffer_;
   public:
-    ContInputSubconnector (Synchronizer* synch,
+    ContInputSubconnector (//Synchronizer* synch,
 			   MPI::Intercomm intercomm,
 			   int remoteLeader,
 			   int remoteRank,
@@ -148,11 +148,12 @@ namespace MUSIC {
 	  MPI::Intracomm _intracomm;
 	  EventRouter *router_;
   public:
-	  CollectiveSubconnector(Synchronizer* _synch,
+	  CollectiveSubconnector(//Synchronizer* _synch,
 			     MPI::Intracomm intracomm,  EventRouter *router):Subconnector (),
 			     BufferingOutputSubconnector (sizeof (Event)),
 			     router_(router)
-	      { synch =_synch;_intracomm = intracomm; };
+	      { //synch =_synch;_
+	      _intracomm = intracomm; };
 	  void maybeCommunicate ();
 	  void flush (bool& dataStillFlowing);
   private:
@@ -161,7 +162,7 @@ namespace MUSIC {
   class EventOutputSubconnector : public BufferingOutputSubconnector,
 				  public EventSubconnector {
   public:
-    EventOutputSubconnector (Synchronizer* synch,
+    EventOutputSubconnector (//Synchronizer* synch,
 			     MPI::Intercomm intercomm,
 			     int remoteLeader,
 			     int remoteRank,
@@ -175,7 +176,7 @@ namespace MUSIC {
   class EventInputSubconnector : public InputSubconnector,
 				 public EventSubconnector {
   public:
-    EventInputSubconnector (Synchronizer* synch,
+    EventInputSubconnector (//Synchronizer* synch,
 			    MPI::Intercomm intercomm,
 			    int remoteLeader,
 			    int remoteRank,
@@ -190,7 +191,7 @@ namespace MUSIC {
     EventHandlerGlobalIndex* handleEvent;
     static EventHandlerGlobalIndexDummy dummyHandler;
   public:
-    EventInputSubconnectorGlobal (Synchronizer* synch,
+    EventInputSubconnectorGlobal (//Synchronizer* synch,
 				  MPI::Intercomm intercomm,
 				  int remoteLeader,
 				  int remoteRank,
@@ -205,7 +206,7 @@ namespace MUSIC {
     EventHandlerLocalIndex* handleEvent;
     static EventHandlerLocalIndexDummy dummyHandler;
   public:
-    EventInputSubconnectorLocal (Synchronizer* synch,
+    EventInputSubconnectorLocal (//Synchronizer* synch,
 				 MPI::Intercomm intercomm,
 				 int remoteLeader,
 				 int remoteRank,
@@ -225,7 +226,7 @@ namespace MUSIC {
 				  public MessageSubconnector {
     FIBO* buffer_;
   public:
-    MessageOutputSubconnector (Synchronizer* synch,
+    MessageOutputSubconnector (//Synchronizer* synch,
 			       MPI::Intercomm intercomm,
 			       int remoteLeader,
 			       int remoteRank,
@@ -241,7 +242,7 @@ namespace MUSIC {
     MessageHandler* handleMessage;
     static MessageHandlerDummy dummyHandler;
   public:
-    MessageInputSubconnector (Synchronizer* synch,
+    MessageInputSubconnector (//Synchronizer* synch,
 			      MPI::Intercomm intercomm,
 			      int remoteLeader,
 			      int remoteRank,

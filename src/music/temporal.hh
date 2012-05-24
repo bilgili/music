@@ -26,7 +26,7 @@
 
 #include <music/clock.hh>
 #include <music/connection.hh>
-
+#include <music/scheduler.hh>
 namespace MUSIC {
 
   class Setup;
@@ -87,6 +87,7 @@ namespace MUSIC {
     bool hasPeers ();
     void depthFirst (ApplicationNode& x,
 		     std::vector<ConnectionEdge>& path);
+    void fillScheduler(Scheduler *scheduler, int local_id,TemporalNegotiationData* negotiationData);
   public:
     TemporalNegotiator (Setup* setup);
     ~TemporalNegotiator ();
@@ -99,10 +100,10 @@ namespace MUSIC {
     void combineParameters ();
     void loopAlgorithm ();
     void distributeParameters ();
-    void broadcastNegotiationData ();
-    void receiveNegotiationData ();
-    void distributeNegotiationData (Clock& localTime);
-    void negotiate (Clock& localTime, std::vector<Connection*>* connections);
+    void broadcastNegotiationData ( Scheduler *scheduler, Clock& localTime);
+    void receiveNegotiationData ( Scheduler *scheduler, Clock& localTime);
+  //  void distributeNegotiationData (Clock& localTime);
+    void negotiate (Clock& localTime, std::vector<Connection*>* connections, Scheduler *scheduler);
   };
 
   class ConnectionEdge {
@@ -137,8 +138,10 @@ namespace MUSIC {
     bool visited;
     bool inPath;
     std::string name ();
+    int id(){return index;}
     ClockState tickInterval () { return data->tickInterval; }
-    int nConnections () { return data->nOutConnections; }
+    int nConnections () { return data->nOutConnections+data->nInConnections; }
+    int nOutConnections() {return data->nOutConnections;}
     ConnectionEdge connection (int c)
     {
       ConnectionDescriptor& descr = data->connection[c];

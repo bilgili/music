@@ -70,9 +70,8 @@ namespace MUSIC {
   {
     intercomm.Free ();
   }
-  int Connector::spatialNegotiation (std::vector<Subconnector*>& rsubconn)
+  void Connector::spatialNegotiation ()
     {
-
       std::map<int, Subconnector*> subconnectors;
       for (NegotiationIterator i
   	   = spatialNegotiator_->negotiate (comm,
@@ -100,15 +99,43 @@ namespace MUSIC {
   		   << i->local () << ") -> " << i->rank ());
   	addRoutingInterval (i->interval (), subconn);
         }
-      return UNDEFINED_SUBCONNECTORS;
     }
+  /* remedius
+   * lessSubconnector function was moved from runtime.cc since
+   * Runtime object doesn't contain vector of subconnectors anymore.
+   */
+  bool
+   lessSubconnector (const Subconnector* c1, const Subconnector* c2)
+   {
+     return (c1->remoteWorldRank () < c2->remoteWorldRank ()
+  	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
+  		&& c1->receiverPortCode () < c2->receiverPortCode ()));
+   }
+  void Connector::prepareForSimulation(){
+	  sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
+	        (*s)->initialCommunication ();
+  }
+  bool Connector::finalizeSimulation(){
+	  bool dataStillFlowing = false;
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); 	 s != rsubconn.end ();  	 ++s)
+	  	        (*s)->flush(dataStillFlowing);
+	  return !dataStillFlowing;
+  }
+  void Connector::tick(){
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
+	 	  	  	 ++s){
+	 	  	        (*s)->maybeCommunicate();
+
+	  }
+  }
 
   /********************************************************************
    *
    * Collective Connector
    *
    ********************************************************************/
-  int CollectiveConnector::spatialNegotiation(std::vector<Subconnector*>& rsubconn){
+  void CollectiveConnector::spatialNegotiation(){
 	  Subconnector *subconn = makeSubconnector(-1);
 	  rsubconn.push_back (subconn);
 	  for (NegotiationIterator i
@@ -119,13 +146,12 @@ namespace MUSIC {
 
 		  		  addRoutingInterval (i->interval (), subconn);
 	  	  }
-	  return COLLECTIVE_SUBCONNECTORS;
   }
   Subconnector*
   CollectiveConnector::makeSubconnector(int remoteRank)
   {
 	  if(subconnector == NULL){
-		  subconnector = new CollectiveSubconnector(synchronizer(),
+		  subconnector = new CollectiveSubconnector(//synchronizer(),
 				  intercomm.Merge(high),router_);
 	  }
 	  return subconnector;
@@ -133,12 +159,15 @@ namespace MUSIC {
   void
   CollectiveConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
   {
-	  if(routingMap_ != NULL) {// if we are on the input side, we have to insert an interval since addRoutingInterval
+	  if(routingMap_input != NULL) {// if we are on the input side, we have to insert an interval since addRoutingInterval
 		                      // of the EventInputConnector does nothing.
-		  routingMap_-> insert (i, handleEvent_.global());
+		 // routingMap_input-> insert (i, ( type_ == Index::GLOBAL ? handleEvent_.global() : handleEvent_.local() ));
+		  routingMap_input-> insert (i, ( handleEvent_.global() ));
 	  }
-	  else
-		  conn->addRoutingInterval (i, subconn);
+	  else{
+		  OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
+		  routingMap_output->insert (i, osubconn->buffer ());
+	  }
   }
 
 
@@ -180,7 +209,7 @@ namespace MUSIC {
   Subconnector*
   ContOutputConnector::makeSubconnector (int remoteRank)
   {
-    return new ContOutputSubconnector (synchronizer (),
+    return new ContOutputSubconnector (//synchronizer (),
 				       intercomm,
 				       remoteLeader (),
 				       remoteRank,
@@ -226,7 +255,7 @@ namespace MUSIC {
   {
     distributor_.configure (sampler_.dataMap ());
     distributor_.initialize ();
-    synch.initialize ();
+   // synch.initialize ();
 
     // put one element in send buffers
     distributor_.distribute ();
@@ -234,9 +263,9 @@ namespace MUSIC {
 
 
   void
-  PlainContOutputConnector::tick (bool& requestCommunication)
+  PlainContOutputConnector::tick ()
   {
-    if (synch.sample ())
+/*    if (synch.sample ())
       {
 	// copy application data to send buffers
 	distributor_.distribute ();
@@ -246,7 +275,7 @@ namespace MUSIC {
     if (synch.communicate ())
       {
 	requestCommunication = true;
-      }
+      }*/
   }
 
 
@@ -263,7 +292,7 @@ namespace MUSIC {
   {
     distributor_.configure (sampler_.interpolationDataMap ());
     distributor_.initialize ();
-    synch.initialize ();
+   // synch.initialize ();
 
     // put one element in send buffers
     sampler_.sample ();
@@ -273,9 +302,9 @@ namespace MUSIC {
 
   
   void
-  InterpolatingContOutputConnector::tick (bool& requestCommunication)
+  InterpolatingContOutputConnector::tick ()
   {
-    synch.tick ();
+/*    synch.tick ();
     if (synch.sample ())
       // sampling before and after time of receiver tick
       sampler_.sampleOnce ();
@@ -286,7 +315,7 @@ namespace MUSIC {
 	distributor_.distribute ();
       }
     if (synch.communicate ())
-      requestCommunication = true;
+      requestCommunication = true;*/
   }
 
 
@@ -307,7 +336,7 @@ namespace MUSIC {
   ContInputConnector::makeSubconnector (int remoteRank)
   {
 	  int receiverRank = intercomm.Get_rank ();
-    return new ContInputSubconnector (synchronizer (),
+    return new ContInputSubconnector (//synchronizer (),
 				      intercomm,
 				      remoteLeader (),
 				      remoteRank,
@@ -362,19 +391,13 @@ namespace MUSIC {
   void
   PlainContInputConnector::initialize ()
   {
-    collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
+   // collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
     collector_.initialize ();
-    synch.initialize ();
+    //synch.initialize ();
   }
   
 
-  void
-  PlainContInputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    if (synch.communicate ())
-      requestCommunication = true;
-  }
+
 
 
   void
@@ -397,26 +420,19 @@ namespace MUSIC {
   void
   InterpolatingContInputConnector::initialize ()
   {
-    collector_.configure (sampler_.interpolationDataMap (),
-			  synch.allowedBuffered () + 1);
+  //  collector_.configure (sampler_.interpolationDataMap (),
+//			  synch.allowedBuffered () + 1);
     collector_.initialize ();
-    synch.initialize ();
+   // synch.initialize ();
   }
 
 
-  void
-  InterpolatingContInputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    if (synch.communicate ())
-      requestCommunication = true;
-  }
 
 
   void
   InterpolatingContInputConnector::postCommunication ()
   {
-    if (first_)
+/*    if (first_)
       {
 	collector_.collect (sampler_.insert ());
 	synch.remoteTick ();
@@ -427,7 +443,7 @@ namespace MUSIC {
 	collector_.collect (sampler_.insert ());
 	synch.remoteTick ();
       }
-    sampler_.interpolateToApplication (synch.interpolationCoefficient ());
+    sampler_.interpolateToApplication (synch.interpolationCoefficient ());*/
   }
 
 
@@ -436,35 +452,16 @@ namespace MUSIC {
    * Event Connectors
    *
    ********************************************************************/
-  void
-    EventOutputConnector::tick (bool& requestCommunication)
-      {
-        synch.tick ();
-        // Only assign requestCommunication if true
-        if (synch.communicate ())
-          requestCommunication = true;
-      }
-
-      void
-      EventOutputConnector::initialize ()
-      {
-        synch.initialize ();
-      }
 
 
   Subconnector*
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
-    return new EventOutputSubconnector (&synch,
+    return new EventOutputSubconnector (//&synch,
 					intercomm,
 					remoteLeader (),
 					remoteRank,
 					receiverPortCode ());
-  }
-  int OutputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
-  {
-	  Connector::spatialNegotiation(subconn);
-	  return OUTPUT_SUBCONNECTORS;
   }
 
   void
@@ -476,17 +473,12 @@ namespace MUSIC {
   }
   
 
-  int InputConnector::spatialNegotiation(std::vector<Subconnector*>& subconn)
-  {
-	  Connector::spatialNegotiation(subconn);
-	  return INPUT_SUBCONNECTORS;
-  }
   Subconnector*
   EventInputConnector::makeSubconnector (int remoteRank)
   {
 	int receiverRank = intercomm.Get_rank ();
     if (type_ == Index::GLOBAL)
-      return new EventInputSubconnectorGlobal (&synch,
+      return new EventInputSubconnectorGlobal (//&synch,
 					       intercomm,
 					       remoteLeader (),
 					       remoteRank,
@@ -494,7 +486,7 @@ namespace MUSIC {
 					       receiverPortCode (),
 					       handleEvent_.global ());
     else
-      return new EventInputSubconnectorLocal (&synch,
+      return new EventInputSubconnectorLocal (//&synch,
 					      intercomm,
 					      remoteLeader (),
 					      remoteRank,
@@ -502,20 +494,8 @@ namespace MUSIC {
 					      receiverPortCode (),
 					      handleEvent_.local ());
   }
-  void
-  EventInputConnector::tick (bool& requestCommunication)
-  {
-	  synch.tick ();
-	  // Only assign requestCommunication if true
-	  if (synch.communicate ())
-		  requestCommunication = true;
-  }
 
-  void
-  EventInputConnector::initialize ()
-  {
-	  synch.initialize ();
-  }
+
 
  void EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
  {
@@ -541,18 +521,13 @@ namespace MUSIC {
   {
   }
 
-  
-  void
-  MessageOutputConnector::initialize ()
-  {
-    synch.initialize ();
-  }
+
 
   
   Subconnector*
   MessageOutputConnector::makeSubconnector (int remoteRank)
   {
-    return new MessageOutputSubconnector (&synch,
+    return new MessageOutputSubconnector (//&synch,
 					  intercomm,
 					  remoteLeader (),
 					  remoteRank,
@@ -573,21 +548,14 @@ namespace MUSIC {
   }
   
   
-  void
-  MessageOutputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    // Only assign requestCommunication if true
-    if (synch.communicate ())
-      requestCommunication = true;
-  }
+
 
   
   void
   MessageOutputConnector::postCommunication ()
   {
-    if (synch.communicate ())
-      buffer.clear ();
+ //   if (synch.communicate ())
+ //     buffer.clear ();
   }
 
   
@@ -603,34 +571,19 @@ namespace MUSIC {
   }
 
 
-  void
-  MessageInputConnector::initialize ()
-  {
-    synch.initialize ();
-  }
 
   
   Subconnector*
   MessageInputConnector::makeSubconnector (int remoteRank)
   {
 	  int receiverRank = intercomm.Get_rank ();
-    return new MessageInputSubconnector (&synch,
+    return new MessageInputSubconnector (//&synch,
 					 intercomm,
 					 remoteLeader (),
 					 remoteRank,
 					 receiverRank,
 					 receiverPortCode (),
 					 handleMessage_);
-  }
-
-
-  void
-  MessageInputConnector::tick (bool& requestCommunication)
-  {
-    synch.tick ();
-    // Only assign requestCommunication if true
-    if (synch.communicate ())
-      requestCommunication = true;
   }
 
 }

@@ -68,10 +68,11 @@ namespace MUSIC {
     ClockState tickInterval () { return tickInterval_; }
     void setTickInterval (ClockState ti) { tickInterval_ = ti; }
     double timebase () { return timebase_; }
-    double time ();
+    double time () const;
     ClockState integerTime () { return state_; }
     void set (ClockState state) { state_ = state; }
     bool operator> (const Clock& ref) const { return state_ > ref.state_; }
+    bool operator<= (const Clock& ref) const { return state_ <= ref.state_; }
     bool operator== (const Clock& ref) const { return state_ == ref.state_; }
   };
 

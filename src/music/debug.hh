@@ -17,7 +17,7 @@
  */
 #ifndef MUSIC_DEBUG_HH
 #include "config.h"
-
+//#define MUSIC_DEBUG
 #ifdef MUSIC_DEBUG
 
 #ifdef USE_MPI

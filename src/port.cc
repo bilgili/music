@@ -551,7 +551,8 @@ namespace MUSIC {
 	  	 			setup_->communicator (),
 	  	 			  routingMap,
 	  	 			handleEvent_,
-	  	 			router);
+	  	 			router,
+	  	 			type_);
 
 	 return conn;
   }

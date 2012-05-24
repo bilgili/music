@@ -25,7 +25,7 @@
 namespace MUSIC {
 
   TemporalNegotiator::TemporalNegotiator (Setup* setup)
-    : setup_ (setup)
+    : setup_ (setup),negotiationBuffer(NULL)
   {
   }
 
@@ -84,7 +84,7 @@ namespace MUSIC {
 	int leader = (*applicationMap)[i].leader ();
 	ranks[i] = leader;
 	leaderToNode.insert (std::make_pair (leader, i));
-	if (leader == localRank)
+	if (localRank >= leader) /* remedius: changed from = */
 	  localNode = i;
       }
 
@@ -122,7 +122,10 @@ namespace MUSIC {
   void
   TemporalNegotiator::freeNegotiationData (TemporalNegotiationData* data)
   {
-    delete[] static_cast<char*> (static_cast<void*> (data));
+	  if (data != NULL){
+		  delete[] static_cast<char*> (static_cast<void*> (data));
+		  data = NULL;
+	  }
   }
 
 
@@ -185,6 +188,7 @@ namespace MUSIC {
 				       outputConnections[i].elementSize (),
 				       ti,
 				       setup_->timebase ());
+
 	negotiationData->connection[i].accLatency = 0;
       }
     for (int i = 0; i < nIn; ++i)
@@ -196,6 +200,7 @@ namespace MUSIC {
 	negotiationData->connection[nOut + i].maxBuffered
 	  = inputConnections[i].maxBuffered ();
 	negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
+
 	negotiationData->connection[nOut + i].accLatency
 	  = inputConnections[i].accLatency ();
 	MUSIC_LOGR ("port " << inputConnections[i].connector ()->receiverPortName () << ": " << inputConnections[i].accLatency ());
@@ -295,7 +300,7 @@ namespace MUSIC {
 		    || inMaxBuffered < out->maxBuffered)
 		  out->maxBuffered = inMaxBuffered;
 	      }
-	    // store maxBuffered in sender units
+	   // store maxBuffered in sender units
 	    in->maxBuffered = out->maxBuffered;
 	  
 	    // accLatency
@@ -369,9 +374,10 @@ namespace MUSIC {
         ClockState bufDelay = totalDelay / loopLength;
         for (unsigned int c = 0; c < path.size (); ++c)
 	  {
-	    int allowedTicks = bufDelay / path[c].pre ().tickInterval ();
+	    int allowedTicks =  bufDelay / path[c].pre ().tickInterval ();
 	    path[c].setAllowedBuffer (std::min (path[c].allowedBuffer (),
 						allowedTicks));
+
 	  }
 
         return;
@@ -382,7 +388,7 @@ namespace MUSIC {
     x.inPath = true;
 
     // Recurse in depth-first order
-    for (int c = 0; c < x.nConnections (); ++c)
+    for (int c = 0; c < x.nOutConnections (); ++c)
       {
 	path.push_back (x.connection (c));
 	depthFirst (x.connection (c).post (), path);
@@ -406,31 +412,49 @@ namespace MUSIC {
 
   
   void
-  TemporalNegotiator::broadcastNegotiationData ()
+  TemporalNegotiator::broadcastNegotiationData ( Scheduler *scheduler, Clock& localTime)
   {
     MPI::Intracomm comm = setup_->communicator ();
-    comm.Bcast (&nLocalConnections, 1, MPI::INT, 0);
-    comm.Bcast (negotiationData,
-		negotiationDataSize (nLocalConnections), MPI::BYTE, 0);
+    std::vector<ApplicationNode>::iterator node;
+    for(node = nodes.begin(); node < nodes.end(); node++ ){
+    	int nConnections = (*node).nConnections();
+    	if (hasPeers ()){
+    		comm.Bcast (&nConnections, 1, MPI::INT, 0);
+    		comm.Bcast ((*node).data,
+    			negotiationDataSize (nConnections), MPI::BYTE, 0);
+    	}
+
+    	fillScheduler(scheduler, (*node).id(),(*node).data);
+    }
+   // distributeNegotiationData (localTime);
+
   }
 
 
   void
-  TemporalNegotiator::receiveNegotiationData ()
+  TemporalNegotiator::receiveNegotiationData ( Scheduler *scheduler, Clock& localTime)
   {
+
     MPI::Intracomm comm = setup_->communicator ();
-    comm.Bcast (&nLocalConnections, 1, MPI::INT, 0);
-    negotiationBuffer = allocNegotiationData (1, nLocalConnections);
-    negotiationData = negotiationBuffer;
-    comm.Bcast (negotiationData,
-		negotiationDataSize (nLocalConnections), MPI::BYTE, 0);
+    for(int i =0; i < nApplications; ++i ){
+    	int nConnections;
+    	comm.Bcast (&nConnections, 1, MPI::INT, 0);
+    	freeNegotiationData(negotiationBuffer);
+    	negotiationBuffer = allocNegotiationData (1, nConnections);
+    	negotiationData = negotiationBuffer;
+    	comm.Bcast (negotiationData,
+    			negotiationDataSize (nConnections), MPI::BYTE, 0);
+/*    	if (i == localNode)
+    		distributeNegotiationData(localTime);*/
+    	fillScheduler(scheduler, i,negotiationData);
+    }
   }
 
 
-  /* 
+/*
    * Distribute results of temporal negotiation to the synchronizers
    * of the local process
-   */
+
 
   void
   TemporalNegotiator::distributeNegotiationData (Clock& localTime)
@@ -460,7 +484,7 @@ namespace MUSIC {
 	ClockState accLatency = negotiationData->connection[nOut + i].accLatency;
 	bool interpolate = negotiationData->connection[nOut + i].interpolate;
 	ClockState remoteTickInterval
-	  = negotiationData->connection[i].remoteTickInterval;
+	  = negotiationData->connection[nOut + i].remoteTickInterval;  remedius : changed form [i] to [nOut+i],  was it a bug?
 	Synchronizer* synch
 	  = inputConnections[i].connector ()->synchronizer ();
 	synch->setLocalTime (&localTime);
@@ -470,32 +494,52 @@ namespace MUSIC {
 	synch->setAccLatency (accLatency);
 	synch->setInterpolate (interpolate);
       }
-  }
+  }*/
 
 
   void
   TemporalNegotiator::negotiate (Clock& localTime,
-				 std::vector<Connection*>* connections)
+				 std::vector<Connection*>* connections,  Scheduler *scheduler)
   {
-    separateConnections (connections);
-    //MUSIC_LOGR (printconns ("NOut: ", outputConnections));
-   // MUSIC_LOGR (printconns ("NIn: ", inputConnections));
-    createNegotiationCommunicator ();
-    if (isLeader ())
-      {
-	collectNegotiationData (localTime.tickInterval ());
-	communicateNegotiationData ();
-	combineParameters ();
-	loopAlgorithm ();
-	distributeParameters ();
-	if (hasPeers ())
-	  broadcastNegotiationData ();
-      }
-    else
-    	receiveNegotiationData ();
-    distributeNegotiationData (localTime);
+	  separateConnections (connections);
+
+	  //MUSIC_LOGR (printconns ("NOut: ", outputConnections));
+	  // MUSIC_LOGR (printconns ("NIn: ", inputConnections));
+	  createNegotiationCommunicator ();
+
+	  if (isLeader ())
+	  {
+		  collectNegotiationData (localTime.tickInterval ());
+		  communicateNegotiationData ();
+		  combineParameters ();
+		  loopAlgorithm ();
+		  distributeParameters ();
+		  broadcastNegotiationData (scheduler, localTime);
+	  }
+	  else
+		  receiveNegotiationData (scheduler, localTime);
+
   }
 
+  void
+  TemporalNegotiator::fillScheduler( Scheduler *scheduler, int node_id, TemporalNegotiationData* negotiationData_){
+
+	  int nInput = negotiationData_->nInConnections;
+	  int nOutput = negotiationData_->nOutConnections;
+
+	  Clock localTime;
+	  localTime.configure(negotiationData_->timebase, negotiationData_->tickInterval);
+
+	  scheduler->addNode(node_id,localTime);
+
+	  MUSIC_LOG0("Node "<<node_id <<":in:"<<nInput << ":out:" << nOutput);
+	  for(int k = 0; k < nInput; ++k){
+		  ConnectionDescriptor edge = negotiationData_->connection[k+nOutput];
+		  scheduler->addConnection( edge.remoteNode,node_id, edge.accLatency,edge.maxBuffered, edge.receiverPort);
+		  MUSIC_LOG0 ( "Connection added to the schedule:" <<edge.remoteNode<< "->" << node_id  << ";latency =" << edge.accLatency << ";buffered=" <<edge.maxBuffered);
+	  }
+
+}
 
   std::string
   ApplicationNode::name ()

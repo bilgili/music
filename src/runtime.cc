@@ -22,199 +22,202 @@
 
 #include <algorithm>
 #include <iostream>
-
+#include <set>
 #include "music/temporal.hh"
 #include "music/error.hh"
-
+#include "music/connection.hh"
 namespace MUSIC {
 
-  bool Runtime::isInstantiated_ = false;
+bool Runtime::isInstantiated_ = false;
 
-  Runtime::Runtime (Setup* s, double h)
-  {
-    checkInstantiatedOnce (isInstantiated_, "Runtime");
-    
-    OutputSubconnectors outputSubconnectors;
-    InputSubconnectors inputSubconnectors;
-    /* remedius
-     * new type of subconnectors for collective communication was created.
-     */
-    CollectiveSubconnectors collectiveSubconnectors;
-    // Setup the MUSIC clock
-    localTime = Clock (s->timebase (), h);
-    
-    comm = s->communicator ();
+Runtime::Runtime (Setup* s, double h)
+{
+	checkInstantiatedOnce (isInstantiated_, "Runtime");
 
-    /* remedius
-     * copy ports in order to delete them afterwards (it was memory leak)
-     */
-    for ( std::vector<Port *>::iterator it=s->ports()->begin() ; it < s->ports()->end(); it++ )
-    	ports.push_back((*it));
 
-    Connections* connections = s->connections ();
-    
-    if (s->launchedByMusic ())
-      {
-	takeTickingPorts (s);
-	
-	// create a total order for connectors and
-	// establish connection to peers
-	connectToPeers (connections);
-	
-	// specialize connectors and fill up connectors vector
-	specializeConnectors (connections);
-	
-	// from here we can start using the vector `connectors'
+	ApplicationMap* applicationMap = s->applicationMap ();
+	int local_node = rankToNode(applicationMap);
+	scheduler = new Scheduler(local_node);
+	app_name= (*applicationMap)[local_node].name();
+	/* remedius
+	 * new type of subconnectors for collective communication was created.
+	 */
+	//CollectiveSubconnectors collectiveSubconnectors;
+	// Setup the MUSIC clock
+	localTime = Clock (s->timebase (), h);
 
-	// negotiate where to route data and fill up subconnector vectors
+	comm = s->communicator ();
 
-	spatialNegotiation (outputSubconnectors, inputSubconnectors, collectiveSubconnectors);
-	// build data routing tables
-	buildTables (s);
-	// build a total order of subconnectors
-	// for non-blocking pairwise exchange
-	buildSchedule (
+	/* remedius
+	 * copy ports in order to delete them afterwards (it was probably a memory leak in previous revision)
+	 */
+	for ( std::vector<Port *>::iterator it=s->ports()->begin() ; it < s->ports()->end(); it++ )
+		ports.push_back((*it));
+
+	Connections* connections = s->connections ();
+
+	if (s->launchedByMusic ())
+	{
+		takeTickingPorts (s);
+
+		// create a total order for connectors and
+		// establish connection to peers
+		connectToPeers (connections);
+
+		// specialize connectors and fill up connectors vector
+		specializeConnectors (connections);
+
+		// from here we can start using the vector `connectors'
+		// negotiate where to route data and fill up subconnector vectors
+		spatialNegotiation ();
+		// build data routing tables
+		buildTables (s);
+		// build a total order of subconnectors
+		// for non-blocking pairwise exchange
+		/*	buildSchedule (
 		       outputSubconnectors,
 		       inputSubconnectors,
-		       collectiveSubconnectors);
-	takePostCommunicators ();
-	// negotiate timing constraints for synchronizers
-	temporalNegotiation (s, connections);
-	// final initialization before simulation starts
-	initialize ();
-      }
+		       collectiveSubconnectors);*/
+		takePostCommunicators ();
 
-    delete s;
-  }
+		// negotiate timing constraints for synchronizers
+		temporalNegotiation (s, scheduler, connections);
+		// final initialization before simulation starts
+		initialize ();
+	}
+
+	delete s;
+}
 
 
-  Runtime::~Runtime ()
-  {
-    // delete subconnectors
+Runtime::~Runtime ()
+{
+	/*    // delete subconnectors
     for (std::vector<Subconnector*>::iterator subconnector = schedule.begin ();
 	 subconnector != schedule.end ();
 	 ++subconnector)
-      delete *subconnector;
+      delete *subconnector;*/
 
-    // delete connectors
-    for (std::vector<Connector*>::iterator connector = connectors.begin ();
-	 connector != connectors.end ();
-	 ++connector)
-      delete *connector;
+	// delete connectors
+	for (std::vector<Connector*>::iterator connector = connectors.begin ();
+			connector != connectors.end ();
+			++connector)
+		delete *connector;
 
-    // delete ports
-    for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
-        delete (*it);
-    isInstantiated_ = false;
-  }
-  
+	// delete ports
+	for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
+		delete (*it);
+	delete scheduler;
+	isInstantiated_ = false;
+}
 
-  void
-  Runtime::takeTickingPorts (Setup* s)
-  {
-    std::vector<Port*>::iterator p;
-    for (p = ports.begin (); p != ports.end (); ++p)
-      {
-	TickingPort* tp = dynamic_cast<TickingPort*> (*p);
-	if (tp != NULL)
-	  tickingPorts.push_back (tp);
-      }
-  }
-  
 
-  void
-  Runtime::takePostCommunicators ()
-  {
-    std::vector<Connector*>::iterator c;
-    for (c = connectors.begin (); c != connectors.end (); ++c)
-      {
-	PostCommunicationConnector* postCommunicationConnector
-	  = dynamic_cast<PostCommunicationConnector*> (*c);
-	if (postCommunicationConnector != NULL)
-	  postCommunication.push_back (postCommunicationConnector);
-      }
-  }
-  
+void
+Runtime::takeTickingPorts (Setup* s)
+{
+	std::vector<Port*>::iterator p;
+	for (p = ports.begin (); p != ports.end (); ++p)
+	{
+		TickingPort* tp = dynamic_cast<TickingPort*> (*p);
+		if (tp != NULL)
+			tickingPorts.push_back (tp);
+	}
+}
 
-  // This predicate gives a total order for connectors which is the
-  // same on the sender and receiver sides.  It belongs here rather
-  // than in connector.hh or connector.cc since it is connected to the
-  // connect algorithm.
-  bool
-  lessConnection (const Connection* cn1, const Connection* cn2)
-  {
-    Connector* c1 = cn1->connector ();
-    Connector* c2 = cn2->connector ();
-    return (c1->receiverAppName () < c2->receiverAppName ()
-	    || (c1->receiverAppName () == c2->receiverAppName ()
-		&& c1->receiverPortName () < c2->receiverPortName ()));
-  }
-  
-  
-  // This predicate gives a total order for subconnectors which is the
-  // same on the sender and receiver sides.  It belongs here rather
-  // than in connector.hh or connector.cc since it is connected to the
-  // connect algorithm.
-  bool
+
+void
+Runtime::takePostCommunicators ()
+{
+	std::vector<Connector*>::iterator c;
+	for (c = connectors.begin (); c != connectors.end (); ++c)
+	{
+		PostCommunicationConnector* postCommunicationConnector
+		= dynamic_cast<PostCommunicationConnector*> (*c);
+		if (postCommunicationConnector != NULL)
+			postCommunication.push_back (postCommunicationConnector);
+	}
+}
+
+
+// This predicate gives a total order for connectors which is the
+// same on the sender and receiver sides.  It belongs here rather
+// than in connector.hh or connector.cc since it is connected to the
+// connect algorithm.
+bool
+lessConnection (const Connection* cn1, const Connection* cn2)
+{
+	Connector* c1 = cn1->connector ();
+	Connector* c2 = cn2->connector ();
+	return (c1->receiverAppName () < c2->receiverAppName ()
+			|| (c1->receiverAppName () == c2->receiverAppName ()
+					&& c1->receiverPortName () < c2->receiverPortName ()));
+}
+
+
+// This predicate gives a total order for subconnectors which is the
+// same on the sender and receiver sides.  It belongs here rather
+// than in connector.hh or connector.cc since it is connected to the
+// connect algorithm.
+/*  bool
   lessSubconnector (const Subconnector* c1, const Subconnector* c2)
   {
     return (c1->remoteWorldRank () < c2->remoteWorldRank ()
 	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
 		&& c1->receiverPortCode () < c2->receiverPortCode ()));
-  }
+  }*/
 
-  
-  void
-  Runtime::connectToPeers (Connections* connections)
-  {
-    // This ordering is necessary so that both sender and receiver
-    // in each pair sets up communication at the same point in time
-    //
-    // Note that we don't need to use the dead-lock scheme used in
-    // build_schedule () here.
-    //
-    sort (connections->begin (), connections->end (), lessConnection);
-    for (Connections::iterator c = connections->begin ();
-	 c != connections->end ();
-	 ++c)
-      (*c)->connector ()->createIntercomm ();
-  }
+void
+Runtime::connectToPeers (Connections* connections)
+{
+	// This ordering is necessary so that both sender and receiver
+	// in each pair sets up communication at the same point in time
+	//
+	// Note that we don't need to use the dead-lock scheme used in
+	// build_schedule () here.
+	//
+	sort (connections->begin (), connections->end (), lessConnection);
 
-
-  void
-  Runtime::specializeConnectors (Connections* connections)
-  {
-    for (Connections::iterator c = connections->begin ();
-	 c != connections->end ();
-	 ++c)
-      {
-	Connector* connector = (*c)->connector ()->specialize (localTime);
-	(*c)->setConnector (connector);
-	connectors.push_back (connector);
-      }
-  }
+	for (Connections::iterator c = connections->begin ();
+			c != connections->end ();
+			++c)
+		(*c)->connector ()->createIntercomm ();
+}
 
 
-  void
-  Runtime::spatialNegotiation (OutputSubconnectors& outputSubconnectors,
-			       InputSubconnectors& inputSubconnectors, CollectiveSubconnectors& collectiveSubconnectors)
-  {
-    // Let each connector pair setup their inter-communicators
-    // and create all required subconnectors.
+void
+Runtime::specializeConnectors (Connections* connections)
+{
+	for (Connections::iterator c = connections->begin ();
+			c != connections->end ();
+			++c)
+	{
+		Connector* connector = (*c)->connector ()->specialize (localTime);
+		(*c)->setConnector (connector);
+		connectors.push_back (connector);
+	}
 
-    int type;
-    for (std::vector<Connector*>::iterator c = connectors.begin ();
-	 c != connectors.end ();
-	 ++c)
-      {
-    	Subconnectors subconnectors;
-	   // negotiate and fill up a vector passed as an argument
-    	type = (*c)->spatialNegotiation (subconnectors);
+}
 
-        /* remedius
-         * cast subconnectors to an appropriate type.
-         */
-    	int rsize = subconnectors.size();
+
+void
+Runtime::spatialNegotiation ()
+{
+	// Let each connector pair setup their inter-communicators
+	// and create all required subconnectors.
+
+	int type;
+	for (std::vector<Connector*>::iterator c = connectors.begin ();
+			c != connectors.end ();
+			++c)
+	{
+		//Subconnectors subconnectors;
+		// negotiate and fill up a vector passed as an argument
+		(*c)->spatialNegotiation ();
+
+		/* remedius
+		 * cast subconnectors to an appropriate type.
+		 */
+		/*int rsize = subconnectors.size();
     	if(type == OUTPUT_SUBCONNECTORS){
     		outputSubconnectors.resize(outputSubconnectors.size()+rsize);
     		transform( subconnectors.begin(), subconnectors.end(),
@@ -238,13 +241,13 @@ namespace MUSIC {
     	else{
 
     		error0(" Runtime::spatialNegotiation::undefined subconnector");
-    	}
-      }
+    	}*/
+	}
 
-  }
+}
 
 
-  void
+/*void
   Runtime::buildSchedule (
 			  OutputSubconnectors& outputSubconnectors,
 			  InputSubconnectors& inputSubconnectors,
@@ -252,7 +255,7 @@ namespace MUSIC {
   {
 	  int localRank = MPI::COMM_WORLD.Get_rank ();
     // Build the communication schedule.
-    
+
     // The following communication schedule prevents dead-locking,
     // both during inter-communicator creation and during
     // communication of data.
@@ -260,13 +263,14 @@ namespace MUSIC {
     // Mikael Djurfeldt et al. (2005) "Massively parallel simulation
     // of brain-scale neuronal network models." Tech. Rep.
     // TRITA-NA-P0513, CSC, KTH, Stockholm.
-    
+
     // First sort connectors according to a total order
-    
+
     sort (outputSubconnectors.begin (), outputSubconnectors.end (),
 	  lessSubconnector);
     sort (inputSubconnectors.begin (), inputSubconnectors.end (),
 	  lessSubconnector);
+
 
     // Now, build up the schedule to be used later during
     // communication of data.
@@ -301,95 +305,126 @@ namespace MUSIC {
 	schedule.push_back (*c);
 
     }
-
     for (std::vector<CollectiveSubconnector*>::iterator c = collectiveSubconnectors.begin ();
          	 c != collectiveSubconnectors.end ();	 ++c)
                schedule.push_back (*c);
   }
+ */
 
-  
-  void
-  Runtime::buildTables (Setup* s)
-  {
-    for (std::vector<Port*>::iterator p = ports.begin ();
-	 p != ports.end ();
-	 ++p)
-      (*p)->buildTable ();
-  }
-
-  
-  void
-  Runtime::temporalNegotiation (Setup* s, Connections* connections)
-  {
-    // Temporal negotiation is done globally by a serial algorithm
-    // which yields the same result in each process
-    s->temporalNegotiator ()->negotiate (localTime, connections);
-  }
-
-  MPI::Intracomm
-  Runtime::communicator ()
-  {
-    return comm;
-  }
+void
+Runtime::buildTables (Setup* s)
+{
+	for (std::vector<Port*>::iterator p = ports.begin ();
+			p != ports.end ();
+			++p)
+		(*p)->buildTable ();
+}
 
 
-  void
-  Runtime::initialize ()
-  {
-    // initialize connectors (and synchronizers)
-    std::vector<Connector*>::iterator c;
-    for (c = connectors.begin (); c != connectors.end (); ++c)
-      (*c)->initialize ();
+void
+Runtime::temporalNegotiation (Setup* s, Scheduler *scheduler, Connections* connections)
+{
+	// Temporal negotiation is done globally by a serial algorithm
+	// which yields the same result in each process
+	s->temporalNegotiator ()->negotiate (localTime, connections, scheduler);
+}
 
-    // receive first chunk of data from sender application and fill
-    // cont buffers according to Synchronizer::initialBufferedTicks ()
+MPI::Intracomm
+Runtime::communicator ()
+{
+	return comm;
+}
+
+
+void
+Runtime::initialize ()
+{
+	// initialize connectors (and synchronizers)
+
+	std::vector<Connector*>::iterator c;
+	for (c = connectors.begin (); c != connectors.end (); ++c){
+		(*c)->initialize ();
+	}
+	scheduler->initialize(connectors);
+	scheduler->nextCommunication(nextComm, schedule);
+
+	// receive first chunk of data from sender application and fill
+	// cont buffers according to Synchronizer::initialBufferedTicks ()
+	/* remedius
+	 * the following commented block was moved to  prepareForSimulation() method
+	 * of each connector object.
     for (std::vector<Subconnector*>::iterator s = schedule.begin ();
 	 s != schedule.end ();
 	 ++s)
-      (*s)->initialCommunication ();
-    for (c = connectors.begin (); c != connectors.end (); ++c)
-      (*c)->prepareForSimulation ();
+      (*s)->initialCommunication ();*/
 
-    // compensate for first localTime.tick () in Runtime::tick ()
-    localTime.ticks (-1);
+	for (c = connectors.begin (); c != connectors.end (); ++c)
+		(*c)->prepareForSimulation ();
 
-    // the time zero tick () (where we may or may not communicate)
-    tick ();
-  }
+	// compensate for first localTime.tick () in Runtime::tick ()
+	localTime.ticks (-1);
+	// the time zero tick () (where we may or may not communicate)
+	tick ();
+}
 
-  
-  void
-  Runtime::finalize ()
-  {
-    bool dataStillFlowing;
-    do
-      {
-	std::vector<Subconnector*>::iterator c;
-	 dataStillFlowing = false;
-	for (c = schedule.begin (); c != schedule.end (); ++c)
-	  (*c)->flush (dataStillFlowing);
-      }
-    while (dataStillFlowing);
+
+void
+Runtime::finalize ()
+{
+	/* remedius
+	 * set of receiver port codes that still has to be finalized
+	 */
+	std::set<int> cnn_ports;
+	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c)
+		cnn_ports.insert((*c)->receiverPortCode());
+	/* remedius
+	 * finalize communication
+	 */
+	do
+	{
+		while (!schedule.empty())
+		{
+			if(schedule.front()->finalizeSimulation())
+				cnn_ports.erase(schedule.front()->receiverPortCode());
+			schedule.pop();
+		}
+		scheduler->nextCommunication(nextComm, schedule);
+	}
+	while (!cnn_ports.empty());
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
-    // This is needed in OpenMPI version <= 1.2 for the freeing of the
-    // intercommunicators to go well
-    MPI::COMM_WORLD.Barrier ();
+	// This is needed in OpenMPI version <= 1.2 for the freeing of the
+	// intercommunicators to go well
+	MPI::COMM_WORLD.Barrier ();
 #endif
-    for (std::vector<Connector*>::iterator connector = connectors.begin ();
-	 connector != connectors.end ();
-	 ++connector)
-      (*connector)->freeIntercomm ();
-    MPI::Finalize ();
-  }
+	for (std::vector<Connector*>::iterator connector = connectors.begin ();
+			connector != connectors.end ();
+			++connector)
+		(*connector)->freeIntercomm ();
+	MPI::Finalize ();
+}
 
-
-  void
+void
+Runtime::tick ()
+{
+	// Update local time
+	localTime.tick ();
+	MUSIC_LOG0("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
+	while(nextComm.time() <= localTime.time()){
+		while (!schedule.empty())
+		{
+			schedule.front()->tick();
+			schedule.pop();
+		}
+		scheduler->nextCommunication(nextComm, schedule);
+	}
+}
+/*  void
   Runtime::tick ()
   {
-    
+
     // Update local time
     localTime.tick ();
-    
+
     // ContPorts do some per-tick initialization here
     std::vector<TickingPort*>::iterator p;
     for (p = tickingPorts.begin (); p != tickingPorts.end (); ++p)
@@ -418,14 +453,22 @@ namespace MUSIC {
 	 c != postCommunication.end ();
 	 ++c)
       (*c)->postCommunication ();
-  }
+  }*/
 
 
-  double
-  Runtime::time ()
-  {
-    return localTime.time ();
-  }
-  
+double
+Runtime::time ()
+{
+	return localTime.time ();
+}
+int Runtime::rankToNode(ApplicationMap* applicationMap){
+	int local_node;
+	int rank = MPI::COMM_WORLD.Get_rank ();
+	int nApplications = applicationMap->size();
+	for (int i = 0; i < nApplications; ++i)
+		if(rank >= (*applicationMap)[i].leader())
+			local_node = i;
+	return local_node;
+}
 }
 #endif

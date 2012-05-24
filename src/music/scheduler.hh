@@ -16,24 +16,91 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_SYNCHRONIZER_HH
-#include <music/clock.hh>
+#ifndef MUSIC_SCHEDULER_HH
 
+#include <limits>
+#include <vector>
+#include <map>
+#include <queue>
+#include <music/clock.hh>
+#include <music/connector.hh>
 namespace MUSIC {
 
-  // The Synchronizer is responsible for the timing involved in
-  // communication, sampling, interpolation and buffering.  There is
-  // one Synchronizer in each Connector.  The Subconnectors of a
-  // Connector also have a reference to the Connector's synchronizer.
+// The Synchronizer is responsible for the timing involved in
+// communication, sampling, interpolation and buffering.  There is
+// one Synchronizer in each Connector.  The Subconnectors of a
+// Connector also have a reference to the Connector's synchronizer.
 
+class Scheduler {
+
+public:
+	class Connection;
+	class Node {
+		int id_;
+		Clock localTime_;
+		std::vector<Connection*> outputconnections_;
+		std::vector<Connection*> inputConnections_;
+	public:
+		Node(int id, const Clock &localTime);
+		void advance();
+		void addConnection(Connection *conn, bool input = false);
+		std::vector<Connection*> outputConnections() const {return outputconnections_;};
+		Clock localTime () const {return localTime_;};
+		double nextReceive() const;
+		int getId() const {return id_;}
+	};
+
+	class Connection {
+		Clock nextSend_;
+		Clock nextReceive_;
+		int pre_id,post_id;
+		Node *pre_;
+		Node *post_;
+		ClockState latency_;
+		int maxBuffered_;
+		int port_code_;
+		Connector *connector_;
+	public:
+		Connection(int pre,int post,const ClockState &latency,int maxBuffered, int port_code);
+		void initialize(std::vector<Node*> &nodes);
+		void advance();
+		Clock nextSend() const {return nextSend_;}
+		Clock nextReceive() const {return nextReceive_;}
+		Connector *getConnector() const {return connector_;}
+		void setConnector(Connector *conn) {connector_ = conn;}
+		int portCode() const {return port_code_;}
+		Node *preNode() const {return pre_;}
+		Node *postNode() const {return post_;}
+	private:
+		void _advance();
+
+	};
+
+
+private:
+	std::vector<Node*> nodes;
+	std::vector<Connection*>connections;
+	int self_node;
+
+public:
+	Scheduler(int node_id);
+	~Scheduler();
+	void addNode(int id, const Clock &localTime);
+	void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, int port_code);
+	void initialize(std::vector<Connector*> &connectors);
+	void nextCommunication (Clock &nextComm, std::queue<Connector *> &conn);
+};
+/*
   class Synchronizer {
+
   protected:
     // pointer to the main clock of this application
     Clock* localTime;
+    Scheduler *scheduler;
 
     // the following two clocks are mirrored on both peers; this is
     // the core of the mechanism by which MUSIC avoids handshaking
-    
+
     // this clock holds the time (in the sender time frame) when an
     // OutputConnector is going to send next packet of data to its
     // peer InputConnector
@@ -59,9 +126,10 @@ namespace MUSIC {
     // cached decision to communicate; (nextSend or nextReceive time
     // has arrived)
     bool communicate_;
-    
-    void nextCommunication ();
+
+    virtual void nextCommunication (){};
   public:
+    Synchronizer(){};
     virtual ~Synchronizer(){};
     void setLocalTime (Clock* lt);
     virtual void setSenderTickInterval (ClockState ti);
@@ -75,6 +143,10 @@ namespace MUSIC {
     virtual int initialBufferedTicks () { return 0; };
     bool communicate ();
     virtual void tick ()=0;
+    double time ()
+      {
+        return localTime->time ();
+      }
   };
 
 
@@ -82,6 +154,8 @@ namespace MUSIC {
   public:
     bool sample ();
     void tick ();
+  protected:
+    void nextCommunication (){};
   };
 
 
@@ -89,6 +163,8 @@ namespace MUSIC {
   public:
     virtual int initialBufferedTicks ();
     void tick ();
+  protected:
+    void nextCommunication (){};
   };
 
 
@@ -121,7 +197,8 @@ namespace MUSIC {
     double interpolationCoefficient ();
     void tick ();
   };
+ */
 
 }
-#define MUSIC_SYNCHRONIZER_HH
+#define MUSIC_SCHEDULER_HH
 #endif

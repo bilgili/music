@@ -22,7 +22,6 @@
 #include <music/connector.hh>
 
 namespace MUSIC {
-
   /*
    * The Connection class carries the extra information needed for
    * setting up connectors and subconnectors during spatial and
@@ -34,6 +33,7 @@ namespace MUSIC {
     Connector* connector_;
     int maxBuffered_;
   public:
+
     Connection (Connector* connector, int maxBuffered)
       : connector_ (connector),
 	maxBuffered_ (maxBuffered) { }

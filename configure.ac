@@ -213,6 +213,12 @@ AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_th
 ac_have_cxx_mpi_init_thread=yes
 )
 AC_DEFINE([USE_MPI], [1], [Define to 1 if you want debug output])
+AC_ARG_ENABLE(debug,
+              [  --enable-debug          Enable debugging information],
+              USE_DEBUG="$enableval", USE_DEBUG="no")
+if test $USE_DEBUG = yes ; then 
+	AC_DEFINE([MUSIC_DEBUG], [1], [Define to 1 if you want debug output])
+fi
 
 AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 CXX="$save_CXX"

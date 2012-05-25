@@ -92,11 +92,11 @@ namespace MUSIC {
   	    subconnectors.insert (std::make_pair (i->rank (), subconn));
   	    rsubconn.push_back (subconn);
   	  }
-  	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
+  	/*MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
   		   << ": ("
   		   << i->begin () << ", "
   		   << i->end () << ", "
-  		   << i->local () << ") -> " << i->rank ());
+  		   << i->local () << ") -> " << i->rank ());*/
   	addRoutingInterval (i->interval (), subconn);
         }
     }

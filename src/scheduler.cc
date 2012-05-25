@@ -62,8 +62,7 @@ Scheduler::Connection::Connection(int pre,int post,const ClockState &latency,int
  latency_(latency),
  maxBuffered_(maxBuffered),
  port_code_(port_code){
-
-};
+}
 void Scheduler::Connection::initialize(std::vector<Node*> &nodes){
 	pre_ = nodes.at(pre_id);
 	post_ = nodes.at(post_id);
@@ -114,7 +113,7 @@ void Scheduler::addNode(int id, const Clock &localTime){
 }
 void Scheduler::addConnection(int pre_id,int post_id,const ClockState &latency,int maxBuffered, int port_code){
 	connections.push_back(new Connection(pre_id,post_id,latency,maxBuffered, port_code));
-};
+}
 void
 Scheduler::initialize(std::vector<Connector*> &connectors){
 

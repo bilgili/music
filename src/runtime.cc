@@ -205,7 +205,6 @@ Runtime::spatialNegotiation ()
 	// Let each connector pair setup their inter-communicators
 	// and create all required subconnectors.
 
-	int type;
 	for (std::vector<Connector*>::iterator c = connectors.begin ();
 			c != connectors.end ();
 			++c)
@@ -462,7 +461,7 @@ Runtime::time ()
 	return localTime.time ();
 }
 int Runtime::rankToNode(ApplicationMap* applicationMap){
-	int local_node;
+	int local_node = -1;
 	int rank = MPI::COMM_WORLD.Get_rank ();
 	int nApplications = applicationMap->size();
 	for (int i = 0; i < nApplications; ++i)

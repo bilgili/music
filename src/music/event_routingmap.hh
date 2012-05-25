@@ -42,7 +42,7 @@ protected:
 	typedef std::map<DataType, std::vector<IndexInterval *> >DataMap;
 	DataMap dataMap;
 	EventRoutingMap () {}
-	std::vector<IndexInterval*> rebuildIntervals (std::vector<IndexInterval*> &intervals);
+	std::vector<IndexInterval> rebuildIntervals (std::vector<IndexInterval*> &intervals);
 	struct comp{
 	  bool operator() (IndexInterval* i,IndexInterval *j) { return (*i<*j);}
 	} comp_obj;
@@ -64,10 +64,10 @@ EventRoutingMap<DataType>::insert (IndexInterval i, DataType data)
 	dataMap[data].push_back (new IndexInterval(i.begin(),i.end(),i.local()));
 }
 template<class DataType>
-std::vector<IndexInterval*>
+std::vector<IndexInterval>
 EventRoutingMap<DataType>::rebuildIntervals (std::vector<IndexInterval*> &intervals)
 {
-	std::vector<IndexInterval*> newIntervals;
+	std::vector<IndexInterval> newIntervals;
 
 	// Sort all intervals
 	sort (intervals.begin (), intervals.end (), comp_obj);
@@ -78,17 +78,18 @@ EventRoutingMap<DataType>::rebuildIntervals (std::vector<IndexInterval*> &interv
 	 i = intervals.begin ();
 	while (i != intervals.end ())
 	{
-		IndexInterval *current = *i++;
+		IndexInterval current = **i++;
 
 		while (i != intervals.end ()
-				&& (*i)->begin () <= current->end ())
+				&& (*i)->begin () <= current.end ())
 		{
 
 			// join intervals
-			int maxEnd = std::max<int> (current->end (), (*i)->end ());
-			current->setEnd (maxEnd);
+			int maxEnd = std::max<int> (current.end (), (*i)->end ());
+			current.setEnd (maxEnd);
 			++i;
 		}
+
 		newIntervals.push_back (current);
 	}
 

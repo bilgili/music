@@ -310,7 +310,7 @@ namespace MUSIC {
   	  	 			  MPI::Intracomm comm,
   	  	 			  EventRoutingMap<FIBO *>* routingMap):
   	  	 		      Connector(connInfo, spatialNegotiator,comm),
-  	  	 			  subconnector(0), routingMap_output(routingMap),routingMap_input(NULL), high(false),type_( Index::UNDEFINED)
+  	  	 			  subconnector(0),routingMap_input(NULL), routingMap_output(routingMap), high(false),type_( Index::UNDEFINED)
   	{ //conn = new EventOutputConnector(connInfo,spatialNegotiator,comm,routingMap);
   	// we decided to perform event processing on the receiver side in the collective communication algorithm,
   	// so that there is no need for the router on the output side;

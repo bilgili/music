@@ -363,7 +363,6 @@ namespace MUSIC {
 	size -= SPIKE_BUFFER_MAX;
       }
     intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
-    MUSIC_LOGR ("sending to" << this->remoteWorldRank_ );
    // endtime = MPI_Wtime();
     //endtime = endtime-starttime;
     //if(tt < endtime)
@@ -512,8 +511,9 @@ namespace MUSIC {
 
 	int nEvents = size / sizeof (Event);
 
-	for (int i = 0; i < nEvents; ++i)
+	for (int i = 0; i < nEvents; ++i){
 	  (*handleEvent) (ev[i].t, ev[i].id);
+	}
 
       }
     while (size == SPIKE_BUFFER_MAX);
@@ -521,7 +521,6 @@ namespace MUSIC {
 //endtime = endtime-starttime;
 //if(tt < endtime)
 //tt = endtime;
-    MUSIC_LOGR ("receiving from " << this->remoteWorldRank_ );
 
   }
 

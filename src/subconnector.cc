@@ -276,10 +276,10 @@ namespace MUSIC {
 				  flushed = false;
 			  }
 		  }
-		  delete recv_buff;
+		  delete[] recv_buff;
 	  }
-	  delete ppBytes;
-	  delete displ;
+	  delete[] ppBytes;
+	  delete[] displ;
 
   }
   void CollectiveSubconnector::flush(bool& dataStillFlowing){

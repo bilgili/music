@@ -27,6 +27,7 @@ namespace MUSIC {
     void parseString (std::ostringstream& arg, char delim);
   public:
     Parser (std::string s);
+    ~Parser();
     bool eof () { return in->eof (); }
     void ignoreWhitespace ();
     std::string nextArg ();

@@ -17,6 +17,9 @@
  */
 
 #ifndef MUSIC_SCHEDULER_HH
+#include "music/debug.hh"
+#ifdef USE_MPI
+#include <mpi.h>
 
 #include <limits>
 #include <vector>
@@ -200,5 +203,6 @@ public:
  */
 
 }
+#endif
 #define MUSIC_SCHEDULER_HH
 #endif

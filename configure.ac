@@ -212,13 +212,19 @@ int main (int argc, char **argv)
 AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=yes
 )
-AC_DEFINE([USE_MPI], [1], [Define to 1 if you want debug output])
-AC_ARG_ENABLE(debug,
-              [  --enable-debug          Enable debugging information],
-              USE_DEBUG="$enableval", USE_DEBUG="no")
-if test $USE_DEBUG = yes ; then 
-	AC_DEFINE([MUSIC_DEBUG], [1], [Define to 1 if you want debug output])
+AC_ARG_ENABLE(mpi,
+              [  --disable-mpi          Disabling mpi suuport],
+              USE_MPI="$enableval", USE_MPI="yes")
+if test $USE_MPI = yes ; then 
+	AC_DEFINE([USE_MPI], [1], [Undefine if you want to compile MUSIC without mpi support])
 fi
+#AC_DEFINE([USE_MPI], [1], [Define to 1 if you want debug output])
+# AC_ARG_ENABLE(debug,
+#              [  --enable-debug          Enable debugging information],
+#              USE_DEBUG="$enableval", USE_DEBUG="no")
+#if test $USE_DEBUG = yes ; then 
+#	AC_DEFINE([MUSIC_DEBUG], [1], [Define to 1 if you want debug output])
+# fi
 
 AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 CXX="$save_CXX"

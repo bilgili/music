@@ -29,7 +29,10 @@ namespace MUSIC {
   {
   
   }
-
+  Parser::~Parser ()
+  {
+	  delete in;
+  }
   
   void
   Parser::ignoreWhitespace ()

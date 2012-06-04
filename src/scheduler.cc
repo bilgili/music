@@ -15,12 +15,11 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <mpi.h>
-#include "music/debug.hh" // Must be included first on BG/L
 
-#include <cmath>
 
 #include "music/scheduler.hh"
+#ifdef USE_MPI
+#include <cmath>
 #include <iostream>
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
@@ -384,3 +383,4 @@ Scheduler::nextCommunication (Clock &nextComm, std::queue<Connector *> &connecto
   }*/
 
 }
+#endif

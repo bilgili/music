@@ -85,11 +85,12 @@ namespace MUSIC {
     delete connectivityMap_;
     delete applications_;
   }
+#define __valgrind__
 #ifdef USE_MPI
   void
   Configuration::getEnv( std::string* result)
   {
-#ifdef __bgp__
+#if defined(__bgp__) || defined(__valgrind__)
 	  int rank = MPI::COMM_WORLD.Get_rank ();
 	  std::ifstream mapFile;
 	  char* buffer;
@@ -118,9 +119,10 @@ namespace MUSIC {
 		  mapFile.read ( buffer, size );
 	  // then broadcast the file but itself
 	  MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
-	  parseMapFile(rank, std::string(buffer), result);
+	  parseMapFile(rank, std::string(buffer, size), result);
 	  if(rank == 0)
 		  mapFile.close();
+	  delete[] buffer;
 #else
 	  result->assign(getenv(configEnvVarName));
 #endif

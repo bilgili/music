@@ -85,7 +85,7 @@ namespace MUSIC {
     delete connectivityMap_;
     delete applications_;
   }
-#define __valgrind__
+//#define __valgrind__
 #ifdef USE_MPI
   void
   Configuration::getEnv( std::string* result)

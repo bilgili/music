@@ -302,6 +302,7 @@ namespace MUSIC {
 	      }
 	   // store maxBuffered in sender units
 	    in->maxBuffered = out->maxBuffered;
+	    MUSIC_LOG0("Max Buffered:"<<in->maxBuffered);
 	  
 	    // accLatency
 	    out->accLatency = in->accLatency;

@@ -21,6 +21,7 @@
 #ifdef USE_MPI
 #include <cmath>
 #include <iostream>
+
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
 #endif
@@ -82,19 +83,24 @@ void Scheduler::Connection::advance(){
 	}
 	nextReceive_ = r;
 	nextSend_ = s;
+	MUSIC_LOG0(pre_id << "->"<<post_id << "::"<<nextSend_.time() << "::" <<  nextReceive_.time()) ;
 }
 void Scheduler::Connection::_advance(){
 	ClockState limit = nextSend_.integerTime () + latency_ - nextReceive_.tickInterval ();
 	while (nextReceive_.integerTime () <= limit)	nextReceive_.tick ();
-	limit = nextReceive_.integerTime () + nextReceive_.tickInterval () - latency_;
+	/*limit = nextReceive_.integerTime () + nextReceive_.tickInterval () - latency_;
 	int bCount = 0;
-	while (nextSend_.integerTime () <= limit) {
+	while (nextSend_.integerTime () < limit) {
 		nextSend_.tick ();
 		++bCount;
 	}
 	// Advance send time according to precalculated buffer
 	if (bCount < maxBuffered_)
 		nextSend_.ticks (maxBuffered_ - bCount);
+		*/
+	nextSend_.ticks (maxBuffered_+1);
+
+
 }
 Scheduler::Scheduler(int node_id)
 :self_node(node_id){
@@ -118,7 +124,7 @@ Scheduler::initialize(std::vector<Connector*> &connectors){
 
 	std::vector<Connection*>::iterator conn;
 
-	MUSIC_LOGR ("#of nodes:" << nodes.size() << ":#of connections:" <<  connections.size());
+//MUSIC_LOGR ("#of nodes:" << nodes.size() << ":#of connections:" <<  connections.size());
 	for ( conn = connections.begin(); conn < connections.end(); conn++){
 		(*conn)->initialize(nodes);
 	}

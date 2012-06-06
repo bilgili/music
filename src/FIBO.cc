@@ -17,7 +17,6 @@
  */
 #include <cstring>
 #include <iostream>
-#include <mpi.h>
 #include "music/FIBO.hh"
 
 namespace MUSIC {

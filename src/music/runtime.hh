@@ -62,6 +62,7 @@ namespace MUSIC {
     std::vector<Connector*> connectors;
    // std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
+    std::vector<PreCommunicationConnector*> preCommunication;
     Scheduler *scheduler;
     static bool isInstantiated_;
 
@@ -86,6 +87,7 @@ namespace MUSIC {
 			OutputSubconnectors&,
 			InputSubconnectors&,
 			CollectiveSubconnectors& );*/
+    void takePreCommunicators ();
     void takePostCommunicators ();
     void buildTables (Setup* s);
     void temporalNegotiation (Setup* s, Scheduler *scheduler, Connections* connections);
@@ -102,6 +104,13 @@ namespace MUSIC {
     	{  return dynamic_cast<Target*>(value);  }
     };*/
     int rankToNode(ApplicationMap* applicationMap);
+ /*   class MDCriteriaSorter
+    {
+    	std::string app_name_;
+    public:
+    	MDCriteriaSorter(std::string app_name):app_name_(app_name){};
+    	bool operator() (const Connector* c1, const Connector* c2);
+    };*/
   };
 
 }

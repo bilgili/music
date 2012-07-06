@@ -57,13 +57,17 @@ namespace MUSIC {
     typedef std::map<BIFO*, Intervals> BufferMap;
 
     DataMap* dataMap;
-    int allowedBuffered_;
+    //int allowedBuffered_;
+    int maxsize_;
     BufferMap buffers;
 
     IntervalTree<int>* buildTree ();
   public:
     // caller manages deallocation but guarantees existence
-    void configure (DataMap* dmap, int allowedBuffered);
+    /* remedius
+     * second argument int allowedBuffered was changed to int maxsize
+     */
+    void configure (DataMap* dmap, int maxsize);
     void initialize ();
     void addRoutingInterval (IndexInterval i, BIFO* b);
     void collect ();

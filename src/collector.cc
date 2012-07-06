@@ -38,10 +38,10 @@ namespace MUSIC {
   
 
   void
-  Collector::configure (DataMap* dmap, int allowedBuffered)
+  Collector::configure (DataMap* dmap, int maxsize)
   {
     dataMap = dmap;
-    allowedBuffered_ = allowedBuffered;
+    maxsize_ = maxsize;
   }
   
 
@@ -111,7 +111,8 @@ namespace MUSIC {
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
 	  }
-	buffer->configure (size, size * allowedBuffered_);
+	//buffer->configure (size, size * allowedBuffered_);
+	buffer->configure (size, maxsize_);
       }
   }
 

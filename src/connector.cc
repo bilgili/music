@@ -23,7 +23,7 @@
 
 #include "music/error.hh"
 #include "music/communication.hh"
-
+#include <cmath>
 namespace MUSIC {
 
   Connector::Connector (ConnectorInfo info_,
@@ -113,8 +113,13 @@ namespace MUSIC {
    }
   void Connector::prepareForSimulation(){
 	  sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
+	  initialCommunication();
+
+  }
+  void Connector::initialCommunication()
+  {
 	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
-	        (*s)->initialCommunication ();
+	 	        (*s)->initialCommunication (0.0);
   }
   bool Connector::finalizeSimulation(){
 	  bool dataStillFlowing = false;
@@ -177,7 +182,9 @@ namespace MUSIC {
    * Cont Connectors
    *
    ********************************************************************/
-
+  void ContConnector::remoteTick(){
+	  remoteTime_.tick();
+  }
   ClockState
   ContConnector::remoteTickInterval (ClockState tickInterval)
   {
@@ -223,12 +230,14 @@ namespace MUSIC {
   {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
-
-    if (tickInterval < remoteTickInterval (tickInterval))
+    ClockState rTickInterval = remoteTickInterval (tickInterval);
+    localTime_ = &localTime;
+    remoteTime_.configure (localTime_->timebase (), rTickInterval);
+    if (tickInterval < rTickInterval)
       connector = new InterpolatingContOutputConnector (*this);
     else
       connector = new PlainContOutputConnector (*this);
-    
+
     delete this; // delete ourselves!
     return connector;
   }
@@ -236,8 +245,9 @@ namespace MUSIC {
   
   void
   ContOutputConnector::addRoutingInterval (IndexInterval i,
-					   OutputSubconnector* osubconn)
+					   Subconnector* subconn)
   {
+	  OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
     distributor_.addRoutingInterval (i, osubconn->buffer ());
   }
   
@@ -263,21 +273,24 @@ namespace MUSIC {
 
 
   void
-  PlainContOutputConnector::tick ()
+  PlainContOutputConnector::preCommunication ()
   {
-/*    if (synch.sample ())
-      {
-	// copy application data to send buffers
-	distributor_.distribute ();
-      }
-
-    synch.tick ();
-    if (synch.communicate ())
-      {
-	requestCommunication = true;
-      }*/
+	  if (sample ())
+	  {
+		  // copy application data to send buffers
+		  distributor_.distribute ();
+	  }
   }
-
+  // Start sampling (and fill the output buffers) at a time dependent
+  // on latency and receiver's tick interval.  A negative latency can
+  // delay start of sampling beyond time 0.  The tickInterval together
+  // with the strict comparison has the purpose of supplying an
+  // interpolating receiver side with samples.
+  bool
+   PlainContOutputConnector::sample (){
+	  return (localTime_->integerTime () + latency_ + remoteTime_.tickInterval ()
+	  	    > 0);
+  }
 
   InterpolatingContOutputConnector::InterpolatingContOutputConnector
   (ContOutputConnector& connector)
@@ -290,32 +303,82 @@ namespace MUSIC {
   void
   InterpolatingContOutputConnector::initialize ()
   {
-    distributor_.configure (sampler_.interpolationDataMap ());
-    distributor_.initialize ();
-   // synch.initialize ();
+	  // Set the remoteTime which is used to control sampling and
+	  // interpolation.
+	  //
+	  // For positive latencies, the integer part (in terms of receiver
+	  // ticks) of the latency is handled by filling up the receiver
+	  // buffers using InputSynchronizer::initialBufferedTicks ().
+	  // remoteTime then holds the fractional part.
+	  if (latency_ > 0)
+	  {
+		  ClockState startTime = - latency_ % remoteTime_.tickInterval ();
+		  if (latency_ >= localTime_->tickInterval ())
+			  startTime = startTime + remoteTime_.tickInterval ();
+		  remoteTime_.set (startTime);
+	  }
+	  else
+		  remoteTime_.set (- latency_);
+	  distributor_.configure (sampler_.interpolationDataMap ());
+	  distributor_.initialize ();
+	  // synch.initialize ();
 
-    // put one element in send buffers
-    sampler_.sample ();
-    sampler_.interpolate (1.0);
-    distributor_.distribute ();
+	  // put one element in send buffers
+	  sampler_.sample ();
+	  sampler_.interpolate (1.0);
+	  distributor_.distribute ();
+  }
+  // After the last sample at 1 localTime will be between remoteTime
+  // and remoteTime + localTime->tickInterval.  We trigger on this
+  // situation and forward remoteTime.
+  bool
+  InterpolatingContOutputConnector::sample()
+  {
+	  ClockState sampleWindowLow
+	  = remoteTime_.integerTime () - localTime_->tickInterval ();
+	  ClockState sampleWindowHigh
+	  = remoteTime_.integerTime () + localTime_->tickInterval ();
+	  return (sampleWindowLow <= localTime_->integerTime ()
+			  && localTime_->integerTime () < sampleWindowHigh);
+  }
+  bool
+  InterpolatingContOutputConnector::interpolate()
+  {
+	  ClockState sampleWindowHigh
+	  = remoteTime_.integerTime () + localTime_->tickInterval ();
+	  return (remoteTime_.integerTime () <= localTime_->integerTime ()
+			  && localTime_->integerTime () < sampleWindowHigh);
+  }
+  double
+  InterpolatingContOutputConnector::interpolationCoefficient()
+  {
+	  ClockState prevSampleTime
+	  = localTime_->integerTime () - localTime_->tickInterval ();
+	  double c = ((double) (remoteTime_.integerTime () - prevSampleTime)
+			  / (double) localTime_->tickInterval ());
+
+	  MUSIC_LOGR ("interpolationCoefficient = " << c);
+	  // NOTE: preliminary implementation which just provides
+	  // the functionality specified in the API
+	  if (interpolate_)
+		  return c;
+	  else
+		  return round (c);
   }
 
-  
   void
-  InterpolatingContOutputConnector::tick ()
+  InterpolatingContOutputConnector::preCommunication ()
   {
-/*    synch.tick ();
-    if (synch.sample ())
-      // sampling before and after time of receiver tick
-      sampler_.sampleOnce ();
-    if (synch.interpolate ())
-      {
-	sampler_.interpolate (synch.interpolationCoefficient ());
-	synch.remoteTick ();
-	distributor_.distribute ();
-      }
-    if (synch.communicate ())
-      requestCommunication = true;*/
+	  if (sample ()){
+		  // sampling before and after time of receiver tick
+		  sampler_.sampleOnce ();
+	  }
+	  if (interpolate ())
+	  {
+		  sampler_.interpolate (interpolationCoefficient ());
+		  remoteTick ();
+		  distributor_.distribute ();
+	  }
   }
 
 
@@ -360,6 +423,8 @@ namespace MUSIC {
     Connector* connector;
     ClockState tickInterval = localTime.tickInterval ();
     ClockState rTickInterval = remoteTickInterval (tickInterval);
+    localTime_ = &localTime;
+    remoteTime_.configure (localTime_->timebase (), rTickInterval);
 
     if (tickInterval < rTickInterval
 	|| (tickInterval == rTickInterval
@@ -367,15 +432,64 @@ namespace MUSIC {
       connector = new InterpolatingContInputConnector (*this);
     else
       connector = new PlainContInputConnector (*this);
-    
+
+    delete this; // delete ourselves!
     return connector;
   }
+  void
+  ContInputConnector::initialCommunication()
+  {
+	  double initialBTicks = initialBufferedTicks();
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
+	  	 	        (*s)->initialCommunication (initialBTicks);
+  }
+  // Return the number of copies of the data sampled by the sender
+  // Runtime constructor which should be stored in the receiver
+  // buffers at the first tick () (which occurs at the end of the
+  // Runtime constructor)
+  int
+  ContInputConnector::initialBufferedTicks(){
+	    if (remoteTime_.tickInterval () < localTime_->tickInterval ())
+	      {
+		// InterpolatingOutputConnector - PlainInputConnector
 
-  
+		if (delay_ <= 0)
+		  return 0;
+		else
+		  {
+		    // Need to add a sample first when we pass the receiver
+		    // tick (=> - 1).  If we haven't passed, the interpolator
+		    // could simply use an interpolation coefficient of 0.0.
+		    // (But this will never happen since that case isn't
+		    // handled by an InterpolatingOutputConnector.)
+		    int ticks = (delay_ - 1) / localTime_->tickInterval ();
+
+		    // Need to add a sample if we go outside of the sender
+		    // interpolation window
+		    if (delay_ >= remoteTime_.tickInterval ())
+		      ticks += 1;
+
+		    return ticks;
+		  }
+	      }
+	    else
+	      {
+		// PlainOutputConnector - InterpolatingInputConnector
+
+		if (delay_ <= 0)
+		  return 0;
+		else
+		  // Need to add a sample first when we pass the receiver
+		  // tick (=> - 1).  If we haven't passed, the interpolator
+		  // can simply use an interpolation coefficient of 0.0.
+		  return 1 + (delay_ - 1) / localTime_->tickInterval ();
+	      }
+  }
   void
   ContInputConnector::addRoutingInterval (IndexInterval i,
-					  InputSubconnector* isubconn)
+					  Subconnector* subconn)
   {
+	  InputSubconnector*isubconn= dynamic_cast<InputSubconnector*>(subconn);
     collector_.addRoutingInterval (i, isubconn->buffer ());
   }
   
@@ -392,6 +506,7 @@ namespace MUSIC {
   PlainContInputConnector::initialize ()
   {
    // collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
+	collector_.configure (sampler_.dataMap (),  CONT_BUFFER_MAX);
     collector_.initialize ();
     //synch.initialize ();
   }
@@ -420,30 +535,59 @@ namespace MUSIC {
   void
   InterpolatingContInputConnector::initialize ()
   {
+	  if (latency_ > 0)
+		  remoteTime_.set (latency_ % remoteTime_.tickInterval ()
+				  - 2 * remoteTime_.tickInterval ());
+	  else
+		  remoteTime_.set (latency_ % remoteTime_.tickInterval ()
+				  - remoteTime_.tickInterval ());
   //  collector_.configure (sampler_.interpolationDataMap (),
 //			  synch.allowedBuffered () + 1);
+	collector_.configure (sampler_.interpolationDataMap (), CONT_BUFFER_MAX);
     collector_.initialize ();
    // synch.initialize ();
   }
 
 
+  bool
+  InterpolatingContInputConnector::sample ()
+  {
+    return localTime_->integerTime () > remoteTime_.integerTime ();
+  }
 
+
+  double
+  InterpolatingContInputConnector::interpolationCoefficient ()
+  {
+    ClockState prevSampleTime
+      = remoteTime_.integerTime () - remoteTime_.tickInterval ();
+    double c = ((double) (localTime_->integerTime () - prevSampleTime)
+		/ (double) remoteTime_.tickInterval ());
+
+    MUSIC_LOGR ("interpolationCoefficient = " << c);
+    // NOTE: preliminary implementation which just provides
+    // the functionality specified in the API
+    if (interpolate_)
+      return c;
+    else
+      return round (c);
+  }
 
   void
   InterpolatingContInputConnector::postCommunication ()
   {
-/*    if (first_)
-      {
-	collector_.collect (sampler_.insert ());
-	synch.remoteTick ();
-	first_ = false;
-      }
-    if (synch.sample ())
-      {
-	collector_.collect (sampler_.insert ());
-	synch.remoteTick ();
-      }
-    sampler_.interpolateToApplication (synch.interpolationCoefficient ());*/
+	  if (first_)
+	  {
+		  collector_.collect (sampler_.insert ());
+		  remoteTick ();
+		  first_ = false;
+	  }
+	  if (sample ())
+	  {
+		  collector_.collect (sampler_.insert ());
+		  remoteTick ();
+	  }
+	  sampler_.interpolateToApplication (interpolationCoefficient ());
   }
 
 
@@ -538,7 +682,7 @@ namespace MUSIC {
 
   void
   MessageOutputConnector::addRoutingInterval (IndexInterval i,
-					      OutputSubconnector* osubconn)
+					      Subconnector* subconn)
   {
     if (!bufferAdded)
       {
@@ -555,7 +699,7 @@ namespace MUSIC {
   MessageOutputConnector::postCommunication ()
   {
  //   if (synch.communicate ())
- //     buffer.clear ();
+      buffer.clear ();
   }
 
   

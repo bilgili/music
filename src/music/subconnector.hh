@@ -50,6 +50,7 @@ namespace MUSIC {
     int remoteWorldRank_;	// rank in COMM_WORLD
     int receiverRank_;
     int receiverPortCode_;
+    bool flushed;
   public:
     Subconnector () { }
     Subconnector (//Synchronizer* synch,
@@ -59,7 +60,7 @@ namespace MUSIC {
 		  int receiverRank,
 		  int receiverPortCode);
     virtual ~Subconnector ();
-    virtual void initialCommunication () { }
+    virtual void initialCommunication (double param) { }
     virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
     int remoteRank () const { return remoteRank_; }
@@ -70,9 +71,7 @@ namespace MUSIC {
   
   class OutputSubconnector : virtual public Subconnector {
   protected:
-	  OutputSubconnector ():flushed(false){};
-
-	  bool flushed;
+	  OutputSubconnector (){};
   public:
     virtual FIBO* buffer () { return NULL; }
   };
@@ -87,8 +86,7 @@ namespace MUSIC {
 
   class InputSubconnector : virtual public Subconnector {
   protected:
-    InputSubconnector ():flushed(false){};
-    bool flushed;
+    InputSubconnector (){};
   public:
     virtual BIFO* buffer () { return NULL; }
   };
@@ -110,7 +108,7 @@ namespace MUSIC {
 			    int remoteRank,
 			    int receiverPortCode,
 			    MPI::Datatype type);
-    void initialCommunication ();
+    void initialCommunication (double param);
     void maybeCommunicate ();
     void send ();
     void flush (bool& dataStillFlowing);
@@ -129,7 +127,7 @@ namespace MUSIC {
 			   int receiverPortCode,
 			   MPI::Datatype type);
     BIFO* buffer () { return &buffer_; }
-    void initialCommunication ();
+    void initialCommunication (double initialBufferedTicks);
     void maybeCommunicate ();
     void receive ();
     void flush (bool& dataStillFlowing);

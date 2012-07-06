@@ -536,7 +536,7 @@ namespace MUSIC {
 	  MUSIC_LOG0("Node "<<node_id <<":in:"<<nInput << ":out:" << nOutput);
 	  for(int k = 0; k < nInput; ++k){
 		  ConnectionDescriptor edge = negotiationData_->connection[k+nOutput];
-		  scheduler->addConnection( edge.remoteNode,node_id, edge.accLatency,edge.maxBuffered, edge.receiverPort);
+		  scheduler->addConnection( edge.remoteNode,node_id, edge.accLatency,edge.maxBuffered, edge.interpolate, edge.receiverPort);
 		  MUSIC_LOG0 ( "Connection added to the schedule:" <<edge.remoteNode<< "->" << node_id  << ";latency =" << edge.accLatency << ";buffered=" <<edge.maxBuffered);
 	  }
 

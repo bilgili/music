@@ -93,7 +93,6 @@ namespace MUSIC {
   Distributor::initialize ()
   {
     IntervalTree<int>* tree = buildTree ();
-    
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	FIBO* buffer = b->first;

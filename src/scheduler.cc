@@ -56,11 +56,12 @@ double Scheduler::Node::nextReceive() const{
 	return nextTime;
 }
 
-Scheduler::Connection::Connection(int pre,int post,const ClockState &latency,int maxBuffered, int port_code)
+Scheduler::Connection::Connection(int pre,int post,const ClockState &latency,int maxBuffered,  bool interpolate, int port_code)
 :pre_id(pre),
  post_id(post),
  latency_(latency),
  maxBuffered_(maxBuffered),
+ interpolate_(interpolate),
  port_code_(port_code){
 }
 void Scheduler::Connection::initialize(std::vector<Node*> &nodes){
@@ -97,7 +98,7 @@ void Scheduler::Connection::_advance(){
 	// Advance send time according to precalculated buffer
 	if (bCount < maxBuffered_)
 		nextSend_.ticks (maxBuffered_ - bCount);
-		*/
+	 */
 	nextSend_.ticks (maxBuffered_+1);
 
 
@@ -116,22 +117,26 @@ Scheduler::~Scheduler(){
 void Scheduler::addNode(int id, const Clock &localTime){
 	nodes.push_back(new Node(id, localTime));
 }
-void Scheduler::addConnection(int pre_id,int post_id,const ClockState &latency,int maxBuffered, int port_code){
-	connections.push_back(new Connection(pre_id,post_id,latency,maxBuffered, port_code));
+void Scheduler::addConnection(int pre_id,int post_id,const ClockState &latency,int maxBuffered,  bool interpolate, int port_code){
+	connections.push_back(new Connection(pre_id,post_id,latency,maxBuffered,  interpolate, port_code));
 }
 void
 Scheduler::initialize(std::vector<Connector*> &connectors){
 
 	std::vector<Connection*>::iterator conn;
 
-//MUSIC_LOGR ("#of nodes:" << nodes.size() << ":#of connections:" <<  connections.size());
+	//MUSIC_LOGR ("#of nodes:" << nodes.size() << ":#of connections:" <<  connections.size());
 	for ( conn = connections.begin(); conn < connections.end(); conn++){
 		(*conn)->initialize(nodes);
 	}
 	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c){
 		for ( conn = connections.begin(); conn < connections.end(); conn++){
-			if((*conn)->portCode() == (*c)->receiverPortCode())
+			if((*conn)->portCode() == (*c)->receiverPortCode()){
 				(*conn)->setConnector((*c));
+				(*c)->setInterpolate((*conn)->getInterpolate());
+				(*c)->setLatency((*conn)->getLatency());
+			}
+
 		}
 	}
 
@@ -149,244 +154,24 @@ Scheduler::nextCommunication (Clock &nextComm, std::queue<Connector *> &connecto
 
 			std::vector<Connection*> conns = (*node)->outputConnections();
 			std::vector<Connection*>::iterator conn;
-			for ( conn = conns.begin(); conn < conns.end(); conn++){
+			for ( conn = conns.begin(); conn < conns.end(); conn++)
+				//do we have data ready to be sent?
 				if ((*conn)->nextSend() <= (*conn)->preNode()->localTime()
 						&& (*conn)->nextReceive() == (*conn)->postNode()->localTime()) {
 					if(self_node == (*conn)->postNode()->getId()|| //input
 							self_node == (*conn)->preNode()->getId()	) //output
-							{
+					{
 						scheduled = true;
 						connectors.push((*conn)->getConnector());
 						nextComm =  self_node == (*conn)->postNode()->getId() ? (*conn)->postNode()->localTime() :
 								(*conn)->preNode()->localTime();
-							}
+					}
 					MUSIC_LOG0("Scheduled communication:"<< (*conn)->preNode()->getId() <<"->"<< (*conn)->postNode()->getId() << "at(" << (*conn)->preNode()->localTime().time() << ", "<< (*conn)->postNode()->localTime().time() <<")");
 					(*conn)->advance();
 				}
-			}
 		}
 	}
 }
-
-/*
-
-  void
-  Synchronizer::setInterpolate (bool flag)
-  {
-    interpolate_ = flag;
-  }
-
-
-  // Start sampling (and fill the output buffers) at a time dependent
-  // on latency and receiver's tick interval.  A negative latency can
-  // delay start of sampling beyond time 0.  The tickInterval together
-  // with the strict comparison has the purpose of supplying an
-  // interpolating receiver side with samples.
-  bool
-  OutputSynchronizer::sample ()
-  {
-    return (localTime->integerTime () + latency_ + nextReceive.tickInterval ()
-	    > 0);
-  }
-
-  // Return the number of copies of the data sampled by the sender
-  // Runtime constructor which should be stored in the receiver
-  // buffers at the first tick () (which occurs at the end of the
-  // Runtime constructor)
-  int
-  InputSynchronizer::initialBufferedTicks ()
-  {
-    if (nextSend.tickInterval () < nextReceive.tickInterval ())
-      {
-	// InterpolatingOutputConnector - PlainInputConnector
-
-	if (latency_ <= 0)
-	  return 0;
-	else
-	  {
-	    // Need to add a sample first when we pass the receiver
-	    // tick (=> - 1).  If we haven't passed, the interpolator
-	    // could simply use an interpolation coefficient of 0.0.
-	    // (But this will never happen since that case isn't
-	    // handled by an InterpolatingOutputConnector.)
-	    int ticks = (latency_ - 1) / nextReceive.tickInterval ();
-
-	    // Need to add a sample if we go outside of the sender
-	    // interpolation window
-	    if (latency_ >= nextSend.tickInterval ())
-	      ticks += 1;
-
-	    return ticks;
-	  }
-      }
-    else
-      {
-	// PlainOutputConnector - InterpolatingInputConnector
-
-	if (latency_ <= 0)
-	  return 0;
-	else
-	  // Need to add a sample first when we pass the receiver
-	  // tick (=> - 1).  If we haven't passed, the interpolator
-	  // can simply use an interpolation coefficient of 0.0.
-	  return 1 + (latency_ - 1) / nextReceive.tickInterval ();;
-      }
-  }
-
-
-  // This function is only called when sender is remote
-  void
-  InterpolationSynchronizer::setSenderTickInterval (ClockState ti)
-  {
-    Synchronizer::setSenderTickInterval (ti);
-    remoteTime.configure (localTime->timebase (), ti);
-  }
-
-
-  // This function is only called when receiver is remote
-  void
-  InterpolationSynchronizer::setReceiverTickInterval (ClockState ti)
-  {
-    Synchronizer::setReceiverTickInterval (ti);
-    remoteTime.configure (localTime->timebase (), ti);
-  }
-
-
-  void
-  InterpolationSynchronizer::remoteTick ()
-  {
-    remoteTime.tick ();
-  }
-
-
-  // Set the remoteTime which is used to control sampling and
-  // interpolation.
-  //
-  // For positive latencies, the integer part (in terms of receiver
-  // ticks) of the latency is handled by filling up the receiver
-  // buffers using InputSynchronizer::initialBufferedTicks ().
-  // remoteTime then holds the fractional part.
-  void
-  InterpolationOutputSynchronizer::initialize ()
-  {
-    if (latency_ > 0)
-      {
-	ClockState startTime = - latency_ % remoteTime.tickInterval ();
-	if (latency_ >= localTime->tickInterval ())
-	  startTime = startTime + remoteTime.tickInterval ();
-	remoteTime.set (startTime);
-      }
-    else
-      remoteTime.set (- latency_);
-    Synchronizer::initialize ();
-  }
-
-
-   The order of execution in Runtime::tick () is:
- *
- * 1. localTime.tick ()
- * 2. Port::tick ()
- * 3. Connector::tick ()
- *     =>  call of Synchronizer::tick ()
- *         call of Synchronizer::sample ()
- * 4. Communication
- * 5. postCommunication
- *
- * After the last sample at 1 localTime will be between remoteTime
- * and remoteTime + localTime->tickInterval.  We trigger on this
- * situation and forward remoteTime.
-
-
-  bool
-  InterpolationOutputSynchronizer::sample ()
-  {
-    ClockState sampleWindowLow
-      = remoteTime.integerTime () - localTime->tickInterval ();
-    ClockState sampleWindowHigh
-      = remoteTime.integerTime () + localTime->tickInterval ();
-    return (sampleWindowLow <= localTime->integerTime ()
-	    && localTime->integerTime () < sampleWindowHigh);
-  }
-
-
-  bool
-  InterpolationOutputSynchronizer::interpolate ()
-  {
-    ClockState sampleWindowHigh
-      = remoteTime.integerTime () + localTime->tickInterval ();
-    return (remoteTime.integerTime () <= localTime->integerTime ()
-	    && localTime->integerTime () < sampleWindowHigh);
-  }
-
-
-  double
-  InterpolationOutputSynchronizer::interpolationCoefficient ()
-  {
-    ClockState prevSampleTime
-      = localTime->integerTime () - localTime->tickInterval ();
-    double c = ((double) (remoteTime.integerTime () - prevSampleTime)
-		/ (double) localTime->tickInterval ());
-
-    MUSIC_LOGR ("interpolationCoefficient = " << c);
-    // NOTE: preliminary implementation which just provides
-    // the functionality specified in the API
-    if (interpolate_)
-      return c;
-    else
-      return round (c);
-  }
-
-
-  void
-  InterpolationOutputSynchronizer::tick ()
-  {
-    OutputSynchronizer::tick ();
-  }
-
-
-  void
-  InterpolationInputSynchronizer::initialize ()
-  {
-    if (latency_ > 0)
-      remoteTime.set (latency_ % remoteTime.tickInterval ()
-		      - 2 * remoteTime.tickInterval ());
-    else
-      remoteTime.set (latency_ % remoteTime.tickInterval ()
-		      - remoteTime.tickInterval ());
-    Synchronizer::initialize ();
-  }
-
-
-  bool
-  InterpolationInputSynchronizer::sample ()
-  {
-    return localTime->integerTime () > remoteTime.integerTime ();
-  }
-
-
-  double
-  InterpolationInputSynchronizer::interpolationCoefficient ()
-  {
-    ClockState prevSampleTime
-      = remoteTime.integerTime () - remoteTime.tickInterval ();
-    double c = ((double) (localTime->integerTime () - prevSampleTime)
-		/ (double) remoteTime.tickInterval ());
-
-    MUSIC_LOGR ("interpolationCoefficient = " << c);
-    // NOTE: preliminary implementation which just provides
-    // the functionality specified in the API
-    if (interpolate_)
-      return c;
-    else
-      return round (c);
-  }
-
-
-  void
-  InterpolationInputSynchronizer::tick ()
-  {
-    InputSynchronizer::tick ();
-  }*/
-
 }
+
 #endif

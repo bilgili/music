@@ -175,7 +175,11 @@ namespace MUSIC {
     // Josuttis says this is the intention of STL even though the
     // first version of the report is not clear about this.
     void* memory = static_cast<void*> (&buffer[current]);
-    current += elementSize_;
+    /* remedius
+     * could it be possible that elementSize > size of received data? no
+     * changed from current+=elementSize_ to the following line:
+     */
+    current += std::min(elementSize_,top-current);
     return memory;
   }
 

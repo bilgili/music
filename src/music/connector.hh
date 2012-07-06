@@ -58,6 +58,9 @@ namespace MUSIC {
     MPI::Intracomm comm;
     MPI::Intercomm intercomm;
     std::vector<Subconnector*> rsubconn;
+    ClockState latency_;
+    // interpolate rather than picking value closest in time
+    bool interpolate_;
 
   public:
     Connector () { };
@@ -81,6 +84,8 @@ namespace MUSIC {
     
     int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
     bool isLeader ();
+    void setInterpolate(bool val){interpolate_ =  val;}
+    void setLatency( ClockState latency){ latency_ = latency;}
    // virtual Synchronizer* synchronizer () = 0;
     virtual void createIntercomm ();
     virtual void freeIntercomm ();
@@ -102,7 +107,7 @@ namespace MUSIC {
      */
     void prepareForSimulation ();
     /* remedius
-     * finalizeSimulation method iterates its subconnectors and calls accrodring flush method
+     * finalizeSimulation method iterates its subconnectors and calls accordring flush method
      */
     bool finalizeSimulation();
     /* remedius
@@ -119,6 +124,8 @@ namespace MUSIC {
      */
     virtual void addRoutingInterval (IndexInterval i, Subconnector* s){};
     virtual Subconnector* makeSubconnector (int remoteRank) = 0;
+  protected:
+    virtual void initialCommunication();
   };
 
 
@@ -126,6 +133,10 @@ namespace MUSIC {
   public:
     virtual void postCommunication () = 0;    
   };
+  class PreCommunicationConnector : virtual public Connector {
+    public:
+      virtual void preCommunication () = 0;
+    };
   class OutputConnector : virtual public Connector {
   public:
   };
@@ -138,22 +149,28 @@ namespace MUSIC {
   protected:
     Sampler& sampler_;
     MPI::Datatype type_;
+
+    Clock *localTime_;
+    Clock remoteTime_;
+
     // We need to allocate instances of ContOutputConnector and
     // ContInputConnector and, therefore need dummy versions of the
     // following virtual functions:
   //  virtual Synchronizer* synchronizer () { return NULL; };
     virtual void initialize () { }
-    virtual void tick () { }
+    //virtual void tick () { }
   public:
     ContConnector (Sampler& sampler, MPI::Datatype type)
-      : sampler_ (sampler), type_ (type) { }
+      : sampler_ (sampler), type_ (type),localTime_(NULL)  { }
     ClockState remoteTickInterval (ClockState tickInterval);
+  protected:
+    void remoteTick();
   };  
   
   class InterpolatingConnector : virtual public Connector {
   };
   
-  class ContOutputConnector : public ContConnector, public OutputConnector  {
+  class ContOutputConnector : public ContConnector, public OutputConnector, public PreCommunicationConnector  {
   protected:
     Distributor distributor_;
   public:
@@ -163,8 +180,11 @@ namespace MUSIC {
 			 Sampler& sampler,
 			 MPI::Datatype type);
     Subconnector* makeSubconnector (int remoteRank);
-    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
+    void addRoutingInterval (IndexInterval i, Subconnector* osubconn);
     Connector* specialize (Clock& localTime);
+  protected:
+    virtual void preCommunication(){};
+
   };
   
   class PlainContOutputConnector : public ContOutputConnector {
@@ -173,7 +193,9 @@ namespace MUSIC {
     PlainContOutputConnector (ContOutputConnector& connector);
   //  Synchronizer* synchronizer () { return &synch; }
     void initialize ();
-    void tick();
+    void preCommunication();
+  private:
+    bool sample();
 
   };
   
@@ -184,7 +206,12 @@ namespace MUSIC {
     InterpolatingContOutputConnector (ContOutputConnector& connector);
    // Synchronizer* synchronizer () { return &synch; }
     void initialize ();
-    void tick();
+    void preCommunication();
+  private:
+
+    bool interpolate();
+    bool sample();
+    double interpolationCoefficient();
 
   };
   
@@ -194,6 +221,7 @@ namespace MUSIC {
   protected:
     Collector collector_;
     double delay_;
+
     bool divisibleDelay (Clock& localTime);
   public:
     ContInputConnector (ConnectorInfo connInfo,
@@ -203,11 +231,15 @@ namespace MUSIC {
 			MPI::Datatype type,
 			double delay);
     Subconnector* makeSubconnector (int remoteRank);
-    void addRoutingInterval (IndexInterval i, InputSubconnector* isubconn);
+    void addRoutingInterval (IndexInterval i, Subconnector* isubconn);
     Connector* specialize (Clock& localTime);
     // We need to allocate instances of ContInputConnector and, therefore
     // need dummy versions of the following virtual functions:
     virtual void postCommunication () { }
+  protected:
+    void initialCommunication();
+  private:
+    int initialBufferedTicks();
   };
   
   class PlainContInputConnector : public ContInputConnector {
@@ -217,6 +249,7 @@ namespace MUSIC {
  //   Synchronizer* synchronizer () { return &synch; }
     void initialize ();
     void postCommunication ();
+
   };
 
   class InterpolatingContInputConnector : public ContInputConnector,
@@ -228,6 +261,9 @@ namespace MUSIC {
    // Synchronizer* synchronizer () { return &synch; }
     void initialize ();
     void postCommunication ();
+  private:
+    bool sample();
+    double interpolationCoefficient();
   };
 
   class EventConnector : virtual public Connector {
@@ -339,7 +375,7 @@ namespace MUSIC {
 			    MPI::Intracomm comm,
 			    std::vector<FIBO*>& buffers);
     Subconnector* makeSubconnector (int remoteRank);
-    void addRoutingInterval (IndexInterval i, OutputSubconnector* osubconn);
+    void addRoutingInterval (IndexInterval i, Subconnector* subconn);
     void postCommunication ();
   };
   

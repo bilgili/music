@@ -135,6 +135,7 @@ Scheduler::initialize(std::vector<Connector*> &connectors){
 				(*conn)->setConnector((*c));
 				(*c)->setInterpolate((*conn)->getInterpolate());
 				(*c)->setLatency((*conn)->getLatency());
+				(*c)->initialize();
 			}
 
 		}

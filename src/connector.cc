@@ -111,16 +111,10 @@ namespace MUSIC {
   	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
   		&& c1->receiverPortCode () < c2->receiverPortCode ()));
    }
-  void Connector::prepareForSimulation(){
+  void Connector::initialize(){
 	  sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
-	  initialCommunication();
+ }
 
-  }
-  void Connector::initialCommunication()
-  {
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
-	 	        (*s)->initialCommunication (0.0);
-  }
   bool Connector::finalizeSimulation(){
 	  bool dataStillFlowing = false;
 	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); 	 s != rsubconn.end ();  	 ++s)
@@ -250,7 +244,11 @@ namespace MUSIC {
 	  OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
     distributor_.addRoutingInterval (i, osubconn->buffer ());
   }
-  
+  void ContOutputConnector::initialCommunication()
+   {
+ 	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
+ 	 	        (*s)->initialCommunication (0.0);
+   }
   
   PlainContOutputConnector::PlainContOutputConnector
   (ContOutputConnector& connector)
@@ -269,6 +267,7 @@ namespace MUSIC {
 
     // put one element in send buffers
     distributor_.distribute ();
+    ContConnector::initialize();
   }
 
 
@@ -327,6 +326,7 @@ namespace MUSIC {
 	  sampler_.sample ();
 	  sampler_.interpolate (1.0);
 	  distributor_.distribute ();
+	  ContConnector::initialize();
   }
   // After the last sample at 1 localTime will be between remoteTime
   // and remoteTime + localTime->tickInterval.  We trigger on this
@@ -508,6 +508,8 @@ namespace MUSIC {
    // collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
 	collector_.configure (sampler_.dataMap (),  CONT_BUFFER_MAX);
     collector_.initialize ();
+    ContConnector::initialize();
+
     //synch.initialize ();
   }
   
@@ -545,6 +547,7 @@ namespace MUSIC {
 //			  synch.allowedBuffered () + 1);
 	collector_.configure (sampler_.interpolationDataMap (), CONT_BUFFER_MAX);
     collector_.initialize ();
+    ContConnector::initialize();
    // synch.initialize ();
   }
 

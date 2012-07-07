@@ -99,13 +99,11 @@ namespace MUSIC {
      * Returns SubconnectorType.
      */
     virtual void spatialNegotiation ();
-    virtual void initialize () {};
     /* remedius
-     * prepareForSimulation method sorts its vector of subconnectors according to its world rank and
-     * iterates its subconnectors in order to call according initialCommunication method.
-     * This functionality  was moved from Runtime object, since its no more contains subconnectors list
+     *  sorts its vector of subconnectors according to its world rank.
      */
-    void prepareForSimulation ();
+    virtual void initialize ();
+
     /* remedius
      * finalizeSimulation method iterates its subconnectors and calls accordring flush method
      */
@@ -124,8 +122,6 @@ namespace MUSIC {
      */
     virtual void addRoutingInterval (IndexInterval i, Subconnector* s){};
     virtual Subconnector* makeSubconnector (int remoteRank) = 0;
-  protected:
-    virtual void initialCommunication();
   };
 
 
@@ -157,13 +153,15 @@ namespace MUSIC {
     // ContInputConnector and, therefore need dummy versions of the
     // following virtual functions:
   //  virtual Synchronizer* synchronizer () { return NULL; };
-    virtual void initialize () { }
+   // virtual void initialize () { }
     //virtual void tick () { }
   public:
     ContConnector (Sampler& sampler, MPI::Datatype type)
       : sampler_ (sampler), type_ (type),localTime_(NULL)  { }
     ClockState remoteTickInterval (ClockState tickInterval);
+    virtual void initialize(){Connector::initialize(); initialCommunication();};
   protected:
+    virtual void initialCommunication()=0;
     void remoteTick();
   };  
   
@@ -183,6 +181,7 @@ namespace MUSIC {
     void addRoutingInterval (IndexInterval i, Subconnector* osubconn);
     Connector* specialize (Clock& localTime);
   protected:
+    void initialCommunication();
     virtual void preCommunication(){};
 
   };
@@ -237,6 +236,8 @@ namespace MUSIC {
     // need dummy versions of the following virtual functions:
     virtual void postCommunication () { }
   protected:
+	// receive first chunk of data from sender application and fill
+	// cont buffers according to Synchronizer::initialBufferedTicks ()
     void initialCommunication();
   private:
     int initialBufferedTicks();

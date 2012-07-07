@@ -72,12 +72,7 @@ Runtime::Runtime (Setup* s, double h)
 		spatialNegotiation ();
 		// build data routing tables
 		buildTables (s);
-		// build a total order of subconnectors
-		// for non-blocking pairwise exchange
-		/*	buildSchedule (
-		       outputSubconnectors,
-		       inputSubconnectors,
-		       collectiveSubconnectors);*/
+
 		takePreCommunicators ();
 		takePostCommunicators ();
 
@@ -212,33 +207,6 @@ Runtime::spatialNegotiation ()
 
 }
 
-// The following communication schedule prevents dead-locking,
-// both during inter-communicator creation and during
-// communication of data.
-//
-// Mikael Djurfeldt et al. (2005) "Massively parallel simulation
-// of brain-scale neuronal network models." Tech. Rep.
-// TRITA-NA-P0513, CSC, KTH, Stockholm.
-
-/*bool
-Runtime::MDCriteriaSorter::operator() (const Connector* c1, const Connector* c2)
-{
-	int localRank = MPI::COMM_WORLD.Get_rank ();
-	int rl1 = c1->remoteLeader();
-	int rl2 = c2->remoteLeader();
-	int rpc1 =  c1->receiverPortCode ();
-	int rpc2 =  c2->receiverPortCode ();
-return (c1->receiverAppName() == app_name_ && c2->receiverAppName() == app_name_ && //both are input connectors
-				(rl1 < rl2 || (rl1 == rl2 && rpc1 < rpc2))) ||
-		(c1->receiverAppName() != app_name_ && c2->receiverAppName() != app_name_ && //both are output connectors
-			( (rl1 > localRank && (rl2 < localRank  || rl1 < rl2 || (rl1 == rl2 && rpc1 < rpc2))) ||
-			  (rl1 < localRank && rl2 < localRank  && (rl1 < rl2 || (rl1 == rl2 && rpc1 < rpc2))))			) ||
-		(c1->receiverAppName() == app_name_ && c2->receiverAppName() != app_name_ && //c1 is input c2 is output connector
-			rl1 < localRank ) ||
-		(c1->receiverAppName() != app_name_ && c2->receiverAppName() == app_name_ && //c1 is output c2 is input connector
-				rl2 >localRank );
-}*/
-
 void
 Runtime::buildTables (Setup* s)
 {
@@ -268,36 +236,11 @@ void
 Runtime::initialize ()
 {
 
-
+	/* renedius
+	 * connector's initialization was moved to scheduler->initialize()
+	 */
 	scheduler->initialize(connectors);
 	scheduler->nextCommunication(nextComm, schedule);
-
-	std::vector<Connector*>::iterator c;
-	for (c = connectors.begin (); c != connectors.end (); ++c){
-		(*c)->initialize ();
-	}
-
-
-	// receive first chunk of data from sender application and fill
-	// cont buffers according to Synchronizer::initialBufferedTicks ()
-	/* remedius
-	 * the following commented block was moved to  prepareForSimulation() method
-	 * of each connector object.
-    for (std::vector<Subconnector*>::iterator s = schedule.begin ();
-	 s != schedule.end ();
-	 ++s)
-      (*s)->initialCommunication ();*/
-
-    /* remedius
-     * in order to avoid deadlocks at the initial communication
-     * we have to sort connectors according to each rank
-     */
-	//sort (connectors.begin (), connectors.end (),
-	//		Runtime::MDCriteriaSorter(app_name));
-	//int localRank = MPI::COMM_WORLD.Get_rank ();
-	for (c = connectors.begin (); c != connectors.end (); ++c){
-		(*c)->prepareForSimulation ();
-	}
 
 	// compensate for first localTime.tick () in Runtime::tick ()
 	localTime.ticks (-1);

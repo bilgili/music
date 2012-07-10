@@ -196,8 +196,10 @@ AC_CHECK_HEADER([GL/glut.h], OPTIONAL_UTILS+="viewevents ")
 
 AC_LANG_PUSH(C++)
 save_CXX="$CXX"
+save_LIBS="$LIBS"
 dnl Must use $CXX, not $MPI_CXX, here
-CXX="$CXX $MPI_CXXFLAGS $MPI_LDFLAGS"
+CXX="$CXX $MPI_CXXFLAGS"
+LIBS="$LIBS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
 
 AC_MSG_CHECKING([for MPI::Init_thread method])
@@ -227,6 +229,7 @@ fi
 # fi
 
 AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+LIBS="$save_LIBS"
 CXX="$save_CXX"
 AC_LANG_POP(C++)
 

@@ -187,7 +187,7 @@ namespace MUSIC {
 
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
-    static EventHandlerGlobalIndexDummy dummyHandler;
+  //  static EventHandlerGlobalIndexDummy dummyHandler;
   public:
     EventInputSubconnectorGlobal (//Synchronizer* synch,
 				  MPI::Intercomm intercomm,
@@ -197,12 +197,12 @@ namespace MUSIC {
 				  int receiverPortCode,
 				  EventHandlerGlobalIndex* eh);
     void receive ();
-    void flush (bool& dataStillFlowing);
+  //  void flush (bool& dataStillFlowing);
   };
 
   class EventInputSubconnectorLocal : public EventInputSubconnector {
     EventHandlerLocalIndex* handleEvent;
-    static EventHandlerLocalIndexDummy dummyHandler;
+ //   static EventHandlerLocalIndexDummy dummyHandler;
   public:
     EventInputSubconnectorLocal (//Synchronizer* synch,
 				 MPI::Intercomm intercomm,
@@ -212,7 +212,7 @@ namespace MUSIC {
 				 int receiverPortCode,
 				 EventHandlerLocalIndex* eh);
     void receive ();
-    void flush (bool& dataStillFlowing);
+  //  void flush (bool& dataStillFlowing);
   };
 
   class MessageSubconnector : virtual public Subconnector {
@@ -238,7 +238,7 @@ namespace MUSIC {
   class MessageInputSubconnector : public InputSubconnector,
 				   public MessageSubconnector {
     MessageHandler* handleMessage;
-    static MessageHandlerDummy dummyHandler;
+  //  static MessageHandlerDummy dummyHandler;
   public:
     MessageInputSubconnector (//Synchronizer* synch,
 			      MPI::Intercomm intercomm,

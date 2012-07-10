@@ -140,7 +140,7 @@ ContOutputSubconnector::flush (bool& dataStillFlowing)
 		else
 		{
 			char dummy;
-			intercomm.Send (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
+			intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
 			flushed = true;
 		}
 	}
@@ -219,7 +219,7 @@ ContInputSubconnector::flush (bool& dataStillFlowing)
 {
 	if (!flushed)
 	{
-		MUSIC_LOGR ("receiving and throwing away data");
+		//MUSIC_LOGR ("receiving and throwing away data");
 		receive ();
 		if (!flushed)
 			dataStillFlowing = true;
@@ -444,11 +444,13 @@ EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
 				receiverPortCode),
 				handleEvent (eh)
 {
+
+
 }
 
 
-EventHandlerGlobalIndexDummy
-EventInputSubconnectorGlobal::dummyHandler;
+//EventHandlerGlobalIndexDummy
+//EventInputSubconnectorGlobal::dummyHandler;
 
 
 EventInputSubconnectorLocal::EventInputSubconnectorLocal
@@ -476,8 +478,8 @@ EventInputSubconnectorLocal::EventInputSubconnectorLocal
 }
 
 
-EventHandlerLocalIndexDummy
-EventInputSubconnectorLocal::dummyHandler;
+//EventHandlerLocalIndexDummy
+//EventInputSubconnectorLocal::dummyHandler;
 
 
 void
@@ -577,7 +579,7 @@ EventInputSubconnector::flush (bool& dataStillFlowing)
 {
 	if (!flushed)
 	{
-		MUSIC_LOGRE ("receiving and throwing away data");
+		//MUSIC_LOGRE ("receiving and throwing away data");
 		receive ();
 		if (!flushed)
 			dataStillFlowing = true;
@@ -585,10 +587,10 @@ EventInputSubconnector::flush (bool& dataStillFlowing)
 }
 
 
-void
+/*void
 EventInputSubconnectorGlobal::flush (bool& dataStillFlowing)
 {
-	handleEvent = &dummyHandler;
+	//handleEvent = &dummyHandler;
 	EventInputSubconnector::flush (dataStillFlowing);
 }
 
@@ -596,9 +598,9 @@ EventInputSubconnectorGlobal::flush (bool& dataStillFlowing)
 void
 EventInputSubconnectorLocal::flush (bool& dataStillFlowing)
 {
-	handleEvent = &dummyHandler;
+	//handleEvent = &dummyHandler;
 	EventInputSubconnector::flush (dataStillFlowing);
-}
+}*/
 
 /********************************************************************
  *
@@ -667,7 +669,7 @@ MessageOutputSubconnector::flush (bool& dataStillFlowing)
 		else
 		{
 			char dummy;
-			intercomm.Send (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);
+			intercomm.Ssend (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);
 		}
 	}
 }
@@ -691,8 +693,8 @@ MessageInputSubconnector::MessageInputSubconnector (//Synchronizer* synch_,
 }
 
 
-MessageHandlerDummy
-MessageInputSubconnector::dummyHandler;
+//MessageHandlerDummy
+//MessageInputSubconnector::dummyHandler;
 
 
 void
@@ -741,10 +743,10 @@ MessageInputSubconnector::receive ()
 void
 MessageInputSubconnector::flush (bool& dataStillFlowing)
 {
-	handleMessage = &dummyHandler;
+	//handleMessage = &dummyHandler;
 	if (!flushed)
 	{
-		MUSIC_LOGRE ("receiving and throwing away data");
+		//MUSIC_LOGRE ("receiving and throwing away data");
 		receive ();
 		if (!flushed)
 			dataStillFlowing = true;

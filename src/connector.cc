@@ -278,6 +278,7 @@ namespace MUSIC {
 	  {
 		  // copy application data to send buffers
 		  distributor_.distribute ();
+
 	  }
   }
   // Start sampling (and fill the output buffers) at a time dependent
@@ -581,11 +582,11 @@ namespace MUSIC {
   {
 	  if (first_)
 	  {
-		  collector_.collect (sampler_.insert ());
+  		  collector_.collect (sampler_.insert ());
 		  remoteTick ();
 		  first_ = false;
 	  }
-	  if (sample ())
+	  else if (sample ())
 	  {
 		  collector_.collect (sampler_.insert ());
 		  remoteTick ();

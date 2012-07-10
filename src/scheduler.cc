@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+//#define MUSIC_DEBUG
 #include "music/scheduler.hh"
 #ifdef USE_MPI
 #include <cmath>

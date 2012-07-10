@@ -15,6 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+//#define MUSIC_DEBUG
 #include "music/runtime.hh"
 #ifdef USE_MPI
 
@@ -256,8 +257,10 @@ Runtime::finalize ()
 	 * set of receiver port codes that still has to be finalized
 	 */
 	std::set<int> cnn_ports;
-	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c)
+	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c){
 		cnn_ports.insert((*c)->receiverPortCode());
+
+	}
 	/* remedius
 	 * finalize communication
 	 */
@@ -297,7 +300,8 @@ Runtime::tick ()
 	for (std::vector<PreCommunicationConnector*>::iterator c =
 			preCommunication.begin(); c != preCommunication.end(); ++c)
 		(*c)->preCommunication();
-	MUSIC_LOG0("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
+	//if(MPI::COMM_WORLD.Get_rank() == 0 && localTime.time() < 0.002)
+	MUSIC_LOGR("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
 	while (nextComm.time() <= localTime.time()) { // should be ==
 		while (!schedule.empty()) {
 			schedule.front()->tick();

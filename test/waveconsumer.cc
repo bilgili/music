@@ -41,17 +41,16 @@ main (int args, char* argv[])
 
   double stoptime;
   setup->config ("stoptime", &stoptime);
-
   MUSIC::Runtime* runtime = new MUSIC::Runtime (setup, TIMESTEP);
-
-  for (; runtime->time () < stoptime; runtime->tick ())
+  for (int j =0; runtime->time () < stoptime; j++)
     {
+	  runtime->tick ();
       // Dump to file
       for (int i = 0; i < nLocalVars; ++i)
-	file << data[i] << ' ';
+    	  file << data[i] << ' ';
       file << std::endl;
-    }
 
+    }
   runtime->finalize ();
   
   delete runtime;

@@ -329,13 +329,13 @@ namespace MUSIC {
 	   * When collective communication type is used,
 	   * then the processing method has to be TABLE on the output side, as in this case
 	   * the processing on the output side means just an insertion of the event to the buffer.
-	   * The difference between pairwise and collective communication types is that on the output side
+	   * The difference between point-to-point and collective communication types is that on the output side
 	   * in the latest case we have only one buffer (one CollectiveSubconnector).
 	   */
 	  if(isConnected()){
 		  int commType = ConnectivityInfo_->connections()[0].communicationType();
 		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-		  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::PAIRWISE)
+		  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::POINTTOPOINT)
 			  router = new TreeProcessingRouter();
 		  else{
 			  router = new TableProcessingRouter();
@@ -378,7 +378,7 @@ namespace MUSIC {
   {
 	  Connector *conn;
 	  // we need to choose a right connector according to the communication type
-	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
+	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT)
 		  conn = new EventOutputConnector (connInfo,
 				     spatialNegotiator,
 				     setup_->communicator (),
@@ -420,12 +420,12 @@ namespace MUSIC {
 	   * Depending on the communication type (<commType>) and
 	   * processing method (<procMethod>) that was introduced as runtime configuration options,
 	   * particular processing router should be created on the input side.
-	   * When pairwise communication type is used,then there is no need in the routingMap or router.
+	   * When point-to-point communication type is used,then there is no need in the routingMap or router.
 	   */
 	  if(isConnected()){
 		  int commType = ConnectivityInfo_->connections()[0].communicationType();
 		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-		  if(commType != ConnectorInfo::PAIRWISE)
+		  if(commType != ConnectorInfo::POINTTOPOINT)
 		  {
 			  routingMap = new InputRoutingMap();
 			  if(procMethod == ConnectorInfo::TREE )
@@ -539,7 +539,7 @@ namespace MUSIC {
   {
 	  // we need to choose a right connector according to the communication type
 	  Connector *conn;
-	  if(connInfo.communicationType() ==  ConnectorInfo::PAIRWISE)
+	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT)
 		  conn =   new EventInputConnector (connInfo,
 		  			  spatialNegotiator,
 		  			  setup_->communicator (),

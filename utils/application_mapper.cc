@@ -159,13 +159,13 @@ namespace MUSIC {
 	    /* remedius
 	     *  Since two runtime configuration options were added: communication type (<commType>) and
 	     *  processing method (<procMethod>), there is a basic check for the match of the reserved words to these options.
-	     *  Communication type option can be either *pairwise* or *collective* written in any case letters.
+	     *  Communication type option can be either *point-to-point* or *collective* written in any case letters.
 	     *  Processing method can be either *tree* or *table* also written in any case letters.
 	     */
 	    std::transform(commType.begin(), commType.end(), commType.begin(), ::tolower);
 	    std::transform(procMethod.begin(), procMethod.end(), procMethod.begin(), ::tolower);
 
-	    if(commType.length() > 0 && commType.compare("collective") && commType.compare("pairwise"))
+	    if(commType.length() > 0 && commType.compare("collective") && commType.compare("point-to-point"))
 	    	error ("communication type " + commType + " is not supported");
 
 	    if(procMethod.length() > 0 && procMethod.compare("table") && procMethod.compare("tree"))
@@ -215,11 +215,11 @@ namespace MUSIC {
 		  error ("could not interpret width");
 	      }
 	    /* remedius
-	     * The default communication type is *pairwise*
+	     * The default communication type is *point-to-point*
 	     */
 	    int iCommType;
-	    if(commType.length()==0 || !commType.compare("pairwise")){
-	    	iCommType = ConnectorInfo::PAIRWISE;
+	    if(commType.length()==0 || !commType.compare("point-to-point")){
+	    	iCommType = ConnectorInfo::POINTTOPOINT;
 	    }
 
 	    else{

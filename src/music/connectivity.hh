@@ -24,13 +24,13 @@
 
 namespace MUSIC {
 /* remedius
- * Communication Type (<COLLECTIVE, PAIRWISE>) and
+ * Communication Type (<COLLECTIVE, POINTTOPOINT>) and
  * Processing Method (<TREE, TABLE>) configuration options were added.
  * According class' fields and class' methods, methods' parameters were added to the ConnectorInfo class.
  */
   class ConnectorInfo {
   public:
-	enum CommunicationType { COLLECTIVE, PAIRWISE };
+	enum CommunicationType { COLLECTIVE, POINTTOPOINT };
 	enum ProcessingMethod { TREE, TABLE };
     std::string recApp_;
     std::string recPort_;

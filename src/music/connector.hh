@@ -286,7 +286,7 @@ namespace MUSIC {
   };
   /* remedius
    * routingMap field was added to the EventInputConnector class
-   * in order to make it usable both for collective and pairwise algorithms'.
+   * in order to make it usable both for collective and point-to-point algorithms'.
    */
   class EventInputConnector : public InputConnector, public EventConnector {
   private:

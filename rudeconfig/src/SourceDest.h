@@ -46,7 +46,7 @@ class SourceDest: public DataLine{
 	std::string d_width;
 	std::string d_comment;
 	/* remedius
-	 * <collective> or <pairwise>
+	 * <collective> or <point-to-point>
 	 */
 	std::string d_commType;
 	/* remedius

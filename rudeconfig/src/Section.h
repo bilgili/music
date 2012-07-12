@@ -165,7 +165,7 @@ namespace rude{
       const char *getWidthAt(int index) const;
 
       /* remedius
-       * returns <collective>, <pairwise> or "" type of communication.
+       * returns <collective>, <point-to-point> or "" type of communication.
        */
       const char *getCommTypeAt(int index) const;
       /* remedius

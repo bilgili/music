@@ -27,7 +27,7 @@
 
 namespace MUSIC {
 /* remedius
- * Since the router can act as on the output (pairwise communication)
+ * Since the router can act as on the output (point-to-point communication)
  * as well as on the input (collective communication) sides and
  * pre-/post-processing approaches are different
  * (in one case it's insertion to the buffer <FIBO>,

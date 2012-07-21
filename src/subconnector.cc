@@ -18,19 +18,23 @@
 #include "music/subconnector.hh"
 #ifdef USE_MPI
 #include "music/communication.hh"
+#include <cstring>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
 #endif
 
 namespace MUSIC {
 
-Subconnector::Subconnector (//Synchronizer* synch_,
+Subconnector::Subconnector (MPI::Datatype type,
 		MPI::Intercomm intercomm_,
 		int remoteLeader,
 		int remoteRank,
 		int receiverRank,
 		int receiverPortCode)
-: //synch (synch_),
+: type_ (type),
 		intercomm (intercomm_),
 		remoteRank_ (remoteRank),
 		remoteWorldRank_ (remoteLeader + remoteRank),
@@ -67,14 +71,13 @@ ContOutputSubconnector::ContOutputSubconnector (//Synchronizer* synch_,
 		int remoteRank,
 		int receiverPortCode_,
 		MPI::Datatype type)
-: Subconnector (//synch_,
+: Subconnector (type,
 		intercomm_,
 		remoteLeader,
 		remoteRank,
 		remoteRank,
 		receiverPortCode_),
-		BufferingOutputSubconnector (0),
-		ContSubconnector (type)
+		BufferingOutputSubconnector (0)
 {
 }
 
@@ -154,14 +157,13 @@ ContInputSubconnector::ContInputSubconnector (//Synchronizer* synch_,
 		int receiverRank,
 		int receiverPortCode,
 		MPI::Datatype type)
-: Subconnector (//synch_,
+: Subconnector (type,
 		intercomm,
 		remoteLeader,
 		remoteRank,
 		receiverRank,
 		receiverPortCode),
-		InputSubconnector (),
-		ContSubconnector (type)
+		InputSubconnector ()
 {
 }
 
@@ -228,89 +230,6 @@ ContInputSubconnector::flush (bool& dataStillFlowing)
 
 /********************************************************************
  *
- * Collective Subconnector
- *
- ********************************************************************/
-void CollectiveSubconnector::maybeCommunicate(){
-	communicate();
-}
-/* remedius
- * current collective communication is realized through two times calls of
- * mpi allgather function: first time the size of the data is distributed,
- * the second time the data by itself is distributed.
- * Probably that could be not optimal for a huge # of ranks.
- */
-void CollectiveSubconnector::communicate(){
-
-	void* data;
-	int size, nProcesses;
-	unsigned int dsize;
-	int* ppBytes, *displ;
-	char* cur_buff, *recv_buff;
-	if(flushed)
-		return;
-	unsigned int sEvent = sizeof(Event);
-
-	buffer_.nextBlock (data, size);
-	cur_buff = static_cast <char*> (data);
-
-	MPI_Comm_size(_intracomm,&nProcesses);
-
-
-	ppBytes = new int[nProcesses];
-	//distributing the size of the buffer
-	_intracomm.Allgather (&size, 1, MPI_INT, ppBytes, 1, MPI_INT);
-	//could it be that dsize is more then unsigned int?
-	dsize = 0;
-	displ = new int[nProcesses];
-	for(int i=0; i < nProcesses; ++i){
-		displ[i] = dsize;
-		dsize += ppBytes[i];
-		/*		  if(ppBytes[i] > max_size)
-			  max_size = ppBytes[i];*/
-	}
-	if(dsize > 0){
-		recv_buff = new char[dsize];
-		//distributing the data
-		_intracomm.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
-		//processing the data
-		flushed =  dsize == 0 ? false : true;
-		for(unsigned int i = 0; i < dsize; i+=sEvent){
-			Event* e = static_cast<Event*> ((void*)(recv_buff+i));
-			if (e->id != FLUSH_MARK)
-			{
-				router_->processEvent(e->t, (GlobalIndex)e->id);
-				flushed = false;
-			}
-		}
-		delete[] recv_buff;
-	}
-	delete[] ppBytes;
-	delete[] displ;
-
-}
-void CollectiveSubconnector::flush(bool& dataStillFlowing){
-	if (!flushed)
-	{
-		if (!buffer_.isEmpty ())
-		{
-			MUSIC_LOGR ("sending data remaining in buffers");
-			maybeCommunicate ();
-			dataStillFlowing = true;
-		}
-		else
-		{
-			Event* e = static_cast<Event*> (buffer_.insert ());
-			e->id = FLUSH_MARK;
-			// MUSIC_LOGR("sending FLUSH_MARK");
-			maybeCommunicate ();
-			if(!flushed)
-				dataStillFlowing = true;
-		}
-	}
-}
-/********************************************************************
- *
  * Event Subconnectors
  *
  ********************************************************************/
@@ -321,7 +240,7 @@ EventOutputSubconnector::EventOutputSubconnector (//Synchronizer* synch_,
 		int remoteLeader,
 		int remoteRank,
 		int receiverPortCode)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
@@ -366,13 +285,13 @@ EventOutputSubconnector::send ()
 		 */
 		intercomm.Ssend (buffer,
 				SPIKE_BUFFER_MAX,
-				MPI::BYTE,
+				type_,
 				remoteRank_,
 				SPIKE_MSG);
 		buffer += SPIKE_BUFFER_MAX;
 		size -= SPIKE_BUFFER_MAX;
 	}
-	intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, SPIKE_MSG);
+	intercomm.Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG);
 	// endtime = MPI_Wtime();
 	//endtime = endtime-starttime;
 	//if(tt < endtime)
@@ -411,7 +330,7 @@ EventInputSubconnector::EventInputSubconnector (//Synchronizer* synch_,
 		int remoteRank,
 		int receiverRank,
 		int receiverPortCode)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
@@ -430,7 +349,7 @@ EventInputSubconnectorGlobal::EventInputSubconnectorGlobal
 		int receiverRank,
 		int receiverPortCode,
 		EventHandlerGlobalIndex* eh)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
@@ -461,13 +380,13 @@ EventInputSubconnectorLocal::EventInputSubconnectorLocal
 		int receiverRank,
 		int receiverPortCode,
 		EventHandlerLocalIndex* eh)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
 		receiverRank,
 		receiverPortCode),
-		EventInputSubconnector (//synch_,
+		EventInputSubconnector (
 				intercomm,
 				remoteLeader,
 				remoteRank,
@@ -504,12 +423,12 @@ EventInputSubconnectorGlobal::receive ()
 	{
 		intercomm.Recv (data,
 				SPIKE_BUFFER_MAX,
-				MPI::BYTE,
+				type_,
 				remoteRank_,
 				SPIKE_MSG,
 				status);
 
-		size = status.Get_count (MPI::BYTE);
+		size = status.Get_count (type_);
 		Event* ev = (Event*) data;
 		/* remedius
 		 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -550,11 +469,11 @@ EventInputSubconnectorLocal::receive ()
 	{
 		intercomm.Recv (data,
 				SPIKE_BUFFER_MAX,
-				MPI::BYTE,
+				type_,
 				remoteRank_,
 				SPIKE_MSG,
 				status);
-		size = status.Get_count (MPI::BYTE);
+		size = status.Get_count (type_);
 		Event* ev = (Event*) data;
 		/* remedius
 		 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
@@ -565,7 +484,7 @@ EventInputSubconnectorLocal::receive ()
 			flushed = true;
 			return;
 		}
-		size = status.Get_count (MPI::BYTE);
+		size = status.Get_count (type_);
 		int nEvents = size / sizeof (Event);
 		for (int i = 0; i < nEvents; ++i)
 			(*handleEvent) (ev[i].t, ev[i].id);
@@ -614,7 +533,7 @@ MessageOutputSubconnector::MessageOutputSubconnector (//Synchronizer* synch_,
 		int remoteRank,
 		int receiverPortCode,
 		FIBO* buffer)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
@@ -645,13 +564,13 @@ MessageOutputSubconnector::send ()
 	{
 		intercomm.Ssend (buffer,
 				MESSAGE_BUFFER_MAX,
-				MPI::BYTE,
+				type_,
 				remoteRank_,
 				MESSAGE_MSG);
 		buffer += MESSAGE_BUFFER_MAX;
 		size -= MESSAGE_BUFFER_MAX;
 	}
-	intercomm.Ssend (buffer, size, MPI::BYTE, remoteRank_, MESSAGE_MSG);
+	intercomm.Ssend (buffer, size, type_, remoteRank_, MESSAGE_MSG);
 }
 
 
@@ -669,7 +588,7 @@ MessageOutputSubconnector::flush (bool& dataStillFlowing)
 		else
 		{
 			char dummy;
-			intercomm.Ssend (&dummy, 0, MPI::BYTE, remoteRank_, FLUSH_MSG);
+			intercomm.Ssend (&dummy, 0, type_, remoteRank_, FLUSH_MSG);
 		}
 	}
 }
@@ -682,7 +601,7 @@ MessageInputSubconnector::MessageInputSubconnector (//Synchronizer* synch_,
 		int receiverRank,
 		int receiverPortCode,
 		MessageHandler* mh)
-: Subconnector (//synch_,
+: Subconnector (MPI::BYTE,
 		intercomm,
 		remoteLeader,
 		remoteRank,
@@ -715,7 +634,7 @@ MessageInputSubconnector::receive ()
 	{
 		intercomm.Recv (data,
 				MESSAGE_BUFFER_MAX,
-				MPI::BYTE,
+				type_,
 				remoteRank_,
 				MPI::ANY_TAG,
 				status);
@@ -725,7 +644,7 @@ MessageInputSubconnector::receive ()
 			MUSIC_LOGRE ("received flush message");
 			return;
 		}
-		size = status.Get_count (MPI::BYTE);
+		size = status.Get_count (type_);
 		int current = 0;
 		while (current < size)
 		{
@@ -753,5 +672,170 @@ MessageInputSubconnector::flush (bool& dataStillFlowing)
 	}
 }
 
+/********************************************************************
+ *
+ * Collective Subconnector
+ *
+ ********************************************************************/
+CollectiveSubconnector::CollectiveSubconnector(MPI::Intracomm intracomm): intracomm_(intracomm)
+{
+	MPI_Comm_size(intracomm_,&nProcesses);
+	ppBytes = new int[nProcesses];
+	displ = new int[nProcesses];
+}
+CollectiveSubconnector::~CollectiveSubconnector()
+{
+	delete ppBytes;
+	delete displ;
+}
+void CollectiveSubconnector::maybeCommunicate(){
+	if (!flushed)
+		communicate();
+}
+int CollectiveSubconnector::calcCommDataSize(int local_data_size){
+	int dsize;
+	//distributing the size of the buffer
+	intracomm_.Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT);
+	//could it be that dsize is more then unsigned int?
+	dsize = 0;
+	for(int i=0; i < nProcesses; ++i){
+		displ[i] = dsize;
+		dsize += ppBytes[i];
+		//ppBytes[i] /= type_.Get_size();
+		/*		  if(ppBytes[i] > max_size)
+				  max_size = ppBytes[i];*/
+	}
+	return dsize;
+}
+/* remedius
+ * current collective communication is realized through two times calls of
+ * mpi allgather function: first time the size of the data is distributed,
+ * the second time the data by itself is distributed.
+ * Probably that could be not optimal for a huge # of ranks.
+ */
+std::vector<char> CollectiveSubconnector::getCommData(char *cur_buff, int size){
+	unsigned int dsize;
+	char *recv_buff;
+	std::vector<char> commData;
+	recv_buff=NULL;
+
+	dsize = calcCommDataSize(size);
+
+	if(dsize > 0){
+		//distributing the data
+		recv_buff = new char[dsize];
+		intracomm_.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
+		std::copy(recv_buff,recv_buff+dsize,std::back_inserter(commData));
+		delete[] recv_buff;
+	}
+	return commData;
+}
+void
+EventCollectiveSubconnector::maybeCommunicate(){
+	CollectiveSubconnector::maybeCommunicate();
+}
+void EventCollectiveSubconnector::communicate(){
+	int size, dsize;
+	void *data;
+	char* cur_buff;
+	std::vector<char> commData;
+	if(flushed)
+		return;
+	unsigned int sEvent = sizeof(Event);
+	buffer_.nextBlock (data, size);
+    cur_buff = static_cast <char*> (data);
+	commData = getCommData(cur_buff, size);
+//	std::copy(commData.begin(),commData.end(),cur_buff);
+	cur_buff = (char*)static_cast<void*> (&commData[0]);
+	//processing the data
+	dsize = commData.size();
+	flushed = dsize == 0 ? false : true;
+
+	for(int i = 0; i < dsize; i+=sEvent){
+		Event* e = static_cast<Event*> ((void*)(cur_buff+i));
+		if (e->id != FLUSH_MARK)
+		{
+			router_->processEvent(e->t, (GlobalIndex)e->id);
+			flushed = false;
+		}
+	}
+}
+void EventCollectiveSubconnector::flush(bool& dataStillFlowing){
+	if (!flushed)
+	{
+		if (!buffer_.isEmpty ())
+		{
+			MUSIC_LOGR ("sending data remaining in buffers");
+			maybeCommunicate ();
+			dataStillFlowing = true;
+		}
+		else
+		{
+			Event* e = static_cast<Event*> (buffer_.insert ());
+			e->id = FLUSH_MARK;
+			// MUSIC_LOGR("sending FLUSH_MARK");
+			communicate ();
+			if(!flushed)
+				dataStillFlowing = true;
+		}
+	}
+}
+void
+ContCollectiveSubconnector::maybeCommunicate(){
+	CollectiveSubconnector::maybeCommunicate();
+}
+void ContCollectiveSubconnector::communicate(){
+	int size, dsize, prev_iSize, nBuffered;
+	void *data;
+	char *cur_buff, *dest_buff;
+	std::vector<char> commData;
+	if(flushed)
+		return;
+	ContOutputSubconnector::buffer_.nextBlock (data, size);
+	commData = getCommData(static_cast <char*> (data), size);
+	const int* displ = getDisplArr();
+	const int* ppBytes = getSizeArr();
+	//std::copy(commData.begin(),commData.end(),cur_buff);
+	cur_buff = (char*)static_cast<void*> (&commData[0]);
+	dsize = commData.size();
+	flushed = dsize == 0 ? true : false;
+	nBuffered= dsize / (type_.Get_size ()*width_);
+	std::multimap<int, Interval>::iterator it;
+	for(int i =0; i < nBuffered ; ++i){
+		prev_iSize = 0;
+		dest_buff = static_cast<char*> (ContInputSubconnector::buffer_.insertBlock ());
+		for ( it=intervals_.begin() ; it != intervals_.end(); it++ ) //iterates all the intervals
+		{
+			int iSize = (*it).second.end(); // length field is stored overlapping the end field so that the
+			int start  = (*it).second.begin();
+			int blocksize = ppBytes[(*it).first] / nBuffered;
+			memcpy (dest_buff + prev_iSize, cur_buff+displ[(*it).first]+i*blocksize + start, iSize);
+			prev_iSize += iSize;
+		}
+		ContInputSubconnector::buffer_.trimBlock (prev_iSize);
+	}
+}
+void ContCollectiveSubconnector::initialCommunication(double initialBufferedTicks){
+	communicate();
+	ContInputSubconnector::buffer_.fill (initialBufferedTicks);
+}
+void ContCollectiveSubconnector::flush(bool& dataStillFlowing){
+	if (!flushed)
+	{
+		if (!ContOutputSubconnector::buffer_.isEmpty ())
+		{
+			MUSIC_LOGR ("sending data remaining in buffers");
+			maybeCommunicate ();
+			dataStillFlowing = true;
+		}
+		else
+		{
+			//a sign for the end of communication will be an empty buffer
+			communicate ();
+			if(!flushed)
+				dataStillFlowing = true;
+		}
+	}
+}
 }
 #endif

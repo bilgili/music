@@ -249,7 +249,7 @@ namespace MUSIC {
       SpatialNegotiationData* dereference ()
       {
 	int high = std::min (i + nPerProcess, w);
-	data = SpatialNegotiationData (IndexInterval (i, high, 0), r);
+	data = SpatialNegotiationData (IndexInterval (i, high, 0), r, 0);
 	return &data;
       }
       Implementation* copy ()
@@ -276,15 +276,17 @@ namespace MUSIC {
       IndexMap::iterator end_;
     protected:
       int rank_;
+      int cur_displ_;
     public:
       Wrapper (IndexMap::iterator beg,
 	       IndexMap::iterator end,
 	       int rank)
 	: i (beg), end_ (end), rank_ (rank)
       {
+    	  cur_displ_ = 0;
       }
-      bool end () { return i == end_; }
-      void operator++ () { ++i; }
+      bool end () { return i == end_; cur_displ_ = 0;}
+      void operator++ () {  cur_displ_ = cur_displ_+(i->end() - i->begin()); ++i; }
     };
 
     class GlobalWrapper : public Wrapper {
@@ -297,7 +299,7 @@ namespace MUSIC {
       }
       SpatialNegotiationData* dereference ()
       {
-	data = SpatialNegotiationData (*i, rank_);
+	data = SpatialNegotiationData (*i, rank_, cur_displ_);
 	data.setLocal (0);
 	return &data;
       }
@@ -317,7 +319,7 @@ namespace MUSIC {
       }
       SpatialNegotiationData* dereference ()
       {
-	data = SpatialNegotiationData (*i, rank_);
+	data = SpatialNegotiationData (*i, rank_, cur_displ_);
 	return &data;
       }
       Implementation* copy ()
@@ -382,8 +384,7 @@ namespace MUSIC {
   {
     while (!source.end () && !dest.end ())
       {
-	MUSIC_LOGX ("comparing " <<
-		    "(" << source->begin () << ", "
+	MUSIC_LOGX("(" << source->begin () << ", "
 		    << source->end () << ", "
 		    << source->local () << ", "
 		    << source->rank () << ") and ("
@@ -399,7 +400,9 @@ namespace MUSIC {
 		SpatialNegotiationData d (dest->begin (),
 					  dest->end (),
 					  dest->local () - source->local (),
-					  source->rank ());
+					  source->rank (),
+					  source->displ()+(dest->begin()-source->begin())
+					  );
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
@@ -408,7 +411,9 @@ namespace MUSIC {
 		SpatialNegotiationData d (dest->begin (),
 					  source->end (),
 					  dest->local () - source->local (),
-					  source->rank ());
+					  source->rank (),
+					  source->displ()+(dest->begin()-source->begin())
+					  );
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
@@ -421,7 +426,9 @@ namespace MUSIC {
 		SpatialNegotiationData d (source->begin (),
 					  source->end (),
 					  dest->local () - source->local (),
-					  source->rank ());
+					  source->rank (),
+					  source->displ()
+					  );
 		buffers[dest->rank ()].push_back (d);
 		++source;
 	      }
@@ -430,7 +437,9 @@ namespace MUSIC {
 		SpatialNegotiationData d (source->begin (),
 					  dest->end (),
 					  dest->local () - source->local (),
-					  source->rank ());
+					  source->rank (),
+					  source->displ()
+					  );
 		buffers[dest->rank ()].push_back (d);
 		++dest;
 	      }
@@ -545,6 +554,8 @@ namespace MUSIC {
     remote.resize (remoteNProc);
     results.resize (nProcesses);
     negotiateWidth (intercomm);
+
+
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						    indices->end (),
 						    type,

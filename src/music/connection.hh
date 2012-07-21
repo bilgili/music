@@ -39,7 +39,7 @@ namespace MUSIC {
 	maxBuffered_ (maxBuffered) { }
     virtual ~Connection () { } // needed to make base polymorphic (!)
     Connector* connector () const { return connector_; }
-    void setConnector (Connector* connector) { connector_ = connector; }
+    //void setConnector (Connector* connector) { connector_ = connector; }
     int maxBuffered () { return maxBuffered_; }
   };
   

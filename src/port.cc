@@ -229,11 +229,22 @@ namespace MUSIC {
   Connector*
   ContOutputPort::makeConnector (ConnectorInfo connInfo)
   {
-    return new ContOutputConnector (connInfo,
-				    spatialNegotiator,
-				    setup_->communicator (),
-				    sampler,
-				    type_);
+	  Connector * conn;
+	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT){
+		  conn =  new ContOutputConnector (connInfo,
+				  spatialNegotiator,
+				  setup_->communicator (),
+				  sampler,
+				  type_);
+	  }
+	  else
+		  conn = new ContOutputCollectiveConnector(connInfo,
+				  spatialNegotiator,
+				  setup_->communicator (),
+				  sampler,
+				  type_);
+
+	  return conn;
   }
   
   
@@ -303,12 +314,23 @@ namespace MUSIC {
   Connector*
   ContInputPort::makeConnector (ConnectorInfo connInfo)
   {
-    return new ContInputConnector (connInfo,
-				   spatialNegotiator,
-				   setup_->communicator (),
-				   sampler,
-				   type_,
-				   delay_);
+	  Connector * conn;
+	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT){
+		  conn = new ContInputConnector (connInfo,
+				  spatialNegotiator,
+				  setup_->communicator (),
+				  sampler,
+				  type_,
+				  delay_);
+	  }
+	  else
+		  conn = new ContInputCollectiveConnector (connInfo,
+				  spatialNegotiator,
+				  setup_->communicator (),
+				  sampler,
+				  type_,
+				  delay_);
+	  return conn;
   }
 
   
@@ -330,7 +352,7 @@ namespace MUSIC {
 	   * then the processing method has to be TABLE on the output side, as in this case
 	   * the processing on the output side means just an insertion of the event to the buffer.
 	   * The difference between point-to-point and collective communication types is that on the output side
-	   * in the latest case we have only one buffer (one CollectiveSubconnector).
+	   * in the latest case we have only one common buffer (one CollectiveSubconnector) and processing is happening on the receiver side.
 	   */
 	  if(isConnected()){
 		  int commType = ConnectivityInfo_->connections()[0].communicationType();
@@ -384,7 +406,7 @@ namespace MUSIC {
 				     setup_->communicator (),
 				     routingMap);
 	  else
-		  conn = new CollectiveConnector(connInfo,
+		  conn = new EventOutputCollectiveConnector(connInfo,
 	  	 			   spatialNegotiator,
 	  	 			setup_->communicator (),
 	  	 			  routingMap);
@@ -414,39 +436,9 @@ namespace MUSIC {
   }
 
   EventInputPort::EventInputPort (Setup* s, std::string id)
-    : Port (s, id),routingMap(NULL)
+    : Port (s, id)
   {
-	  /* remedius
-	   * Depending on the communication type (<commType>) and
-	   * processing method (<procMethod>) that was introduced as runtime configuration options,
-	   * particular processing router should be created on the input side.
-	   * When point-to-point communication type is used,then there is no need in the routingMap or router.
-	   */
-	  if(isConnected()){
-		  int commType = ConnectivityInfo_->connections()[0].communicationType();
-		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-		  if(commType != ConnectorInfo::POINTTOPOINT)
-		  {
-			  routingMap = new InputRoutingMap();
-			  if(procMethod == ConnectorInfo::TREE )
-				  router = new TreeProcessingRouter();
-			  else
-				  router = new TableProcessingRouter();
-		  }
-	  }
 
-
-  }
-  EventInputPort::~EventInputPort()
-  {
-	 if(router != NULL)
-		 delete router;
-  }
-  void
-  EventInputPort::buildTable()
-  {
-	  if(routingMap != NULL)
-		  routingMap->build(router);
   }
   
   void
@@ -546,13 +538,11 @@ namespace MUSIC {
 		  			  type_,
 		  			  handleEvent_);
 	  else
-		  conn = new CollectiveConnector(connInfo,
+		  conn = new EventInputCollectiveConnector(connInfo,
 	  	 			   spatialNegotiator,
 	  	 			setup_->communicator (),
-	  	 			  routingMap,
-	  	 			handleEvent_,
-	  	 			router,
-	  	 			type_);
+	  	 			type_,
+	  	 			handleEvent_);
 
 	 return conn;
   }

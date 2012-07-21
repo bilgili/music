@@ -146,10 +146,6 @@ namespace MUSIC {
 
   
   class EventPort : public virtual Port {
-  protected:
-	    EventRouter *router;
-	    EventPort():router(NULL){};
-
   };
 
   /* remedius
@@ -159,6 +155,7 @@ namespace MUSIC {
    */
   class EventOutputPort : public EventPort,
 			  public OutputPort {
+	EventRouter *router;
     EventRoutingMap<FIBO*>* routingMap;
   public:
     void map (IndexMap* indices, Index::Type type);
@@ -185,7 +182,7 @@ namespace MUSIC {
   private:
 	Index::Type type_;
     EventHandlerPtr handleEvent_;
-    EventRoutingMap<EventHandlerGlobalIndex*>* routingMap;
+   // EventRoutingMap<EventHandlerGlobalIndex*>* routingMap;
   public:
     void map (IndexMap* indices,
 	      EventHandlerGlobalIndex* handleEvent,
@@ -203,14 +200,12 @@ namespace MUSIC {
 	      int maxBuffered);
   protected:
     EventInputPort (Setup* s, std::string id);
-    ~EventInputPort();
-    void buildTable ();
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  EventHandlerPtr handleEvent,
 		  double accLatency,
 		  int maxBuffered);
-    void setupCleanup () {   InputPort::setupCleanup(); if (routingMap!= NULL) delete routingMap;};
+
     Connector* makeConnector (ConnectorInfo connInfo);
     // Facilities to support the C interface
   public:

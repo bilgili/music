@@ -22,6 +22,8 @@
 #include <mpi.h>
 #include <iostream>
 #include <string>
+#include <vector>
+#include <map>
 #include <music/event_router.hh>
 //#include <music/synchronizer.hh>
 #include <music/FIBO.hh>
@@ -34,7 +36,7 @@ namespace MUSIC {
   // NOTE: Must be divisible by the size of the datatype of the data
   // maps passed to cont ports
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
-  const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX;
+  const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX; //5000 of double values per process!!!
   const int MESSAGE_BUFFER_MAX = 10000;
 
   // The subconnector is responsible for the local side of the
@@ -45,15 +47,18 @@ namespace MUSIC {
   private:
   protected:
     //Synchronizer* synch;
+	  MPI::Datatype type_;
     MPI::Intercomm intercomm;
     int remoteRank_;		// rank in inter-communicatir
     int remoteWorldRank_;	// rank in COMM_WORLD
     int receiverRank_;
     int receiverPortCode_;
     bool flushed;
+
   public:
-    Subconnector () { }
-    Subconnector (//Synchronizer* synch,
+    Subconnector ():type_(MPI::BYTE){};
+    Subconnector (MPI::Datatype type): type_ (type) { }
+    Subconnector (MPI::Datatype type,
 		  MPI::Intercomm intercomm,
 		  int remoteLeader,
 		  int remoteRank,
@@ -73,7 +78,7 @@ namespace MUSIC {
   protected:
 	  OutputSubconnector (){};
   public:
-    virtual FIBO* buffer () { return NULL; }
+    virtual FIBO* outputBuffer () { return NULL; }
   };
   
   class BufferingOutputSubconnector : virtual public OutputSubconnector {
@@ -81,26 +86,19 @@ namespace MUSIC {
     FIBO buffer_;
   public:
     BufferingOutputSubconnector (int elementSize);
-    FIBO* buffer () { return &buffer_; }
+    FIBO* outputBuffer () { return &buffer_; }
   };
 
   class InputSubconnector : virtual public Subconnector {
   protected:
     InputSubconnector (){};
   public:
-    virtual BIFO* buffer () { return NULL; }
+    virtual BIFO* inputBuffer () { return NULL; }
   };
 
-  class ContSubconnector : virtual public Subconnector {
+  class ContOutputSubconnector : public BufferingOutputSubconnector{
   protected:
-    MPI::Datatype type_;
-  public:
-    ContSubconnector (MPI::Datatype type)
-      : type_ (type) { };
-  };
-  
-  class ContOutputSubconnector : public BufferingOutputSubconnector,
-				 public ContSubconnector {
+	  ContOutputSubconnector():BufferingOutputSubconnector (0){};
   public:
     ContOutputSubconnector (//Synchronizer* synch,
 			    MPI::Intercomm intercomm,
@@ -114,10 +112,10 @@ namespace MUSIC {
     void flush (bool& dataStillFlowing);
   };
   
-  class ContInputSubconnector : public InputSubconnector,
-				public ContSubconnector {
+  class ContInputSubconnector : public InputSubconnector {
   protected:
     BIFO buffer_;
+    ContInputSubconnector(){};
   public:
     ContInputSubconnector (//Synchronizer* synch,
 			   MPI::Intercomm intercomm,
@@ -126,7 +124,7 @@ namespace MUSIC {
 			   int receiverRank,
 			   int receiverPortCode,
 			   MPI::Datatype type);
-    BIFO* buffer () { return &buffer_; }
+    BIFO* inputBuffer () { return &buffer_; }
     void initialCommunication (double initialBufferedTicks);
     void maybeCommunicate ();
     void receive ();
@@ -137,57 +135,47 @@ namespace MUSIC {
   protected:
     static const int FLUSH_MARK = -1;
   };
-  /* remedius
-   * CollectiveSubconnector class is used for collective communication
-   * based on MPI::ALLGATHER function.
-   */
-  class CollectiveSubconnector:  public BufferingOutputSubconnector, public EventSubconnector{
-  protected:
-	  MPI::Intracomm _intracomm;
-	  EventRouter *router_;
-  public:
-	  CollectiveSubconnector(//Synchronizer* _synch,
-			     MPI::Intracomm intracomm,  EventRouter *router):Subconnector (),
-			     BufferingOutputSubconnector (sizeof (Event)),
-			     router_(router)
-	      { //synch =_synch;_
-	      _intracomm = intracomm; };
-	  void maybeCommunicate ();
-	  void flush (bool& dataStillFlowing);
-  private:
-	  void communicate();
-  };
-  class EventOutputSubconnector : public BufferingOutputSubconnector,
-				  public EventSubconnector {
-  public:
-    EventOutputSubconnector (//Synchronizer* synch,
-			     MPI::Intercomm intercomm,
-			     int remoteLeader,
-			     int remoteRank,
-			     int receiverPortCode);
-    void maybeCommunicate ();
-    void send ();
-    void flush (bool& dataStillFlowing);
-
-  };
   
+
+
+  class EventOutputSubconnector : public BufferingOutputSubconnector,
+  				  public EventSubconnector {
+
+  protected:
+	  EventOutputSubconnector(): Subconnector(MPI::BYTE),BufferingOutputSubconnector (sizeof (Event)){};
+    public:
+
+	  EventOutputSubconnector (//Synchronizer* synch,
+  			     MPI::Intercomm intercomm,
+  			     int remoteLeader,
+  			     int remoteRank,
+  			     int receiverPortCode);
+      void maybeCommunicate ();
+      void send ();
+      void flush (bool& dataStillFlowing);
+
+    };
   class EventInputSubconnector : public InputSubconnector,
-				 public EventSubconnector {
-  public:
-    EventInputSubconnector (//Synchronizer* synch,
-			    MPI::Intercomm intercomm,
-			    int remoteLeader,
-			    int remoteRank,
-			    int receiverRank,
-			    int receiverPortCode);
-	 void maybeCommunicate ();
-    virtual void receive () = 0;
-    virtual void flush (bool& dataStillFlowing);
-  };
+ 				 public EventSubconnector {
+   protected:
+ 	  EventInputSubconnector():Subconnector (MPI::BYTE),InputSubconnector(){};
+   public:
+     EventInputSubconnector (//Synchronizer* synch,
+ 			    MPI::Intercomm intercomm,
+ 			    int remoteLeader,
+ 			    int remoteRank,
+ 			    int receiverRank,
+ 			    int receiverPortCode);
+ 	 void maybeCommunicate ();
+     virtual void receive () = 0;
+     virtual void flush (bool& dataStillFlowing);
+   };
 
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
   //  static EventHandlerGlobalIndexDummy dummyHandler;
+  protected:
+    EventInputSubconnectorGlobal(){};
   public:
     EventInputSubconnectorGlobal (//Synchronizer* synch,
 				  MPI::Intercomm intercomm,
@@ -251,6 +239,55 @@ namespace MUSIC {
     void receive ();
     void flush (bool& dataStillFlowing);
   };
+  /* remedius
+     * CollectiveSubconnector class is used for collective communication
+     * based on MPI::ALLGATHER function.
+     */
+    class CollectiveSubconnector: public virtual Subconnector
+    {
+    	int nProcesses, *ppBytes, *displ;
+    protected:
+  	  MPI::Intracomm intracomm_;
+
+    protected:
+  	  virtual ~CollectiveSubconnector();
+  	  CollectiveSubconnector(MPI::Intracomm intracomm);
+  	  void maybeCommunicate ();
+  	  int calcCommDataSize(int local_data_size);
+  	  std::vector<char> getCommData(char *cur_buff, int size);
+  	  const int* getDisplArr(){return displ;}
+  	  const int* getSizeArr(){return ppBytes;}
+  	  virtual void communicate() = 0;
+    };
+
+    class EventCollectiveSubconnector: public EventInputSubconnectorGlobal, public EventOutputSubconnector,  public CollectiveSubconnector{
+    protected:
+    	EventRouter *router_;
+    public:
+    	EventCollectiveSubconnector( MPI::Intracomm intracomm,  EventRouter *router):
+    		CollectiveSubconnector (intracomm),
+    		router_(router){};
+    	void flush (bool& dataStillFlowing);
+    	void maybeCommunicate ();
+    private:
+    	void communicate();
+    };
+    class ContCollectiveSubconnector: public ContInputSubconnector, public ContOutputSubconnector,  public CollectiveSubconnector{
+    	std::multimap< int, Interval> intervals_;
+    	int width_;
+    public:
+    	ContCollectiveSubconnector (std::multimap<int, Interval > intervals, int width, MPI::Intracomm intracomm,  MPI::Datatype type):
+    		Subconnector(type),
+    		CollectiveSubconnector (intracomm),
+    		intervals_(intervals),
+    		width_(width){}
+    	void initialCommunication (double initialBufferedTicks);
+    	void maybeCommunicate ();
+    	void flush (bool& dataStillFlowing);
+    	// void setIntervals(std::vector <IndexInterval> intervals){intervals_= intervals;}
+    private:
+    	void communicate();
+    };
 
 }
 #endif

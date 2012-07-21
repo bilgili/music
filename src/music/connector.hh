@@ -75,17 +75,17 @@ namespace MUSIC {
     		 subconnector != rsubconn.end ();
     		 ++subconnector)
     	      delete *subconnector; }
-    virtual Connector* specialize (Clock& localTime) { return this; }
+    virtual void specialize (Clock& localTime) { }
 
     std::string receiverAppName () const { return info.receiverAppName (); }
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
     int remoteLeader () const { return info.remoteLeader (); }
-    
+    int width(){return spatialNegotiator_->getWidth();}
     int maxLocalWidth () { return spatialNegotiator_->maxLocalWidth (); }
     bool isLeader ();
-    void setInterpolate(bool val){interpolate_ =  val;}
-    void setLatency( ClockState latency){ latency_ = latency;}
+    virtual void setInterpolate(bool val){interpolate_ =  val;}
+    virtual void setLatency( ClockState latency){ latency_ = latency;}
    // virtual Synchronizer* synchronizer () = 0;
     virtual void createIntercomm ();
     virtual void freeIntercomm ();
@@ -121,17 +121,19 @@ namespace MUSIC {
      * instead of implementing it's own make^SpecificType^Subconnector() method.
      */
     virtual void addRoutingInterval (IndexInterval i, Subconnector* s){};
-    virtual Subconnector* makeSubconnector (int remoteRank) = 0;
+    virtual Subconnector* makeSubconnector (int remoteRank) =0;
   };
 
 
   class PostCommunicationConnector : virtual public Connector {
   public:
-    virtual void postCommunication () = 0;    
+    virtual void postCommunication () = 0;
+    virtual Subconnector* makeSubconnector (int remoteRank) {return NULL;};
   };
   class PreCommunicationConnector : virtual public Connector {
     public:
       virtual void preCommunication () = 0;
+      virtual Subconnector* makeSubconnector (int remoteRank) {return NULL;};
     };
   class OutputConnector : virtual public Connector {
   public:
@@ -141,6 +143,7 @@ namespace MUSIC {
   public:
   };
 
+
   class ContConnector : virtual public Connector {
   protected:
     Sampler& sampler_;
@@ -148,6 +151,7 @@ namespace MUSIC {
 
     Clock *localTime_;
     Clock remoteTime_;
+
 
     // We need to allocate instances of ContOutputConnector and
     // ContInputConnector and, therefore need dummy versions of the
@@ -157,115 +161,69 @@ namespace MUSIC {
     //virtual void tick () { }
   public:
     ContConnector (Sampler& sampler, MPI::Datatype type)
-      : sampler_ (sampler), type_ (type),localTime_(NULL)  { }
+      : sampler_ (sampler), type_ (type),localTime_(NULL) { }
     ClockState remoteTickInterval (ClockState tickInterval);
-    virtual void initialize(){Connector::initialize(); initialCommunication();};
+    MPI::Datatype getDataType(){return type_;}
+    virtual void initialize ();
   protected:
     virtual void initialCommunication()=0;
-    void remoteTick();
+    friend class SpecializedContConnector;
   };  
-  
-  class InterpolatingConnector : virtual public Connector {
-  };
-  
+
   class ContOutputConnector : public ContConnector, public OutputConnector, public PreCommunicationConnector  {
   protected:
     Distributor distributor_;
+    PreCommunicationConnector* connector; //specialized connector
+    ContOutputConnector(Sampler& sampler, MPI::Datatype type);
   public:
     ContOutputConnector (ConnectorInfo connInfo,
 			 SpatialNegotiator* spatialNegotiator,
 			 MPI::Intracomm comm,
 			 Sampler& sampler,
 			 MPI::Datatype type);
+    ~ContOutputConnector();
     Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, Subconnector* osubconn);
-    Connector* specialize (Clock& localTime);
+    void specialize (Clock& localTime);
+    void preCommunication () {connector->preCommunication(); }
+    void initialize (){connector->initialize();ContConnector::initialize();};
   protected:
     void initialCommunication();
-    virtual void preCommunication(){};
-
-  };
-  
-  class PlainContOutputConnector : public ContOutputConnector {
-   // OutputSynchronizer synch;
-  public:
-    PlainContOutputConnector (ContOutputConnector& connector);
-  //  Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void preCommunication();
-  private:
-    bool sample();
-
-  };
-  
-  class InterpolatingContOutputConnector : public ContOutputConnector,
-					   public InterpolatingConnector {
-   // InterpolationOutputSynchronizer synch;
-  public:
-    InterpolatingContOutputConnector (ContOutputConnector& connector);
-   // Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void preCommunication();
-  private:
-
-    bool interpolate();
-    bool sample();
-    double interpolationCoefficient();
-
+    friend class SpecializedContOuputConnector;
   };
   
   class ContInputConnector : public ContConnector,
-  	  	  	  	  public InputConnector,
-			     public PostCommunicationConnector {
-  protected:
-    Collector collector_;
-    double delay_;
+  public InputConnector,
+  public PostCommunicationConnector {
 
-    bool divisibleDelay (Clock& localTime);
-  public:
-    ContInputConnector (ConnectorInfo connInfo,
-			SpatialNegotiator* spatialNegotiator,
-			MPI::Intracomm comm,
-			Sampler& sampler,
-			MPI::Datatype type,
-			double delay);
-    Subconnector* makeSubconnector (int remoteRank);
-    void addRoutingInterval (IndexInterval i, Subconnector* isubconn);
-    Connector* specialize (Clock& localTime);
-    // We need to allocate instances of ContInputConnector and, therefore
-    // need dummy versions of the following virtual functions:
-    virtual void postCommunication () { }
-  protected:
-	// receive first chunk of data from sender application and fill
-	// cont buffers according to Synchronizer::initialBufferedTicks ()
-    void initialCommunication();
-  private:
-    int initialBufferedTicks();
+	  protected:
+	  Collector collector_;
+	  double delay_;
+	  PostCommunicationConnector* connector;
+	  bool divisibleDelay (Clock& localTime);
+	  ContInputConnector(Sampler& sampler,MPI::Datatype type,	double delay);
+	  public:
+	  ContInputConnector (ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Sampler& sampler,
+			  MPI::Datatype type,
+			  double delay);
+	  ~ContInputConnector();
+	  Subconnector* makeSubconnector (int remoteRank);
+	  void addRoutingInterval (IndexInterval i, Subconnector* isubconn);
+	  void specialize (Clock& localTime);
+
+	  void postCommunication () {connector->postCommunication(); }
+	  void initialize (){connector->initialize();ContConnector::initialize();};
+	  protected:
+	  void initialCommunication();
+	  private:
+	  int initialBufferedTicks();
+	  friend class SpecializedContInputConnector;
   };
   
-  class PlainContInputConnector : public ContInputConnector {
- //   InputSynchronizer synch;
-  public:
-    PlainContInputConnector (ContInputConnector& connector);
- //   Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void postCommunication ();
 
-  };
-
-  class InterpolatingContInputConnector : public ContInputConnector,
-					  public InterpolatingConnector {
-   // InterpolationInputSynchronizer synch;
-    bool first_;
-  public:
-    InterpolatingContInputConnector (ContInputConnector& connector);
-   // Synchronizer* synchronizer () { return &synch; }
-    void initialize ();
-    void postCommunication ();
-  private:
-    bool sample();
-    double interpolationCoefficient();
-  };
 
   class EventConnector : virtual public Connector {
     };
@@ -274,6 +232,9 @@ namespace MUSIC {
   private:
 	//OutputSynchronizer synch;
     EventRoutingMap<FIBO*>* routingMap_;
+  protected:
+    EventOutputConnector():routingMap_(NULL){};
+    EventOutputConnector(EventRoutingMap<FIBO*>* routingMap): routingMap_(routingMap){};
   public:
     EventOutputConnector (ConnectorInfo connInfo,
 			  SpatialNegotiator* spatialNegotiator,
@@ -284,16 +245,15 @@ namespace MUSIC {
     Subconnector* makeSubconnector (int remoteRank);
     void addRoutingInterval (IndexInterval i, Subconnector* subconn);
   };
-  /* remedius
-   * routingMap field was added to the EventInputConnector class
-   * in order to make it usable both for collective and point-to-point algorithms'.
-   */
   class EventInputConnector : public InputConnector, public EventConnector {
-  private:
+  protected:
 	//InputSynchronizer synch;
 //	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
     EventHandlerPtr handleEvent_;
     Index::Type type_;
+  protected:
+    EventInputConnector():type_( Index::UNDEFINED){};
+    EventInputConnector (Index::Type type,  EventHandlerPtr handleEvent): handleEvent_(handleEvent),type_(type){};
   public:
 
     EventInputConnector (ConnectorInfo connInfo,
@@ -307,58 +267,13 @@ namespace MUSIC {
     /* remedius
      * original version of the following function does nothing,
      * however this function could perform inserting interval to the routingMap_ as well,
-     * that is currently done in CollectiveConnector::addRoutingInterval method in order to keep original functionality.
-     * Otherwise this could give an opportunity to have different event handlers for different ranges of indexes as in collective algorithm.
+     * that is currently done in CollectiveConnector::addRoutingInterval.
+     * This could give an opportunity to have different event handlers for different ranges of indexes as in collective algorithm.
      * Do we need this? If not, then it's better to leave as it is.
      */
     void addRoutingInterval (IndexInterval i, Subconnector* subconn);
   };
-/* remedius
- * New class CollectiveConnector was introduced in order to create CollectiveSubconnector object.
- * The difference between EventInputConnector, EventOutputConnector instances and  CollectiveConnector is
- * the latest creates one CollectiveSubconnector responsible for the collective communication
- * among all ranks on the output and input side, while EventInputConnector and EventOutputConnector
- * instances are responsible for creating as much Subconnectors as necessary for each point2point connectivity
- * for output and input sides.
- */
- class CollectiveConnector:  public EventConnector {
-  	//Connector *conn;
-  	Subconnector *subconnector;
-  	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_input;
-  	EventRoutingMap<FIBO *>* routingMap_output;
-  	EventHandlerPtr handleEvent_;
-  	EventRouter *router_;
-  	EventRouter *empty_router;
-  	bool high;
-  	Index::Type type_;
-  public:
-  	CollectiveConnector(ConnectorInfo connInfo,
-  	 			  SpatialNegotiator* spatialNegotiator,
-  	 			  MPI::Intracomm comm,
-  	 			  EventRoutingMap<EventHandlerGlobalIndex *>* routingMap,
-  	 			  EventHandlerPtr handleEvent,
-  	 			  EventRouter *router,
-  	 			  Index::Type type):
-  	 			  Connector(connInfo,spatialNegotiator,comm),
-  	 			  subconnector(0),  routingMap_input(routingMap), routingMap_output(NULL),handleEvent_(handleEvent),router_(router),empty_router(NULL),high(true),type_(type)
-  	{ };//conn = new EventInputConnector(connInfo,spatialNegotiator,comm, Index::UNDEFINED,handleEvent);};
-  	CollectiveConnector(ConnectorInfo connInfo,
-  	  	 			  SpatialNegotiator* spatialNegotiator,
-  	  	 			  MPI::Intracomm comm,
-  	  	 			  EventRoutingMap<FIBO *>* routingMap):
-  	  	 		      Connector(connInfo, spatialNegotiator,comm),
-  	  	 			  subconnector(0),routingMap_input(NULL), routingMap_output(routingMap), high(false),type_( Index::UNDEFINED)
-  	{ //conn = new EventOutputConnector(connInfo,spatialNegotiator,comm,routingMap);
-  	// we decided to perform event processing on the receiver side in the collective communication algorithm,
-  	// so that there is no need for the router on the output side;
-  	empty_router = new EventRouter();
-  	router_ = empty_router;};
-  	~CollectiveConnector(){if(empty_router != NULL) delete empty_router;}
-  	void spatialNegotiation ();
-  private:
-  	Subconnector* makeSubconnector (int remoteRank);
-  	void addRoutingInterval(IndexInterval i, Subconnector* subconn);
-    };
+
  class MessageConnector : virtual public Connector {
  };
   class MessageOutputConnector : public OutputConnector,
@@ -394,7 +309,157 @@ namespace MUSIC {
 			   MPI::Intracomm comm);
     Subconnector* makeSubconnector (int remoteRank);
   };
-  
+  /* remedius
+   * New class hierarchy CollectiveConnector was introduced in order to create CollectiveSubconnector object.
+   * The difference between InputConnector, OutputConnector instances and  CollectiveConnector is
+   * the latest creates one CollectiveSubconnector responsible for the collective communication
+   * among all ranks on the output and input sides, while InputConnector and OutputConnector
+   * instances are responsible for creating as much Subconnectors as necessary for each point2point connectivity
+   * for output and input sides.
+   */
+  class CollectiveConnector: public virtual  Connector{
+  protected:
+	  bool high_;
+	  Subconnector*subconnector;
+	  MPI::Intracomm intracomm_;
+	  CollectiveConnector(bool high);
+	  virtual Subconnector* makeSubconnector (void *param)=0;
+  public:
+	  void createIntercomm ();
+	  void freeIntercomm ();
+  };
+  class ContCollectiveConnector: public CollectiveConnector{
+	  MPI::Datatype data_type_;
+  protected:
+	  ContCollectiveConnector( MPI::Datatype type, bool high);
+  public:
+	  Subconnector* makeSubconnector (void *param);
+  };
+
+  class EventCollectiveConnector: public CollectiveConnector{
+  protected:
+	  EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_input; //is used to fill the information for the receiver
+	  EventRouter *router_; //is used for processing received information
+	  EventCollectiveConnector( bool high);
+  public:
+	  Subconnector* makeSubconnector (void *param);
+  };
+
+  class EventInputCollectiveConnector:  public EventInputConnector, public EventCollectiveConnector {
+  public:
+	  EventInputCollectiveConnector(ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Index::Type type,
+			  EventHandlerPtr handleEvent);
+	  ~EventInputCollectiveConnector();
+	  void spatialNegotiation ();
+  private:
+	  void addRoutingInterval(IndexInterval i, Subconnector* subconn);
+  };
+  class EventOutputCollectiveConnector:  public EventOutputConnector,public EventCollectiveConnector{
+  public:
+	  EventOutputCollectiveConnector(ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  EventRoutingMap<FIBO *>* routingMap);
+	  ~EventOutputCollectiveConnector();
+	  void spatialNegotiation ();
+  };
+
+  class ContInputCollectiveConnector: public ContInputConnector, public ContCollectiveConnector
+  {
+  public:
+	  ContInputCollectiveConnector(ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Sampler& sampler,
+			  MPI::Datatype type,
+			  double delay);
+	  void spatialNegotiation ();
+  private:
+	  void receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap);
+  };
+
+  class ContOutputCollectiveConnector:  public ContOutputConnector, public ContCollectiveConnector
+  {
+  public:
+	  ContOutputCollectiveConnector(ConnectorInfo connInfo,
+			  SpatialNegotiator* spatialNegotiator,
+			  MPI::Intracomm comm,
+			  Sampler& sampler,
+			  MPI::Datatype type);
+	  void spatialNegotiation ();
+  private:
+	  void sendLocalCommRankID();
+  };
+  class SpecializedContConnector{
+  protected:
+	  Sampler& sampler_;
+	  Clock *localTime_;
+	  Clock &remoteTime_;
+	  ClockState &latency;
+	  bool &interp;
+	  SpecializedContConnector(ContConnector *conn):
+	  sampler_ ( conn->sampler_),
+	  localTime_(conn->localTime_),
+	  remoteTime_(conn->remoteTime_),
+	  latency( conn->latency_),
+	  interp( conn->interpolate_){};
+  };
+  class SpecializedContOuputConnector:public SpecializedContConnector{
+  protected:
+	  Distributor &distributor_;
+	  SpecializedContOuputConnector( ContOutputConnector *conn):
+		  SpecializedContConnector(conn),
+		  distributor_(conn->distributor_){ }
+  };
+  class SpecializedContInputConnector:public SpecializedContConnector{
+  protected:
+	  Collector &collector_;
+	  SpecializedContInputConnector( ContInputConnector *conn):
+		  SpecializedContConnector(conn),
+		  collector_(conn->collector_){}
+  };
+  class PlainContOutputConnector : public PreCommunicationConnector, public SpecializedContOuputConnector {
+    public:
+      PlainContOutputConnector ( ContOutputConnector *conn):SpecializedContOuputConnector(conn){};
+      void initialize ();
+      void preCommunication();
+    private:
+      bool sample();
+
+    };
+
+    class InterpolatingContOutputConnector :  public PreCommunicationConnector, public SpecializedContOuputConnector
+  	{
+    public:
+      InterpolatingContOutputConnector (ContOutputConnector *conn):SpecializedContOuputConnector(conn){};
+      void initialize ();
+      void preCommunication();
+    private:
+      bool interpolate();
+      bool sample();
+      double interpolationCoefficient();
+
+    };
+    class PlainContInputConnector : public PostCommunicationConnector, public SpecializedContInputConnector {
+     public:
+       PlainContInputConnector (ContInputConnector *conn):SpecializedContInputConnector(conn){};
+       void initialize ();
+       void postCommunication ();
+     };
+
+     class InterpolatingContInputConnector : public PostCommunicationConnector, public SpecializedContInputConnector  {
+       bool first_;
+     public:
+       InterpolatingContInputConnector (ContInputConnector *conn):SpecializedContInputConnector(conn){};
+       void initialize ();
+       void postCommunication ();
+     private:
+       bool sample();
+       double interpolationCoefficient();
+     };
 }
 #endif
 #define MUSIC_CONNECTOR_HH

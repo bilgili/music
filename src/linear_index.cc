@@ -55,6 +55,7 @@ namespace MUSIC {
   LinearIndex::LinearIndex (GlobalIndex baseindex, int size)
     : interval_ (baseindex, baseindex + size, static_cast<int> (baseindex))
   {
+
   }
 
 

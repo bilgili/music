@@ -32,19 +32,22 @@ namespace MUSIC {
   class SpatialNegotiationData {
     IndexInterval interval_;
     int rank_;
+    int displ_;
   public:
     SpatialNegotiationData () { }
-    SpatialNegotiationData (IndexInterval i, int r)
-      : interval_ (i), rank_ (r) { }
-    SpatialNegotiationData (int b, int e, int l, int r)
-      : interval_ (b, e, l), rank_ (r) { }
+    SpatialNegotiationData (IndexInterval i, int r, int displ)
+      : interval_ (i), rank_ (r), displ_(displ) { }
+    SpatialNegotiationData (int b, int e, int l, int r, int displ)
+      : interval_ (b, e, l), rank_ (r), displ_(displ) { }
     const IndexInterval& interval () const { return interval_; }
     int begin () const { return interval_.begin (); }
     int end () const { return interval_.end (); }
     void setEnd (int e) { interval_.setEnd (e); }
     int local () const { return interval_.local (); }
     void setLocal (int l) { interval_.setLocal (l); }
+    void setDispl(int displ) {displ_ = displ;}
     int rank () const { return rank_; }
+    int displ() const {return displ_; }
   };
 
 
@@ -128,7 +131,8 @@ namespace MUSIC {
   public:
     SpatialNegotiator (IndexMap* indices, Index::Type type);
     virtual ~SpatialNegotiator ();
-    void negotiateWidth ();
+
+    int getWidth(){return width;}
     int maxLocalWidth () { return maxLocalWidth_; }
     NegotiationIterator wrapIntervals (IndexMap::iterator beg,
 				       IndexMap::iterator end,
@@ -147,6 +151,8 @@ namespace MUSIC {
     void intersectToBuffers (NegotiationIterator source,
 			     NegotiationIterator dest,
 			     std::vector<NegotiationIntervals>& buffers);
+  protected:
+    void negotiateWidth ();
   private:
     void intersectToBuffers2 (NegotiationIterator source,
 			      NegotiationIterator dest,

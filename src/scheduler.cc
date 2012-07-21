@@ -131,6 +131,7 @@ Scheduler::initialize(std::vector<Connector*> &connectors){
 	}
 	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c){
 		for ( conn = connections.begin(); conn < connections.end(); conn++){
+
 			if((*conn)->portCode() == (*c)->receiverPortCode()){
 				(*conn)->setConnector((*c));
 				(*c)->setInterpolate((*conn)->getInterpolate());
@@ -139,6 +140,7 @@ Scheduler::initialize(std::vector<Connector*> &connectors){
 			}
 
 		}
+
 	}
 
 }

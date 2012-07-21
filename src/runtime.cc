@@ -67,10 +67,12 @@ Runtime::Runtime (Setup* s, double h)
 
 		// specialize connectors and fill up connectors vector
 		specializeConnectors (connections);
-
 		// from here we can start using the vector `connectors'
+
 		// negotiate where to route data and fill up subconnector vectors
 		spatialNegotiation ();
+
+
 		// build data routing tables
 		buildTables (s);
 
@@ -94,7 +96,6 @@ Runtime::~Runtime ()
 			connector != connectors.end ();
 			++connector)
 		delete *connector;
-
 	// delete ports
 	for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
 		delete (*it);
@@ -182,8 +183,9 @@ Runtime::specializeConnectors (Connections* connections)
 			c != connections->end ();
 			++c)
 	{
-		Connector* connector = (*c)->connector ()->specialize (localTime);
-		(*c)->setConnector (connector);
+		Connector *connector = (*c)->connector ();
+		connector->specialize (localTime);
+		//(*c)->setConnector (connector);
 		connectors.push_back (connector);
 	}
 
@@ -195,16 +197,13 @@ Runtime::spatialNegotiation ()
 {
 	// Let each connector pair setup their inter-communicators
 	// and create all required subconnectors.
-
-	for (std::vector<Connector*>::iterator c = connectors.begin ();
-			c != connectors.end ();
-			++c)
-	{
-		//Subconnectors subconnectors;
-		// negotiate and fill up a vector passed as an argument
+	 for (std::vector<Connector*>::iterator c = connectors.begin ();
+		 c != connectors.end ();
+		 ++c)
+	      {
+		// negotiate and fill up vectors passed as arguments
 		(*c)->spatialNegotiation ();
-
-	}
+	      }
 
 }
 
@@ -272,9 +271,16 @@ Runtime::finalize ()
 				cnn_ports.erase(schedule.front()->receiverPortCode());
 			schedule.pop();
 		}
+		// ContInputConnectors write data to application here
+
 		scheduler->nextCommunication(nextComm, schedule);
+
+		for (std::vector<PostCommunicationConnector*>::iterator c =
+						postCommunication.begin(); c != postCommunication.end(); ++c)
+					(*c)->postCommunication();
 	}
 	while (!cnn_ports.empty());
+
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
 	// This is needed in OpenMPI version <= 1.2 for the freeing of the
 	// intercommunicators to go well
@@ -282,9 +288,12 @@ Runtime::finalize ()
 #endif
 	for (std::vector<Connector*>::iterator connector = connectors.begin ();
 			connector != connectors.end ();
-			++connector)
+			++connector){
 		(*connector)->freeIntercomm ();
+
+	}
 	MPI::Finalize ();
+
 }
 
 void

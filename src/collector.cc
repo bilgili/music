@@ -78,6 +78,7 @@ namespace MUSIC {
       }
     Intervals& intervals = b->second;
     intervals.push_back (Interval (interval));
+
   }
 
 
@@ -94,7 +95,6 @@ namespace MUSIC {
   Collector::initialize ()
   {
     IntervalTree<int>* tree = buildTree ();
-    
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
@@ -110,8 +110,10 @@ namespace MUSIC {
 	    MUSIC_LOGX ("searching for " << i->begin ());
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
+	   // std::cerr << MPI::COMM_WORLD.Get_rank() << " beg:" << i->begin() << " end:" << i->length() << std::endl;
 	  }
 	//buffer->configure (size, size * allowedBuffered_);
+	// std::cerr << MPI::COMM_WORLD.Get_rank() <<size << ":" << maxsize_ << std::endl;
 	buffer->configure (size, maxsize_);
       }
   }
@@ -120,6 +122,7 @@ namespace MUSIC {
   void
   Collector::collect (ContDataT* base)
   {
+	ContDataT* dest = static_cast<ContDataT*> (base);
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
@@ -128,7 +131,6 @@ namespace MUSIC {
 	if (src == NULL)
 	  // Out of data (remote has flushed)
 	  return;
-	ContDataT* dest = static_cast<ContDataT*> (base);
 	for (Intervals::iterator i = intervals.begin ();
 	     i != intervals.end ();
 	     ++i)
@@ -136,8 +138,9 @@ namespace MUSIC {
 	    MUSIC_LOGX ("collect to dest = " << static_cast<void*> (dest)
 		       << ", begin = " << i->begin ()
 		       << ", length = " << i->length ());
+
 	    memcpy (dest + i->begin (), src, i->length ());
-	    dest += i->length ();
+	    src += i->length ();
 	  }
       }
   }

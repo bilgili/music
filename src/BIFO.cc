@@ -19,7 +19,8 @@
 
 #ifdef USE_MPI
 #include <cstring>
-
+#include <mpi.h>
+#include <iostream>
 #include "music/error.hh"
 
 
@@ -37,6 +38,7 @@ namespace MUSIC {
     end = 0;
     current = 0;
     top = 0;
+
   }
 
 

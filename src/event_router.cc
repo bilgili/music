@@ -20,6 +20,67 @@
 #include "music/event.hh"
 #include "music/event_router.hh"
 namespace MUSIC {
+InputRoutingData::InputRoutingData(const IndexInterval &i,  IndexProcessor *spicialized_processor):
+				  EventRoutingData(i),
+				  spicialized_processor_(spicialized_processor->clone())
+{
+}
+InputRoutingData::InputRoutingData(const IndexInterval &i, EventHandlerPtr* h):EventRoutingData(i)
+{
+	  if(h->getType() == Index::GLOBAL)
+		  spicialized_processor_ = new GlobalIndexProcessor(h);
+	  else
+		  spicialized_processor_ = new LocalIndexProcessor(h);
+}
+InputRoutingData::~InputRoutingData()
+{
+	delete spicialized_processor_;
+}
+InputRoutingData:: InputRoutingData(const InputRoutingData& data)
+{
+	  spicialized_processor_ = data.spicialized_processor_->clone();
+}
+InputRoutingData &InputRoutingData::operator=(InputRoutingData &data){
+		  delete spicialized_processor_;
+		  spicialized_processor_ = data.spicialized_processor_->clone();
+		  return *this;
+}
+void*
+InputRoutingData::Data()
+{
+	return spicialized_processor_->getPtr();
+}
+void
+InputRoutingData::process (double t, int id)
+{
+  		spicialized_processor_->process(t, id);
+}
+EventRoutingData *
+InputRoutingData::Clone()const
+{
+	return new InputRoutingData(*this, spicialized_processor_);
+}
+OutputRoutingData::OutputRoutingData(const IndexInterval &i, FIBO* b):EventRoutingData(i),buffer_ (b)
+{
+
+}
+void *
+OutputRoutingData::Data()
+{
+	return buffer_;
+}
+void
+OutputRoutingData::process (double t, int id)
+{
+	Event* e = static_cast<Event*> (buffer_->insert ());
+	e->t = t;
+	e->id = id;
+}
+EventRoutingData *
+OutputRoutingData::Clone() const
+{
+	return new OutputRoutingData(*this, buffer_);
+}
 
 void
 TreeProcessingRouter::insertRoutingData (EventRoutingData &data)
@@ -38,7 +99,7 @@ TreeProcessingRouter::buildTable ()
 
 
 void
-TreeProcessingRouter::processEvent (double t, GlobalIndex id)
+TreeProcessingRouter::processEvent (double t, int id)
 {
 
 	Processor i (t, id);
@@ -46,23 +107,7 @@ TreeProcessingRouter::processEvent (double t, GlobalIndex id)
 }
 
 void
-TreeProcessingRouter::processEvent (double t, LocalIndex id)
-{
-	Processor i (t, id);
-	routingTable.search (id, &i);
-}
-void
-TableProcessingRouter::processEvent(double t, GlobalIndex id)
-{
-	std::map<void*, std::vector<EventRoutingData*> >::iterator it;
-	for ( it=routingTable.begin() ; it != routingTable.end(); it++ )
-		if(id < (int)((*it).second).size()){
-			if(((*it).second)[id] != NULL)
-				((*it).second)[id]->process(t, id);
-		}
-}
-void
-TableProcessingRouter::processEvent(double t, LocalIndex id)
+TableProcessingRouter::processEvent(double t, int id)
 {
 	std::map<void*, std::vector<EventRoutingData*> >::iterator it;
 	for ( it=routingTable.begin() ; it != routingTable.end(); it++ )

@@ -35,7 +35,6 @@ Runtime::Runtime (Setup* s, double h)
 {
 	checkInstantiatedOnce (isInstantiated_, "Runtime");
 
-
 	ApplicationMap* applicationMap = s->applicationMap ();
 	int local_node = rankToNode(applicationMap);
 	scheduler = new Scheduler(local_node);
@@ -68,21 +67,19 @@ Runtime::Runtime (Setup* s, double h)
 		// specialize connectors and fill up connectors vector
 		specializeConnectors (connections);
 		// from here we can start using the vector `connectors'
-
 		// negotiate where to route data and fill up subconnector vectors
 		spatialNegotiation ();
 
 
 		// build data routing tables
 		buildTables (s);
-
 		takePreCommunicators ();
 		takePostCommunicators ();
-
 		// negotiate timing constraints for synchronizers
 		temporalNegotiation (s, scheduler, connections);
 		// final initialization before simulation starts
 		initialize ();
+
 	}
 
 	delete s;
@@ -313,6 +310,7 @@ Runtime::tick ()
 	MUSIC_LOGR("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
 	while (nextComm.time() <= localTime.time()) { // should be ==
 		while (!schedule.empty()) {
+
 			schedule.front()->tick();
 			schedule.pop();
 		}

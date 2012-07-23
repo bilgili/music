@@ -761,7 +761,7 @@ data_type_(type)
   void
   EventInputCollectiveConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
   {
-	  routingMap_input-> insert (i, ( handleEvent_.global() ));
+	    	routingMap_input-> insert (i,  &handleEvent_ );
   }
   EventOutputCollectiveConnector::EventOutputCollectiveConnector(ConnectorInfo connInfo,
 			  SpatialNegotiator* spatialNegotiator,
@@ -808,9 +808,8 @@ data_type_(type)
 
       for (NegotiationIterator i  = spatialNegotiator_->negotiate (comm, intercomm, info.nProcesses (),  this);  !i.end (); ++i)
       {
-    	 // std::cerr << MPI::COMM_WORLD.Get_rank() << ":intvl( " << i->begin() << ":" << i->end() << "):displ:" << i->displ() << std::endl;
     	  int begin = (i->displ())*type_.Get_size();
-    	  // length field is stored overlapping the end field so that the
+    	  // length field is stored overlapping the end field
     	  int end = (i->end() - i->begin()) * type_.Get_size();
     	  receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
     	  intrvs.push_back(i->interval());

@@ -85,7 +85,6 @@ ContOutputSubconnector::ContOutputSubconnector (//Synchronizer* synch_,
 void
 ContOutputSubconnector::initialCommunication (double param)
 {
-	//	  std::cerr<<"intialcommunication" <<std::endl;
 	send ();
 }
 
@@ -689,8 +688,9 @@ CollectiveSubconnector::~CollectiveSubconnector()
 	delete displ;
 }
 void CollectiveSubconnector::maybeCommunicate(){
-	if (!flushed)
+	if (!flushed){
 		communicate();
+	}
 }
 int CollectiveSubconnector::calcCommDataSize(int local_data_size){
 	int dsize;
@@ -732,9 +732,11 @@ std::vector<char> CollectiveSubconnector::getCommData(char *cur_buff, int size){
 }
 void
 EventCollectiveSubconnector::maybeCommunicate(){
+
 	CollectiveSubconnector::maybeCommunicate();
 }
 void EventCollectiveSubconnector::communicate(){
+
 	int size, dsize;
 	void *data;
 	char* cur_buff;
@@ -744,6 +746,7 @@ void EventCollectiveSubconnector::communicate(){
 	unsigned int sEvent = sizeof(Event);
 	buffer_.nextBlock (data, size);
     cur_buff = static_cast <char*> (data);
+
 	commData = getCommData(cur_buff, size);
 //	std::copy(commData.begin(),commData.end(),cur_buff);
 	cur_buff = (char*)static_cast<void*> (&commData[0]);
@@ -755,7 +758,7 @@ void EventCollectiveSubconnector::communicate(){
 		Event* e = static_cast<Event*> ((void*)(cur_buff+i));
 		if (e->id != FLUSH_MARK)
 		{
-			router_->processEvent(e->t, (GlobalIndex)e->id);
+			router_->processEvent(e->t, e->id);
 			flushed = false;
 		}
 	}
@@ -785,7 +788,7 @@ ContCollectiveSubconnector::maybeCommunicate(){
 	CollectiveSubconnector::maybeCommunicate();
 }
 void ContCollectiveSubconnector::communicate(){
-	int size, dsize, prev_iSize, nBuffered;
+	int size, bSize, nBuffered;
 	void *data;
 	char *cur_buff, *dest_buff;
 	std::vector<char> commData;
@@ -794,30 +797,38 @@ void ContCollectiveSubconnector::communicate(){
 	ContOutputSubconnector::buffer_.nextBlock (data, size);
 	commData = getCommData(static_cast <char*> (data), size);
 	const int* displ = getDisplArr();
-	const int* ppBytes = getSizeArr();
 	//std::copy(commData.begin(),commData.end(),cur_buff);
 	cur_buff = (char*)static_cast<void*> (&commData[0]);
-	dsize = commData.size();
-	flushed = dsize == 0 ? true : false;
-	nBuffered= dsize / (type_.Get_size ()*width_);
-	std::multimap<int, Interval>::iterator it;
+	flushed = commData.size() == 0 ? true : false;
+	nBuffered= commData.size() / width_; //the received data size is always multiple of port width
 	for(int i =0; i < nBuffered ; ++i){
-		prev_iSize = 0;
+		bSize = 0;
 		dest_buff = static_cast<char*> (ContInputSubconnector::buffer_.insertBlock ());
-		for ( it=intervals_.begin() ; it != intervals_.end(); it++ ) //iterates all the intervals
+		for (std::multimap<int, Interval>::iterator it=
+				intervals_.begin() ; it != intervals_.end(); it++ ) //iterates all the intervals
 		{
-			int iSize = (*it).second.end(); // length field is stored overlapping the end field so that the
-			int start  = (*it).second.begin();
-			int blocksize = ppBytes[(*it).first] / nBuffered;
-			memcpy (dest_buff + prev_iSize, cur_buff+displ[(*it).first]+i*blocksize + start, iSize);
-			prev_iSize += iSize;
+			memcpy (dest_buff + bSize,
+					cur_buff
+					+displ[(*it).first]//+displacement of data for a current rank
+					+i*blockSizePerRank_[(*it).first]  //+displacement of the appropriate buffered chunk of data within current rank data block
+					+(*it).second.begin(), //+displacement of the requested data
+					(*it).second.end()); // length field is stored overlapping the end field
+			bSize += (*it).second.end();
 		}
-		ContInputSubconnector::buffer_.trimBlock (prev_iSize);
+		ContInputSubconnector::buffer_.trimBlock (bSize);
 	}
 }
 void ContCollectiveSubconnector::initialCommunication(double initialBufferedTicks){
 	communicate();
+	fillBlockSizes();
 	ContInputSubconnector::buffer_.fill (initialBufferedTicks);
+}
+void ContCollectiveSubconnector::fillBlockSizes()
+{
+	std::map<int, Interval>::iterator it;
+	const int* ppBytes = getSizeArr();
+	for ( it=intervals_.begin() ; it != intervals_.end(); it++ ) //iterates all the intervals
+		blockSizePerRank_[(*it).first]= ppBytes[(*it).first];
 }
 void ContCollectiveSubconnector::flush(bool& dataStillFlowing){
 	if (!flushed)

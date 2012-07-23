@@ -99,14 +99,15 @@ EventRoutingMap<DataType>::rebuildIntervals (std::vector<IndexInterval*> &interv
  * InputRoutingMap is an EventRoutingMap that's used for processing the events on the receiver side
  */
 
-class InputRoutingMap:public EventRoutingMap<EventHandlerGlobalIndex*>
+class InputRoutingMap:public EventRoutingMap<EventHandlerPtr*>
 {
 public:
 	void build (EventRouter *router);
 private:
 	void fillRouter (EventRouter *router);
-	void insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerGlobalIndex *h);
+	void insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h);
 };
+
 /* remedius
  * OutputRoutingMap is an EventRoutingMap that's used for processing the events on the sender side
  */

@@ -338,7 +338,7 @@ namespace MUSIC {
 
   class EventCollectiveConnector: public CollectiveConnector{
   protected:
-	  EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_input; //is used to fill the information for the receiver
+	  EventRoutingMap<EventHandlerPtr*>* routingMap_input; //is used to fill the information for the receiver
 	  EventRouter *router_; //is used for processing received information
 	  EventCollectiveConnector( bool high);
   public:

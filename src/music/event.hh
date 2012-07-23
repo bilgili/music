@@ -29,6 +29,7 @@ namespace MUSIC {
     bool operator< (const Event& other) const { return t < other.t; }
   };
 
+
   class EventHandlerGlobalIndex {
   public:
     virtual void operator () (double t, GlobalIndex id) = 0;
@@ -80,12 +81,14 @@ namespace MUSIC {
       EventHandlerGlobalIndex* global;
       EventHandlerLocalIndex* local;
     } ptr;
+    Index::Type type_;
   public:
     EventHandlerPtr () { }
-    EventHandlerPtr (EventHandlerGlobalIndex* p) { ptr.global = p; }
-    EventHandlerPtr (EventHandlerLocalIndex* p) { ptr.local = p; }
+    EventHandlerPtr (EventHandlerGlobalIndex* p):type_(Index::GLOBAL) { ptr.global = p; }
+    EventHandlerPtr (EventHandlerLocalIndex* p):type_(Index::LOCAL) { ptr.local = p; }
     EventHandlerGlobalIndex* global () { return ptr.global; }
     EventHandlerLocalIndex* local () { return ptr.local; }
+    Index::Type getType(){return type_;}
   };
   
 }

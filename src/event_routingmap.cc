@@ -84,7 +84,7 @@ OutputRoutingMap::fillRouter (EventRouter *router)
 	}
 }
 void
-InputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerGlobalIndex *h)
+InputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h)
 {
 	InputRoutingData data_(i,h);
 
@@ -98,7 +98,7 @@ InputRoutingMap::build (EventRouter *router)
 }
 void InputRoutingMap::fillRouter (EventRouter *router)
 {
-	std::map<EventHandlerGlobalIndex*, std::vector<IndexInterval *> >::iterator pos;
+	std::map<EventHandlerPtr*, std::vector<IndexInterval *> >::iterator pos;
 	for (pos = dataMap.begin (); pos != dataMap.end (); ++pos)
 	{
 		std::vector<IndexInterval > new_intervals = rebuildIntervals (((*pos).second));

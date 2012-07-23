@@ -36,7 +36,7 @@ namespace MUSIC {
   // NOTE: Must be divisible by the size of the datatype of the data
   // maps passed to cont ports
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
-  const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX; //5000 of double values per process!!!
+  const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX; //5000 of double values per input connector
   const int MESSAGE_BUFFER_MAX = 10000;
 
   // The subconnector is responsible for the local side of the
@@ -56,7 +56,7 @@ namespace MUSIC {
     bool flushed;
 
   public:
-    Subconnector ():type_(MPI::BYTE){};
+    Subconnector ():type_(MPI::BYTE),flushed(false){};
     Subconnector (MPI::Datatype type): type_ (type) { }
     Subconnector (MPI::Datatype type,
 		  MPI::Intercomm intercomm,
@@ -142,7 +142,7 @@ namespace MUSIC {
   				  public EventSubconnector {
 
   protected:
-	  EventOutputSubconnector(): Subconnector(MPI::BYTE),BufferingOutputSubconnector (sizeof (Event)){};
+	  EventOutputSubconnector(): BufferingOutputSubconnector (sizeof (Event)){};
     public:
 
 	  EventOutputSubconnector (//Synchronizer* synch,
@@ -158,7 +158,7 @@ namespace MUSIC {
   class EventInputSubconnector : public InputSubconnector,
  				 public EventSubconnector {
    protected:
- 	  EventInputSubconnector():Subconnector (MPI::BYTE),InputSubconnector(){};
+ 	  EventInputSubconnector(){};
    public:
      EventInputSubconnector (//Synchronizer* synch,
  			    MPI::Intercomm intercomm,
@@ -167,15 +167,14 @@ namespace MUSIC {
  			    int receiverRank,
  			    int receiverPortCode);
  	 void maybeCommunicate ();
-     virtual void receive () = 0;
+     virtual void receive () {};
      virtual void flush (bool& dataStillFlowing);
    };
 
   class EventInputSubconnectorGlobal : public EventInputSubconnector {
     EventHandlerGlobalIndex* handleEvent;
   //  static EventHandlerGlobalIndexDummy dummyHandler;
-  protected:
-    EventInputSubconnectorGlobal(){};
+
   public:
     EventInputSubconnectorGlobal (//Synchronizer* synch,
 				  MPI::Intercomm intercomm,
@@ -260,7 +259,7 @@ namespace MUSIC {
   	  virtual void communicate() = 0;
     };
 
-    class EventCollectiveSubconnector: public EventInputSubconnectorGlobal, public EventOutputSubconnector,  public CollectiveSubconnector{
+    class EventCollectiveSubconnector: public EventInputSubconnector, public EventOutputSubconnector,  public CollectiveSubconnector{
     protected:
     	EventRouter *router_;
     public:
@@ -273,20 +272,22 @@ namespace MUSIC {
     	void communicate();
     };
     class ContCollectiveSubconnector: public ContInputSubconnector, public ContOutputSubconnector,  public CollectiveSubconnector{
-    	std::multimap< int, Interval> intervals_;
-    	int width_;
+    	std::multimap< int, Interval> intervals_; //the data we want
+    	std::map<int,int> blockSizePerRank_; //contains mapping of rank->size of the communication data
+    										//(size of communication data/nBuffered per rank is constant).
+    	int width_; //port width in bytes
     public:
     	ContCollectiveSubconnector (std::multimap<int, Interval > intervals, int width, MPI::Intracomm intracomm,  MPI::Datatype type):
     		Subconnector(type),
     		CollectiveSubconnector (intracomm),
     		intervals_(intervals),
-    		width_(width){}
+    		width_(width*type.Get_size ()){}
     	void initialCommunication (double initialBufferedTicks);
     	void maybeCommunicate ();
     	void flush (bool& dataStillFlowing);
-    	// void setIntervals(std::vector <IndexInterval> intervals){intervals_= intervals;}
     private:
     	void communicate();
+    	void fillBlockSizes();
     };
 
 }

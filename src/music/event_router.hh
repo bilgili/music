@@ -37,39 +37,64 @@ namespace MUSIC {
  * Also considering EventRoutingData partly realizes IndexInterval interface,
  * inheritance was introduced.
  */
-  class EventRoutingData: public  IndexInterval{
-  public:
-    EventRoutingData () { }
-    EventRoutingData (const IndexInterval &i):  IndexInterval (i.begin(), i.end(), i.local() ){ };
-    virtual ~EventRoutingData(){};
-    int offset () const { return this->local (); }
-    virtual void *Data()=0;
-    virtual void process (double t, int id)=0;
-    virtual EventRoutingData *Clone() const =0;
-  };
 
-  class InputRoutingData : public EventRoutingData{
-	  EventHandlerGlobalIndex *handler;
-  public:
-	  InputRoutingData(const IndexInterval &i, EventHandlerGlobalIndex* h):EventRoutingData(i),handler (h){};
-	  void *Data(){return handler;}
-  	  void process (double t, int id) {
-  		(*handler) (t, id);
-  	  }
-  	 virtual EventRoutingData *Clone()const{return new InputRoutingData(*this, handler);}
-  };
-  class OutputRoutingData: public EventRoutingData {
-	  FIBO* buffer_;
-  public:
-	  OutputRoutingData(const IndexInterval &i, FIBO* b):EventRoutingData(i),buffer_ (b){};
-	  void *Data(){return buffer_;}
-	  void process (double t, int id) {
-		  Event* e = static_cast<Event*> (buffer_->insert ());
-		  e->t = t;
-		  e->id = id;
-	  }
-	  virtual EventRoutingData *Clone() const{return new OutputRoutingData(*this, buffer_);}
-  };
+class IndexProcessor
+{
+public:
+	virtual void process(double t, int id)=0;
+	virtual void *getPtr() = 0;
+	virtual IndexProcessor* clone() = 0;
+};
+class GlobalIndexProcessor: public IndexProcessor{
+	EventHandlerGlobalIndex* global;
+public:
+	GlobalIndexProcessor(EventHandlerPtr* h){global = h->global();}
+	void process(double t, int id){
+		(*global) (t, id);
+	}
+	void *getPtr(){return global;}
+	IndexProcessor* clone(){return new GlobalIndexProcessor(*this);}
+};
+class LocalIndexProcessor: public IndexProcessor{
+	EventHandlerLocalIndex* local;
+public:
+	LocalIndexProcessor(EventHandlerPtr* h){local = h->local();}
+	void process(double t, int id){
+		(*local) (t, id);
+	}
+	void *getPtr(){return local;}
+	IndexProcessor* clone(){return new LocalIndexProcessor(*this);}
+};
+class EventRoutingData: public  IndexInterval{
+public:
+	EventRoutingData () { }
+	EventRoutingData (const IndexInterval &i):  IndexInterval (i.begin(), i.end(), i.local() ){ };
+	virtual ~EventRoutingData(){};
+	int offset () const { return this->local (); }
+	virtual void *Data()=0;
+	virtual void process (double t, int id)=0;
+	virtual EventRoutingData *Clone() const =0;
+};
+class InputRoutingData : public EventRoutingData{
+	IndexProcessor *spicialized_processor_;
+	InputRoutingData(const IndexInterval &i,  IndexProcessor *spicialized_processor);
+public:
+	InputRoutingData(const IndexInterval &i, EventHandlerPtr* h);
+	~InputRoutingData();
+	InputRoutingData(const InputRoutingData& data);
+	InputRoutingData &operator=(InputRoutingData &data);
+	void *Data();
+	void process (double t, int id);
+	EventRoutingData *Clone()const;
+};
+class OutputRoutingData: public EventRoutingData {
+	FIBO* buffer_;
+public:
+	OutputRoutingData(const IndexInterval &i, FIBO* b);
+	void *Data();
+	void process (double t, int id);
+	EventRoutingData *Clone() const;
+};
 /* remedius
  * We've decided to try different methods for pre-/post-processing the data:
  * using tree algorithm and using table.
@@ -86,8 +111,7 @@ namespace MUSIC {
 	   * insertEvent method was renamed to processEvent method,
 	   * since we've introduced event processing on the input side as well.
 	   */
-	  virtual void processEvent (double t, GlobalIndex id){};
-	  virtual void processEvent (double t, LocalIndex id){};
+	  virtual void processEvent (double t, int id){};
   };
   class TableProcessingRouter: public EventRouter{
 	  //routingTable maps different buffers/even handlers of the current rank
@@ -97,8 +121,7 @@ namespace MUSIC {
   public:
 	  ~TableProcessingRouter();
 	  void insertRoutingData (EventRoutingData& data);
-	  void processEvent (double t, GlobalIndex id);
-	  void processEvent (double t, LocalIndex id);
+	  void processEvent (double t, int id);
   };
   class TreeProcessingRouter: public EventRouter{
 	  class Processor : public IntervalTree<int>::Action {
@@ -109,6 +132,10 @@ namespace MUSIC {
 		  Processor (double t, int id) : t_ (t), id_ (id) { };
 		  void operator() (Interval &data)
 		  {
+			  /* remedius
+			   * for Global index ((EventRoutingData &)data).offset () is set to 0 during
+			   * SpatialNegotiator::wrapIntervals();
+			   */
 			  ((EventRoutingData &)data).process (t_, id_ - ((EventRoutingData &)data).offset ());
 		  }
 	  };
@@ -118,8 +145,7 @@ namespace MUSIC {
 	  TreeProcessingRouter(){};
 	  void insertRoutingData (EventRoutingData &data);
 	  void buildTable ();
-	  void processEvent (double t, GlobalIndex id);
-	  void processEvent (double t, LocalIndex id);
+	  void processEvent (double t, int id);
   };
 
 }

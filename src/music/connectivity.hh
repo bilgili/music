@@ -98,14 +98,23 @@ namespace MUSIC {
 			);
   };
 
-  
   class Connectivity {
     std::vector<ConnectivityInfo> connections_;
     std::map<std::string, int> connectivityMap;
-    void read (std::istringstream& in);
+
+   // void read (std::istringstream& in);
+    void read (std::istringstream& in, std::map<int, int> leaderIdHook);
   public:
     Connectivity () { }
-    Connectivity (std::istringstream& in);
+   // Connectivity (std::istringstream& in);
+    /*
+     * remedius
+     * leaderIdHook parameter was added, since there could be a case when
+     *  non sequential distribution of the ranks among the applications took place,
+     *  it's always the case for BGP machine.
+     *  leaderIdHook maps sequential leaderId to the actualId.
+     */
+    Connectivity (std::istringstream& in, std::map<int, int> leaderIdHook);
     static const int NO_CONNECTIVITY = 0;
     void add (std::string localPort,
 	      ConnectivityInfo::PortDirection dir,

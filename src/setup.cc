@@ -57,12 +57,23 @@ namespace MUSIC {
     init (argc, argv);
   }
 
-
   void
   Setup::init (int& argc, char**& argv)
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
-    config_ = new Configuration ();
+    char dummy_name;
+    char *app_node;
+/*
+ * remedius
+ * first argument of each application should contain the name of the application node
+ *  described in the configuration file *.music that was used for generating music.map file on BG/P
+ */
+#if defined(__bgp__)
+    app_node = argv[1];
+#else
+    app_node = &dummy_name;
+#endif
+    config_ = new Configuration (app_node);
 
     connections_ = new std::vector<Connection*>; // destroyed by runtime
     if (launchedByMusic ())
@@ -154,8 +165,17 @@ namespace MUSIC {
   {
     return config_->applications ();
   }
+  int
+  Setup::applicationColor ()
+  {
+	  return config_->color();
+  }
+std::string
+Setup::applicationName()
+{
+	return config_->ApplicationName();
 
-
+}
   ConnectivityInfo::PortDirection
   Setup::portDirection (const std::string localName)
   {

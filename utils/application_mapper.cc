@@ -37,7 +37,7 @@ namespace MUSIC {
     	mapSections (cfile);
     	mapApplications ();
     	selectApplication (rank);
-    	mapConnectivity (selectedName);
+    	mapConnectivity (configs[selectedApp]->ApplicationName());
     }
     else{
     	error0("Configuration file load: " + std::string(cfile->getError()));
@@ -67,7 +67,7 @@ namespace MUSIC {
 	if (s == 0)
 	  defConfig = config;
 	else
-	  configs.insert (std::make_pair (name, config));
+	  configs.insert (std::make_pair (s - 1, config));
       }
   }
 
@@ -77,12 +77,13 @@ namespace MUSIC {
   {
     applications_ = new ApplicationMap ();
     int leader = 0;
-    std::map<std::string, MUSIC::Configuration*>::iterator config;
-    for (config = configs.begin (); config != configs.end (); ++config)
+    std::map<int, MUSIC::Configuration*>::iterator config;
+    int i = 0;
+    for (config = configs.begin (); config != configs.end (); ++config, ++i)
       {
 	int np;
 	config->second->lookup ("np", &np);
-	applications_->add (config->first, leader, np);
+	applications_->add (config->second->ApplicationName(), leader, np, config->first);
 	leader += np;
       }
   }
@@ -99,8 +100,8 @@ namespace MUSIC {
 	rankEnd += ai->nProc ();
 	if (rank < rankEnd)
 	  {
-	    selectedName = ai->name ();
-	    MUSIC_LOG ("rank " << rank << " mapped as " << selectedName);
+	    selectedApp = ai->color();
+	    MUSIC_LOG ("rank " << rank << " mapped as " << ai->name());
 	    return;
 	  }
       }
@@ -110,7 +111,7 @@ namespace MUSIC {
     // NOTE: consider doing error checking here
 
     // for now, choose the first application
-    selectedName = applications_->begin ()->name ();
+    selectedApp= applications_->begin ()->color();
 
   }
 
@@ -257,14 +258,14 @@ namespace MUSIC {
   MUSIC::Configuration*
   ApplicationMapper::config ()
   {
-    return config (selectedName);
+    return config (selectedApp);
   }
 
   
   MUSIC::Configuration*
-  ApplicationMapper::config (std::string name)
+  ApplicationMapper::config (int appId)
   {
-    Configuration* config = configs[name];
+    Configuration* config = configs[appId];
     config->setApplications (applications_);
     config->setConnectivityMap (connectivityMap_);
     return config;

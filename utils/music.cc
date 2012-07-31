@@ -44,7 +44,7 @@ usage (int rank)
 		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl
 		<< "  -m, --map             print application rank map" << std::endl
-		<< "  -f, --file-map     creates a file with the map of the rank to the according launching environment variable" << std::endl
+		<< "  -f, --file-map     creates a file with the list of environment variable of each application" << std::endl
 		<< "  -e, --export-scripts  export launcher scripts" << std::endl
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
@@ -85,7 +85,7 @@ export_scripts (MUSIC::ApplicationMapper* map)
       std::ofstream script (fname.c_str ());
       script << "#!/bin/sh" << std::endl << std::endl;
       map->mapConnectivity (name);
-      MUSIC::Configuration* config = map->config (name);
+      MUSIC::Configuration* config = map->config (i->color());
       config->writeEnv ();
       script << "export " << configEnvVarName
 	     << "=\"" << getenv (configEnvVarName)
@@ -106,16 +106,10 @@ void export_map(MUSIC::ApplicationMapper* map)
     std::ofstream map_file (mapFName);
 	  for (MUSIC::ApplicationMap::iterator i = a->begin (); i != a->end (); ++i)
 	    {
-		  std::string name = i->name ();
-		  map->mapConnectivity (name);
-		  MUSIC::Configuration* config = map->config (name);
+		  map->mapConnectivity (i->name());
+		  MUSIC::Configuration* config = map->config (i->color());
 		  config->writeEnv ();
-		  int first = i->leader ();
-		  int nProc = i->nProc ();
-		  map_file << first;
-		  if(nProc > 1)
-			 map_file << "-" << first + nProc-1;
-		  map_file << '\t' <<  getenv (configEnvVarName) << std::endl;
+		  map_file <<  getenv (configEnvVarName) << std::endl;
 	    }
 	  map_file.close ();
 }

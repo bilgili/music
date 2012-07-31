@@ -17,33 +17,41 @@
  */
 
 #ifndef MUSIC_APPLICATION_MAP_HH
+#include "music/debug.hh"
 #include <sstream>
 #include <vector>
-
+#include <map>
 namespace MUSIC {
 
   class ApplicationInfo {
     std::string name_;
     int leader_;
     int nProc_;
+    int color_;
   public:
-    ApplicationInfo (std::string name, int l, int n)
-      : name_ (name), leader_ (l), nProc_ (n) { }
+    ApplicationInfo (std::string name, int l, int n, int c)
+      : name_ (name), leader_ (l), nProc_ (n),  color_(c) { }
     std::string name () { return name_; }
+    int color (){return color_;}
     int leader () { return leader_; }
     int nProc () { return nProc_; }
   };
 
-  
   class ApplicationMap : public std::vector<ApplicationInfo> {
-    void read (std::istringstream& in);
+	 std::map<int,int> leaderIdHook_;
   public:
     ApplicationMap () { }
-    ApplicationMap (std::istringstream& in);
+    ApplicationMap (std::istringstream& in, int color);
     ApplicationInfo* lookup (std::string appName);
     int nProcesses ();
-    void add (std::string name, int l, int n);
+    void add (std::string name, int l, int n, int c);
     void write (std::ostringstream& out);
+    std::map<int,int> LeaderIdHook(){return leaderIdHook_;}
+  private:
+    void read (std::istringstream& in, int nApp, std::vector<int> appColor2Leader);
+#ifdef USE_MPI
+    std::vector<int> assignLeaders(int nLeaders, int color);
+#endif
   };
 
 }

@@ -103,7 +103,7 @@ namespace MUSIC {
     	Target* operator ()( Subconnector* value ) const
     	{  return dynamic_cast<Target*>(value);  }
     };*/
-    int rankToNode(ApplicationMap* applicationMap);
+   // int rankToNode(ApplicationMap* applicationMap);
  /*   class MDCriteriaSorter
     {
     	std::string app_name_;

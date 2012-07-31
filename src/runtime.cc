@@ -35,10 +35,9 @@ Runtime::Runtime (Setup* s, double h)
 {
 	checkInstantiatedOnce (isInstantiated_, "Runtime");
 
-	ApplicationMap* applicationMap = s->applicationMap ();
-	int local_node = rankToNode(applicationMap);
-	scheduler = new Scheduler(local_node);
-	app_name= (*applicationMap)[local_node].name();
+	scheduler = new Scheduler(s->applicationColor());
+	app_name= s->applicationName();
+
 	/* remedius
 	 * new type of subconnectors for collective communication was created.
 	 */
@@ -327,7 +326,7 @@ Runtime::time ()
 {
 	return localTime.time ();
 }
-int Runtime::rankToNode(ApplicationMap* applicationMap){
+/*int Runtime::rankToNode(ApplicationMap* applicationMap){
 	int local_node = -1;
 	int rank = MPI::COMM_WORLD.Get_rank ();
 	int nApplications = applicationMap->size();
@@ -335,6 +334,6 @@ int Runtime::rankToNode(ApplicationMap* applicationMap){
 		if(rank >= (*applicationMap)[i].leader())
 			local_node = i;
 	return local_node;
-}
+}*/
 }
 #endif

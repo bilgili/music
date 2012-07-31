@@ -83,8 +83,8 @@ namespace MUSIC {
       {
 	int leader = (*applicationMap)[i].leader ();
 	ranks[i] = leader;
-	leaderToNode.insert (std::make_pair (leader, i));
-	if (localRank >= leader) /* remedius: changed from = */
+	leaderToNode.insert (std::make_pair (leader, (*applicationMap)[i].color()));
+	if (localRank == leader)
 	  localNode = i;
       }
 
@@ -171,6 +171,7 @@ namespace MUSIC {
     negotiationData = allocNegotiationData (1, nLocalConnections);
     negotiationData->timebase = setup_->timebase ();
     negotiationData->tickInterval = ti;
+    negotiationData->color = setup_->applicationColor();
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
     
@@ -424,8 +425,7 @@ namespace MUSIC {
     		comm.Bcast ((*node).data,
     			negotiationDataSize (nConnections), MPI::BYTE, 0);
     	}
-
-    	fillScheduler(scheduler, (*node).id(),(*node).data);
+    	fillScheduler(scheduler, (*node).data);
     }
    // distributeNegotiationData (localTime);
 
@@ -447,7 +447,7 @@ namespace MUSIC {
     			negotiationDataSize (nConnections), MPI::BYTE, 0);
 /*    	if (i == localNode)
     		distributeNegotiationData(localTime);*/
-    	fillScheduler(scheduler, i,negotiationData);
+    	fillScheduler(scheduler, negotiationData);
     }
   }
 
@@ -523,10 +523,11 @@ namespace MUSIC {
   }
 
   void
-  TemporalNegotiator::fillScheduler( Scheduler *scheduler, int node_id, TemporalNegotiationData* negotiationData_){
+  TemporalNegotiator::fillScheduler( Scheduler *scheduler,  TemporalNegotiationData* negotiationData_){
 
 	  int nInput = negotiationData_->nInConnections;
 	  int nOutput = negotiationData_->nOutConnections;
+	  int node_id = negotiationData_->color;
 
 	  Clock localTime;
 	  localTime.configure(negotiationData_->timebase, negotiationData_->tickInterval);
@@ -538,6 +539,7 @@ namespace MUSIC {
 		  ConnectionDescriptor edge = negotiationData_->connection[k+nOutput];
 		  scheduler->addConnection( edge.remoteNode,node_id, edge.accLatency,edge.maxBuffered, edge.interpolate, edge.receiverPort);
 		  MUSIC_LOG0 ( "Connection added to the schedule:" <<edge.remoteNode<< "->" << node_id  << ";latency =" << edge.accLatency << ";buffered=" <<edge.maxBuffered);
+
 	  }
 
 }
@@ -546,7 +548,7 @@ namespace MUSIC {
   ApplicationNode::name ()
   {
     // only used for error messages
-    return (*negotiator_->setup ()->applicationMap ())[index].name ();
+    return negotiator_->setup ()->applicationName();
   }
   
 }

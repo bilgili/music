@@ -19,7 +19,7 @@
 #include "music/connectivity.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
-
+#include <iostream>
 namespace MUSIC {
 
   void
@@ -43,11 +43,14 @@ namespace MUSIC {
   }
 
 
-  Connectivity::Connectivity (std::istringstream& in)
+/*  Connectivity::Connectivity (std::istringstream& in)
   {
     read (in);
+  }*/
+  Connectivity::Connectivity (std::istringstream& in, std::map<int, int> leaderIdHook)
+  {
+    read (in, leaderIdHook);
   }
-  
 
   void
   Connectivity::add (std::string localPort,
@@ -160,9 +163,8 @@ namespace MUSIC {
       }
   }
   
-
   void
-  Connectivity::read (std::istringstream& in)
+  Connectivity::read (std::istringstream& in, std::map<int, int> leaderIdHook)
   {
     int nPorts;
     in >> nPorts;
@@ -193,6 +195,8 @@ namespace MUSIC {
 	    in.ignore ();
 	    int rLeader;
 	    in >> rLeader;
+	    rLeader = leaderIdHook[rLeader];
+	   // std::cerr << recApp << ":rLeader:"<<rLeader<<std::endl;
 	    in.ignore ();
 	    int nProc;
 	    in >> nProc;
@@ -226,5 +230,6 @@ namespace MUSIC {
 	  }
       }
   }
+
   
 }

@@ -25,7 +25,7 @@
 #include "music/connectivity.hh"
 
 namespace MUSIC {
-
+//#define __bgp__
   class Configuration {
   private:
     static const char* const configEnvVarName;
@@ -40,18 +40,22 @@ namespace MUSIC {
     Configuration* defaultConfig;
     ApplicationMap* applications_;
     Connectivity* connectivityMap_;
+
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
 #ifdef USE_MPI
-    void getEnv( std::string* result);
+    void getEnv(char *app_name, std::string* result);
 #endif
+
+#if defined(__bgp__)
     /* remedius
-     * Parses <map_file> in order to read configEnvVarName(<result>) that belongs to the current <rank>.
+     * Parses <map_file> in order to read configEnvVarName(<result>) that suites current rank.
      */
-    void parseMapFile(int rank, std::string map_file, std::string *result);
+    void parseMapFile(char *app_name, std::string map_file, std::string *result);
+#endif
   public:
 #ifdef USE_MPI
-    Configuration ();
+    Configuration (char *app_name);
 #endif
     Configuration (std::string name, int color, Configuration* def);
     ~Configuration ();
@@ -63,6 +67,7 @@ namespace MUSIC {
     bool lookup (std::string name, int* result);
     bool lookup (std::string name, double* result);
     void insert (std::string name, std::string value);
+    std::string ApplicationName();
     ApplicationMap* applications ();
     void setApplications (ApplicationMap*);
     Connectivity* connectivityMap ();

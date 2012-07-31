@@ -46,6 +46,7 @@ namespace MUSIC {
   public:
     double timebase;
     ClockState tickInterval;
+    int color;
     int nOutConnections;
     int nInConnections;
     ConnectionDescriptor connection[1];
@@ -87,7 +88,7 @@ namespace MUSIC {
     bool hasPeers ();
     void depthFirst (ApplicationNode& x,
 		     std::vector<ConnectionEdge>& path);
-    void fillScheduler(Scheduler *scheduler, int local_id,TemporalNegotiationData* negotiationData);
+    void fillScheduler(Scheduler *scheduler, TemporalNegotiationData* negotiationData);
   public:
     TemporalNegotiator (Setup* setup);
     ~TemporalNegotiator ();
@@ -138,7 +139,6 @@ namespace MUSIC {
     bool visited;
     bool inPath;
     std::string name ();
-    int id(){return index;}
     ClockState tickInterval () { return data->tickInterval; }
     int nConnections () { return data->nOutConnections+data->nInConnections; }
     int nOutConnections() {return data->nOutConnections;}

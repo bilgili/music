@@ -29,10 +29,15 @@ namespace MUSIC {
 
   class ApplicationMapper {
     rude::Config* cfile;
-    std::map<std::string, MUSIC::Configuration*> configs;
+    /*
+     * remedius
+     * key value was changed from name to color of application
+     * in order to keep the order of applications due to their color.
+     */
+    std::map<int, MUSIC::Configuration*> configs;
     ApplicationMap* applications_;
     Connectivity* connectivityMap_;
-    std::string selectedName;
+    int selectedApp;
     void mapSections (rude::Config* cfile);
     void mapApplications ();
     void selectApplication (int rank);
@@ -40,7 +45,7 @@ namespace MUSIC {
     ApplicationMapper (std::istream* configFile, int rank);
     void mapConnectivity (std::string name);
     MUSIC::Configuration* config ();
-    MUSIC::Configuration* config (std::string name);
+    MUSIC::Configuration* config (int app_id);
   };
 
 }

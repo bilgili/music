@@ -89,6 +89,7 @@ void Scheduler::Connection::advance(){
 void Scheduler::Connection::_advance(){
 	ClockState limit = nextSend_.integerTime () + latency_ - nextReceive_.tickInterval ();
 	while (nextReceive_.integerTime () <= limit)	nextReceive_.tick ();
+
 	/*limit = nextReceive_.integerTime () + nextReceive_.tickInterval () - latency_;
 	int bCount = 0;
 	while (nextSend_.integerTime () < limit) {
@@ -145,13 +146,11 @@ Scheduler::initialize(std::vector<Connector*> &connectors){
 
 }
 void
-Scheduler::nextCommunication (Clock &nextComm, std::queue<Connector *> &connectors)
+Scheduler::nextCommunication ( std::vector<std::pair<double, Connector *> > &schedule)
 {
-	bool scheduled = false;
-	while (!scheduled){
+	while (schedule.empty()){
 		std::vector<Node*>::iterator node;
 		for ( node=nodes.begin(); node < nodes.end(); node++ ){
-
 			if ((*node)->nextReceive() > (*node)->localTime().time())
 				(*node)->advance();
 
@@ -164,16 +163,19 @@ Scheduler::nextCommunication (Clock &nextComm, std::queue<Connector *> &connecto
 					if(self_node == (*conn)->postNode()->getId()|| //input
 							self_node == (*conn)->preNode()->getId()	) //output
 					{
-						scheduled = true;
-						connectors.push((*conn)->getConnector());
-						nextComm =  self_node == (*conn)->postNode()->getId() ? (*conn)->postNode()->localTime() :
-								(*conn)->preNode()->localTime();
+						double nextComm =  self_node == (*conn)->postNode()->getId() ? (*conn)->postNode()->localTime().time() :
+								(*conn)->preNode()->localTime().time();
+						schedule.push_back(std::pair<double, Connector*>(nextComm, (*conn)->getConnector()));
 					}
+
 					MUSIC_LOG0("Scheduled communication:"<< (*conn)->preNode()->getId() <<"->"<< (*conn)->postNode()->getId() << "at(" << (*conn)->preNode()->localTime().time() << ", "<< (*conn)->postNode()->localTime().time() <<")");
 					(*conn)->advance();
+
+
 				}
 		}
 	}
+
 }
 }
 

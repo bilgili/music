@@ -22,7 +22,6 @@
 #ifdef USE_MPI
 #include <mpi.h>
 #include <vector>
-#include <queue>
 
 #include "music/setup.hh"
 #include "music/port.hh"
@@ -53,9 +52,9 @@ namespace MUSIC {
     
   private:
     Clock localTime;
-    Clock nextComm;
+    //Clock nextComm;
     std::string app_name;
-    std::queue<Connector *> schedule;
+    std::vector<std::pair<double, Connector *> > schedule;
     MPI::Intracomm comm;
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;

@@ -236,7 +236,7 @@ Runtime::initialize ()
 	 * connector's initialization was moved to scheduler->initialize()
 	 */
 	scheduler->initialize(connectors);
-	scheduler->nextCommunication(nextComm, schedule);
+	scheduler->nextCommunication(schedule);
 
 	// compensate for first localTime.tick () in Runtime::tick ()
 	localTime.ticks (-1);
@@ -261,19 +261,17 @@ Runtime::finalize ()
 	 */
 	do
 	{
-		while (!schedule.empty())
-		{
-			if(schedule.front()->finalizeSimulation())
-				cnn_ports.erase(schedule.front()->receiverPortCode());
-			schedule.pop();
+		for(std::vector<std::pair<double, Connector*> >::iterator comm = schedule.begin();
+				comm != schedule.end(); comm++){
+			if((*comm).second->finalizeSimulation())
+				cnn_ports.erase((*comm).second->receiverPortCode());
 		}
-		// ContInputConnectors write data to application here
-
-		scheduler->nextCommunication(nextComm, schedule);
+		schedule.clear();
+		scheduler->nextCommunication(schedule);
 
 		for (std::vector<PostCommunicationConnector*>::iterator c =
-						postCommunication.begin(); c != postCommunication.end(); ++c)
-					(*c)->postCommunication();
+				postCommunication.begin(); c != postCommunication.end(); ++c)
+			(*c)->postCommunication();
 	}
 	while (!cnn_ports.empty());
 
@@ -305,15 +303,13 @@ Runtime::tick ()
 	for (std::vector<PreCommunicationConnector*>::iterator c =
 			preCommunication.begin(); c != preCommunication.end(); ++c)
 		(*c)->preCommunication();
-	//if(MPI::COMM_WORLD.Get_rank() == 0 && localTime.time() < 0.002)
 	MUSIC_LOGR("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
-	while (nextComm.time() <= localTime.time()) { // should be ==
-		while (!schedule.empty()) {
-
-			schedule.front()->tick();
-			schedule.pop();
-		}
-		scheduler->nextCommunication(nextComm, schedule);
+	while(schedule[0].first <= localTime.time()){
+		std::vector< std::pair<double, Connector*> >::iterator comm;
+		for(comm = schedule.begin(); comm != schedule.end() && (*comm).first <= localTime.time(); comm++)
+			(*comm).second->tick();
+		schedule.erase(schedule.begin(),comm);
+		scheduler->nextCommunication(schedule);
 	}
 	// ContInputConnectors write data to application here
 	for (std::vector<PostCommunicationConnector*>::iterator c =

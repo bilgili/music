@@ -24,8 +24,6 @@
 
 #include <limits>
 #include <vector>
-#include <map>
-#include <queue>
 #include <music/clock.hh>
 #include <music/connector.hh>
 namespace MUSIC {
@@ -95,7 +93,7 @@ public:
 	void addNode(int id, const Clock &localTime);
 	void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, bool interpolate, int port_code);
 	void initialize(std::vector<Connector*> &connectors);
-	void nextCommunication (Clock &nextComm, std::queue<Connector *> &conn);
+	void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);
 };
 /*
   class Synchronizer {

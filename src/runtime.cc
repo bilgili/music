@@ -92,9 +92,16 @@ Runtime::~Runtime ()
 			connector != connectors.end ();
 			++connector)
 		delete *connector;
+#if 0
+	/* MDJ 2012-08-07
+	   Some applications assume that they need to delete the ports.
+	   Until we have made a decision what is the proper usage pattern,
+	   this code is disabled. */
+
 	// delete ports
 	for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
 		delete (*it);
+#endif
 	delete scheduler;
 	isInstantiated_ = false;
 }

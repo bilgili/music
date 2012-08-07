@@ -38,11 +38,24 @@ music-manual.bbl: music-manual.stamp1
 music-manual.ind: music-manual.stamp1
 	makeindex music-manual
 
-music-manual.stamp1: music-manual.tex $(figures)
+music-manual.stamp1: music-manual.tex music-rfc.bib music-c-int.h wavetest.music waveproducer.cc waveconsumer.cc $(figures)
+	test -f music-manual.tex || ln -s $(srcdir)/music-manual.tex
+	test -f music-rfc.bib || ln -s $(srcdir)/music-rfc.bib
+	test -f music-c-int.h || ln -s $(srcdir)/music-c-int.h
 	pdflatex music-manual
 	touch music-manual.stamp1
 
+wavetest.music:
+	ln -s $(srcdir)/../test/wavetest.music
+
+waveproducer.cc:
+	ln -s $(srcdir)/../test/waveproducer.cc
+
+waveconsumer.cc:
+	ln -s $(srcdir)/../test/waveconsumer.cc
+
 $(figures): figures/%.pdf : figures/%.asy
+	test -d figures || mkdir figures
 	asy -f pdf -o $@ $<
 
 $(linked_mans):

@@ -18,7 +18,7 @@
 
 
 #include "music/application_map.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #endif
 #include "music/ioutils.hh"
@@ -35,7 +35,7 @@ namespace MUSIC {
 	   * app_names.size() is not equal 0 when music.map was used to run MUSIC library
 	   * In particular, it's used on BGP machine
 	   */
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 	  appColor2Leader = assignLeaders(nApp, color);
 #endif
 	  read (in, nApp, appColor2Leader);
@@ -114,7 +114,7 @@ namespace MUSIC {
   }
 
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
   /* remedius
    * map name of the application to its leader based on non sequential distribution of the ranks among the applications:
    * each rank has report to rank# 0 to which application it belongs to,

@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "music/spatial.hh" // Must be included first on BG/Ls
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 
 #include <sstream>

@@ -17,7 +17,7 @@
  */
 #include "music/connection.hh"
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 
 namespace MUSIC {

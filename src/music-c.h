@@ -19,7 +19,7 @@
  */
 #include "music/music-config.hh"
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 
 #if MUSIC_HAVE_SIZE_T

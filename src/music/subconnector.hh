@@ -18,7 +18,7 @@
 
 #ifndef MUSIC_SUBCONNECTOR_HH
 #include "music/debug.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #include <iostream>
 #include <string>

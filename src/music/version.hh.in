@@ -16,14 +16,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/version.hh"
+#ifndef MUSIC_VERSION_HH
+
+#include <vector>
+
+#include <music/FIBO.hh>
+
+#define MUSIC_VERSION "@VERSION@"
 
 namespace MUSIC {
 
-  const char*
-  version ()
-  {
-    return MUSIC_VERSION;
-  }
-
+  const char* version ();
+  
 }
+
+#define MUSIC_VERSION_HH
+#endif

@@ -17,7 +17,7 @@
  */
 
 #include "music/configuration.hh" // Must be included first on BG/L
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #endif
 extern "C" {
@@ -37,7 +37,7 @@ Configuration::Configuration (std::string name, int color, Configuration* def)
 {
 
 }
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 Configuration::Configuration (char *app_name)
 : defaultConfig (0)
 {
@@ -85,7 +85,7 @@ Configuration::~Configuration ()
 	delete applications_;
 }
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 void
 Configuration::getEnv(char *app_name,  std::string* result)
 {

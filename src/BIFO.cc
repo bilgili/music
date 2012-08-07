@@ -17,7 +17,7 @@
  */
 #include "music/BIFO.hh"
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <cstring>
 #include <mpi.h>
 #include <iostream>

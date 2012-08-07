@@ -92,7 +92,7 @@ namespace MUSIC {
   void
   ApplicationMapper::selectApplication (int rank)
   {
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     int rankEnd = 0;
     ApplicationMap::iterator ai;
     for (ai = applications_->begin (); ai != applications_->end (); ++ai)

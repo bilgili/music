@@ -19,7 +19,7 @@
 // This header file needs to be included first since array_data.hh
 // includes <mpi.h> which musy be included first on BG/L
 #include "music/array_data.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 #include "music/linear_index.hh"
 

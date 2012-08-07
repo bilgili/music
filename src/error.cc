@@ -15,7 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #endif
 #include <music/error.hh>
@@ -28,7 +28,7 @@ namespace MUSIC {
   void
   error ()
   {
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     MPI::COMM_WORLD.Abort (1);
 #else
     abort();
@@ -62,7 +62,7 @@ namespace MUSIC {
   static int
   getRank ()
   {
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     if (MPI::Is_initialized ())
       return MPI::COMM_WORLD.Get_rank ();
 #endif

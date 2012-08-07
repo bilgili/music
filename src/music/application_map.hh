@@ -49,7 +49,7 @@ namespace MUSIC {
     std::map<int,int> LeaderIdHook(){return leaderIdHook_;}
   private:
     void read (std::istringstream& in, int nApp, std::vector<int> appColor2Leader);
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     std::vector<int> assignLeaders(int nLeaders, int color);
 #endif
   };

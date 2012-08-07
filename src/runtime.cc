@@ -17,7 +17,7 @@
  */
 //#define MUSIC_DEBUG
 #include "music/runtime.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 #include <mpi.h>
 

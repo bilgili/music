@@ -12,40 +12,42 @@ EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
              neuronGrid.data neuronGridLARGE.data			\
 	     spikes0.dat spikes1.dat README
 
+MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
+
 waveproducer_SOURCES = waveproducer.cc
-waveproducer_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
+waveproducer_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 waveproducer_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 waveconsumer_SOURCES = waveconsumer.cc
-waveconsumer_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
+waveconsumer_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 waveconsumer_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 eventlogger_SOURCES = eventlogger.cc
-eventlogger_CXXFLAGS = -I$(top_srcdir)/src @MPI_CXXFLAGS@
+eventlogger_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 eventlogger_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 clocksource_SOURCES = clocksource.cc
-clocksource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+clocksource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 contsink_SOURCES = contsink.cc
-contsink_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+contsink_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 constsource_SOURCES = constsource.cc
-constsource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+constsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 eventdelay_SOURCES = eventdelay.cc
-eventdelay_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+eventdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 contdelay_SOURCES = contdelay.cc
-contdelay_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+contdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 contdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 messagesource_SOURCES = messagesource.cc
-messagesource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+messagesource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 

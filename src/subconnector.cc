@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "music/subconnector.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include "music/communication.hh"
 #include <cstring>
 #include <algorithm>

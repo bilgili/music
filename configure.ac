@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(music, 1.0.7)
+AC_INIT(music, 1.1.0)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
@@ -215,12 +215,14 @@ AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_th
 ac_have_cxx_mpi_init_thread=yes
 )
 AC_ARG_ENABLE(mpi,
-              [  --disable-mpi          Disabling mpi suuport],
-              USE_MPI="$enableval", USE_MPI="yes")
-if test $USE_MPI = yes ; then 
-	AC_DEFINE([USE_MPI], [1], [Undefine if you want to compile MUSIC without mpi support])
+              [  --disable-mpi          Disabling mpi support],
+              MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
+if test $MUSIC_USE_MPI = yes ; then 
+  MUSIC_USE_MPI=1
+else
+  MUSIC_USE_MPI=0
 fi
-#AC_DEFINE([USE_MPI], [1], [Define to 1 if you want debug output])
+#AC_DEFINE([MUSIC_USE_MPI], [1], [Define to 1 if you want debug output])
 # AC_ARG_ENABLE(debug,
 #              [  --enable-debug          Enable debugging information],
 #              USE_DEBUG="$enableval", USE_DEBUG="no")
@@ -250,6 +252,7 @@ AC_SUBST(MPI_CFLAGS)
 AC_SUBST(MPI_LDFLAGS)
 AC_SUBST(MUSIC_HAVE_SIZE_T)
 AC_SUBST(MUSIC_HAVE_LONG_LONG)
+AC_SUBST(MUSIC_USE_MPI)
 AC_SUBST(OPTIONAL_UTILS)
 
 AC_CONFIG_FILES([
@@ -257,6 +260,7 @@ AC_CONFIG_FILES([
   mpidep/Makefile
   src/Makefile
   src/music/music-config.hh
+  src/music/version.hh
   test/Makefile
   rudeconfig/Makefile
   utils/Makefile

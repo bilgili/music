@@ -43,7 +43,7 @@ namespace MUSIC {
 
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     void getEnv(char *app_name, std::string* result);
 #endif
 
@@ -54,7 +54,7 @@ namespace MUSIC {
     void parseMapFile(char *app_name, std::string map_file, std::string *result);
 #endif
   public:
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
     Configuration (char *app_name);
 #endif
     Configuration (std::string name, int color, Configuration* def);

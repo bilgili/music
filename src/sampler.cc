@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "music/sampler.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 
 // array_data.hh needs to be included first since it causes inclusion

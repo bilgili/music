@@ -163,7 +163,7 @@ main (int argc, char *argv[])
   // predict the rank MPI::Init will give us using
   // mpi implementation dependent code from ../mpidep
   int rank = -1;
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
   rank = getRank (argc, argv);
 #endif
 

@@ -18,7 +18,7 @@
 
 //#define MUSIC_DEBUG
 #include "music/scheduler.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <cmath>
 #include <iostream>
 

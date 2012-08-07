@@ -1,5 +1,5 @@
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #include "music-c.h"
 

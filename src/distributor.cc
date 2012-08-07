@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "music/distributor.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 
 // distributor.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other

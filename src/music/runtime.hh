@@ -19,7 +19,7 @@
 #ifndef MUSIC_RUNTIME_HH
 //#define MUSIC_DEBUG
 #include "music/debug.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 #include <vector>
 

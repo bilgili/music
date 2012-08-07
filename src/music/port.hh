@@ -18,7 +18,7 @@
 
 #ifndef MUSIC_PORT_HH
 #include "music/debug.hh"
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 #include <mpi.h>
 
 #include <string>
@@ -64,6 +64,8 @@ namespace MUSIC {
     virtual Connector* makeConnector (ConnectorInfo connInfo) = 0;
     void assertOutput ();
     void assertInput ();
+
+  public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     virtual ~Port(){};
 
   private:

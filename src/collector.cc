@@ -17,7 +17,7 @@
  */
 #include "music/collector.hh"
 
-#ifdef USE_MPI
+#if MUSIC_USE_MPI
 // collector.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other
 // header files on BG/L

@@ -167,7 +167,10 @@ namespace MUSIC {
   private:
     EventOutputPort (Setup* s, std::string id);
     void setupCleanup () {  OutputPort::setupCleanup(); delete routingMap;};
+  public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     ~EventOutputPort();
+
+  private:
     Connector* makeConnector (ConnectorInfo connInfo);
     void buildTable ();
     friend class Setup;

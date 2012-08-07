@@ -22,6 +22,8 @@
 
 #include <music/FIBO.hh>
 
+#define MUSIC_VERSION "1.1.1"
+
 namespace MUSIC {
 
   const char* version ();

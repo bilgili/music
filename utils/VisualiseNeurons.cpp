@@ -21,6 +21,8 @@
 
 #include "VisualiseNeurons.h"
 
+#include <unistd.h>
+
 void VisualiseNeurons::printHelp() {
   std::cerr << "Usage: viewevents [OPTION...] CONFIGFILE" << std::endl
 	    << "`viewevents' receives spikes through a MUSIC input port" << std::endl

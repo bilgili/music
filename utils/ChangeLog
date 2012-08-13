@@ -1,3 +1,7 @@
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* VisualiseNeurons.cpp: Added #include <unistd.h>.
+
 2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* application_mapper.cc, application_mapper.hh, music.cc: Added an

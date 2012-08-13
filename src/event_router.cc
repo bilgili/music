@@ -20,45 +20,45 @@
 #include "music/event.hh"
 #include "music/event_router.hh"
 namespace MUSIC {
-InputRoutingData::InputRoutingData(const IndexInterval &i,  IndexProcessor *spicialized_processor):
+InputRoutingData::InputRoutingData(const IndexInterval &i,  IndexProcessor *specialized_processor):
 				  EventRoutingData(i),
-				  spicialized_processor_(spicialized_processor->clone())
+				  specialized_processor_(specialized_processor->clone())
 {
 }
 InputRoutingData::InputRoutingData(const IndexInterval &i, EventHandlerPtr* h):EventRoutingData(i)
 {
 	  if(h->getType() == Index::GLOBAL)
-		  spicialized_processor_ = new GlobalIndexProcessor(h);
+		  specialized_processor_ = new GlobalIndexProcessor(h);
 	  else
-		  spicialized_processor_ = new LocalIndexProcessor(h);
+		  specialized_processor_ = new LocalIndexProcessor(h);
 }
 InputRoutingData::~InputRoutingData()
 {
-	delete spicialized_processor_;
+	delete specialized_processor_;
 }
 InputRoutingData:: InputRoutingData(const InputRoutingData& data)
 {
-	  spicialized_processor_ = data.spicialized_processor_->clone();
+	  specialized_processor_ = data.specialized_processor_->clone();
 }
 InputRoutingData &InputRoutingData::operator=(InputRoutingData &data){
-		  delete spicialized_processor_;
-		  spicialized_processor_ = data.spicialized_processor_->clone();
+		  delete specialized_processor_;
+		  specialized_processor_ = data.specialized_processor_->clone();
 		  return *this;
 }
 void*
 InputRoutingData::Data()
 {
-	return spicialized_processor_->getPtr();
+	return specialized_processor_->getPtr();
 }
 void
 InputRoutingData::process (double t, int id)
 {
-  		spicialized_processor_->process(t, id);
+  		specialized_processor_->process(t, id);
 }
 EventRoutingData *
-InputRoutingData::Clone()const
+InputRoutingData::clone()const
 {
-	return new InputRoutingData(*this, spicialized_processor_);
+	return new InputRoutingData(*this, specialized_processor_);
 }
 OutputRoutingData::OutputRoutingData(const IndexInterval &i, FIBO* b):EventRoutingData(i),buffer_ (b)
 {
@@ -77,7 +77,7 @@ OutputRoutingData::process (double t, int id)
 	e->id = id;
 }
 EventRoutingData *
-OutputRoutingData::Clone() const
+OutputRoutingData::clone() const
 {
 	return new OutputRoutingData(*this, buffer_);
 }
@@ -120,7 +120,7 @@ TableProcessingRouter::processEvent(double t, int id)
 void
 TableProcessingRouter::insertRoutingData(EventRoutingData &data)
 {
-	routingData.push_back(data.Clone());
+	routingData.push_back(data.clone());
 	void *data_ = data.Data();
 	//if it's additional index range for the existing Data
 	//or it's a new Data with its new index range

@@ -53,7 +53,10 @@ namespace MUSIC {
       : Interval (b, e), local_ (l) { }
     LocalIndex local () const { return local_; }
     void setLocal (int l) { local_ = l; }
-    Interval *Clone()const {return new IndexInterval(this->begin(),this->end(), this->local());}
+    IndexInterval* clone () const
+    {
+      return new IndexInterval (*this);
+    }
   };
 
   bool operator< (const IndexInterval& a, const IndexInterval& b);
@@ -62,6 +65,7 @@ namespace MUSIC {
   public:
     class IteratorImplementation {
     public:
+      virtual ~IteratorImplementation () { }
       virtual const IndexInterval operator* () = 0;
       virtual const IndexInterval* dereference () = 0;
       virtual bool isEqual (IteratorImplementation* i) const = 0;
@@ -100,7 +104,8 @@ namespace MUSIC {
       iterator& operator++ ();
     };
     
-    
+
+    virtual ~IndexMap () { }
     virtual iterator begin () = 0;
     virtual const iterator end () const = 0;
 

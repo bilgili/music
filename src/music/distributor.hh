@@ -35,6 +35,7 @@ namespace MUSIC {
     class Interval : public MUSIC::Interval {
     public:
       Interval (IndexInterval& interval);
+      Interval* clone () { return new Interval (*this); }
       bool operator< (const Interval& ref) const
       { return begin () < ref.begin (); }
       // length field is stored overlapping the end field so that the

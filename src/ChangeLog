@@ -1,3 +1,30 @@
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* scheduler.cc (Scheduler::Node::advance): Define time variable
+	only if debugging. Formatting changes.
+
+	* music/data_map.hh (~DataMap::DataMap), music/event_router.hh
+	(~IndexProcessor::IndexProcessor), music/index_map.hh
+	(~IndexMap::IndexMap)
+	(~IndexMap::IteratorImplementation::IteratorImplementation),
+	music/interval.hh (~Interval::Interval), music/spatial.hh
+	(~NegotiationIterator::Implementation::Implementation: Destructor
+	made virtual.
+
+	* music/collector.hh (Collector::Interval::clone),
+	music/distributor.hh (Distributor::Interval::clone): Added for
+	consistency.
+
+	* event_router.cc, music/event_router.hh, music/collector.hh,
+	music/distributor.hh, music/interval.hh, music/index_map.hh,
+	music/interval_tree.hh: Renamed Clone --> clone throughout.
+
+	* event_router.cc, music/event_router.hh: Renamed "spicialized"
+	--> "specialized" throughout.
+
+	* application_map.cc (ApplicationMap::assignLeaders): Only create
+	ranks file if MUSIC_DEBUG is defined.
+
 2012-08-07  Mikael Djurfeldt  <mdj@ubuntu-11.10>
 
 	* runtime.cc (runtime.cc): Disable deletion of ports.

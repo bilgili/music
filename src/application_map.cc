@@ -141,6 +141,7 @@ namespace MUSIC {
 			  if( leaders[rbuf[i]] == -1 )
 				  leaders[rbuf[i]] = i;
 
+#ifdef MUSIC_DEBUG
 		  /*  block for debugging */
 		  std::ofstream outfile ("ranks");
 		  for(int i = 0; i < nLeaders; ++i){
@@ -152,6 +153,7 @@ namespace MUSIC {
 		  outfile<<std::endl;
 		  outfile.close();
 		  /*end of block */
+#endif // MUSIC_DEBUG
 	  }
 	  MPI::COMM_WORLD.Bcast(leaders, nLeaders, MPI_INT, root);
 	  if ( myrank == root) {

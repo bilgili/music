@@ -58,6 +58,7 @@ namespace MUSIC {
   public:
     class Implementation {
     public:
+      virtual ~Implementation () { };
       virtual bool end () = 0;
       virtual void operator++ () = 0;
       virtual SpatialNegotiationData* dereference () = 0;

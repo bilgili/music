@@ -41,10 +41,12 @@ namespace MUSIC {
 class IndexProcessor
 {
 public:
-	virtual void process(double t, int id)=0;
-	virtual void *getPtr() = 0;
-	virtual IndexProcessor* clone() = 0;
+  virtual ~IndexProcessor () { };
+  virtual void process(double t, int id)=0;
+  virtual void *getPtr() = 0;
+  virtual IndexProcessor* clone() = 0;
 };
+
 class GlobalIndexProcessor: public IndexProcessor{
 	EventHandlerGlobalIndex* global;
 public:
@@ -73,11 +75,11 @@ public:
 	int offset () const { return this->local (); }
 	virtual void *Data()=0;
 	virtual void process (double t, int id)=0;
-	virtual EventRoutingData *Clone() const =0;
+	virtual EventRoutingData *clone() const =0;
 };
 class InputRoutingData : public EventRoutingData{
-	IndexProcessor *spicialized_processor_;
-	InputRoutingData(const IndexInterval &i,  IndexProcessor *spicialized_processor);
+	IndexProcessor *specialized_processor_;
+	InputRoutingData(const IndexInterval &i,  IndexProcessor *specialized_processor);
 public:
 	InputRoutingData(const IndexInterval &i, EventHandlerPtr* h);
 	~InputRoutingData();
@@ -85,7 +87,7 @@ public:
 	InputRoutingData &operator=(InputRoutingData &data);
 	void *Data();
 	void process (double t, int id);
-	EventRoutingData *Clone()const;
+	EventRoutingData *clone()const;
 };
 class OutputRoutingData: public EventRoutingData {
 	FIBO* buffer_;
@@ -93,7 +95,7 @@ public:
 	OutputRoutingData(const IndexInterval &i, FIBO* b);
 	void *Data();
 	void process (double t, int id);
-	EventRoutingData *Clone() const;
+	EventRoutingData *clone() const;
 };
 /* remedius
  * We've decided to try different methods for pre-/post-processing the data:

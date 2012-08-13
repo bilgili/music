@@ -46,14 +46,14 @@ public:
       Interval *data_;
     public:
       NodeType () : maxEnd_ (noNode ()), data_(NULL) { }
-      NodeType (const Interval& d) : maxEnd_ (noNode ()),data_(d.Clone()){}
-      NodeType (const PointType m, const Interval& d): maxEnd_ (m),data_ (d.Clone()){}
+      NodeType (const Interval& d) : maxEnd_ (noNode ()),data_(d.clone()){}
+      NodeType (const PointType m, const Interval& d): maxEnd_ (m),data_ (d.clone()){}
       ~NodeType (){if(data_!= NULL) delete data_;};
       // Copy constructor
       NodeType(const NodeType &node)
       {
     	  if(node.data_ != NULL)
-    		  data_ = node.data_->Clone();
+    		  data_ = node.data_->clone();
     	  else
     		  data_ = NULL;
     	  maxEnd_ = node.maxEnd();

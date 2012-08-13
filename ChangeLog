@@ -1,6 +1,16 @@
+2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Version 1.1.2
+
 2012-08-07  Mikael Djurfeldt  <mdj@ubuntu-11.10>
 
 	* Version 1.1.1
+
+2012-08-03  Mikael Djurfeldt  <mdj@ubuntu-11.10>
+
+	* configure.ac: Updated to version 1.1.0.
+
+	* configure.ac: Generate music/version.hh.in.
 
 2012-01-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

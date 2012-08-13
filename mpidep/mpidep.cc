@@ -117,11 +117,11 @@ getRank (int argc, char *argv[])
   return rank;
 #endif
 #ifdef CRAY_XE6
-  ifstream fnid ("/proc/cray_xt/nid");
+  std::ifstream fnid ("/proc/cray_xt/nid");
   int nid;
   fnid >> nid;
   fnid.close ();
-  ifstream fnids (getenv ("MUSIC_NODEFILE"));
+  std::ifstream fnids (getenv ("MUSIC_NODEFILE"));
   int n = 0;
   int i;
   while (fnids)

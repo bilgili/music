@@ -1,6 +1,7 @@
 2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
-	* mpidep.cc (getRank): CRAY_XE -> CRAY_XE6
+	* mpidep.cc (getRank): CRAY_XE -> CRAY_XE6; ifstream -> std::ifstream
+
 
 2011-03-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

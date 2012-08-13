@@ -116,7 +116,7 @@ getRank (int argc, char *argv[])
   iss >> rank;
   return rank;
 #endif
-#ifdef CRAY_XE
+#ifdef CRAY_XE6
   ifstream fnid ("/proc/cray_xt/nid");
   int nid;
   fnid >> nid;

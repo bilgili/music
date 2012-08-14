@@ -109,15 +109,6 @@ namespace MUSIC {
 
 
   void
-  OutputPort::setupCleanup ()
-  {
-    // NOTE: Cleanup resources only used during setup phase,
-    if (spatialNegotiator)
-      delete spatialNegotiator;
-  }
-  
-
-  void
   OutputPort::mapImpl (IndexMap* indices,
 				     Index::Type type,
 				     int maxBuffered,
@@ -134,7 +125,8 @@ namespace MUSIC {
     // Retrieve info about all remote connectors of this port
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();
-    spatialNegotiator = new SpatialOutputNegotiator (indices, type);
+    indices_ = indices;
+    index_type_ = type;
     for (PortConnectorInfo::iterator info = portConnections.begin ();
 	 info != portConnections.end ();
 	 ++info)
@@ -148,13 +140,6 @@ namespace MUSIC {
   }
 
 
-  void
-  InputPort::setupCleanup ()
-  {
-    // NOTE: Cleanup resources only used during setup phase,
-    if (spatialNegotiator)
-      delete spatialNegotiator;
-  }
 
   
   void
@@ -176,7 +161,8 @@ namespace MUSIC {
     PortConnectorInfo portConnections
       = ConnectivityInfo_->connections ();
     PortConnectorInfo::iterator info = portConnections.begin ();
-    spatialNegotiator = new SpatialInputNegotiator (indices, type);
+    indices_ = indices;
+    index_type_ = type;
     Connector* connector = makeConnector (*info);
     ClockState integerLatency (accLatency, setup_->timebase ());
     setup_->addConnection (new InputConnection (connector,
@@ -232,14 +218,16 @@ namespace MUSIC {
 	  Connector * conn;
 	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT){
 		  conn =  new ContOutputConnector (connInfo,
-				  spatialNegotiator,
+				  indices_,
+		  		  index_type_,
 				  setup_->communicator (),
 				  sampler,
 				  type_);
 	  }
 	  else
 		  conn = new ContOutputCollectiveConnector(connInfo,
-				  spatialNegotiator,
+				  indices_,
+		  		  index_type_,
 				  setup_->communicator (),
 				  sampler,
 				  type_);
@@ -317,7 +305,8 @@ namespace MUSIC {
 	  Connector * conn;
 	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT){
 		  conn = new ContInputConnector (connInfo,
-				  spatialNegotiator,
+				  indices_,
+		  		  index_type_,
 				  setup_->communicator (),
 				  sampler,
 				  type_,
@@ -325,7 +314,8 @@ namespace MUSIC {
 	  }
 	  else
 		  conn = new ContInputCollectiveConnector (connInfo,
-				  spatialNegotiator,
+				  indices_,
+		  		  index_type_,
 				  setup_->communicator (),
 				  sampler,
 				  type_,
@@ -402,13 +392,15 @@ namespace MUSIC {
 	  // we need to choose a right connector according to the communication type
 	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT)
 		  conn = new EventOutputConnector (connInfo,
-				     spatialNegotiator,
+				     indices_,
+		  			 index_type_,
 				     setup_->communicator (),
 				     routingMap);
 	  else
 		  conn = new EventOutputCollectiveConnector(connInfo,
-	  	 			   spatialNegotiator,
-	  	 			setup_->communicator (),
+	  	 			  indices_,
+		  			  index_type_,
+	  	 			  setup_->communicator (),
 	  	 			  routingMap);
 
 	 return conn;
@@ -533,15 +525,15 @@ namespace MUSIC {
 	  Connector *conn;
 	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT)
 		  conn =   new EventInputConnector (connInfo,
-		  			  spatialNegotiator,
+		  			  indices_,
+		  			  index_type_,
 		  			  setup_->communicator (),
-		  			  type_,
 		  			  handleEvent_);
 	  else
 		  conn = new EventInputCollectiveConnector(connInfo,
-	  	 			   spatialNegotiator,
+	  	 			indices_,
+		  			index_type_,
 	  	 			setup_->communicator (),
-	  	 			type_,
 	  	 			handleEvent_);
 
 	 return conn;
@@ -618,7 +610,8 @@ namespace MUSIC {
   MessageOutputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new MessageOutputConnector (connInfo,
-				       spatialNegotiator,
+				       indices_,
+		  			   index_type_,
 				       setup_->communicator (),
 				       buffers);
   }
@@ -738,9 +731,9 @@ namespace MUSIC {
   MessageInputPort::makeConnector (ConnectorInfo connInfo)
   {
     return new MessageInputConnector (connInfo,
-				      spatialNegotiator,
+				      indices_,
+		  			  index_type_,
 				      handleMessage_,
-				      Index::GLOBAL,
 				      setup_->communicator ());
   }
 

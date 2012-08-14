@@ -32,6 +32,7 @@
 namespace MUSIC {
 
   class Distributor {
+  public: //for BG compiler
     class Interval : public MUSIC::Interval {
     public:
       Interval (IndexInterval& interval);
@@ -44,7 +45,7 @@ namespace MUSIC {
       int length () const { return end (); }
       void setLength (int length) { setEnd (length); }
     };
-
+private:
     class IntervalCalculator : public IntervalTree<int>::Action {
       Interval& interval_;
       int elementSize_;

@@ -58,6 +58,8 @@ namespace MUSIC {
     int width ();
 
   protected:
+    IndexMap* indices_;
+    Index::Type index_type_;
     std::string portName_;
     Setup* setup_;
     ConnectivityInfo* ConnectivityInfo_;
@@ -86,27 +88,22 @@ namespace MUSIC {
 
   class OutputPort :  public  virtual Port {
   protected:
-    SpatialOutputNegotiator* spatialNegotiator;
+	OutputPort () { }
     virtual void mapImpl (IndexMap* indices,
 			  Index::Type type,
 			  int maxBuffered,
 			  int dataSize);
-  public:
-    OutputPort () : spatialNegotiator (0) { }
-    void setupCleanup ();
+
   };
 
   class InputPort :   public  virtual Port {
   protected:
-    InputPort () : spatialNegotiator (0) { }
-    SpatialInputNegotiator* spatialNegotiator;
+    InputPort (){ }
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  double accLatency,
 		  int maxBuffered,
 		  bool interpolate);
-  public:
-    void setupCleanup ();
   };
 
   class ContPort :  public virtual Port {
@@ -146,17 +143,14 @@ namespace MUSIC {
 	      bool interpolate = true);
   };
 
-  
-  class EventPort : public virtual Port {
-  };
+
 
   /* remedius
    * EventOutputPort constructor, makeOutputConnector() and buildTable() methods were hided from the user.
    * In order to give the Setup class access to EventOutputPort constructor,
    * Setup class was declared as a friend class to EventOutputPort.
    */
-  class EventOutputPort : public EventPort,
-			  public OutputPort {
+  class EventOutputPort :  public OutputPort {
 	EventRouter *router;
     EventRoutingMap<FIBO*>* routingMap;
   public:
@@ -166,7 +160,7 @@ namespace MUSIC {
     void insertEvent (double t, LocalIndex id);
   private:
     EventOutputPort (Setup* s, std::string id);
-    void setupCleanup () {  OutputPort::setupCleanup(); delete routingMap;};
+    void setupCleanup () {delete routingMap;};
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     ~EventOutputPort();
 
@@ -182,8 +176,7 @@ namespace MUSIC {
  * routingMap field and  buildTable() method were added to EventInputPort class since
  * the routing of the data can also happen on the input side (collective algorithm).
  */
-  class EventInputPort : public EventPort,
-			 public InputPort {
+  class EventInputPort : public InputPort {
   private:
 	Index::Type type_;
     EventHandlerPtr handleEvent_;

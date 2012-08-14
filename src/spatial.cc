@@ -133,22 +133,23 @@ namespace MUSIC {
     return &current_;
   }
 
-  
-  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_)
-    : indices (ind->copy ()), type (type_)
+
+  SpatialNegotiator::SpatialNegotiator (IndexMap* ind, Index::Type type_, MPI::Intracomm c)
+  : comm(c), indices (ind), type (type_)
   {
+
+	  nProcesses = comm.Get_size ();
+	  localRank = comm.Get_rank ();
+	  negotiateWidth ();
+
   }
 
-
-  SpatialNegotiator::~SpatialNegotiator ()
-  {
-    delete indices;
-  }
 
 
   void
   SpatialNegotiator::negotiateWidth ()
   {
+
     // First determine local least upper bound and width
     int u = 0;
     int w = 0;
@@ -175,13 +176,14 @@ namespace MUSIC {
 	w = m[i];
 
     maxLocalWidth_ = w;
+
+
   }
 
 
   void
-  SpatialOutputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
+  SpatialOutputNegotiator::negotiateWidth ()
   {
-    SpatialNegotiator::negotiateWidth ();
     if (localRank == 0)
       {
 	// Receiver might need to know sender width
@@ -200,10 +202,8 @@ namespace MUSIC {
 
 
   void
-  SpatialInputNegotiator::negotiateWidth (MPI::Intercomm intercomm)
+  SpatialInputNegotiator::negotiateWidth ()
   {
-    SpatialNegotiator::negotiateWidth ();
-
     if (localRank == 0)
       {
 	int remoteWidth;
@@ -285,8 +285,12 @@ namespace MUSIC {
       {
     	  cur_displ_ = 0;
       }
-      bool end () { return i == end_; cur_displ_ = 0;}
-      void operator++ () {  cur_displ_ = cur_displ_+(i->end() - i->begin()); ++i; }
+      bool end () { return i == end_; }
+      void operator++ () {
+    	  cur_displ_ +=(i->end() - i->begin());
+      ++i;
+      if(end())
+    	  cur_displ_ = 0;}
     };
 
     class GlobalWrapper : public Wrapper {
@@ -518,44 +522,34 @@ namespace MUSIC {
       receive (comm, i, in[i]);
   }
   NegotiationIterator
-  SpatialNegotiator::negotiateSimple(MPI::Intracomm c)
+  SpatialNegotiator::negotiateSimple()
   {
-	  comm = c;
-	  nProcesses = comm.Get_size ();
-	  localRank = comm.Get_rank ();
-	  negotiateWidth();
       return wrapIntervals (indices->begin (),
 			    indices->end (),
 			    type,
 			    localRank);
   }
+
   SpatialOutputNegotiator::SpatialOutputNegotiator (IndexMap* indices,
-						    Index::Type type)
-      : SpatialNegotiator (indices, type)
+						    Index::Type type, MPI::Intracomm c,
+						    MPI::Intercomm ic)
+      : SpatialNegotiator (indices, type,  c)
   {
+	     intercomm = ic;
+	    negotiateWidth ();
   }
 
 
   NegotiationIterator
-  SpatialOutputNegotiator::negotiate (MPI::Intracomm c,
-				      MPI::Intercomm intercomm,
-				      int remoteNProc,
-				      // only for debugging:
-				      Connector* connector)
+  SpatialOutputNegotiator::negotiate (int remoteNProc,
+		    Connector* connector)
   {
-    comm = c;
-    nProcesses = comm.Get_size ();
-    localRank = comm.Get_rank ();
-    #ifdef MUSIC_DEBUG
-    connector_ = connector;
-    #endif
-    
-    local.resize (nProcesses);
-    remote.resize (remoteNProc);
-    results.resize (nProcesses);
-    negotiateWidth (intercomm);
-
-
+#ifdef MUSIC_DEBUG
+	  connector_ = connector;
+#endif
+	local.resize (nProcesses);
+	results.resize (nProcesses);
+	remote.resize (remoteNProc);
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						    indices->end (),
 						    type,
@@ -589,31 +583,24 @@ namespace MUSIC {
     return NegotiationIterator (local);
   }
   
-
   SpatialInputNegotiator::SpatialInputNegotiator (IndexMap* indices,
-						  Index::Type type)
-    : SpatialNegotiator (indices, type)
+						    Index::Type type, MPI::Intracomm c,
+						    MPI::Intercomm ic)
+      : SpatialNegotiator (indices, type,  c)
   {
+	  intercomm = ic;
+	    negotiateWidth ();
   }
 
 
   NegotiationIterator
-  SpatialInputNegotiator::negotiate (MPI::Intracomm c,
-				     MPI::Intercomm intercomm,
-				     int remoteNProc,
-				      // only for debugging:
-				     Connector* connector)
+  SpatialInputNegotiator::negotiate ( int remoteNProc,
+		    Connector* connector)
   {
-    comm = c;
-    nProcesses = comm.Get_size ();
-    localRank = comm.Get_rank ();
-    #ifdef MUSIC_DEBUG
-    connector_ = connector;
-    #endif
-    
+#ifdef MUSIC_DEBUG
+	  connector_ = connector;
+#endif
     remote.resize (remoteNProc);
-    
-    negotiateWidth (intercomm);
     NegotiationIterator mappedDist = wrapIntervals (indices->begin (),
 						    indices->end (),
 						    type,

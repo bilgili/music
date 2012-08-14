@@ -97,7 +97,6 @@ TreeProcessingRouter::buildTable ()
 	routingTable.build ();
 }
 
-
 void
 TreeProcessingRouter::processEvent (double t, int id)
 {
@@ -109,11 +108,10 @@ TreeProcessingRouter::processEvent (double t, int id)
 void
 TableProcessingRouter::processEvent(double t, int id)
 {
-	std::map<void*, std::vector<EventRoutingData*> >::iterator it;
-	for ( it=routingTable.begin() ; it != routingTable.end(); it++ )
-		if(id < (int)((*it).second).size()){
-			if(((*it).second)[id] != NULL)
-				((*it).second)[id]->process(t, id - ((*it).second)[id]->offset ());
+	std::vector<EventRoutingData*>::iterator it;
+	if (routingTable.count(id)>0)
+		for(it = routingTable[id].begin(); it != routingTable[id].end(); it++){
+			(*it)->process(t, id - (*it)->offset());
 		}
 }
 
@@ -121,15 +119,10 @@ void
 TableProcessingRouter::insertRoutingData(EventRoutingData &data)
 {
 	routingData.push_back(data.clone());
-	void *data_ = data.Data();
-	//if it's additional index range for the existing Data
-	//or it's a new Data with its new index range
-	if(data.end() > (int)routingTable[data_].size())
-		routingTable[data_].resize(data.end());
-    // for each element i in the index range
-	// data should be the same (buffer or event handler)
-	for(int i=data.begin(); i < data.end(); ++i)
-		routingTable[data_][i] = routingData.back();
+	for(int i=data.begin(); i < data.end(); ++i){
+		//std::cerr << "insert:" <<  i  << ":" << data.offset() << std::endl;
+		routingTable[i+data.offset()].push_back(routingData.back());
+	}
 }
 TableProcessingRouter::~TableProcessingRouter(){
 	std::vector<EventRoutingData*>::iterator it =routingData.begin();

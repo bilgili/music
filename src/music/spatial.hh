@@ -121,6 +121,7 @@ namespace MUSIC {
   class SpatialNegotiator {
   protected:
     MPI::Intracomm comm;
+    MPI::Intercomm intercomm;
     IndexMap* indices;
     Index::Type type;
     std::vector<NegotiationIntervals> remote;
@@ -130,8 +131,10 @@ namespace MUSIC {
     unsigned int nProcesses;
     Connector* connector_; // used only for debugging
   public:
-    SpatialNegotiator (IndexMap* indices, Index::Type type);
-    virtual ~SpatialNegotiator ();
+    SpatialNegotiator (IndexMap* indices,
+    		Index::Type type,
+    		MPI::Intracomm c);
+    virtual ~SpatialNegotiator (){};
 
     int getWidth(){return width;}
     int maxLocalWidth () { return maxLocalWidth_; }
@@ -152,18 +155,14 @@ namespace MUSIC {
     void intersectToBuffers (NegotiationIterator source,
 			     NegotiationIterator dest,
 			     std::vector<NegotiationIntervals>& buffers);
-  protected:
-    void negotiateWidth ();
   private:
+    void negotiateWidth ();
     void intersectToBuffers2 (NegotiationIterator source,
 			      NegotiationIterator dest,
 			      std::vector<NegotiationIntervals>& buffers);
   public:
-    virtual NegotiationIterator negotiate (MPI::Intracomm comm,
-					   MPI::Intercomm intercomm,
-					   int remoteNProc,
-					   Connector* connector) = 0;
-    virtual NegotiationIterator negotiateSimple(MPI::Intracomm c);
+    virtual NegotiationIterator negotiate ( int remoteNProc, Connector* connector) = 0;
+    virtual NegotiationIterator negotiateSimple();
   };
 
 
@@ -171,23 +170,25 @@ namespace MUSIC {
     std::vector<NegotiationIntervals> local;
     std::vector<NegotiationIntervals> results;
   public:
-    SpatialOutputNegotiator (IndexMap* indices, Index::Type type);
-    void negotiateWidth (MPI::Intercomm c);
-    NegotiationIterator negotiate (MPI::Intracomm comm,
-				   MPI::Intercomm intercomm,
-				   int remoteNProc,
-				   Connector* connector);
+    SpatialOutputNegotiator (IndexMap* indices,
+		    Index::Type type, MPI::Intracomm c,
+		    MPI::Intercomm intercomm);
+    NegotiationIterator negotiate ( int remoteNProc,  Connector* connector);
+  private:
+    void negotiateWidth ();
+
   };
 
   
   class SpatialInputNegotiator : public SpatialNegotiator {
   public:
-    SpatialInputNegotiator (IndexMap* indices, Index::Type type);
-    void negotiateWidth (MPI::Intercomm c);
-    NegotiationIterator negotiate (MPI::Intracomm comm,
-				   MPI::Intercomm intercomm,
-				   int remoteNProc,
-				   Connector* connector);
+    SpatialInputNegotiator (IndexMap* indices,
+		    Index::Type type, MPI::Intracomm c,
+		    MPI::Intercomm intercomm);
+    NegotiationIterator negotiate (int remoteNProc,  Connector* connector);
+  private:
+    void negotiateWidth ();
+
   };
 
 }

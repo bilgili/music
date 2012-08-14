@@ -22,7 +22,7 @@
 
 #include <music/FIBO.hh>
 
-#define MUSIC_VERSION "1.1.1"
+#define MUSIC_VERSION "1.1.2"
 
 namespace MUSIC {
 

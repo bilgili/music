@@ -119,7 +119,7 @@ public:
 	  //routingTable maps different buffers/even handlers of the current rank
 	  //to the global index range, current rank is responsible for.
 	  std::vector<EventRoutingData*> routingData; /*remove routingData*/
-	  std::map<void*, std::vector<EventRoutingData*> > routingTable;
+	  std::map<int, std::vector<EventRoutingData*> > routingTable;
   public:
 	  ~TableProcessingRouter();
 	  void insertRoutingData (EventRoutingData& data);

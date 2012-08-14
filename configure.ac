@@ -174,9 +174,7 @@ if test "$ac_test_CXXFLAGS" != set; then
     fi
   fi
 fi
-if test "$SYSGUESS" == bgp; then
-  CXXFLAGS="$CXXFLAGS -I/bgsys/drivers/ppcfloor/arch/include"
-fi 
+
 
 AC_PROG_CC
 AC_PROG_LIBTOOL

@@ -15,24 +15,29 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <iostream>
 #include "music/debug.hh"
 #include "music/event.hh"
 #include "music/event_router.hh"
+
 namespace MUSIC {
-  InputRoutingData::InputRoutingData(const IndexInterval &i,  IndexProcessor *specialized_processor):
+
+  InputRoutingData::InputRoutingData (const IndexInterval &i,  IndexProcessor *specialized_processor):
     EventRoutingData(i),
-    specialized_processor_(specialized_processor->clone())
+    specialized_processor_ (specialized_processor->clone ())
   {
   }
-  InputRoutingData::InputRoutingData(const IndexInterval &i, EventHandlerPtr* h):EventRoutingData(i)
+
+  InputRoutingData::InputRoutingData (const IndexInterval &i, EventHandlerPtr* h) : EventRoutingData (i)
   {
     if(h->getType() == Index::GLOBAL)
       specialized_processor_ = new GlobalIndexProcessor(h);
     else
       specialized_processor_ = new LocalIndexProcessor(h);
   }
-  InputRoutingData::~InputRoutingData()
+
+  InputRoutingData::~InputRoutingData ()
   {
     if (specialized_processor_ != NULL)
       delete specialized_processor_;
@@ -47,22 +52,17 @@ namespace MUSIC {
       specialized_processor_ = data.specialized_processor_->clone ();
   }
 
-  InputRoutingData& InputRoutingData::operator= (const InputRoutingData& data) {
+  InputRoutingData& InputRoutingData::operator= (const InputRoutingData& data)
+  {
     EventRoutingData::operator= (data);
     if (data.specialized_processor_ == NULL)
       specialized_processor_ = NULL;
     else
       {
 	delete specialized_processor_;
-	specialized_processor_ = data.specialized_processor_->clone();
+	specialized_processor_ = data.specialized_processor_->clone ();
       }
     return *this;
-  }
-
-  void*
-  InputRoutingData::Data()
-  {
-    return specialized_processor_->getPtr();
   }
 
   void
@@ -71,15 +71,8 @@ namespace MUSIC {
     specialized_processor_->process(t, id);
   }
 
-  OutputRoutingData::OutputRoutingData(const IndexInterval &i, FIBO* b):EventRoutingData(i),buffer_ (b)
+  OutputRoutingData::OutputRoutingData (const IndexInterval &i, FIBO* b) : EventRoutingData(i), buffer_ (b)
   {
-
-  }
-
-  void *
-  OutputRoutingData::Data()
-  {
-    return buffer_;
   }
 
   void

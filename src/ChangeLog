@@ -1,5 +1,7 @@
 2012-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/event_router, event_router.cc: Removed unused member Data ().
+
 	* interval.hh, music/event_router.hh, event_router.cc,
 	event_routingmap.cc: Simplifications enabled by previous changes.
 

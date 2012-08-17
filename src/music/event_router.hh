@@ -87,7 +87,6 @@ namespace MUSIC {
     ~InputRoutingData();
     InputRoutingData (const InputRoutingData& data);
     InputRoutingData& operator= (const InputRoutingData& data);
-    void *Data();
     void process (double t, int id);
   };
 
@@ -102,7 +101,6 @@ namespace MUSIC {
       buffer_ = data.buffer_;
       return *this;
     }
-    void *Data();
     void process (double t, int id);
   };
 

@@ -15,7 +15,9 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "music/connector.hh"
+
 #if MUSIC_USE_MPI
 // connector.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other
@@ -25,11 +27,12 @@
 #include "music/communication.hh"
 #include <cmath>
 #include <map>
+
 namespace MUSIC {
 
   Connector::Connector (ConnectorInfo info_,
-		    IndexMap* indices,
-		    Index::Type type,
+			IndexMap* indices,
+			Index::Type type,
 			MPI::Intracomm c)
     : info (info_),
       indices_ (indices->copy()),
@@ -40,8 +43,8 @@ namespace MUSIC {
 
 
   Connector::Connector (ConnectorInfo info_,
-		    IndexMap* indices,
-		    Index::Type type,
+			IndexMap* indices,
+			Index::Type type,
 			MPI::Intracomm c,
 			MPI::Intercomm ic)
     : info (info_),
@@ -70,31 +73,37 @@ namespace MUSIC {
 				       CREATE_INTERCOMM_MSG);
   }
 
+
   void
   Connector::freeIntercomm ()
   {
     intercomm.Free ();
   }
-  void Connector::spatialNegotiation (){
-	  SpatialNegotiator *spatialNegotiator_ = createSpatialNegotiator();
-	  width_ = spatialNegotiator_->getWidth();
-	  maxLocalWidth_ = spatialNegotiator_->maxLocalWidth();
-	  spatialNegotiation(spatialNegotiator_);
-	  delete spatialNegotiator_;
-	  delete indices_;
+
+
+  void Connector::spatialNegotiation ()
+  {
+    SpatialNegotiator *spatialNegotiator_ = createSpatialNegotiator ();
+    width_ = spatialNegotiator_->getWidth ();
+    maxLocalWidth_ = spatialNegotiator_->maxLocalWidth ();
+    spatialNegotiation (spatialNegotiator_);
+    delete spatialNegotiator_;
+    delete indices_;
   }
+
+
   void Connector::spatialNegotiation (SpatialNegotiator * spatialNegotiator_)
-    {
+  {
 
-	  if(spatialNegotiator_ == NULL)
-		  error ("spatialNegotiator was not initialized");
-      std::map<int, Subconnector*> subconnectors;
-      NegotiationIterator i
-        	   = spatialNegotiator_->negotiate ( info.nProcesses (),
-        					    this); // only for debugging
+    if (spatialNegotiator_ == NULL)
+      error ("spatialNegotiator was not initialized");
+    std::map<int, Subconnector*> subconnectors;
+    NegotiationIterator i
+      = spatialNegotiator_->negotiate (info.nProcesses (),
+				       this); // only for debugging
 
-      for (	 ;!i.end ();	 ++i)
-        {
+    for (	 ;!i.end ();	 ++i)
+      {
   	std::map<int, Subconnector*>::iterator c
   	  = subconnectors.find (i->rank ());
   	Subconnector* subconn;
@@ -104,7 +113,7 @@ namespace MUSIC {
   	  {
   	    subconn = makeSubconnector (i->rank ());
   	    if(subconn == NULL)
-  	 		  error ("Subconnector was not initialized");
+	      error ("Subconnector was not initialized");
   	    subconnectors.insert (std::make_pair (i->rank (), subconn));
   	    rsubconn.push_back (subconn);
   	  }
@@ -115,58 +124,77 @@ namespace MUSIC {
   		   << i->local () << ", "
   		   << i->displ() << ") -> " << i->rank ());
   	addRoutingInterval (i->interval (), subconn);
-        }
+      }
 
-    }
+  }
+
+
   /* remedius
    * lessSubconnector function was moved from runtime.cc since
    * Runtime object doesn't contain vector of subconnectors anymore.
    */
   bool
-   lessSubconnector (const Subconnector* c1, const Subconnector* c2)
-   {
-     return (c1->remoteWorldRank () < c2->remoteWorldRank ()
+  lessSubconnector (const Subconnector* c1, const Subconnector* c2)
+  {
+    return (c1->remoteWorldRank () < c2->remoteWorldRank ()
   	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
   		&& c1->receiverPortCode () < c2->receiverPortCode ()));
-   }
-  void Connector::initialize(){
-	  sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
- }
-
-  bool Connector::finalizeSimulation(){
-	  bool dataStillFlowing = false;
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); 	 s != rsubconn.end ();  	 ++s)
-	  	        (*s)->flush(dataStillFlowing);
-	  return !dataStillFlowing;
-  }
-  void Connector::tick(){
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
-	 	  	  	 ++s){
-	 	  	        (*s)->maybeCommunicate();
-
-	  }
   }
 
-  SpatialNegotiator *
-  OutputConnector::createSpatialNegotiator(){
-  	  return new SpatialOutputNegotiator(indices_, type_, comm, intercomm );
+
+  void Connector::initialize ()
+  {
+    sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
   }
 
-  SpatialNegotiator *
-    InputConnector::createSpatialNegotiator(){
-	  return new SpatialInputNegotiator(indices_, type_, comm, intercomm);
+
+  bool Connector::finalizeSimulation ()
+  {
+    bool dataStillFlowing = false;
+    for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); 	 s != rsubconn.end ();  	 ++s)
+      (*s)->flush(dataStillFlowing);
+    return !dataStillFlowing;
+  }
+
+
+  void Connector::tick ()
+  {
+    for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
+	 ++s){
+      (*s)->maybeCommunicate();
+
     }
+  }
+
+
+  SpatialNegotiator *
+  OutputConnector::createSpatialNegotiator ()
+  {
+    return new SpatialOutputNegotiator(indices_, type_, comm, intercomm );
+  }
+
+
+  SpatialNegotiator *
+  InputConnector::createSpatialNegotiator ()
+  {
+    return new SpatialInputNegotiator(indices_, type_, comm, intercomm);
+  }
+
 
   /********************************************************************
    *
    * Cont Connectors
    *
    ********************************************************************/
+
   void
-  ContConnector::initialize(){
-	  Connector::initialize();
-	  initialCommunication();
+  ContConnector::initialize ()
+  {
+    Connector::initialize();
+    initialCommunication();
   }
+
+
   ClockState
   ContConnector::remoteTickInterval (ClockState tickInterval)
   {
@@ -184,27 +212,33 @@ namespace MUSIC {
     return sRemoteTickInterval.deserialize ();
   }
 
+
   ContOutputConnector::ContOutputConnector (ConnectorInfo connInfo,
-		  	  	  	  	  IndexMap* indices,
-		  	  	  	  	  Index::Type type,
-		  	  	  	     MPI::Intracomm comm,
-					     Sampler& sampler,
-					     MPI::Datatype data_type)
+					    IndexMap* indices,
+					    Index::Type type,
+					    MPI::Intracomm comm,
+					    Sampler& sampler,
+					    MPI::Datatype data_type)
     : Connector (connInfo, indices, type, comm),
       ContConnector (sampler, data_type),
       connector(NULL)
   {
   }
+
   ContOutputConnector::ContOutputConnector (   Sampler& sampler,  MPI::Datatype type)
-     :  ContConnector (sampler, type),
-        connector(NULL)
-   {
-   }
+    :  ContConnector (sampler, type),
+       connector(NULL)
+  {
+  }
+
+
   ContOutputConnector::~ContOutputConnector()
   {
-	  if (connector != NULL)
-		  delete connector;
+    if (connector != NULL)
+      delete connector;
   }
+
+
   Subconnector*
   ContOutputConnector::makeSubconnector (int remoteRank)
   {
@@ -217,7 +251,7 @@ namespace MUSIC {
   }
 
 
- void
+  void
   ContOutputConnector::specialize (Clock& localTime)
   {
     ClockState tickInterval = localTime.tickInterval ();
@@ -235,14 +269,16 @@ namespace MUSIC {
   ContOutputConnector::addRoutingInterval (IndexInterval i,
 					   Subconnector* subconn)
   {
-	OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
+    OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
     distributor_.addRoutingInterval (i, osubconn->outputBuffer());
   }
+
+
   void ContOutputConnector::initialCommunication()
-   {
- 	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
- 	 	        (*s)->initialCommunication (0.0);
-   }
+  {
+    for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
+      (*s)->initialCommunication (0.0);
+  }
   
 
   void
@@ -250,7 +286,7 @@ namespace MUSIC {
   {
     distributor_.configure (sampler_.dataMap ());
     distributor_.initialize ();
-   // synch.initialize ();
+    // synch.initialize ();
 
     // put one element in send buffers
     distributor_.distribute ();
@@ -260,103 +296,114 @@ namespace MUSIC {
   void
   PlainContOutputConnector::preCommunication ()
   {
-	  if (sample ())
-	  {
-		  // copy application data to send buffers
-		  distributor_.distribute ();
+    if (sample ())
+      {
+	// copy application data to send buffers
+	distributor_.distribute ();
 
-	  }
+      }
   }
+
+
   // Start sampling (and fill the output buffers) at a time dependent
   // on latency and receiver's tick interval.  A negative latency can
   // delay start of sampling beyond time 0.  The tickInterval together
   // with the strict comparison has the purpose of supplying an
   // interpolating receiver side with samples.
   bool
-   PlainContOutputConnector::sample (){
-	  return (localTime_->integerTime () + latency + remoteTime_.tickInterval ()
-	  	    > 0);
+  PlainContOutputConnector::sample  ()
+  {
+    return (localTime_->integerTime () + latency + remoteTime_.tickInterval ()
+	    > 0);
   }
+
 
   void
   InterpolatingContOutputConnector::initialize ()
   {
-	  // Set the remoteTime which is used to control sampling and
-	  // interpolation.
-	  //
-	  // For positive latencies, the integer part (in terms of receiver
-	  // ticks) of the latency is handled by filling up the receiver
-	  // buffers using InputSynchronizer::initialBufferedTicks ().
-	  // remoteTime then holds the fractional part.
-	  if (latency > 0)
-	  {
-		  ClockState startTime = - latency % remoteTime_.tickInterval ();
-		  if (latency >= localTime_->tickInterval ())
-			  startTime = startTime + remoteTime_.tickInterval ();
-		  remoteTime_.set (startTime);
-	  }
-	  else
-		  remoteTime_.set (- latency);
-	  distributor_.configure (sampler_.interpolationDataMap ());
-	  distributor_.initialize ();
-	  // synch.initialize ();
+    // Set the remoteTime which is used to control sampling and
+    // interpolation.
+    //
+    // For positive latencies, the integer part (in terms of receiver
+    // ticks) of the latency is handled by filling up the receiver
+    // buffers using InputSynchronizer::initialBufferedTicks ().
+    // remoteTime then holds the fractional part.
+    if (latency > 0)
+      {
+	ClockState startTime = - latency % remoteTime_.tickInterval ();
+	if (latency >= localTime_->tickInterval ())
+	  startTime = startTime + remoteTime_.tickInterval ();
+	remoteTime_.set (startTime);
+      }
+    else
+      remoteTime_.set (- latency);
+    distributor_.configure (sampler_.interpolationDataMap ());
+    distributor_.initialize ();
+    // synch.initialize ();
 
-	  // put one element in send buffers
-	  sampler_.sample ();
-	  sampler_.interpolate (1.0);
-	  distributor_.distribute ();
+    // put one element in send buffers
+    sampler_.sample ();
+    sampler_.interpolate (1.0);
+    distributor_.distribute ();
   }
+
+
   // After the last sample at 1 localTime will be between remoteTime
   // and remoteTime + localTime->tickInterval.  We trigger on this
   // situation and forward remoteTime.
   bool
   InterpolatingContOutputConnector::sample()
   {
-	  ClockState sampleWindowLow
-	  = remoteTime_.integerTime () - localTime_->tickInterval ();
-	  ClockState sampleWindowHigh
-	  = remoteTime_.integerTime () + localTime_->tickInterval ();
-	  return (sampleWindowLow <= localTime_->integerTime ()
-			  && localTime_->integerTime () < sampleWindowHigh);
+    ClockState sampleWindowLow
+      = remoteTime_.integerTime () - localTime_->tickInterval ();
+    ClockState sampleWindowHigh
+      = remoteTime_.integerTime () + localTime_->tickInterval ();
+    return (sampleWindowLow <= localTime_->integerTime ()
+	    && localTime_->integerTime () < sampleWindowHigh);
   }
+
+
   bool
   InterpolatingContOutputConnector::interpolate()
   {
-	  ClockState sampleWindowHigh
-	  = remoteTime_.integerTime () + localTime_->tickInterval ();
-	  return (remoteTime_.integerTime () <= localTime_->integerTime ()
-			  && localTime_->integerTime () < sampleWindowHigh);
+    ClockState sampleWindowHigh
+      = remoteTime_.integerTime () + localTime_->tickInterval ();
+    return (remoteTime_.integerTime () <= localTime_->integerTime ()
+	    && localTime_->integerTime () < sampleWindowHigh);
   }
+
+
   double
   InterpolatingContOutputConnector::interpolationCoefficient()
   {
-	  ClockState prevSampleTime
-	  = localTime_->integerTime () - localTime_->tickInterval ();
-	  double c = ((double) (remoteTime_.integerTime () - prevSampleTime)
-			  / (double) localTime_->tickInterval ());
+    ClockState prevSampleTime
+      = localTime_->integerTime () - localTime_->tickInterval ();
+    double c = ((double) (remoteTime_.integerTime () - prevSampleTime)
+		/ (double) localTime_->tickInterval ());
 
-	  MUSIC_LOGR ("interpolationCoefficient = " << c);
-	  // NOTE: preliminary implementation which just provides
-	  // the functionality specified in the API
-	  if (interp)
-		  return c;
-	  else
-		  return round (c);
+    MUSIC_LOGR ("interpolationCoefficient = " << c);
+    // NOTE: preliminary implementation which just provides
+    // the functionality specified in the API
+    if (interp)
+      return c;
+    else
+      return round (c);
   }
+
 
   void
   InterpolatingContOutputConnector::preCommunication ()
   {
-	  if (sample ()){
-		  // sampling before and after time of receiver tick
-		  sampler_.sampleOnce ();
-	  }
-	  if (interpolate ())
-	  {
-		  sampler_.interpolate (interpolationCoefficient ());
-		  remoteTime_.tick();
-		  distributor_.distribute ();
-	  }
+    if (sample ()){
+      // sampling before and after time of receiver tick
+      sampler_.sampleOnce ();
+    }
+    if (interpolate ())
+      {
+	sampler_.interpolate (interpolationCoefficient ());
+	remoteTime_.tick();
+	distributor_.distribute ();
+      }
   }
 
 
@@ -374,21 +421,26 @@ namespace MUSIC {
   {
   }
 
+
   ContInputConnector::ContInputConnector ( Sampler& sampler, MPI::Datatype type,  double delay)
     : ContConnector (sampler, type),
       delay_ (delay),
       connector(NULL)
   {
   }
+
+
   ContInputConnector::~ContInputConnector()
   {
-	  if (connector != NULL)
-		  delete connector;
+    if (connector != NULL)
+      delete connector;
   }
+
+
   Subconnector*
   ContInputConnector::makeSubconnector (int remoteRank)
   {
-	  int receiverRank = intercomm.Get_rank ();
+    int receiverRank = intercomm.Get_rank ();
     return new ContInputSubconnector (//synchronizer (),
 				      intercomm,
 				      remoteLeader (),
@@ -397,6 +449,7 @@ namespace MUSIC {
 				      receiverPortCode (),
 				      data_type_);
   }
+
 
   bool
   ContInputConnector::divisibleDelay (Clock& localTime)
@@ -421,60 +474,67 @@ namespace MUSIC {
     else
       connector = new PlainContInputConnector (this);
   }
+
+
   void
   ContInputConnector::initialCommunication()
   {
-	  double initialBTicks = initialBufferedTicks();
-	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
-	  	 	        (*s)->initialCommunication (initialBTicks);
+    double initialBTicks = initialBufferedTicks();
+    for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); s != rsubconn.end (); ++s)
+      (*s)->initialCommunication (initialBTicks);
   }
+
+
   // Return the number of copies of the data sampled by the sender
   // Runtime constructor which should be stored in the receiver
   // buffers at the first tick () (which occurs at the end of the
   // Runtime constructor)
   int
-  ContInputConnector::initialBufferedTicks(){
-	    if (remoteTime_.tickInterval () < localTime_->tickInterval ())
-	      {
-		// InterpolatingOutputConnector - PlainInputConnector
+  ContInputConnector::initialBufferedTicks ()
+  {
+    if (remoteTime_.tickInterval () < localTime_->tickInterval ())
+      {
+	// InterpolatingOutputConnector - PlainInputConnector
 
-		if (delay_ <= 0)
-		  return 0;
-		else
-		  {
-		    // Need to add a sample first when we pass the receiver
-		    // tick (=> - 1).  If we haven't passed, the interpolator
-		    // could simply use an interpolation coefficient of 0.0.
-		    // (But this will never happen since that case isn't
-		    // handled by an InterpolatingOutputConnector.)
-		    int ticks = (delay_ - 1) / localTime_->tickInterval ();
+	if (delay_ <= 0)
+	  return 0;
+	else
+	  {
+	    // Need to add a sample first when we pass the receiver
+	    // tick (=> - 1).  If we haven't passed, the interpolator
+	    // could simply use an interpolation coefficient of 0.0.
+	    // (But this will never happen since that case isn't
+	    // handled by an InterpolatingOutputConnector.)
+	    int ticks = (delay_ - 1) / localTime_->tickInterval ();
 
-		    // Need to add a sample if we go outside of the sender
-		    // interpolation window
-		    if (delay_ >= remoteTime_.tickInterval ())
-		      ticks += 1;
+	    // Need to add a sample if we go outside of the sender
+	    // interpolation window
+	    if (delay_ >= remoteTime_.tickInterval ())
+	      ticks += 1;
 
-		    return ticks;
-		  }
-	      }
-	    else
-	      {
-		// PlainOutputConnector - InterpolatingInputConnector
+	    return ticks;
+	  }
+      }
+    else
+      {
+	// PlainOutputConnector - InterpolatingInputConnector
 
-		if (delay_ <= 0)
-		  return 0;
-		else
-		  // Need to add a sample first when we pass the receiver
-		  // tick (=> - 1).  If we haven't passed, the interpolator
-		  // can simply use an interpolation coefficient of 0.0.
-		  return 1 + (delay_ - 1) / localTime_->tickInterval ();
-	      }
+	if (delay_ <= 0)
+	  return 0;
+	else
+	  // Need to add a sample first when we pass the receiver
+	  // tick (=> - 1).  If we haven't passed, the interpolator
+	  // can simply use an interpolation coefficient of 0.0.
+	  return 1 + (delay_ - 1) / localTime_->tickInterval ();
+      }
   }
+
+
   void
   ContInputConnector::addRoutingInterval (IndexInterval i,
 					  Subconnector* subconn)
   {
-	InputSubconnector*isubconn= dynamic_cast<InputSubconnector*>(subconn);
+    InputSubconnector*isubconn= dynamic_cast<InputSubconnector*>(subconn);
     collector_.addRoutingInterval (i, isubconn->inputBuffer());
   }
 
@@ -482,11 +542,12 @@ namespace MUSIC {
   void
   PlainContInputConnector::initialize ()
   {
-   // collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
-	collector_.configure (sampler_.dataMap (),  CONT_BUFFER_MAX);
+    // collector_.configure (sampler_.dataMap (), synch.allowedBuffered () + 1);
+    collector_.configure (sampler_.dataMap (),  CONT_BUFFER_MAX);
     collector_.initialize ();
   }
   
+
   void
   PlainContInputConnector::postCommunication ()
   {
@@ -494,23 +555,24 @@ namespace MUSIC {
     collector_.collect ();
   }
 
+
   void
   InterpolatingContInputConnector::initialize ()
   {
-	  if (latency > 0)
-		  remoteTime_.set (latency % remoteTime_.tickInterval ()
-				  - 2 * remoteTime_.tickInterval ());
-	  else
-		  remoteTime_.set (latency % remoteTime_.tickInterval ()
-				  - remoteTime_.tickInterval ());
-  //  collector_.configure (sampler_.interpolationDataMap (),
-//			  synch.allowedBuffered () + 1);
+    if (latency > 0)
+      remoteTime_.set (latency % remoteTime_.tickInterval ()
+		       - 2 * remoteTime_.tickInterval ());
+    else
+      remoteTime_.set (latency % remoteTime_.tickInterval ()
+		       - remoteTime_.tickInterval ());
+    //  collector_.configure (sampler_.interpolationDataMap (),
+    //			  synch.allowedBuffered () + 1);
 
-	collector_.configure (sampler_.interpolationDataMap (), CONT_BUFFER_MAX);
+    collector_.configure (sampler_.interpolationDataMap (), CONT_BUFFER_MAX);
     collector_.initialize ();
 
 
-   // synch.initialize ();
+    // synch.initialize ();
   }
 
 
@@ -538,21 +600,22 @@ namespace MUSIC {
       return round (c);
   }
 
+
   void
   InterpolatingContInputConnector::postCommunication ()
   {
-	  if (first_)
-	  {
-  		  collector_.collect (sampler_.insert ());
-  		  remoteTime_.tick();
-		  first_ = false;
-	  }
-	  else if (sample ())
-	  {
-		  collector_.collect (sampler_.insert ());
-		  remoteTime_.tick();
-	  }
-	  sampler_.interpolateToApplication (interpolationCoefficient ());
+    if (first_)
+      {
+	collector_.collect (sampler_.insert ());
+	remoteTime_.tick();
+	first_ = false;
+      }
+    else if (sample ())
+      {
+	collector_.collect (sampler_.insert ());
+	remoteTime_.tick();
+      }
+    sampler_.interpolateToApplication (interpolationCoefficient ());
   }
 
 
@@ -573,6 +636,7 @@ namespace MUSIC {
 					receiverPortCode ());
   }
 
+
   void
   EventOutputConnector::addRoutingInterval (IndexInterval i,
 					    Subconnector* subconn)
@@ -585,7 +649,7 @@ namespace MUSIC {
   Subconnector*
   EventInputConnector::makeSubconnector (int remoteRank)
   {
-	int receiverRank = intercomm.Get_rank ();
+    int receiverRank = intercomm.Get_rank ();
     if (type_ == Index::GLOBAL)
       return new EventInputSubconnectorGlobal (//&synch,
 					       intercomm,
@@ -606,10 +670,10 @@ namespace MUSIC {
 
 
 
- void EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
- {
-	 //routingMap_-> insert (i, handleEvent_.global());
- }
+  void EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
+  {
+    //routingMap_-> insert (i, handleEvent_.global());
+  }
 
 
   /********************************************************************
@@ -663,14 +727,14 @@ namespace MUSIC {
   void
   MessageOutputConnector::postCommunication ()
   {
- //   if (synch.communicate ())
-      buffer.clear ();
+    //   if (synch.communicate ())
+    buffer.clear ();
   }
 
   
   MessageInputConnector::MessageInputConnector (ConnectorInfo connInfo,
-		  	  	  	  	  IndexMap* indices,
-		  	  	  	  	  Index::Type type,
+						IndexMap* indices,
+						Index::Type type,
 						MessageHandler* handleMessage,
 						MPI::Intracomm comm)
     : Connector (connInfo, indices, type, comm),
@@ -684,7 +748,7 @@ namespace MUSIC {
   Subconnector*
   MessageInputConnector::makeSubconnector (int remoteRank)
   {
-	  int receiverRank = intercomm.Get_rank ();
+    int receiverRank = intercomm.Get_rank ();
     return new MessageInputSubconnector (//&synch,
 					 intercomm,
 					 remoteLeader (),
@@ -693,215 +757,257 @@ namespace MUSIC {
 					 receiverPortCode (),
 					 handleMessage_);
   }
+
   /********************************************************************
-     *
-     * Collective Connector
-     *
-     ********************************************************************/
+   *
+   * Collective Connector
+   *
+   ********************************************************************/
+
   CollectiveConnector::CollectiveConnector(bool high):
-		  high_(high),
-		  subconnector(NULL)
+    high_(high),
+    subconnector(NULL)
   {
 
   }
+
+
   void
   CollectiveConnector::createIntercomm()
   {
-	  Connector::createIntercomm();
-	  intracomm_ = intercomm.Merge(high_);
+    Connector::createIntercomm();
+    intracomm_ = intercomm.Merge(high_);
   }
+
+
   void
   CollectiveConnector::freeIntercomm()
   {
-	  intracomm_.Free();
-	  Connector::freeIntercomm();
+    intracomm_.Free();
+    Connector::freeIntercomm();
 
   }
+
+
   ContCollectiveConnector::ContCollectiveConnector( MPI::Datatype type, bool high):
-CollectiveConnector(high),
-data_type(type)
+    CollectiveConnector(high),
+    data_type(type)
   {
 
   }
+
+
   Subconnector*
   ContCollectiveConnector::makeSubconnector (void *param) {
-	  std::multimap< int, Interval> intrvs= *static_cast< std::multimap< int, Interval>*>(param);
-	  if(subconnector == NULL){
-		  subconnector = new ContCollectiveSubconnector(intrvs,
-				  width(),
-				  intracomm_,
-				  data_type);
-	  }
-	  return subconnector;
+    std::multimap< int, Interval> intrvs= *static_cast< std::multimap< int, Interval>*>(param);
+    if(subconnector == NULL){
+      subconnector = new ContCollectiveSubconnector(intrvs,
+						    width(),
+						    intracomm_,
+						    data_type);
+    }
+    return subconnector;
   }
+
+
   EventCollectiveConnector::EventCollectiveConnector(bool high):
-		  CollectiveConnector(high),
-		  router_(NULL)
+    CollectiveConnector(high),
+    router_(NULL)
   {
 
   }
+
+
   Subconnector*
   EventCollectiveConnector::makeSubconnector (void *param) {
-	  //  EventRouter * router_ = static_cast<EventRouter*>(param);
+    //  EventRouter * router_ = static_cast<EventRouter*>(param);
 
-	  if(subconnector == NULL){
-		  subconnector = new EventCollectiveSubconnector(
-				  intracomm_,
-				  router_);
-	  }
-	  return subconnector;
+    if(subconnector == NULL){
+      subconnector = new EventCollectiveSubconnector(
+						     intracomm_,
+						     router_);
+    }
+    return subconnector;
   }
+
+
   EventInputCollectiveConnector::EventInputCollectiveConnector(ConnectorInfo connInfo,
-		  IndexMap* indices,
-		  Index::Type type,
-		  MPI::Intracomm comm,
-		  EventHandlerPtr handleEvent):
-		  Connector(connInfo,indices,type,comm),
-		  EventInputConnector(handleEvent),
-		  EventCollectiveConnector(true)
+							       IndexMap* indices,
+							       Index::Type type,
+							       MPI::Intracomm comm,
+							       EventHandlerPtr handleEvent):
+    Connector(connInfo,indices,type,comm),
+    EventInputConnector(handleEvent),
+    EventCollectiveConnector(true)
   {
 
-	  int procMethod = connInfo.processingMethod();
-	  if(procMethod == ConnectorInfo::TREE )
-		  router_ = new TreeProcessingInputRouter();
-	  else
-		  router_ = new TableProcessingInputRouter();
+    int procMethod = connInfo.processingMethod();
+    if(procMethod == ConnectorInfo::TREE )
+      router_ = new TreeProcessingInputRouter();
+    else
+      router_ = new TableProcessingInputRouter();
   }
+
+
   EventInputCollectiveConnector::~EventInputCollectiveConnector()
   {
-	  delete router_;
+    delete router_;
   }
+
+
   void
   EventInputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_){
-	  routingMap_input = new InputRoutingMap();
-	  Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
-	  rsubconn.push_back (subconn);
-	  for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
-		  addRoutingInterval (i->interval (), subconn);
-	  routingMap_input->build(router_);
-	  delete routingMap_input;
+    routingMap_input = new InputRoutingMap();
+    Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
+    rsubconn.push_back (subconn);
+    for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
+      addRoutingInterval (i->interval (), subconn);
+    routingMap_input->build(router_);
+    delete routingMap_input;
   }
+
+
   void
   EventInputCollectiveConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
   {
-	    	routingMap_input-> insert (i,  &handleEvent_ );
+    routingMap_input-> insert (i,  &handleEvent_ );
   }
-  EventOutputCollectiveConnector::EventOutputCollectiveConnector(ConnectorInfo connInfo,
-		  	  IndexMap* indices,
-		      Index::Type type,
-			  MPI::Intracomm comm,
-			  EventRoutingMap<FIBO *>* routingMap):
-			  Connector(connInfo,indices, type,comm),
-			  EventOutputConnector( routingMap),
-			EventCollectiveConnector(false)
-{
-	  router_ = new EventRouter();
-}
+
+
+  EventOutputCollectiveConnector::EventOutputCollectiveConnector
+  (ConnectorInfo connInfo,
+   IndexMap* indices,
+   Index::Type type,
+   MPI::Intracomm comm,
+   EventRoutingMap<FIBO *>* routingMap)
+    : Connector(connInfo,indices, type,comm),
+      EventOutputConnector( routingMap),
+      EventCollectiveConnector(false)
+  {
+    router_ = new EventRouter();
+  }
+
+
   EventOutputCollectiveConnector::~EventOutputCollectiveConnector()
   {
-	  delete router_;
+    delete router_;
   }
+
+
   void
-  EventOutputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_){
-
-	  Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
-	  rsubconn.push_back (subconn);
-	  for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
-		  addRoutingInterval (i->interval (), subconn);
+  EventOutputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_)
+  {
+    Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
+    rsubconn.push_back (subconn);
+    for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
+      addRoutingInterval (i->interval (), subconn);
   }
 
-  ContInputCollectiveConnector::ContInputCollectiveConnector(ConnectorInfo connInfo,
-		   IndexMap* indices,
-		   Index::Type type,
-		   MPI::Intracomm comm,
-		   Sampler& sampler,
-		   MPI::Datatype data_type,
-		   double delay):
-		   Connector(connInfo, indices,type, comm),
-		   ContInputConnector(sampler, data_type, delay),
-		   ContCollectiveConnector(data_type, true)
+
+  ContInputCollectiveConnector::ContInputCollectiveConnector
+  (ConnectorInfo connInfo,
+   IndexMap* indices,
+   Index::Type type,
+   MPI::Intracomm comm,
+   Sampler& sampler,
+   MPI::Datatype data_type,
+   double delay)
+    : Connector(connInfo, indices,type, comm),
+      ContInputConnector(sampler, data_type, delay),
+      ContCollectiveConnector(data_type, true)
   {
 
   }
-  void
-  ContInputCollectiveConnector::spatialNegotiation ( SpatialNegotiator* spatialNegotiator_)
-  {
-	  std::multimap< int, Interval> receiver_intrvs;
-	  std::vector<IndexInterval> intrvs;
-	  std::map<int,int> remoteToCollectiveRankMap;
-	  receiveRemoteCommRankID(remoteToCollectiveRankMap);
 
-      for (NegotiationIterator i  = spatialNegotiator_->negotiate (info.nProcesses (), this);  !i.end (); ++i)
+
+  void
+  ContInputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_)
+  {
+    std::multimap< int, Interval> receiver_intrvs;
+    std::vector<IndexInterval> intrvs;
+    std::map<int,int> remoteToCollectiveRankMap;
+    receiveRemoteCommRankID(remoteToCollectiveRankMap);
+
+    for (NegotiationIterator i  = spatialNegotiator_->negotiate (info.nProcesses (), this);  !i.end (); ++i)
       {
-    	  int begin = (i->displ())*data_type_.Get_size();
-    	  // length field is stored overlapping the end field
-    	  int end = (i->end() - i->begin()) * data_type_.Get_size();
-    	  receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
-    	  intrvs.push_back(i->interval());
+	int begin = (i->displ())*data_type_.Get_size();
+	// length field is stored overlapping the end field
+	int end = (i->end() - i->begin()) * data_type_.Get_size();
+	receiver_intrvs.insert (std::make_pair ( remoteToCollectiveRankMap[i->rank ()], Interval(begin, end)));
+	intrvs.push_back(i->interval());
       }
 
-	  Subconnector *subconn = ContCollectiveConnector::makeSubconnector(&receiver_intrvs);
-	  rsubconn.push_back (subconn);
-	  for (std::vector<IndexInterval>::iterator  it=intrvs.begin() ; it < intrvs.end(); it++ )
-		  addRoutingInterval ((*it), subconn);
+    Subconnector *subconn = ContCollectiveConnector::makeSubconnector(&receiver_intrvs);
+    rsubconn.push_back (subconn);
+    for (std::vector<IndexInterval>::iterator  it=intrvs.begin() ; it < intrvs.end(); it++ )
+      addRoutingInterval ((*it), subconn);
   }
+
+
   void
   ContInputCollectiveConnector::receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap)
   {
-	  int nProcesses, intra_rank;
-	  MPI::Status status;
-	  nProcesses = intercomm.Get_remote_size();
+    int nProcesses, intra_rank;
+    MPI::Status status;
+    nProcesses = intercomm.Get_remote_size();
 
-	  for (int i =0; i < nProcesses; ++i){
-		  intercomm.Recv (&intra_rank,
-				  1,
-				  MPI::INT,
-				  i,
-				  SPATIAL_NEGOTIATION_MSG,
-				  status);
-		  remoteToCollectiveRankMap.insert(std::make_pair(i,intra_rank));
-		  MUSIC_LOG0( "Remote Communication Rank:" << i << "is mapped to Collective Communication Rank:" << intra_rank );
-	  }
+    for (int i =0; i < nProcesses; ++i)
+      {
+	intercomm.Recv (&intra_rank,
+			1,
+			MPI::INT,
+			i,
+			SPATIAL_NEGOTIATION_MSG,
+			status);
+	remoteToCollectiveRankMap.insert(std::make_pair(i,intra_rank));
+	MUSIC_LOG0( "Remote Communication Rank:" << i << "is mapped to Collective Communication Rank:" << intra_rank );
+      }
 
   }
+
+
   ContOutputCollectiveConnector::ContOutputCollectiveConnector(ConnectorInfo connInfo,
-		   IndexMap* indices,
-		   Index::Type type,
-		   MPI::Intracomm comm,
-		   Sampler& sampler,
-		   MPI::Datatype data_type):
-		   Connector(connInfo, indices,type, comm),
-		   ContOutputConnector( sampler, data_type),
-		   ContCollectiveConnector(data_type, false)
+							       IndexMap* indices,
+							       Index::Type type,
+							       MPI::Intracomm comm,
+							       Sampler& sampler,
+							       MPI::Datatype data_type):
+    Connector(connInfo, indices,type, comm),
+    ContOutputConnector( sampler, data_type),
+    ContCollectiveConnector(data_type, false)
   {
 
   }
+
+
   void
   ContOutputCollectiveConnector::spatialNegotiation ( SpatialNegotiator* spatialNegotiator_)
   {
-	  sendLocalCommRankID();
-	  std::map<Interval, int>  empty_intrvs;
-	  Subconnector *subconn = ContCollectiveConnector::makeSubconnector(&empty_intrvs);
-	  rsubconn.push_back (subconn);
-	  spatialNegotiator_->negotiate (info.nProcesses (), this);
-	  for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
-		  addRoutingInterval (i->interval(), subconn);
+    sendLocalCommRankID();
+    std::map<Interval, int>  empty_intrvs;
+    Subconnector *subconn = ContCollectiveConnector::makeSubconnector(&empty_intrvs);
+    rsubconn.push_back (subconn);
+    spatialNegotiator_->negotiate (info.nProcesses (), this);
+    for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
+      addRoutingInterval (i->interval(), subconn);
   }
+
+
   void
   ContOutputCollectiveConnector::sendLocalCommRankID()
   {
-	  int nProcesses, intra_rank;
-	  MPI::Status status;
-	  nProcesses = intercomm.Get_remote_size();
-	  intra_rank = intracomm_.Get_rank();
-	  std::map<int,int> rCommToCollCommRankMap;
-	  for (int i =0; i < nProcesses; ++i){
-		  intercomm.Ssend(&intra_rank,
-				  1,
-				  MPI::INT,
-				  i,
-				  SPATIAL_NEGOTIATION_MSG);
-	  }
+    int nProcesses, intra_rank;
+    MPI::Status status;
+    nProcesses = intercomm.Get_remote_size();
+    intra_rank = intracomm_.Get_rank();
+    std::map<int,int> rCommToCollCommRankMap;
+    for (int i =0; i < nProcesses; ++i){
+      intercomm.Ssend(&intra_rank,
+		      1,
+		      MPI::INT,
+		      i,
+		      SPATIAL_NEGOTIATION_MSG);
+    }
   }
 }
 #endif

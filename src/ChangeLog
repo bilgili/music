@@ -1,5 +1,8 @@
 2012-08-17  Mikael Djurfeldt  <mdj@djurfeldt.com>
 
+	* application_map.cc (ApplicationMap::read): Only create file
+	"leaders" if MUSIC_DEBUGGING is defined.
+
 	* configuration.cc (Configuration::getEnv): Handle the case where
 	the MUSIC configuration variable is not present (launched without
 	MUSIC) properly.

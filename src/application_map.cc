@@ -91,8 +91,10 @@ namespace MUSIC {
   ApplicationMap::read (std::istringstream& in, int nApp, std::vector<int> appColor2Leader)
   {
 	  int leader, aleader;
+#ifdef MUSIC_DEBUG
 	  /*  for debugging */
 	  std::ofstream outfile ("leaders");
+#endif
 	  leader = 0;
 	  bool seq = appColor2Leader.size() == 0;
 	  for (int i = 0; i < nApp; ++i)
@@ -103,14 +105,18 @@ namespace MUSIC {
 		  int np;
 		  in >> np;
 		  aleader = seq ? leader : appColor2Leader[i];
+#ifdef MUSIC_DEBUG
 		  /*  for debugging */
 		  outfile<< name << "\t" << aleader << std::endl;
+#endif
 		  push_back (ApplicationInfo (name, aleader, np, i));
 		  leaderIdHook_[leader] = aleader;
 		  leader+=np;
 	  }
+#ifdef MUSIC_DEBUG
 	  	/*  for debugging */
 	  	outfile.close();
+#endif
   }
 
 

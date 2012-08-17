@@ -358,8 +358,8 @@ namespace MUSIC {
 
  EventOutputPort::~EventOutputPort()
  {
-	 if(router != NULL)
-		 delete router;
+   if (router != NULL)
+     delete router;
  }
   
   void

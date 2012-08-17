@@ -86,8 +86,9 @@ namespace MUSIC {
     EventHandlerPtr () { }
     EventHandlerPtr (EventHandlerGlobalIndex* p):type_(Index::GLOBAL) { ptr.global = p; }
     EventHandlerPtr (EventHandlerLocalIndex* p):type_(Index::LOCAL) { ptr.local = p; }
-    EventHandlerGlobalIndex* global () { return ptr.global; }
-    EventHandlerLocalIndex* local () { return ptr.local; }
+    typedef EventHandlerGlobalIndex* EventHandlerGlobalIndexPtr;
+    operator EventHandlerGlobalIndex* () { return ptr.global; }
+    operator EventHandlerLocalIndex* () { return ptr.local; }
     Index::Type getType(){return type_;}
   };
   

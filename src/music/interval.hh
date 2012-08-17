@@ -30,10 +30,6 @@ namespace MUSIC {
     int end () const { return end_; }
     void setBegin (int begin) { begin_ = begin; }
     void setEnd (int end) { end_ = end; }
-    Interval* clone () const
-    {
-      return new Interval (this->begin(), this->end());
-    }
     bool operator< (const Interval& data) const
     {
       return begin () < data.begin ();

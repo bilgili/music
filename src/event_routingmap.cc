@@ -85,11 +85,23 @@ namespace MUSIC {
 	  }
       }
   }
+
+
   void
-  InputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h)
+  InputRoutingMap::insertRoutingInterval (EventRouter *router,
+					  IndexInterval i,
+					  EventHandlerPtr *h)
   {
-    InputRoutingData data_(i,h);
-    router->insertRoutingData(data_);
+    if (h->getType () == Index::GLOBAL)
+      {
+	InputRoutingData<EventHandlerGlobalIndex> data_ (i, h);
+	router->insertRoutingData (data_);
+      }
+    else
+      {
+	InputRoutingData<EventHandlerLocalIndex> data_ (i, h);
+	router->insertRoutingData (data_);
+      }
   }
 
   void

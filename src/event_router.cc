@@ -23,54 +23,6 @@
 
 namespace MUSIC {
 
-  InputRoutingData::InputRoutingData (const IndexInterval &i,  IndexProcessor *specialized_processor):
-    EventRoutingData(i),
-    specialized_processor_ (specialized_processor->clone ())
-  {
-  }
-
-  InputRoutingData::InputRoutingData (const IndexInterval &i, EventHandlerPtr* h) : EventRoutingData (i)
-  {
-    if(h->getType() == Index::GLOBAL)
-      specialized_processor_ = new GlobalIndexProcessor(h);
-    else
-      specialized_processor_ = new LocalIndexProcessor(h);
-  }
-
-  InputRoutingData::~InputRoutingData ()
-  {
-    if (specialized_processor_ != NULL)
-      delete specialized_processor_;
-  }
-
-  InputRoutingData:: InputRoutingData(const InputRoutingData& data)
-    : EventRoutingData (data)
-  {
-    if (data.specialized_processor_ == NULL)
-      specialized_processor_ = NULL;
-    else
-      specialized_processor_ = data.specialized_processor_->clone ();
-  }
-
-  InputRoutingData& InputRoutingData::operator= (const InputRoutingData& data)
-  {
-    EventRoutingData::operator= (data);
-    if (data.specialized_processor_ == NULL)
-      specialized_processor_ = NULL;
-    else
-      {
-	delete specialized_processor_;
-	specialized_processor_ = data.specialized_processor_->clone ();
-      }
-    return *this;
-  }
-
-  void
-  InputRoutingData::process (double t, int id)
-  {
-    specialized_processor_->process(t, id);
-  }
-
   OutputRoutingData::OutputRoutingData (const IndexInterval &i, FIBO* b) : EventRoutingData(i), buffer_ (b)
   {
   }

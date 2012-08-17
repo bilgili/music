@@ -38,38 +38,7 @@ namespace MUSIC {
    * inheritance was introduced.
    */
 
-  class IndexProcessor
-  {
-  public:
-    virtual ~IndexProcessor () { };
-    virtual void process(double t, int id)=0;
-    virtual void *getPtr() = 0;
-    virtual IndexProcessor* clone() = 0;
-  };
-
-  class GlobalIndexProcessor: public IndexProcessor {
-    EventHandlerGlobalIndex* global;
-  public:
-    GlobalIndexProcessor (EventHandlerPtr* h) { global = h->global (); }
-    void process (double t, int id) {
-      (*global) (t, id);
-    }
-    void *getPtr () { return global; }
-    IndexProcessor* clone () {return new GlobalIndexProcessor (*this);}
-  };
-
-  class LocalIndexProcessor: public IndexProcessor {
-    EventHandlerLocalIndex* local;
-  public:
-    LocalIndexProcessor(EventHandlerPtr* h) {local = h->local();}
-    void process(double t, int id){
-      (*local) (t, id);
-    }
-    void *getPtr(){return local;}
-    IndexProcessor* clone(){return new LocalIndexProcessor(*this);}
-  };
-
-  class EventRoutingData : public IndexInterval{
+  class EventRoutingData : public IndexInterval {
   public:
     EventRoutingData () { }
     EventRoutingData (const IndexInterval &i):  IndexInterval (i.begin(), i.end(), i.local() ){ };
@@ -78,16 +47,14 @@ namespace MUSIC {
     int offset () const { return this->local (); }
   };
 
+  template<class EventHandler>
   class InputRoutingData : public EventRoutingData {
-    IndexProcessor *specialized_processor_;
-    InputRoutingData(const IndexInterval &i,  IndexProcessor *specialized_processor);
+    EventHandler* eventHandler_;
   public:
-    InputRoutingData (const IndexInterval &i, EventHandlerPtr* h);
-    InputRoutingData () : specialized_processor_ (NULL) {}
-    ~InputRoutingData();
-    InputRoutingData (const InputRoutingData& data);
-    InputRoutingData& operator= (const InputRoutingData& data);
-    void process (double t, int id);
+    InputRoutingData (const IndexInterval &i, EventHandlerPtr* h)
+      : EventRoutingData (i), eventHandler_ (*h) { }
+    InputRoutingData () : eventHandler_ (NULL) { }
+    void process (double t, int id) { (*eventHandler_) (t, id); }
   };
 
   class OutputRoutingData : public EventRoutingData {
@@ -120,7 +87,8 @@ namespace MUSIC {
      * since we've introduced event processing on the input side as well.
      */
     virtual void insertRoutingData (OutputRoutingData& data) {}
-    virtual void insertRoutingData (InputRoutingData& data) {}
+    virtual void insertRoutingData (InputRoutingData<EventHandlerGlobalIndex>& data) {}
+    virtual void insertRoutingData (InputRoutingData<EventHandlerLocalIndex>& data) {}
     virtual void processEvent (double t, int id) {};
   };
 
@@ -138,7 +106,10 @@ namespace MUSIC {
   class TableProcessingOutputRouter : public TableProcessingRouter<OutputRoutingData> {
   };
 
-  class TableProcessingInputRouter : public TableProcessingRouter<InputRoutingData> {
+  class TableProcessingInputGlobalRouter : public TableProcessingRouter<InputRoutingData<EventHandlerGlobalIndex> > {
+  };
+
+  class TableProcessingInputLocalRouter : public TableProcessingRouter<InputRoutingData<EventHandlerLocalIndex> > {
   };
 
   template<class RoutingData>
@@ -189,10 +160,13 @@ namespace MUSIC {
     void processEvent (double t, int id);
   };
 
-  class TreeProcessingOutputRouter: public TreeProcessingRouter<OutputRoutingData> {
+  class TreeProcessingOutputRouter : public TreeProcessingRouter<OutputRoutingData> {
   };
 
-  class TreeProcessingInputRouter: public TreeProcessingRouter<InputRoutingData> {
+  class TreeProcessingInputGlobalRouter : public TreeProcessingRouter<InputRoutingData<EventHandlerGlobalIndex> > {
+  };
+
+  class TreeProcessingInputLocalRouter : public TreeProcessingRouter<InputRoutingData<EventHandlerLocalIndex> > {
   };
 
   template<class RoutingData>

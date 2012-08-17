@@ -657,7 +657,7 @@ namespace MUSIC {
 					       remoteRank,
 					       receiverRank,
 					       receiverPortCode (),
-					       handleEvent_.global ());
+					       handleEvent_);
     else
       return new EventInputSubconnectorLocal (//&synch,
 					      intercomm,
@@ -665,7 +665,7 @@ namespace MUSIC {
 					      remoteRank,
 					      receiverRank,
 					      receiverPortCode (),
-					      handleEvent_.local ());
+					      handleEvent_);
   }
 
 
@@ -831,21 +831,28 @@ namespace MUSIC {
   }
 
 
-  EventInputCollectiveConnector::EventInputCollectiveConnector(ConnectorInfo connInfo,
-							       IndexMap* indices,
-							       Index::Type type,
-							       MPI::Intracomm comm,
-							       EventHandlerPtr handleEvent):
-    Connector(connInfo,indices,type,comm),
-    EventInputConnector(handleEvent),
-    EventCollectiveConnector(true)
+  EventInputCollectiveConnector::EventInputCollectiveConnector
+  (ConnectorInfo connInfo,
+   IndexMap* indices,
+   Index::Type type,
+   MPI::Intracomm comm,
+   EventHandlerPtr handleEvent)
+    : Connector (connInfo, indices, type, comm),
+      EventInputConnector (handleEvent),
+      EventCollectiveConnector (true)
   {
 
-    int procMethod = connInfo.processingMethod();
-    if(procMethod == ConnectorInfo::TREE )
-      router_ = new TreeProcessingInputRouter();
+    int procMethod = connInfo.processingMethod ();
+    if (procMethod == ConnectorInfo::TREE)
+      if (handleEvent.getType () == Index::GLOBAL)
+	router_ = new TreeProcessingInputGlobalRouter ();
+      else
+	router_ = new TreeProcessingInputLocalRouter ();
     else
-      router_ = new TableProcessingInputRouter();
+      if (handleEvent.getType () == Index::GLOBAL)
+	router_ = new TableProcessingInputGlobalRouter ();
+      else
+	router_ = new TableProcessingInputLocalRouter ();
   }
 
 

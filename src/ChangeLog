@@ -1,5 +1,11 @@
 2012-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/index_map.hh, music/interval.hh: Removed clone().
+
+	* connector.cc, music/event_router.hh, event_router.cc,
+	event_routingmap.cc, music/event.hh: Removal of indirection and
+	virtual pointers for IndexProcessors.
+
 	* music/event_router, event_router.cc: Removed unused member Data ().
 
 	* interval.hh, music/event_router.hh, event_router.cc,

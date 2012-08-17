@@ -19,92 +19,95 @@
 #include "music/event_routingmap.hh"
 
 namespace MUSIC {
-void
-OutputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, FIBO *b)
-{
-	OutputRoutingData data_(i,b);
 
-	router->insertRoutingData(data_);
+  void
+  OutputRoutingMap::insertRoutingInterval (EventRouter *router, IndexInterval i, FIBO *b)
+  {
+    OutputRoutingData data_ (i,b);
+    router->insertRoutingData (data_);
+  }
 
-}
-OutputRoutingMap::~OutputRoutingMap(){
-	delete intervals;
-}
-void
-OutputRoutingMap::build (EventRouter *router)
-{
-	fillRouter (router);
-	router->buildTable();
-}
-void
-OutputRoutingMap::insert (IndexInterval i, FIBO* data)
-{
-	EventRoutingMap<FIBO*>::insert ( i, data);
+  OutputRoutingMap::~OutputRoutingMap()
+  {
+    delete intervals;
+  }
 
-	intervals->push_back (dataMap[data].back());
-}
+  void
+  OutputRoutingMap::build (EventRouter *router)
+  {
+    fillRouter (router);
+    router->buildTable ();
+  }
 
-void
-OutputRoutingMap::fillRouter (EventRouter *router)
-{
-	std::vector<IndexInterval> new_intervals = rebuildIntervals (*intervals);
-	//std::vector<IndexInterval*> new_intervals = *intervals;
-	std::map<FIBO*, std::vector<IndexInterval *> >::iterator pos;
-	for (pos = dataMap.begin (); pos != dataMap.end (); ++pos)
-	{
-		sort (pos->second.begin (), pos->second.end (), comp_obj);
+  void
+  OutputRoutingMap::insert (IndexInterval i, FIBO* data)
+  {
+    EventRoutingMap<FIBO*>::insert (i, data);
+    intervals->push_back (dataMap[data].back ());
+  }
 
-		std::vector<IndexInterval *>::iterator i = pos->second.begin ();
-		std::vector<IndexInterval>::iterator mapped = new_intervals.begin ();
-		while (i != pos->second.end ())
-		{
-			IndexInterval current = **i++;
-			while (i != pos->second.end ()
-					&& (*i)->local () == current.local ())
-			{
-				// Define the gap between current and next interval
-				int gapBegin = current.end ();
-				int gapEnd = (*i)->begin ();
+  void
+  OutputRoutingMap::fillRouter (EventRouter *router)
+  {
+    std::vector<IndexInterval> new_intervals = rebuildIntervals (*intervals);
+    //std::vector<IndexInterval*> new_intervals = *intervals;
+    std::map<FIBO*, std::vector<IndexInterval *> >::iterator pos;
+    for (pos = dataMap.begin (); pos != dataMap.end (); ++pos)
+      {
+	sort (pos->second.begin (), pos->second.end (), comp_obj);
 
-				// Skip mapped intervals which end before gap
-				while (mapped != new_intervals.end ()
-						&& (*mapped).end () <= gapBegin){
+	std::vector<IndexInterval *>::iterator i = pos->second.begin ();
+	std::vector<IndexInterval>::iterator mapped = new_intervals.begin ();
+	while (i != pos->second.end ())
+	  {
+	    IndexInterval current = **i++;
+	    while (i != pos->second.end ()
+		   && (*i)->local () == current.local ())
+	      {
+		// Define the gap between current and next interval
+		int gapBegin = current.end ();
+		int gapEnd = (*i)->begin ();
 
-					++mapped;
-				}
-				// Check that gap does not overlap with any mapped interval
-				if (mapped != new_intervals.end () && (*mapped).begin () < gapEnd)
-					break;
-				// Join intervals by closing over gap
-				current.setEnd ((*i)->end ());
-				++i;
-			}
-			insertRoutingInterval (router, current, pos->first);
+		// Skip mapped intervals which end before gap
+		while (mapped != new_intervals.end ()
+		       && (*mapped).end () <= gapBegin){
+
+		  ++mapped;
 		}
-	}
-}
-void
-InputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h)
-{
-	InputRoutingData data_(i,h);
+		// Check that gap does not overlap with any mapped interval
+		if (mapped != new_intervals.end () && (*mapped).begin () < gapEnd)
+		  break;
+		// Join intervals by closing over gap
+		current.setEnd ((*i)->end ());
+		++i;
+	      }
+	    insertRoutingInterval (router, current, pos->first);
+	  }
+      }
+  }
+  void
+  InputRoutingMap::insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h)
+  {
+    InputRoutingData data_(i,h);
+    router->insertRoutingData(data_);
+  }
 
-	router->insertRoutingData(data_);
-}
-void
-InputRoutingMap::build (EventRouter *router)
-{
-	fillRouter (router);
-	router->buildTable();
-}
-void InputRoutingMap::fillRouter (EventRouter *router)
-{
-	std::map<EventHandlerPtr*, std::vector<IndexInterval *> >::iterator pos;
-	for (pos = dataMap.begin (); pos != dataMap.end (); ++pos)
-	{
-		std::vector<IndexInterval > new_intervals = rebuildIntervals (((*pos).second));
-		std::vector<IndexInterval >::iterator i = new_intervals.begin ();
-		while (i != new_intervals.end ())
-			insertRoutingInterval (router, *i++, (*pos).first);
-	}
-}
+  void
+  InputRoutingMap::build (EventRouter *router)
+  {
+    fillRouter (router);
+    router->buildTable ();
+  }
+
+  void InputRoutingMap::fillRouter (EventRouter *router)
+  {
+    std::map<EventHandlerPtr*, std::vector<IndexInterval *> >::iterator pos;
+    for (pos = dataMap.begin (); pos != dataMap.end (); ++pos)
+      {
+	std::vector<IndexInterval > new_intervals = rebuildIntervals (((*pos).second));
+	std::vector<IndexInterval >::iterator i = new_intervals.begin ();
+	while (i != new_intervals.end ())
+	  insertRoutingInterval (router, *i++, (*pos).first);
+      }
+  }
 }

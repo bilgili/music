@@ -1,3 +1,20 @@
+2012-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event_router.hh, event_router.cc: Removed indirection
+	(pointer) to EventRoutingData from the IntervalTree through the
+	use of templates.
+
+	* port.cc: Let type dispatch happen here instead of in the
+	interval tree.
+
+	* event_routingmap.cc: Formatting.
+
+	* music/collector.hh, collector.cc, music/distributor.hh,
+	distributor.cc: Reverted to old use of interval_tree.
+
+	* music/interval_tree.hh: Reverted to version in trunk, but with
+	an added assignment operator.
+
 2012-08-17  Mikael Djurfeldt  <mdj@djurfeldt.com>
 
 	* application_map.cc (ApplicationMap::read): Only create file

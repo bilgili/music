@@ -15,6 +15,7 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "music/distributor.hh"
 #if MUSIC_USE_MPI
 
@@ -44,11 +45,11 @@ namespace MUSIC {
   }
 
   
-  IntervalTree<int>*
+  IntervalTree<int, IndexInterval>*
   Distributor::buildTree ()
   {
-    IntervalTree<int>* tree
-      = new IntervalTree<int> ();
+    IntervalTree<int, IndexInterval>* tree
+      = new IntervalTree<int, IndexInterval> ();
     
     IndexMap* indices = dataMap->indexMap ();
     for (IndexMap::iterator i = indices->begin ();
@@ -81,10 +82,10 @@ namespace MUSIC {
 
 
   void
-  Distributor::IntervalCalculator::operator() ( MUSIC::Interval& indexInterval)
+  Distributor::IntervalCalculator::operator() (IndexInterval& indexInterval)
   {
     interval_.setBegin (elementSize_
-			* (interval_.begin () - ((IndexInterval&)indexInterval).local ()));
+			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
   }
 
@@ -92,7 +93,8 @@ namespace MUSIC {
   void
   Distributor::initialize ()
   {
-    IntervalTree<int>* tree = buildTree ();
+    IntervalTree<int, IndexInterval>* tree = buildTree ();
+    
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	FIBO* buffer = b->first;

@@ -348,9 +348,9 @@ namespace MUSIC {
 		  int commType = ConnectivityInfo_->connections()[0].communicationType();
 		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
 		  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::POINTTOPOINT)
-			  router = new TreeProcessingRouter();
+			  router = new TreeProcessingOutputRouter();
 		  else{
-			  router = new TableProcessingRouter();
+			  router = new TableProcessingOutputRouter();
 		  }
 	  }
 

@@ -45,11 +45,11 @@ namespace MUSIC {
   }
   
 
-  IntervalTree<int>*
+  IntervalTree<int, IndexInterval>*
   Collector::buildTree ()
   {
-    IntervalTree<int>* tree
-      = new IntervalTree<int> ();
+    IntervalTree<int, IndexInterval>* tree
+      = new IntervalTree<int, IndexInterval> ();
     
     IndexMap* indices = dataMap->indexMap ();
     for (IndexMap::iterator i = indices->begin ();
@@ -78,15 +78,14 @@ namespace MUSIC {
       }
     Intervals& intervals = b->second;
     intervals.push_back (Interval (interval));
-
   }
 
 
   void
-  Collector::IntervalCalculator::operator() ( MUSIC::Interval& indexInterval)
+  Collector::IntervalCalculator::operator() (IndexInterval& indexInterval)
   {
     interval_.setBegin (elementSize_
-			* (interval_.begin () - ((IndexInterval&)indexInterval).local ()));
+			* (interval_.begin () - indexInterval.local ()));
     interval_.setLength (elementSize_ * interval_.length ());
   }
 
@@ -94,7 +93,8 @@ namespace MUSIC {
   void
   Collector::initialize ()
   {
-    IntervalTree<int>* tree = buildTree ();
+    IntervalTree<int, IndexInterval>* tree = buildTree ();
+    
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {
 	BIFO* buffer = b->first;
@@ -110,10 +110,7 @@ namespace MUSIC {
 	    MUSIC_LOGX ("searching for " << i->begin ());
 	    tree->search (i->begin (), &calculator);
 	    size += i->length ();
-	   // std::cerr << MPI::COMM_WORLD.Get_rank() << " beg:" << i->begin() << " end:" << i->length() << std::endl;
 	  }
-	//buffer->configure (size, size * allowedBuffered_);
-	// std::cerr << MPI::COMM_WORLD.Get_rank() <<size << ":" << maxsize_ << std::endl;
 	buffer->configure (size, maxsize_);
       }
   }

@@ -577,7 +577,7 @@ namespace MUSIC {
   EventOutputConnector::addRoutingInterval (IndexInterval i,
 					    Subconnector* subconn)
   {
-	OutputSubconnector*osubconn= dynamic_cast<OutputSubconnector*>(subconn);
+    OutputSubconnector* osubconn= dynamic_cast<OutputSubconnector*>(subconn);
     routingMap_-> insert (i, osubconn->outputBuffer());
   }
   
@@ -763,9 +763,9 @@ data_type(type)
 
 	  int procMethod = connInfo.processingMethod();
 	  if(procMethod == ConnectorInfo::TREE )
-		  router_ = new TreeProcessingRouter();
+		  router_ = new TreeProcessingInputRouter();
 	  else
-		  router_ = new TableProcessingRouter();
+		  router_ = new TableProcessingInputRouter();
   }
   EventInputCollectiveConnector::~EventInputCollectiveConnector()
   {

@@ -350,9 +350,9 @@ namespace MUSIC {
 	int procMethod = ConnectivityInfo_->connections ()[0].processingMethod ();
 	if (procMethod == ConnectorInfo::TREE
 	    && commType == ConnectorInfo::POINTTOPOINT)
-	  router = new TreeProcessingOutputRouter();
+	  router = new TreeProcessingOutputRouter ();
 	else
-	  router = new TableProcessingOutputRouter();
+	  router = new TableProcessingOutputRouter ();
       }
   }
 

@@ -331,29 +331,29 @@ namespace MUSIC {
    ********************************************************************/
 
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
-  : Port (s, id), routingMap (new OutputRoutingMap ())
+    : Port (s, id), routingMap (new OutputRoutingMap ())
   {
-	  /* remedius
-	   * Depending on the communication type (<commType>) and
-	   * processing method (<procMethod>) that was introduced as
-	   * runtime configuration options,
-	   * particular processing router should be created on the output side.
-	   * When collective communication type is used,
-	   * then the processing method has to be TABLE on the output side, as in this case
-	   * the processing on the output side means just an insertion of the event to the buffer.
-	   * The difference between point-to-point and collective communication types is that on the output side
-	   * in the latest case we have only one common buffer (one CollectiveSubconnector) and processing is happening on the receiver side.
-	   */
-	  if(isConnected()){
-		  int commType = ConnectivityInfo_->connections()[0].communicationType();
-		  int procMethod = ConnectivityInfo_->connections()[0].processingMethod();
-		  if(procMethod == ConnectorInfo::TREE && commType == ConnectorInfo::POINTTOPOINT)
-			  router = new TreeProcessingOutputRouter();
-		  else{
-			  router = new TableProcessingOutputRouter();
-		  }
-	  }
-
+    /* remedius
+     * Depending on the communication type (<commType>) and
+     * processing method (<procMethod>) that was introduced as
+     * runtime configuration options,
+     * particular processing router should be created on the output side.
+     * When collective communication type is used,
+     * then the processing method has to be TABLE on the output side, as in this case
+     * the processing on the output side means just an insertion of the event to the buffer.
+     * The difference between point-to-point and collective communication types is that on the output side
+     * in the latest case we have only one common buffer (one CollectiveSubconnector) and processing is happening on the receiver side.
+     */
+    if (isConnected ())
+      {
+	int commType = ConnectivityInfo_->connections ()[0].communicationType ();
+	int procMethod = ConnectivityInfo_->connections ()[0].processingMethod ();
+	if (procMethod == ConnectorInfo::TREE
+	    && commType == ConnectorInfo::POINTTOPOINT)
+	  router = new TreeProcessingOutputRouter();
+	else
+	  router = new TableProcessingOutputRouter();
+      }
   }
 
  EventOutputPort::~EventOutputPort()

@@ -23,7 +23,7 @@ namespace MUSIC {
   void
   OutputRoutingMap::insertRoutingInterval (EventRouter *router, IndexInterval i, FIBO *b)
   {
-    OutputRoutingData data_ (i,b);
+    OutputRoutingData data_ (i, b);
     router->insertRoutingData (data_);
   }
 

@@ -1,5 +1,8 @@
 2012-08-17  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* interval.hh, music/event_router.hh, event_router.cc,
+	event_routingmap.cc: Simplifications enabled by previous changes.
+
 	* music/event_router.hh, event_router.cc: Removed indirection
 	(pointer) to EventRoutingData from the IntervalTree through the
 	use of templates.

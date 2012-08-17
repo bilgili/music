@@ -57,6 +57,7 @@ namespace MUSIC {
     void *getPtr () { return global; }
     IndexProcessor* clone () {return new GlobalIndexProcessor (*this);}
   };
+
   class LocalIndexProcessor: public IndexProcessor {
     EventHandlerLocalIndex* local;
   public:
@@ -68,16 +69,13 @@ namespace MUSIC {
     IndexProcessor* clone(){return new LocalIndexProcessor(*this);}
   };
 
-  class EventRoutingData: public  IndexInterval{
+  class EventRoutingData : public IndexInterval{
   public:
     EventRoutingData () { }
     EventRoutingData (const IndexInterval &i):  IndexInterval (i.begin(), i.end(), i.local() ){ };
     EventRoutingData (const EventRoutingData& e) : IndexInterval (e) { }
-    virtual ~EventRoutingData(){};
+    ~EventRoutingData(){};
     int offset () const { return this->local (); }
-    virtual void *Data()=0;
-    virtual void process (double t, int id)=0;
-    virtual EventRoutingData *clone() const =0;
   };
 
   class InputRoutingData : public EventRoutingData {
@@ -91,7 +89,6 @@ namespace MUSIC {
     InputRoutingData& operator= (const InputRoutingData& data);
     void *Data();
     void process (double t, int id);
-    EventRoutingData *clone()const;
   };
 
   class OutputRoutingData : public EventRoutingData {
@@ -107,7 +104,6 @@ namespace MUSIC {
     }
     void *Data();
     void process (double t, int id);
-    EventRoutingData *clone() const;
   };
 
   /* remedius
@@ -120,12 +116,13 @@ namespace MUSIC {
   class EventRouter {
   public:
     virtual ~EventRouter() {};
-    virtual void insertRoutingData (EventRoutingData& data) {}
     virtual void buildTable () {};
     /* remedius
      * insertEvent method was renamed to processEvent method,
      * since we've introduced event processing on the input side as well.
      */
+    virtual void insertRoutingData (OutputRoutingData& data) {}
+    virtual void insertRoutingData (InputRoutingData& data) {}
     virtual void processEvent (double t, int id) {};
   };
 
@@ -133,11 +130,10 @@ namespace MUSIC {
   class TableProcessingRouter : public EventRouter {
     //routingTable maps different buffers/even handlers of the current rank
     //to the global index range, current rank is responsible for.
-    std::vector<RoutingData*> routingData; /*remove routingData*/
-    std::map<int, std::vector<RoutingData*> > routingTable;
+    std::vector<RoutingData> routingData; /*remove routingData*/
+    std::map<int, std::vector<RoutingData> > routingTable;
   public:
-    ~TableProcessingRouter();
-    void insertRoutingData (EventRoutingData& data);
+    void insertRoutingData (RoutingData& data);
     void processEvent (double t, int id);
   };
 
@@ -151,29 +147,23 @@ namespace MUSIC {
   void
   TableProcessingRouter<RoutingData>::processEvent(double t, int id)
   {
-    typename std::vector<RoutingData*>::iterator it;
-    if (routingTable.count(id)>0)
-      for(it = routingTable[id].begin(); it != routingTable[id].end(); it++){
-	(*it)->process(t, id - (*it)->offset());
-      }
+    typename std::vector<RoutingData>::iterator it;
+    if (routingTable.count(id) > 0)
+      for(it = routingTable[id].begin(); it != routingTable[id].end(); it++)
+	{
+	  it->process (t, id - it->offset ());
+	}
   }
 
   template<class RoutingData>
   void
-  TableProcessingRouter<RoutingData>::insertRoutingData(EventRoutingData &data)
+  TableProcessingRouter<RoutingData>::insertRoutingData(RoutingData &data)
   {
-    routingData.push_back(dynamic_cast<RoutingData*>(data.clone()));
+    routingData.push_back (data);
     for(int i=data.begin(); i < data.end(); ++i){
       //std::cerr << "insert:" <<  i  << ":" << data.offset() << std::endl;
       routingTable[i+data.offset()].push_back(routingData.back());
     }
-  }
-
-  template<class RoutingData>
-  TableProcessingRouter<RoutingData>::~TableProcessingRouter()
-  {
-    typename std::vector<RoutingData*>::iterator it =routingData.begin();
-    while(it != routingData.end()){delete (*it); it++;}
   }
 
   template<class RoutingData>
@@ -196,7 +186,7 @@ namespace MUSIC {
     
     IntervalTree<int, RoutingData> routingTable;
   public:
-    void insertRoutingData (EventRoutingData& data);
+    void insertRoutingData (RoutingData& data);
     void buildTable ();
     void processEvent (double t, int id);
   };
@@ -209,9 +199,9 @@ namespace MUSIC {
 
   template<class RoutingData>
   void
-  TreeProcessingRouter<RoutingData>::insertRoutingData (EventRoutingData &data)
+  TreeProcessingRouter<RoutingData>::insertRoutingData (RoutingData &data)
   {
-    routingTable.add (reinterpret_cast<RoutingData&> (data));
+    routingTable.add (data);
   }
 
 

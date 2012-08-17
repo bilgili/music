@@ -64,25 +64,24 @@ namespace MUSIC {
   {
     return specialized_processor_->getPtr();
   }
+
   void
   InputRoutingData::process (double t, int id)
   {
     specialized_processor_->process(t, id);
   }
-  EventRoutingData *
-  InputRoutingData::clone()const
-  {
-    return new InputRoutingData(*this, specialized_processor_);
-  }
+
   OutputRoutingData::OutputRoutingData(const IndexInterval &i, FIBO* b):EventRoutingData(i),buffer_ (b)
   {
 
   }
+
   void *
   OutputRoutingData::Data()
   {
     return buffer_;
   }
+
   void
   OutputRoutingData::process (double t, int id)
   {
@@ -90,9 +89,5 @@ namespace MUSIC {
     e->t = t;
     e->id = id;
   }
-  EventRoutingData *
-  OutputRoutingData::clone() const
-  {
-    return new OutputRoutingData(*this, buffer_);
-  }
+
 }

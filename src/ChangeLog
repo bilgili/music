@@ -1,3 +1,9 @@
+2012-08-17  Mikael Djurfeldt  <mdj@djurfeldt.com>
+
+	* configuration.cc (Configuration::getEnv): Handle the case where
+	the MUSIC configuration variable is not present (launched without
+	MUSIC) properly.
+
 2012-08-13  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* scheduler.cc (Scheduler::Node::advance): Define time variable

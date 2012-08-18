@@ -72,7 +72,7 @@ namespace MUSIC {
     };
 
   private:
-    void search (int i, PointType point, Action* a);
+    void search (unsigned int i, PointType point, Action* a);
 
   public:
     void add (const DataType& data);
@@ -154,7 +154,7 @@ namespace MUSIC {
 
   template<class PointType, class DataType>
   void
-  IntervalTree<PointType, DataType>::search (int i, PointType p, Action* a)
+  IntervalTree<PointType, DataType>::search (unsigned int i, PointType p, Action* a)
   {
     // Newly introduced extra stop condition enabling less memory usage
     if (i >= nodes.size ())

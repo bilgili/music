@@ -29,6 +29,7 @@ namespace MUSIC {
   class IntervalTree {
     static const int ROOT = 0;
 
+  public:
     class NodeType {
       PointType maxEnd_;
       DataType data_;
@@ -55,6 +56,7 @@ namespace MUSIC {
       PointType maxEnd () const { return maxEnd_; }
     };
 
+  private:
     std::vector<NodeType> nodes;
     int leftChild (int i) const { return 2 * i + 1; }
     int rightChild (int i) const { return 2 * i + 2; }

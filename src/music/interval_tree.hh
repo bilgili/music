@@ -29,6 +29,7 @@ namespace MUSIC {
   class IntervalTree {
     static const int ROOT = 0;
 
+    // class NodeType needs to be public on BG machines
   public:
     class NodeType {
       PointType maxEnd_;
@@ -61,14 +62,18 @@ namespace MUSIC {
     int leftChild (int i) const { return 2 * i + 1; }
     int rightChild (int i) const { return 2 * i + 2; }
     int computeSize () const;
+    int maxIndex (int l, int r, int i) const;
     PointType build (std::vector<NodeType>& dest, int l, int r, int i);
+
   public:
     class Action {
     public:
       virtual void operator() (DataType& data) = 0;
     };
+
   private:
     void search (int i, PointType point, Action* a);
+
   public:
     void add (const DataType& data);
     void build ();
@@ -88,15 +93,22 @@ namespace MUSIC {
   int
   IntervalTree<PointType, DataType>::computeSize () const
   {
-    int b = 2;
-    int s = nodes.size () + 1;
-    while (s != 0)
-      {
-	s >>= 1;
-	b <<= 1;
-      }
-    return b;
+    int m =  maxIndex (0, nodes.size (), ROOT) + 1;
+    return m;
   }
+
+  
+  template<class PointType, class DataType>
+  int
+  IntervalTree<PointType, DataType>::maxIndex (int l, int r, int i) const
+  {
+    if (l >= r)
+      return -1;
+    int m = (l + r) / 2;
+    int max = i;
+    max = std::max (max, maxIndex (l, m, leftChild (i)));
+    return std::max (max, maxIndex (m + 1, r, rightChild (i)));
+  }  
 
   
   template<class PointType, class DataType>
@@ -144,8 +156,12 @@ namespace MUSIC {
   void
   IntervalTree<PointType, DataType>::search (int i, PointType p, Action* a)
   {
+    // Newly introduced extra stop condition enabling less memory usage
+    if (i >= nodes.size ())
+      return;
+
     // this condition both checks if the point is to the right of all
-    // nodes in this subtree and stops recursion at NO_NODE values
+    // nodes in this subtree (and previously stopped recursion at NO_NODE values)
     if (p >= nodes[i].maxEnd ())
       return;
 

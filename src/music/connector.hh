@@ -32,7 +32,7 @@
 #include <music/sampler.hh>
 #include <music/collector.hh>
 #include <music/distributor.hh>
-#include <music/event_routingmap.hh>
+#include <music/event_routing_map.hh>
 #include <music/clock.hh>
 #include <music/subconnector.hh>
 namespace MUSIC {

@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <iostream>
-#include "music/event_routingmap.hh"
+#include "music/event_routing_map.hh"
 
 namespace MUSIC {
 

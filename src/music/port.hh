@@ -29,7 +29,7 @@
 #include <music/message.hh>
 #include <music/connector.hh>
 #include <music/sampler.hh>
-#include <music/event_routingmap.hh>
+#include <music/event_routing_map.hh>
 #include <music/connectivity.hh>
 #include <music/spatial.hh>
 

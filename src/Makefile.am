@@ -22,7 +22,7 @@ libmusic_la_SOURCES = \
 	port.cc music/port.hh \
 	sampler.cc music/sampler.hh \
 	event_router.cc music/event_router.hh \
-	event_routingmap.cc music/event_routingmap.hh \
+	event_routing_map.cc music/event_routing_map.hh \
 	distributor.cc music/distributor.hh \
 	collector.cc music/collector.hh \
 	clock.cc music/clock.hh \
@@ -71,7 +71,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/index_map_factory.hh \
 		       music/sampler.hh music/BIFO.hh \
 		       music/FIBO.hh music/event_router.hh \
-		       music/event_routingmap.hh \
+		       music/event_routing_map.hh \
 		       music/collector.hh music/distributor.hh \
 		       music/cont_data.hh music/event.hh \
 		       music/message.hh music/music-config.hh \

@@ -45,11 +45,11 @@ namespace MUSIC {
   }
   
 
-  IntervalTree<int, IndexInterval>*
+  IntervalTree<int, MUSIC::Interval, int>*
   Collector::buildTree ()
   {
-    IntervalTree<int, IndexInterval>* tree
-      = new IntervalTree<int, IndexInterval> ();
+    IntervalTree<int, MUSIC::Interval, int>* tree
+      = new IntervalTree<int, MUSIC::Interval, int> ();
     
     IndexMap* indices = dataMap->indexMap ();
     for (IndexMap::iterator i = indices->begin ();
@@ -58,7 +58,7 @@ namespace MUSIC {
       {
 	MUSIC_LOGR ("adding (" << i->begin () << ", " << i->end ()
 		    << ", " << i->local () << ") to tree");
-	tree->add (*i);
+	tree->add (*i, i->local ());
       }
 
     tree->build ();
@@ -82,10 +82,10 @@ namespace MUSIC {
 
 
   void
-  Collector::IntervalCalculator::operator() (IndexInterval& indexInterval)
+  Collector::IntervalCalculator::operator() (int& offset)
   {
     interval_.setBegin (elementSize_
-			* (interval_.begin () - indexInterval.local ()));
+			* (interval_.begin () - offset));
     interval_.setLength (elementSize_ * interval_.length ());
   }
 
@@ -93,7 +93,7 @@ namespace MUSIC {
   void
   Collector::initialize ()
   {
-    IntervalTree<int, IndexInterval>* tree = buildTree ();
+    IntervalTree<int, MUSIC::Interval, int>* tree = buildTree ();
     
     for (BufferMap::iterator b = buffers.begin (); b != buffers.end (); ++b)
       {

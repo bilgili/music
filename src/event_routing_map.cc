@@ -24,7 +24,7 @@ namespace MUSIC {
   OutputRoutingMap::insertRoutingInterval (EventRouter *router, IndexInterval i, FIBO *b)
   {
     OutputRoutingData data_ (i, b);
-    router->insertRoutingData (data_);
+    router->insertRoutingData (i, data_);
   }
 
   OutputRoutingMap::~OutputRoutingMap()
@@ -95,12 +95,12 @@ namespace MUSIC {
     if (h->getType () == Index::GLOBAL)
       {
 	InputRoutingData<EventHandlerGlobalIndex> data_ (i, h);
-	router->insertRoutingData (data_);
+	router->insertRoutingData (i, data_);
       }
     else
       {
 	InputRoutingData<EventHandlerLocalIndex> data_ (i, h);
-	router->insertRoutingData (data_);
+	router->insertRoutingData (i, data_);
       }
   }
 

@@ -45,12 +45,12 @@ namespace MUSIC {
       void setLength (int length) { setEnd (length); }
     };
 private:
-    class IntervalCalculator : public IntervalTree<int, IndexInterval>::Action {
+    class IntervalCalculator : public IntervalTree<int, MUSIC::Interval, int>::Action {
       Interval& interval_;
       int elementSize_;
     public:
       IntervalCalculator (Interval& interval, int elementSize): interval_ (interval), elementSize_ (elementSize) { };
-      void operator() (IndexInterval& indexInterval);
+      void operator() (int& offset);
     };
     
     typedef std::vector<Interval> Intervals;
@@ -59,7 +59,7 @@ private:
     DataMap* dataMap;
     BufferMap buffers;
 
-    IntervalTree<int, IndexInterval>* buildTree ();
+    IntervalTree<int, MUSIC::Interval, int>* buildTree ();
   public:
     // caller manages deallocation but guarantees existence
     void configure (DataMap* dmap);

@@ -25,35 +25,39 @@
 
 namespace MUSIC {
 
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   class IntervalTree {
     static const int ROOT = 0;
 
     // class NodeType needs to be public on BG machines
   public:
     class NodeType {
+      IntervalType ival_;
       PointType maxEnd_;
       DataType data_;
     public:
-      NodeType () : maxEnd_ (noNode ()) { }
-      NodeType (const DataType& d) : maxEnd_ (noNode ()), data_ (d) { }
-      NodeType (const PointType m, const DataType& d)
-	: maxEnd_ (m), data_ (d) { }
+      NodeType () { }
+      NodeType (const IntervalType& i, const DataType& d)
+	: ival_ (i), maxEnd_ (minVal ()), data_ (d) { }
+      NodeType (const IntervalType& i, const PointType m, const DataType& d)
+	: ival_ (i), maxEnd_ (m), data_ (d) { }
       NodeType& operator= (const NodeType& node)
       {
+	ival_ = node.ival_;
 	maxEnd_ = node.maxEnd_;
 	data_ = node.data_;
 	return *this;
       }
-      static PointType noNode () {
+      static PointType minVal () {
 	return std::numeric_limits<PointType>::min ();
       }
       bool operator< (const NodeType& other) const {
 	return begin () < other.begin ();
       }
+      IntervalType& interval () { return ival_; }
       DataType& data () { return data_; }
-      PointType begin () const { return data_.begin (); }
-      PointType end () const { return data_.end (); }
+      PointType begin () const { return ival_.begin (); }
+      PointType end () const { return ival_.end (); }
       PointType maxEnd () const { return maxEnd_; }
     };
 
@@ -75,32 +79,32 @@ namespace MUSIC {
     void search (unsigned int i, PointType point, Action* a);
 
   public:
-    void add (const DataType& data);
+    void add (const IntervalType& i, const DataType& data);
     void build ();
     void search (PointType point, Action* a);
     int size () const { return nodes.size (); }
   };
 
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   void
-  IntervalTree<PointType, DataType>::add (const DataType& data)
+  IntervalTree<PointType, IntervalType, DataType>::add (const IntervalType& i,
+							const DataType& data)
   {
-    nodes.push_back (NodeType (data));
+    nodes.push_back (NodeType (i, data));
   }
 
 
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   int
-  IntervalTree<PointType, DataType>::computeSize () const
+  IntervalTree<PointType, IntervalType, DataType>::computeSize () const
   {
-    int m =  maxIndex (0, nodes.size (), ROOT) + 1;
-    return m;
+    return maxIndex (0, nodes.size (), ROOT) + 1;
   }
 
   
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   int
-  IntervalTree<PointType, DataType>::maxIndex (int l, int r, int i) const
+  IntervalTree<PointType, IntervalType, DataType>::maxIndex (int l, int r, int i) const
   {
     if (l >= r)
       return -1;
@@ -111,9 +115,9 @@ namespace MUSIC {
   }  
 
   
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   void
-  IntervalTree<PointType, DataType>::build ()
+  IntervalTree<PointType, IntervalType, DataType>::build ()
   {
     sort (nodes.begin (), nodes.end ());
     std::vector<NodeType> newNodes (computeSize ());
@@ -122,12 +126,12 @@ namespace MUSIC {
   }
   
   
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   PointType
-  IntervalTree<PointType, DataType>::build (std::vector<NodeType>& dest,
-					    int l,
-					    int r,
-					    int i)
+  IntervalTree<PointType, IntervalType, DataType>::build (std::vector<NodeType>& dest,
+							  int l,
+							  int r,
+							  int i)
   {
     if (l < r) // sequence not empty
       {
@@ -137,41 +141,44 @@ namespace MUSIC {
 	max = end < max ? max : end;
 	end = build (dest, m + 1, r, rightChild (i));
 	max = end < max ? max : end;
-	dest[i] = NodeType (max, nodes[m].data ());
+	dest[i] = NodeType (nodes[m].interval (), max, nodes[m].data ());
 	return max;
       }
     else
-      return NodeType::noNode ();
+      return NodeType::minVal ();
   }
 
 
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   void
-  IntervalTree<PointType, DataType>::search (PointType p, Action* a)
+  IntervalTree<PointType, IntervalType, DataType>::search (PointType p, Action* a)
   {
     search (ROOT, p, a);
   }
 
-  template<class PointType, class DataType>
+  template<class PointType, class IntervalType, class DataType>
   void
-  IntervalTree<PointType, DataType>::search (unsigned int i, PointType p, Action* a)
+  IntervalTree<PointType, IntervalType, DataType>::search (unsigned int i,
+							   PointType p,
+							   Action* a)
   {
     // Newly introduced extra stop condition enabling less memory usage
     if (i >= nodes.size ())
       return;
 
     // this condition both checks if the point is to the right of all
-    // nodes in this subtree (and previously stopped recursion at NO_NODE values)
+    // nodes in this subtree (and previously stopped recursion at
+    // noNode values)
     if (p >= nodes[i].maxEnd ())
       return;
 
     search (leftChild (i), p, a);
 
-    if (p < nodes[i].data ().begin ())
+    if (p < nodes[i].begin ())
       // point is to the left of this interval and of the right subtree
       return;
 
-    if (p < nodes[i].data ().end ())
+    if (p < nodes[i].end ())
       // perform action on this interval
       (*a) (nodes[i].data ());
 

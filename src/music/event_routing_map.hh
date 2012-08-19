@@ -36,7 +36,7 @@ template <class DataType>
 class EventRoutingMap{
 public:
 	virtual ~EventRoutingMap ();
-	virtual void build(EventRouter *router)=0;
+	virtual void fillRouter (EventRouter *router)=0;
 	virtual void insert (IndexInterval i, DataType data);
 protected:
 	typedef std::map<DataType, std::vector<IndexInterval *> >DataMap;
@@ -102,9 +102,8 @@ EventRoutingMap<DataType>::rebuildIntervals (std::vector<IndexInterval*> &interv
 class InputRoutingMap:public EventRoutingMap<EventHandlerPtr*>
 {
 public:
-	void build (EventRouter *router);
-private:
 	void fillRouter (EventRouter *router);
+private:
 	void insertRoutingInterval(EventRouter *router, IndexInterval i, EventHandlerPtr *h);
 };
 
@@ -117,10 +116,9 @@ class OutputRoutingMap:public EventRoutingMap<FIBO*>
 public:
 	OutputRoutingMap(){intervals = new std::vector<IndexInterval *>;}
 	~OutputRoutingMap();
-	void build (EventRouter *router);
+	void fillRouter (EventRouter *router);
 	void insert (IndexInterval i, FIBO* data);
 private:
-	void fillRouter (EventRouter *router);
 	void insertRoutingInterval(EventRouter *router, IndexInterval i, FIBO *b);
 };
 }

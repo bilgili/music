@@ -160,7 +160,7 @@ namespace MUSIC {
     void insertEvent (double t, LocalIndex id);
   private:
     EventOutputPort (Setup* s, std::string id);
-    void setupCleanup () {delete routingMap;};
+    void setupCleanup () { };
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     ~EventOutputPort();
 

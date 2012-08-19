@@ -33,13 +33,6 @@ namespace MUSIC {
   }
 
   void
-  OutputRoutingMap::build (EventRouter *router)
-  {
-    fillRouter (router);
-    router->buildTable ();
-  }
-
-  void
   OutputRoutingMap::insert (IndexInterval i, FIBO* data)
   {
     EventRoutingMap<FIBO*>::insert (i, data);
@@ -102,13 +95,6 @@ namespace MUSIC {
 	InputRoutingData<EventHandlerLocalIndex> data_ (i, h);
 	router->insertRoutingData (i, data_);
       }
-  }
-
-  void
-  InputRoutingMap::build (EventRouter *router)
-  {
-    fillRouter (router);
-    router->buildTable ();
   }
 
   void InputRoutingMap::fillRouter (EventRouter *router)

@@ -1,3 +1,17 @@
+2012-08-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/event_routing_map.hh, event_routing_map.cc
+	(EventRoutingMap::build): Removed. Replaced by fillRouter which is
+	now public.
+
+	music/port.hh (EventOutputPort::setupCleanup), port.cc
+	(EventOutputPort::buildTable), connector.cc
+	(EventInputCollectiveConnector::spatialNegotiation): Use
+	EventRoutingMap::fillRouter and call EventRouter::buildTable
+	directly. Delete the event routing map before calling buildTable
+	so that the data structures used by buildTable don't co-exist in
+	memory with the event routing map.
+
 2012-08-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/interval_tree.hh, music/collector.hh, collector.cc,

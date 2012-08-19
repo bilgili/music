@@ -869,8 +869,9 @@ namespace MUSIC {
     rsubconn.push_back (subconn);
     for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
       addRoutingInterval (i->interval (), subconn);
-    routingMap_input->build(router_);
+    routingMap_input->fillRouter (router_);
     delete routingMap_input;
+    router_->buildTable ();
   }
 
 

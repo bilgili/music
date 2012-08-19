@@ -331,7 +331,7 @@ namespace MUSIC {
    ********************************************************************/
 
   EventOutputPort::EventOutputPort (Setup* s, std::string id)
-    : Port (s, id), routingMap (new OutputRoutingMap ())
+    : Port (s, id), routingMap (new OutputRoutingMap () /* deleted in buildTable */)
   {
     /* remedius
      * Depending on the communication type (<commType>) and
@@ -421,10 +421,13 @@ namespace MUSIC {
   {
     router->processEvent (t, id);
   }
+
   void
-  EventOutputPort::buildTable()
+  EventOutputPort::buildTable ()
   {
-	  routingMap->build(router);
+    routingMap->fillRouter (router);
+    delete routingMap;
+    router->buildTable ();
   }
 
   EventInputPort::EventInputPort (Setup* s, std::string id)

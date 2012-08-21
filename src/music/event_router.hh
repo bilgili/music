@@ -87,6 +87,7 @@ namespace MUSIC {
     virtual void insertRoutingData (Interval& i, InputRoutingData<EventHandlerGlobalIndex>& data) {}
     virtual void insertRoutingData (Interval& i, InputRoutingData<EventHandlerLocalIndex>& data) {}
     virtual void processEvent (double t, int id) {};
+    virtual bool needFewPoints () const { return false; }
   };
 
   template<class RoutingData, class IntervalLookup>
@@ -165,6 +166,8 @@ namespace MUSIC {
     : public IntervalProcessingRouter<OutputRoutingData,
 				      IntervalTable<int, Interval, OutputRoutingData> >
   {
+  public:
+    bool needFewPoints () const { return true; }
   };
 
   class TableProcessingInputGlobalRouter
@@ -173,6 +176,8 @@ namespace MUSIC {
 						    Interval,
 						    InputRoutingData<EventHandlerGlobalIndex> > >
   {
+  public:
+    bool needFewPoints () const { return true; }
   };
 
   class TableProcessingInputLocalRouter
@@ -181,6 +186,8 @@ namespace MUSIC {
 						    Interval,
 						    InputRoutingData<EventHandlerLocalIndex> > >
   {
+  public:
+    bool needFewPoints () const { return true; }
   };
 
 }

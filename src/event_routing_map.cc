@@ -52,6 +52,15 @@ namespace MUSIC {
 	sort (pos->second.begin (), pos->second.end (), comp_obj);
 
 	std::vector<IndexInterval *>::iterator i = pos->second.begin ();
+
+	if (router->needFewPoints ())
+	  {
+	    // insert intervals without trying to close gaps
+	    while (i != pos->second.end ())
+	      insertRoutingInterval (router, **i++, pos->first);
+	    return;
+	  }
+	
 	std::vector<IndexInterval>::iterator mapped = new_intervals.begin ();
 	while (i != pos->second.end ())
 	  {

@@ -255,46 +255,50 @@ Runtime::initialize ()
 void
 Runtime::finalize ()
 {
-	/* remedius
-	 * set of receiver port codes that still has to be finalized
-	 */
-	std::set<int> cnn_ports;
-	for (std::vector<Connector*>::iterator c = connectors.begin (); c != connectors.end (); ++c){
-		cnn_ports.insert((*c)->receiverPortCode());
+  /* remedius
+   * set of receiver port codes that still has to be finalized
+   */
+  std::set<int> cnn_ports;
+  for (std::vector<Connector*>::iterator c = connectors.begin ();
+       c != connectors.end ();
+       ++c)
+    cnn_ports.insert ((*c)->receiverPortCode ());
 
-	}
-	/* remedius
-	 * finalize communication
-	 */
-	do
-	{
-		for(std::vector<std::pair<double, Connector*> >::iterator comm = schedule.begin();
-				comm != schedule.end(); comm++){
-			if((*comm).second->finalizeSimulation())
-				cnn_ports.erase((*comm).second->receiverPortCode());
-		}
-		schedule.clear();
-		scheduler->nextCommunication(schedule);
+  /* remedius
+   * finalize communication
+   */
+  if (!schedule.empty ())
+    do
+      {
+	for (std::vector<std::pair<double, Connector*> >::iterator comm = schedule.begin ();
+	     comm != schedule.end ();
+	     ++comm)
+	  {
+	    if ((*comm).second->finalizeSimulation ())
+	      cnn_ports.erase ((*comm).second->receiverPortCode ());
+	  }
+	schedule.clear ();
+	scheduler->nextCommunication (schedule);
 
-		for (std::vector<PostCommunicationConnector*>::iterator c =
-				postCommunication.begin(); c != postCommunication.end(); ++c)
-			(*c)->postCommunication();
-	}
-	while (!cnn_ports.empty());
+	for (std::vector<PostCommunicationConnector*>::iterator c =
+	       postCommunication.begin ();
+	     c != postCommunication.end ();
+	     ++c)
+	  (*c)->postCommunication ();
+      }
+    while (!cnn_ports.empty ());
 
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
-	// This is needed in OpenMPI version <= 1.2 for the freeing of the
-	// intercommunicators to go well
-	MPI::COMM_WORLD.Barrier ();
+  // This is needed in OpenMPI version <= 1.2 for the freeing of the
+  // intercommunicators to go well
+  MPI::COMM_WORLD.Barrier ();
 #endif
-	for (std::vector<Connector*>::iterator connector = connectors.begin ();
-			connector != connectors.end ();
-			++connector){
-		(*connector)->freeIntercomm ();
+  for (std::vector<Connector*>::iterator connector = connectors.begin ();
+       connector != connectors.end ();
+       ++connector)
+    (*connector)->freeIntercomm ();
 
-	}
-	MPI::Finalize ();
-
+  MPI::Finalize ();
 }
 
 void
@@ -311,13 +315,17 @@ Runtime::tick ()
 			preCommunication.begin(); c != preCommunication.end(); ++c)
 		(*c)->preCommunication();
 	MUSIC_LOGR("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
-	while(schedule[0].first <= localTime.time()){
-		std::vector< std::pair<double, Connector*> >::iterator comm;
-		for(comm = schedule.begin(); comm != schedule.end() && (*comm).first <= localTime.time(); comm++)
-			(*comm).second->tick();
-		schedule.erase(schedule.begin(),comm);
-		scheduler->nextCommunication(schedule);
-	}
+	if (!schedule.empty ())
+	  while (schedule[0].first <= localTime.time())
+	    {
+	      std::vector< std::pair<double, Connector*> >::iterator comm;
+	      for (comm = schedule.begin ();
+		   comm != schedule.end() && (*comm).first <= localTime.time();
+		   ++comm)
+		(*comm).second->tick ();
+	      schedule.erase (schedule.begin (), comm);
+	      scheduler->nextCommunication (schedule);
+	    }
 	// ContInputConnectors write data to application here
 	for (std::vector<PostCommunicationConnector*>::iterator c =
 			postCommunication.begin(); c != postCommunication.end(); ++c)

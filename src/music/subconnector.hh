@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <music/event_router.hh>
 //#include <music/synchronizer.hh>
 #include <music/FIBO.hh>
 #include <music/BIFO.hh>
@@ -38,6 +37,8 @@ namespace MUSIC {
   const int SPIKE_BUFFER_MAX = 10000 * sizeof (Event);
   const int CONT_BUFFER_MAX = SPIKE_BUFFER_MAX; //5000 of double values per input connector
   const int MESSAGE_BUFFER_MAX = 10000;
+
+  class EventRouter;
 
   // The subconnector is responsible for the local side of the
   // communication between two MPI processes, one for each port of a

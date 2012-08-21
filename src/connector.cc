@@ -25,6 +25,7 @@
 
 #include "music/error.hh"
 #include "music/communication.hh"
+#include "music/event_router.hh"
 #include <cmath>
 #include <map>
 

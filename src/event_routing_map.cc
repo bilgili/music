@@ -18,6 +18,8 @@
 #include <iostream>
 #include "music/event_routing_map.hh"
 
+#include "music/event_router.hh"
+
 namespace MUSIC {
 
   void

@@ -16,7 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "music/port.hh"
+
 #if MUSIC_USE_MPI
+#include "music/event_router.hh"
+
 #include "music/setup.hh" // Must be included first on BG/L
 #include "music/error.hh"
 

@@ -1,5 +1,8 @@
 2012-08-21  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/interval_table.hh (IntervalTable::search): Check index
+	against tableSize_ instead of container size.
+
 	* music/subconnector.hh, music/event_routing_map.hh: Don't
 	#include <music/event_router.hh> which contains heavy template
 	stuff. Instead forward declare EventRouter.  Since both

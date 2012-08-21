@@ -69,8 +69,8 @@ namespace MUSIC {
     class SortCriterion {
       static const unsigned int dataSize = sizeof (DataType);
       struct Ptrs {
-	void* p0;
-	void* p1;
+	int f0;
+	void* f1;
       };
     public:
       bool operator() (const DataType& x, const DataType& y) const
@@ -81,7 +81,7 @@ namespace MUSIC {
 	const Ptrs u = *reinterpret_cast<const Ptrs*> (px);
 	const DataType* py = &y;
 	const Ptrs v = *reinterpret_cast<const Ptrs*> (py);
-	return u.p1 < v.p1 || (u.p1 == v.p1 && u.p0 < v.p0);
+	return u.f1 < v.f1 || (u.f1 == v.f1 && u.f0 < v.f0);
       }
     };
 
@@ -183,7 +183,7 @@ namespace MUSIC {
     // obtain approximate position
     PointType i = ((p - lowerBound_) * tableSize_) / rangeSize_ + 1;
 
-    if (i < 0 || i >= entryTable_.size ())
+    if (i < 0 || i > int (tableSize_))
       return;
 
     if (p != entryTable_[i].key ())

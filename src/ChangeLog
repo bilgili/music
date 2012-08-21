@@ -1,5 +1,13 @@
 2012-08-21  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/interval_table.hh, music/ordered_ilist.hh: Introduced an
+	interval table optimization variable MUSIC_ITABLE_FLAVOR with the
+	options MUSIC_VANILLA, MUSIC_TRIMMED, MUSIC_COMPACT and
+	MUSIC_SCATTERED explained at the top of music/interval_table.hh.
+
+	* music/event_router.hh: #define MUSIC_ITABLE_FLAVOR to
+	MUSIC_SCATTERED.
+
 	* music/interval_table.hh (IntervalTable::search): Check index
 	against tableSize_ instead of container size.
 

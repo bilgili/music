@@ -19,6 +19,27 @@
 
 #ifndef MUSIC_INTERVAL_TABLE_HH
 
+/*
+ * The interval table implementation can be adjusted by defining the
+ * preprocessor macro MUSIC_ITABLE_FLAVOR to one of the following:
+ */
+
+#define MUSIC_VANILLA   0 // intervals stored in a linked list in one
+			  // contiguous memory block
+
+#define MUSIC_TRIMMED   1 // linked list block trimmed during build
+
+#define MUSIC_COMPACT   2 // linked list block freed during build and
+			  // replaced by a single array of intervals
+
+#define MUSIC_SCATTERED 3 // list block freed during build and
+			  // replaced by many small arrays of
+			  // intervals---one per key in the table
+
+#ifndef MUSIC_ITABLE_FLAVOR
+#define MUSIC_ITABLE_FLAVOR MUSIC_VANILLA
+#endif
+
 #include <vector>
 #include <map>
 #include <limits>
@@ -56,32 +77,74 @@ namespace MUSIC {
 
     class Entry {
       PointType key_;
+#if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
       IList ls_;
     public:
+      Entry (PointType key) : key_ (key), ls_ (IList::NIL) { }
       Entry (PointType key, IList ls) : key_ (key), ls_ (ls) { }
-      PointType key () { return key_; }
       IList list () { return ls_; }
+#else
+      DataIndex n_;
+      IList::Interval* ivals_;
+    public:
+      Entry (PointType key)
+	: key_ (key), n_ (0), ivals_ (NULL) { }
+      Entry (PointType key, IList::Interval* ivals, int n)
+	: key_ (key), n_ (n), ivals_ (ivals) { }
+      IList::Interval* intervals () const { return ivals_; }
+      int nIntervals () const { return n_; }
+#endif
+      PointType key () { return key_; }
     };
 
     std::vector<Entry> entryTable_;
     std::vector<DataType> data_;
+#if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT
+    IList::Interval* iArray;
+#endif
 
     class SortCriterion {
-      static const unsigned int dataSize = sizeof (DataType);
-      struct Ptrs {
+      // We use this ugly hack in order to be able to use the stl::map
+      // for looking up Data indices. The more proper approach is to
+      // include a hash map implementation in MUSIC. We might use one
+      // of Googles sparse_map implementations.
+      struct Mem0 {
+	int f0;
+      };
+      struct Mem1 {
+	void* f0;
+      };
+      struct Mem2 {
 	int f0;
 	void* f1;
       };
     public:
       bool operator() (const DataType& x, const DataType& y) const
       {
-	if (sizeof (DataType) != sizeof (Ptrs))
-	  assert (sizeof (DataType) == sizeof (Ptrs));
 	const DataType* px = &x;
-	const Ptrs u = *reinterpret_cast<const Ptrs*> (px);
 	const DataType* py = &y;
-	const Ptrs v = *reinterpret_cast<const Ptrs*> (py);
-	return u.f1 < v.f1 || (u.f1 == v.f1 && u.f0 < v.f0);
+	// the compiler optimization will resolve this at compile time
+	if (sizeof (DataType) == sizeof (Mem0))
+	  {
+	    const Mem0 u = *reinterpret_cast<const Mem0*> (px);
+	    const Mem0 v = *reinterpret_cast<const Mem0*> (py);
+	    return u.f0 < v.f0;
+	  }
+	else if (sizeof (DataType) == sizeof (Mem1))
+	  {
+	    const Mem1 u = *reinterpret_cast<const Mem1*> (px);
+	    const Mem1 v = *reinterpret_cast<const Mem1*> (py);
+	    return u.f0 < v.f0;
+	  }
+	else if (sizeof (DataType) == sizeof (Mem2))
+	  {
+	    const Mem2 u = *reinterpret_cast<const Mem2*> (px);
+	    const Mem2 v = *reinterpret_cast<const Mem2*> (py);
+	    return u.f1 < v.f1 || (u.f1 == v.f1 && u.f0 < v.f0);
+	  }
+	else 
+	  // report error
+	  assert (sizeof (DataType) == sizeof (Mem0));
       }
     };
 
@@ -109,6 +172,17 @@ namespace MUSIC {
     {
       preEntryMap_ = new PreEntryMap ();
       dataMap_ = new DataMap ();
+    }
+    ~IntervalTable ()
+    {
+#if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT
+      delete[] iArray;
+#elif MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
+      for (typename std::vector<Entry>::iterator i = entryTable_.begin ();
+	   i != entryTable_.end ();
+	   ++i)
+	delete[] i->intervals();
+#endif
     }
     void add (const IntervalType& i, const DataType& data);
     void build ();
@@ -161,18 +235,49 @@ namespace MUSIC {
     std::vector<DataType> (data_).swap (data_);
     tableSize_ = preEntryMap_->size ();
     entryTable_.reserve (tableSize_ + 2);
+#if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
+    IList::Interval* iPtr;
+#if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT
+    iArray = new IList::Interval[IList::nNodes ()];
+    iPtr = iArray;
+#endif
+#endif
     // backward sentinel
-    entryTable_.push_back (Entry (std::numeric_limits<PointType>::min (),
-				  IList::NIL));
+    entryTable_.push_back (Entry (std::numeric_limits<PointType>::min ()));
     for (typename PreEntryMap::iterator p = preEntryMap_->begin ();
 	 p != preEntryMap_->end ();
 	 ++p)
-      entryTable_.push_back (Entry (p->first, p->second.list ()));
+      {
+	PointType key = p->first;
+	IList list = p->second.list ();
+#if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
+	entryTable_.push_back (Entry (key, list));
+#else // MUSIC_COMPACT or MUSIC_SCATTERED
+	int n = list.size ();
+#if MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
+	iPtr = new IList::Interval[n];
+#endif
+	entryTable_.push_back (Entry (key, iPtr, n));
+	for (IList::iterator j = list.begin (); j != list.end (); ++j)
+	  *iPtr++ = *j;
+#endif
+      }
     // forward sentinel
-    entryTable_.push_back (Entry (std::numeric_limits<PointType>::max (),
-				  IList::NIL));
+    entryTable_.push_back (Entry (std::numeric_limits<PointType>::max ()));
     delete preEntryMap_;
+#if MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
+    IList::trimNodes ();
+#elif MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
+    IList::reset ();
+#endif
     rangeSize_ = rangeSize_ - lowerBound_ + 1;
+
+#ifdef MUSIC_DEBUG
+    std::cout << "data: " << data_.size () << std::endl;
+    std::cout << "nodes: " << IList::nNodes () << std::endl;
+    std::cout << "freelist: " << IList::freeList ().size ()
+	      << std::endl;
+#endif
   }
   
   
@@ -207,10 +312,18 @@ namespace MUSIC {
 	      return;
 	  }
       }
-    
+
+#if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
     IList ls = entryTable_[i].list ();
-    for (IList::iterator k = ls.begin (); k != ls.end (); ++k)
-      (*a) (data_[*k]);
+    for (IList::iterator j = ls.begin (); j != ls.end (); ++j)
+      for (int k = j->begin (); k <= j->end (); ++k)
+	(*a) (data_[k]);
+#else // MUSIC_COMPACT or MUSIC_SCATTERED
+    IList::Interval* ivals = entryTable_[i].intervals ();
+    for (int j = 0; j < entryTable_[i].nIntervals (); ++j)
+      for (int k = ivals[j].begin (); k <= ivals[j].end (); ++k)
+	(*a) (data_[k]);
+#endif
   }
 
 }

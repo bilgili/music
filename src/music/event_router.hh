@@ -21,10 +21,13 @@
 #include <vector>
 
 #include <music/FIBO.hh>
-#include <music/interval_tree.hh>
-#include <music/interval_table.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>
+
+#include <music/interval_tree.hh>
+
+#define MUSIC_ITABLE_FLAVOR MUSIC_SCATTERED
+#include <music/interval_table.hh>
 
 namespace MUSIC {
   /* remedius

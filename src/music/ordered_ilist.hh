@@ -33,12 +33,25 @@ namespace MUSIC {
 
     static const ListPtr NILPTR = -1;
 
+  public:
+    class Interval {
+      DataType begin_;
+      DataType end_;
+    public:
+      Interval () { }
+      Interval (DataType b, DataType e) : begin_ (b), end_ (e) { }
+      DataType begin () const { return begin_; }
+      void setBegin (const DataType x) { begin_ = x; }
+      DataType end () const { return end_; }
+      void setEnd (const DataType x) { end_ = x; }
+    };
+
+  private:
     struct Node {
       Node (DataType b, DataType e, ListPtr n)
-	: begin_ (b), end_ (e), next_ (n)
+	: ival_ (Interval (b, e)), next_ (n)
       { }
-      DataType begin_;
-      DataType end_; // inclusive
+      Interval ival_; // inclusive
       ListPtr next_;
     };
 
@@ -47,10 +60,10 @@ namespace MUSIC {
 
     ListPtr lptr_;
 
-    DataType begin_ () const { return node_[lptr_].begin_; }
-    void setBegin_ (const DataType x) { node_[lptr_].begin_ = x; }
-    DataType end_ () const { return node_[lptr_].end_; }
-    void setEnd_ (const DataType x) { node_[lptr_].end_ = x; }
+    DataType begin_ () const { return node_[lptr_].ival_.begin (); }
+    void setBegin_ (const DataType x) { node_[lptr_].ival_.setBegin (x); }
+    DataType end_ () const { return node_[lptr_].ival_.end (); }
+    void setEnd_ (const DataType x) { node_[lptr_].ival_.setEnd (x); }
     OrderedIList next_ () const { return OrderedIList (node_[lptr_].next_); }
     void setNext_ (const OrderedIList list) const { node_[lptr_].next_ = list.lptr_; }
     OrderedIList cons (const DataType b, const DataType e, const OrderedIList n);
@@ -60,17 +73,21 @@ namespace MUSIC {
 
     class iterator {
       OrderedIList list_;
-      DataType i_;
     public:
-      iterator (OrderedIList list)
-      : list_ (list), i_ (list.isEmpty () ? 0 : list.begin_ ())
-      { }
+      iterator (OrderedIList list) : list_ (list) { }
       bool operator!= (const iterator& i) const
       {
-	return list_ != i.list_ || i_ != i.i_;
+	return list_ != i.list_;
       }
-      iterator& operator++ ();
-      const DataType operator* () { return i_; }
+      iterator& operator++ () { list_ = list_.next_ (); return *this; }
+      const Interval& operator* () const
+      {
+	return node_[list_.lptr_].ival_;
+      }
+      const Interval* operator-> () const
+      {
+	return &node_[list_.lptr_].ival_;
+      }
     };
 
     OrderedIList () : lptr_ (NILPTR) { }
@@ -82,6 +99,15 @@ namespace MUSIC {
     OrderedIList insert (DataType i, OrderedIList hint);
     iterator begin () const { return iterator (*this); }
     iterator end () const { return iterator (NIL); }
+    unsigned int size () const;
+
+    static unsigned int nNodes () { return node_.size (); }
+    static void trimNodes () { std::vector<Node> (node_).swap (node_); }
+    static void reset () { freePtr_ = NIL; node_.clear (); trimNodes (); }
+
+#ifdef MUSIC_DEBUG
+    static OrderedIList freeList () { return freePtr_; }
+#endif
   };
 
   template<class DataType>
@@ -125,19 +151,6 @@ namespace MUSIC {
   {
     list.setNext_ (freePtr_);
     freePtr_ = list;
-  }
-
-  template<class DataType>
-  typename OrderedIList<DataType>::iterator&
-  OrderedIList<DataType>::iterator::operator++ ()
-  {
-    ++i_;
-    if (i_ > list_.end_ ())
-      {
-	list_ = list_.next_ ();
-	i_ = list_.isEmpty () ? 0 : list_.begin_ ();
-      }
-    return *this;
   }
 
   template<class DataType>
@@ -223,6 +236,20 @@ namespace MUSIC {
 	    return next;
 	  }
       }
+  }
+
+  template<class DataType>
+  unsigned int
+  OrderedIList<DataType>::size () const
+  {
+    unsigned int size = 0;
+    OrderedIList list = *this;
+    while (!list.isEmpty ())
+      {
+	++size;
+	list = list.next_ ();
+      }
+    return size;
   }
 
 }

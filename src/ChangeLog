@@ -1,3 +1,12 @@
+2012-08-21  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am: Added music/interval_table.hh,
+	music/ordered_ilist.hh.
+
+	* music/interval_table.hh, music/ordered_ilist.hh: New files.
+
+	* music/event_router.hh: Use new IntervalTable template.
+
 2012-08-19  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/event_routing_map.hh, event_routing_map.cc

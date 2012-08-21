@@ -22,6 +22,7 @@
 
 #include <music/FIBO.hh>
 #include <music/interval_tree.hh>
+#include <music/interval_table.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>
 
@@ -85,53 +86,9 @@ namespace MUSIC {
     virtual void processEvent (double t, int id) {};
   };
 
-  template<class RoutingData>
-  class TableProcessingRouter : public EventRouter {
-    //routingTable maps different buffers/even handlers of the current rank
-    //to the global index range, current rank is responsible for.
-    std::vector<RoutingData> routingData; /*remove routingData*/
-    std::map<int, std::vector<RoutingData> > routingTable;
-  public:
-    void insertRoutingData (Interval& i, RoutingData& data);
-    void processEvent (double t, int id);
-  };
-
-  template<class RoutingData>
-  void
-  TableProcessingRouter<RoutingData>::processEvent (double t, int id)
-  {
-    typename std::vector<RoutingData>::iterator it;
-    if (routingTable.count (id) > 0)
-      for (it = routingTable[id].begin(); it != routingTable[id].end (); it++)
-	{
-	  it->process (t, id - it->offset ());
-	}
-  }
-
-  template<class RoutingData>
-  void
-  TableProcessingRouter<RoutingData>::insertRoutingData (Interval& ival,
-							 RoutingData &data)
-  {
-    routingData.push_back (data);
-    for (int i = ival.begin (); i < ival.end (); ++i) {
-      //std::cerr << "insert:" <<  i  << ":" << data.offset() << std::endl;
-      routingTable[i + data.offset ()].push_back (routingData.back ());
-    }
-  }
-
-  class TableProcessingOutputRouter : public TableProcessingRouter<OutputRoutingData> {
-  };
-
-  class TableProcessingInputGlobalRouter : public TableProcessingRouter<InputRoutingData<EventHandlerGlobalIndex> > {
-  };
-
-  class TableProcessingInputLocalRouter : public TableProcessingRouter<InputRoutingData<EventHandlerLocalIndex> > {
-  };
-
-  template<class RoutingData>
-  class TreeProcessingRouter : public EventRouter {
-    class Processor : public IntervalTree<int, Interval, RoutingData>::Action {
+  template<class RoutingData, class IntervalLookup>
+  class IntervalProcessingRouter : public EventRouter {
+    class Processor : public IntervalLookup::Action {
     protected:
       double t_;
       int id_;
@@ -147,45 +104,80 @@ namespace MUSIC {
       }
     };
     
-    IntervalTree<int, Interval, RoutingData> routingTable;
+    IntervalLookup routingTable;
   public:
     void insertRoutingData (Interval& i, RoutingData& data);
     void buildTable ();
     void processEvent (double t, int id);
   };
 
-  template<class RoutingData>
+  template<class RoutingData, class IntervalLookup>
   void
-  TreeProcessingRouter<RoutingData>::insertRoutingData (Interval& i,
-							RoutingData &data)
+  IntervalProcessingRouter<RoutingData, IntervalLookup>::insertRoutingData (Interval& i,
+									    RoutingData &data)
   {
     routingTable.add (i, data);
   }
 
 
-  template<class RoutingData>
+  template<class RoutingData, class IntervalLookup>
   void
-  TreeProcessingRouter<RoutingData>::buildTable ()
+  IntervalProcessingRouter<RoutingData, IntervalLookup>::buildTable ()
   {
     MUSIC_LOG0 ("Routing table size for rank 0 = " << routingTable.size ());
     routingTable.build ();
   }
 
-  template<class RoutingData>
+  template<class RoutingData, class IntervalLookup>
   void
-  TreeProcessingRouter<RoutingData>::processEvent (double t, int id)
+  IntervalProcessingRouter<RoutingData, IntervalLookup>::processEvent (double t, int id)
   {
     Processor i (t, id);
     routingTable.search (id, &i);
   }
 
-  class TreeProcessingOutputRouter : public TreeProcessingRouter<OutputRoutingData> {
+  class TreeProcessingOutputRouter
+    : public IntervalProcessingRouter<OutputRoutingData,
+				      IntervalTree<int, Interval, OutputRoutingData> >
+  {
   };
 
-  class TreeProcessingInputGlobalRouter : public TreeProcessingRouter<InputRoutingData<EventHandlerGlobalIndex> > {
+  class TreeProcessingInputGlobalRouter
+    : public IntervalProcessingRouter<InputRoutingData<EventHandlerGlobalIndex>,
+				      IntervalTree<int,
+						   Interval,
+						   InputRoutingData<EventHandlerGlobalIndex> > >
+  {
   };
 
-  class TreeProcessingInputLocalRouter : public TreeProcessingRouter<InputRoutingData<EventHandlerLocalIndex> > {
+  class TreeProcessingInputLocalRouter
+    : public IntervalProcessingRouter<InputRoutingData<EventHandlerLocalIndex>,
+				      IntervalTree<int,
+						   Interval,
+						   InputRoutingData<EventHandlerLocalIndex> > >
+  {
+  };
+
+  class TableProcessingOutputRouter
+    : public IntervalProcessingRouter<OutputRoutingData,
+				      IntervalTable<int, Interval, OutputRoutingData> >
+  {
+  };
+
+  class TableProcessingInputGlobalRouter
+    : public IntervalProcessingRouter<InputRoutingData<EventHandlerGlobalIndex>,
+				      IntervalTable<int,
+						    Interval,
+						    InputRoutingData<EventHandlerGlobalIndex> > >
+  {
+  };
+
+  class TableProcessingInputLocalRouter
+    : public IntervalProcessingRouter<InputRoutingData<EventHandlerLocalIndex>,
+				      IntervalTable<int,
+						    Interval,
+						    InputRoutingData<EventHandlerLocalIndex> > >
+  {
   };
 
 }

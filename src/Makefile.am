@@ -35,6 +35,7 @@ libmusic_la_SOURCES = \
 	BIFO.cc music/BIFO.hh \
 	FIBO.cc music/FIBO.hh music/message.hh \
 	music/interval.hh music/interval_tree.hh \
+	music/interval_table.hh music/ordered_ilist.hh \
 	music/communication.hh \
 	music/version.hh version.cc
 
@@ -59,6 +60,7 @@ libmusic_c_la_DEPENDENCIES = libmusic.la
 musicincludedir = $(includedir)/music
 musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/interval.hh music/interval_tree.hh \
+		       music/interval_table.hh music/ordered_ilist.hh \
 		       music/index_map.hh music/data_map.hh \
 		       music/linear_index.hh music/array_data.hh \
 		       music/configuration.hh music/connectivity.hh \

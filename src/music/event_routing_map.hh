@@ -85,7 +85,6 @@ namespace MUSIC {
 	while (i != intervals.end ()
 	       && (*i)->begin () <= current.end ())
 	  {
-
 	    // join intervals
 	    int maxEnd = std::max<int> (current.end (), (*i)->end ());
 	    current.setEnd (maxEnd);

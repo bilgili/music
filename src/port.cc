@@ -112,11 +112,37 @@ namespace MUSIC {
 
 
   void
-  OutputPort::mapImpl (IndexMap* indices,
-				     Index::Type type,
-				     int maxBuffered,
-				     int dataSize)
+  Port::checkIndexMap (IndexMap* indexMap)
   {
+    if (indexMap->begin () != indexMap->end ())
+      {
+	IndexMap::iterator i = indexMap->begin ();
+	IndexInterval last = *i;
+	++i;
+	for (; i != indexMap->end (); ++i)
+	  {
+	    if (i->begin () < last.end ())
+	      {
+		std::ostringstream os;
+		os << "Mapping port " << portName_
+		   << " using index map with overlaps: ["
+		   << last.begin () << ", " << last.end () << "), ["
+		   << i->begin () << ", " << i->end () << ")";
+		error (os);
+	      }
+	    last = *i;
+	  }
+      }
+  }
+
+
+  void
+  OutputPort::mapImpl (IndexMap* indices,
+		       Index::Type type,
+		       int maxBuffered,
+		       int dataSize)
+  {
+    checkIndexMap (indices);
     // The timing algorithm in uses a different definition of
     // maxBuffered.  While the interface in port.hh counts the number
     // of "ticks of data" which must be stored, the timing algorithm
@@ -147,11 +173,12 @@ namespace MUSIC {
   
   void
   InputPort::mapImpl (IndexMap* indices,
-				    Index::Type type,
-				    double accLatency,
-				    int maxBuffered,
-				    bool interpolate)
+		      Index::Type type,
+		      double accLatency,
+		      int maxBuffered,
+		      bool interpolate)
   {
+    checkIndexMap (indices);
     // The timing algorithm in uses a different definition of
     // maxBuffered.  While the interface in port.hh counts the number
     // of "ticks of data" which must be stored, the timing algorithm

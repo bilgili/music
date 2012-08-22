@@ -1,5 +1,10 @@
 2012-08-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/port.hh, port.cc (Port::checkIndexMap): New member.
+
+	* port.cc (OutputPort::mapImpl, InputPort::mapImpl: Use
+	checkIndexMap.
+
 	* event_routing_map.cc (OutputRoutingMap::fillRouter): Ask
 	EventRouter if it needs as few points as possible rather than as
 	few intervals as possible, and close gaps only in the latter case.

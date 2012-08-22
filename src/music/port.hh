@@ -56,6 +56,7 @@ namespace MUSIC {
     bool isConnected ();
     bool hasWidth ();
     int width ();
+    void checkIndexMap (IndexMap* indexMap);
 
   protected:
     IndexMap* indices_;

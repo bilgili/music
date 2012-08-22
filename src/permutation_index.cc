@@ -21,7 +21,6 @@ namespace MUSIC {
   
   PermutationIndex::PermutationIndex (GlobalIndex* indices, int size)
   {
-    
     // NOTE: collapse adjacent intervals where possible?
     for (int i = 0; i < size; ++i)
       indices_.push_back (IndexInterval (indices[i],

@@ -34,7 +34,7 @@ libmusic_la_SOURCES = \
 	scheduler.cc music/scheduler.hh \
 	BIFO.cc music/BIFO.hh \
 	FIBO.cc music/FIBO.hh music/message.hh \
-	music/interval.hh music/interval_tree.hh \
+	interval.cc music/interval.hh music/interval_tree.hh \
 	music/interval_table.hh music/ordered_ilist.hh \
 	music/communication.hh \
 	music/version.hh version.cc

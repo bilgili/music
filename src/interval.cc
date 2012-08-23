@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,33 +16,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUSIC_INTERVAL_HH
-
-#include <ostream>
+#include "music/interval.hh"
 
 namespace MUSIC {
 
-  class Interval {
-    int begin_;
-    int end_;
-  public:
-    Interval () { }
-    Interval (int b, int e) : begin_ (b), end_ (e) { }
-    ~Interval () { }
-    int begin () const { return begin_; }
-    int end () const { return end_; }
-    void setBegin (int begin) { begin_ = begin; }
-    void setEnd (int end) { end_ = end; }
-    bool operator< (const Interval& data) const
-    {
-      return begin () < data.begin ();
-    }
-
-  };
-
   // support printed representation
-  std::ostream& operator<< (std::ostream& os, const Interval& ival);
+  std::ostream&
+  operator<< (std::ostream& os, const Interval& ival)
+  {
+    os << "[" << ival.begin () << ", " << ival.end () << ")";
+    return os;
+  }
 
 }
-#define MUSIC_INTERVAL_HH
-#endif

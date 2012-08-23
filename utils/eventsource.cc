@@ -47,12 +47,14 @@ usage (int rank)
 		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
+		<< "      --out PORTNAME      output port name (default: out)" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
   exit (1);
 }
 
+string portName ("out");
 int    nUnits;
 double timestep = DEFAULT_TIMESTEP;
 int    maxbuffered = 0;
@@ -64,6 +66,7 @@ string suffix = ".dat";
 void
 getargs (int rank, int argc, char* argv[])
 {
+  enum { OUT };
   opterr = 0; // handle errors ourselves
   while (1)
     {
@@ -74,6 +77,7 @@ getargs (int rank, int argc, char* argv[])
 	  {"imaptype",    required_argument, 0, 'm'},
 	  {"indextype",   required_argument, 0, 'i'},
 	  {"help",        no_argument,       0, 'h'},
+	  {"out",	  required_argument, 0, OUT},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
@@ -111,6 +115,9 @@ getargs (int rank, int argc, char* argv[])
 	      abort ();
 	    }
 	  continue;
+	case OUT:
+	  portName = optarg;
+	  continue;
 	case '?':
 	  break; // ignore unknown options
 	case 'h':
@@ -144,7 +151,7 @@ main (int argc, char *argv[])
 
   getargs (rank, argc, argv);
 
-  MUSIC::EventOutputPort* out = setup->publishEventOutput ("out");
+  MUSIC::EventOutputPort* out = setup->publishEventOutput (portName);
   if (!out->isConnected ())
     {
       if (rank == 0)

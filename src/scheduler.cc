@@ -208,6 +208,7 @@ namespace MUSIC {
       }
 
   }
+
   void
   Scheduler::nextCommunication (std::vector<std::pair<double, Connector *> > &schedule)
   {
@@ -219,28 +220,28 @@ namespace MUSIC {
 	    if ((*node)->nextReceive () > (*node)->localTime ().time ())
 	      (*node)->advance ();
 
-	    std::vector<Connection*> conns = (*node)->outputConnections ();
+	    std::vector<Connection*>* conns = (*node)->outputConnections ();
 	    std::vector<Connection*>::iterator conn;
-	    for ( conn = conns.begin (); conn < conns.end (); conn++)
+	    for (conn = conns->begin (); conn < conns->end (); conn++)
 	      //do we have data ready to be sent?
 	      if ((*conn)->nextSend () <= (*conn)->preNode ()->localTime ()
-		  && (*conn)->nextReceive () == (*conn)->postNode ()->localTime ()) {
-		if (self_node == (*conn)->postNode ()->getId ()|| //input
-		    self_node == (*conn)->preNode ()->getId ()	) //output
-		  {
-		    double nextComm = self_node == (*conn)->postNode ()->getId () ? (*conn)->postNode ()->localTime ().time () :
-		      (*conn)->preNode ()->localTime ().time ();
-		    schedule.push_back (std::pair<double, Connector*>(nextComm, (*conn)->getConnector ()));
-		  }
+		  && (*conn)->nextReceive () == (*conn)->postNode ()->localTime ())
+		{
+		  if (self_node == (*conn)->postNode ()->getId () //input
+		      || self_node == (*conn)->preNode ()->getId ()) //output
+		    {
+		      double nextComm
+			= (self_node == (*conn)->postNode ()->getId ()
+			   ? (*conn)->postNode ()->localTime ().time ()
+			   : (*conn)->preNode ()->localTime ().time ());
+		      schedule.push_back (std::pair<double, Connector*>(nextComm, (*conn)->getConnector ()));
+		    }
 
-		MUSIC_LOG0 ("Scheduled communication:"<< (*conn)->preNode ()->getId () <<"->"<< (*conn)->postNode ()->getId () << "at(" << (*conn)->preNode ()->localTime ().time () << ", "<< (*conn)->postNode ()->localTime ().time () <<")");
-		(*conn)->advance ();
-
-
-	      }
+		  MUSIC_LOG0 ("Scheduled communication:"<< (*conn)->preNode ()->getId () <<"->"<< (*conn)->postNode ()->getId () << "at(" << (*conn)->preNode ()->localTime ().time () << ", "<< (*conn)->postNode ()->localTime ().time () <<")");
+		  (*conn)->advance ();
+		}
 	  }
       }
-
   }
 }
 

@@ -47,7 +47,10 @@ namespace MUSIC {
       Node(int id, const Clock &localTime);
       void advance();
       void addConnection(Connection *conn, bool input = false);
-      std::vector<Connection*> outputConnections() const {return outputConnections_;};
+      std::vector<Connection*>* outputConnections ()
+      {
+	return &outputConnections_;
+      };
       Clock localTime () const {return localTime_;};
       double nextReceive() const;
       int getId() const {return id_;}

@@ -1,5 +1,8 @@
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* event_routing_map.cc (OutputRoutingMap::fillRouter): Bugfix:
+	return -> continue.
+
 	* interval.cc: New file.
 
 	* music/interval.hh: Make Interval:s printable.

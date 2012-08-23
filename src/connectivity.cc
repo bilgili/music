@@ -17,6 +17,9 @@
  */
 
 #include "music/music-config.hh"
+
+#include "music/debug.hh"
+
 #include "music/connectivity.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"

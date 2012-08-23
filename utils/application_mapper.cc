@@ -16,8 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "music/error.hh"
 #include "music/music-config.hh"
+
+#include "music/debug.hh"
+
+#include "music/error.hh"
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>

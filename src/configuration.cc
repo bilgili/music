@@ -17,16 +17,18 @@
  */
 
 #include "music/configuration.hh" // Must be included first on BG/L
-#if MUSIC_USE_MPI
-#include <mpi.h>
-#endif
+
+#include "music/debug.hh"
+
 extern "C" {
 #include <stdlib.h>
 }
+
 #include "music/ioutils.hh"
 #include "music/error.hh"
 #include <iostream>
 #include <fstream>
+
 namespace MUSIC {
 
 const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";

@@ -17,6 +17,9 @@
  */
 
 #include "music/distributor.hh"
+
+#include "music/debug.hh"
+
 #if MUSIC_USE_MPI
 
 // distributor.hh needs to be included first since it causes inclusion

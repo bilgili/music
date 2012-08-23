@@ -17,9 +17,10 @@
  */
 
 #ifndef MUSIC_CONNECTOR_HH
+
 #include "music/music-config.hh"
+
 #if MUSIC_USE_MPI
-#include <mpi.h>
 
 #include <vector>
 #include <string>

@@ -15,9 +15,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "music/sampler.hh"
-#if MUSIC_USE_MPI
 
+#include "music/sampler.hh"
+
+#include "music/debug.hh"
+
+#if MUSIC_USE_MPI
 
 // array_data.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other

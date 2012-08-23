@@ -129,45 +129,45 @@ namespace MUSIC {
   std::vector<int>
   ApplicationMap::assignLeaders(int nLeaders, int color)
   {
-	  std::vector<int> appColor2Leader;
-	  int root, gsize, myrank, *rbuf;
-	  root = 0;
-	  gsize = MPI::COMM_WORLD.Get_size();
-	  myrank = MPI::COMM_WORLD.Get_rank();
-	  if ( myrank == root)
-		  rbuf = new int[gsize];
-	  MPI::COMM_WORLD.Gather( &color, 1, MPI_INT, rbuf, 1, MPI_INT, root);
-	  int *leaders;
-	  leaders = new int[nLeaders];
-	  if ( myrank == root) {
+    std::vector<int> appColor2Leader;
+    int root, gsize, myrank, *rbuf = 0;
+    root = 0;
+    gsize = MPI::COMM_WORLD.Get_size();
+    myrank = MPI::COMM_WORLD.Get_rank();
+    if ( myrank == root)
+      rbuf = new int[gsize];
+    MPI::COMM_WORLD.Gather( &color, 1, MPI_INT, rbuf, 1, MPI_INT, root);
+    int *leaders;
+    leaders = new int[nLeaders];
+    if ( myrank == root) {
 
-		  for(int i = 0; i < nLeaders; ++i)
-			  leaders[i] = -1;
-		  for(int i = 0; i < gsize; ++i)
-			  if( leaders[rbuf[i]] == -1 )
-				  leaders[rbuf[i]] = i;
+      for(int i = 0; i < nLeaders; ++i)
+	leaders[i] = -1;
+      for(int i = 0; i < gsize; ++i)
+	if( leaders[rbuf[i]] == -1 )
+	  leaders[rbuf[i]] = i;
 
 #ifdef MUSIC_DEBUG
-		  /*  block for debugging */
-		  std::ofstream outfile ("ranks");
-		  for(int i = 0; i < nLeaders; ++i){
-			  outfile<< i <<":";
-			  for(int j = 0; j < gsize; ++j)
-				  if(rbuf[j] == i) outfile<< " " << j ;
-			  outfile<<std::endl;
-		  }
-		  outfile<<std::endl;
-		  outfile.close();
-		  /*end of block */
+      /*  block for debugging */
+      std::ofstream outfile ("ranks");
+      for(int i = 0; i < nLeaders; ++i){
+	outfile<< i <<":";
+	for(int j = 0; j < gsize; ++j)
+	  if(rbuf[j] == i) outfile<< " " << j ;
+	outfile<<std::endl;
+      }
+      outfile<<std::endl;
+      outfile.close();
+      /*end of block */
 #endif // MUSIC_DEBUG
-	  }
-	  MPI::COMM_WORLD.Bcast(leaders, nLeaders, MPI_INT, root);
-	  if ( myrank == root) {
-		  delete rbuf;
-	  }
-	  appColor2Leader.insert(appColor2Leader.begin(),leaders,leaders+nLeaders);
-	  delete leaders;
-	  return appColor2Leader;
+    }
+    MPI::COMM_WORLD.Bcast(leaders, nLeaders, MPI_INT, root);
+    if ( myrank == root) {
+      delete rbuf;
+    }
+    appColor2Leader.insert(appColor2Leader.begin(),leaders,leaders+nLeaders);
+    delete leaders;
+    return appColor2Leader;
   }
 #endif
 }

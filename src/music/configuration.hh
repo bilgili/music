@@ -17,7 +17,9 @@
  */
 
 #ifndef MUSIC_CONFIGURATION_HH
+
 #include "music/music-config.hh"
+
 #include <string>
 #include <map>
 

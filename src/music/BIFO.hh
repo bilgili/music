@@ -17,7 +17,9 @@
  */
 
 #ifndef MUSIC_BIFO_HH
+
 #include "music/music-config.hh"
+
 #if MUSIC_USE_MPI
 #include <vector>
 

@@ -121,7 +121,6 @@ namespace MUSIC {
   IntervalProcessingRouter<RoutingData, IntervalLookup>::insertRoutingData (Interval& i,
 									    RoutingData &data)
   {
-    MUSIC_LOG ("Mapping " << i << " to routing data " << &data);
     routingTable.add (i, data);
   }
 
@@ -130,7 +129,6 @@ namespace MUSIC {
   void
   IntervalProcessingRouter<RoutingData, IntervalLookup>::buildTable ()
   {
-    MUSIC_LOG0 ("Routing table size for rank 0 = " << routingTable.size ());
     routingTable.build ();
   }
 

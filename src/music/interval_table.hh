@@ -221,7 +221,6 @@ namespace MUSIC {
 
     recordProperties (ival);
 
-    MUSIC_LOG ("Interval " << ival << " mapped to dataIndex " << dataIndex);
     for (PointType k = ival.begin (); k < ival.end (); ++k)
       (*preEntryMap_)[k].insert (dataIndex);
   }
@@ -273,10 +272,12 @@ namespace MUSIC {
 #endif
     rangeSize_ = rangeSize_ - lowerBound_ + 1;
 
-    MUSIC_LOG ("data: " << data_.size () << std::endl
-	       << "nodes: " << IList::nNodes () << std::endl
-	       << "freelist: " << IList::freeList ().size ()
-	       << std::endl);
+#ifdef MUSIC_DEBUG
+    std::cout << "data: " << data_.size () << std::endl
+	      << "nodes: " << IList::nNodes () << std::endl
+	      << "freelist: " << IList::freeList ().size ()
+	      << std::endl;
+#endif
   }
   
   

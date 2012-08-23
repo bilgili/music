@@ -18,6 +18,8 @@
 
 #include "music/connector.hh"
 
+#include "music/debug.hh"
+
 #if MUSIC_USE_MPI
 // connector.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other

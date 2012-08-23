@@ -15,9 +15,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "music/spatial.hh" // Must be included first on BG/Ls
-#if MUSIC_USE_MPI
 
+#include "music/spatial.hh" // Must be included first on BG/Ls
+
+#include "music/debug.hh"
+
+#if MUSIC_USE_MPI
 
 #include <sstream>
 

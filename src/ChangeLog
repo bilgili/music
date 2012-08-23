@@ -1,5 +1,10 @@
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/music-config.hh-in: (and many other files) Some #include
+	reorganization: Let those who need it include music-config.hh as
+	the common first header file. Let music-config.hh be the only one
+	including music/debug.hh.
+
 	* music/ordered_ilist.hh (OrderedIList::iterator): Satisfy BG/P
 	compiler which complained that an OrderedIList member creates a
 	circular reference with respect to type.

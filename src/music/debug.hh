@@ -19,9 +19,6 @@
 
 #ifdef MUSIC_DEBUG
 
-#if MUSIC_USE_MPI
-#include <mpi.h> // Must be included first on BG/L
-#endif
 #include <iostream>
 
 #define MUSIC_LOG(X) (std::cerr << X << std::endl << std::flush)

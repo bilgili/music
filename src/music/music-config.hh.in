@@ -22,7 +22,11 @@
 #define MUSIC_HAVE_LONG_LONG @MUSIC_HAVE_LONG_LONG@
 #define MUSIC_USE_MPI @MUSIC_USE_MPI@
 
-#define MUSIC_CONFIG_HH
+#if MUSIC_USE_MPI
+#include <mpi.h> // Must be included first on BG/L
+#endif
 
 #include <music/debug.hh>
+
+#define MUSIC_CONFIG_HH
 #endif /* MUSIC_CONFIG_HH */

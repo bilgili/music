@@ -1,5 +1,8 @@
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* divergence.music: New file. Tests the case where multiple
+	receiving ranks listens to the same sources.
+
 	* eventlogger.cc: Added option -a/--all meaning map all indices in
 	all ranks; Added options --in and --message-in for specifying
 	event input and message input port names; Changed default message

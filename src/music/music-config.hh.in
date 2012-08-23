@@ -26,7 +26,5 @@
 #include <mpi.h> // Must be included first on BG/L
 #endif
 
-#include <music/debug.hh>
-
 #define MUSIC_CONFIG_HH
 #endif /* MUSIC_CONFIG_HH */

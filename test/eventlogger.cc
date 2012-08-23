@@ -25,6 +25,8 @@ usage (int rank)
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
 		<< "  -a, --all               each receiver rank reports all spikes" << std::endl
+		<< "      --in PORTNAME       input port name (default: in)" << std::endl
+		<< "      --message-in PORTNAME message port name (default: message)" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
@@ -73,6 +75,8 @@ public:
   }
 };
 
+string portName ("in");
+string messagePortName ("message");
 double timestep = DEFAULT_TIMESTEP;
 double latency = 0.0;
 int    maxbuffered = 0;
@@ -88,6 +92,7 @@ main (int argc, char* argv[])
   int nProcesses = comm.Get_size (); // how many processes are there?
   int rank = comm.Get_rank ();        // which process am I?
 
+  enum { IN, MESSAGE_IN };
   opterr = 0; // handle errors ourselves
   while (1)
     {
@@ -100,6 +105,8 @@ main (int argc, char* argv[])
 	  {"indextype", required_argument, 0, 'i'},
 	  {"all",	no_argument,	   0, 'a'},
 	  {"help",      no_argument,       0, 'h'},
+	  {"in",	required_argument, 0, IN},
+	  {"message-in", required_argument, 0, MESSAGE_IN},
 	  {0, 0, 0, 0}
 	};
        //`getopt_long' stores the option index here.
@@ -142,6 +149,12 @@ main (int argc, char* argv[])
 	case 'a':
 	  all = true;
 	  continue;
+	case IN:
+	  portName = optarg;
+	  continue;
+	case MESSAGE_IN:
+	  messagePortName = optarg;
+	  continue;
 	case '?':
 	  break; // ignore unknown options
 	case 'h':
@@ -153,8 +166,8 @@ main (int argc, char* argv[])
     }
 
   // Port publishing
-  MUSIC::EventInputPort* evport = setup->publishEventInput ("in");
-  MUSIC::MessageInputPort* msgport = setup->publishMessageInput ("messages");
+  MUSIC::EventInputPort* evport = setup->publishEventInput (portName);
+  MUSIC::MessageInputPort* msgport = setup->publishMessageInput (messagePortName);
   if (!evport->isConnected () && !msgport->isConnected ())
     {
       if (rank == 0)

@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_ARRAY_DATA_HH
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #if MUSIC_USE_MPI
 #include "music/data_map.hh"
 

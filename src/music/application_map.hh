@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_APPLICATION_MAP_HH
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #include <sstream>
 #include <vector>
 #include <map>

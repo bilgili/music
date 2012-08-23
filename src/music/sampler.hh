@@ -19,7 +19,7 @@
 // NOTE: rename to Interpolator?
 
 #ifndef MUSIC_SAMPLER_HH
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #if MUSIC_USE_MPI
 #include <music/data_map.hh>
 

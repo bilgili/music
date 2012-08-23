@@ -20,6 +20,7 @@
 #include <map>
 #include <vector>
 
+#include <music/music-config.hh>
 #include <music/FIBO.hh>
 #include <music/index_map.hh>
 #include <music/event.hh>

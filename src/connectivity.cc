@@ -15,11 +15,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "music/debug.hh"
+
+#include "music/music-config.hh"
 #include "music/connectivity.hh"
 #include "music/ioutils.hh"
 #include "music/error.hh"
-#include <iostream>
+
 namespace MUSIC {
 
   void
@@ -196,7 +197,6 @@ namespace MUSIC {
 	    int rLeader;
 	    in >> rLeader;
 	    rLeader = leaderIdHook[rLeader];
-	   // std::cerr << recApp << ":rLeader:"<<rLeader<<std::endl;
 	    in.ignore ();
 	    int nProc;
 	    in >> nProc;

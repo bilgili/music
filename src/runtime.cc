@@ -304,32 +304,32 @@ Runtime::finalize ()
 void
 Runtime::tick ()
 {
-	// Update local time
-	localTime.tick();
-	// ContPorts do some per-tick initialization here
-	std::vector<TickingPort*>::iterator p;
-	for (p = tickingPorts.begin(); p != tickingPorts.end(); ++p)
-		(*p)->tick();
-	// ContOutputConnectors sample data
-	for (std::vector<PreCommunicationConnector*>::iterator c =
-			preCommunication.begin(); c != preCommunication.end(); ++c)
-		(*c)->preCommunication();
-	MUSIC_LOGR("local time:" << localTime.time() << "next communication at (" << nextComm.time() << ")");
-	if (!schedule.empty ())
-	  while (schedule[0].first <= localTime.time())
-	    {
-	      std::vector< std::pair<double, Connector*> >::iterator comm;
-	      for (comm = schedule.begin ();
-		   comm != schedule.end() && (*comm).first <= localTime.time();
-		   ++comm)
-		(*comm).second->tick ();
-	      schedule.erase (schedule.begin (), comm);
-	      scheduler->nextCommunication (schedule);
-	    }
-	// ContInputConnectors write data to application here
-	for (std::vector<PostCommunicationConnector*>::iterator c =
-			postCommunication.begin(); c != postCommunication.end(); ++c)
-		(*c)->postCommunication();
+  // Update local time
+  localTime.tick ();
+  // ContPorts do some per-tick initialization here
+  std::vector<TickingPort*>::iterator p;
+  for (p = tickingPorts.begin(); p != tickingPorts.end(); ++p)
+    (*p)->tick();
+  // ContOutputConnectors sample data
+  for (std::vector<PreCommunicationConnector*>::iterator c =
+	 preCommunication.begin(); c != preCommunication.end(); ++c)
+    (*c)->preCommunication();
+
+  if (!schedule.empty ())
+    while (schedule[0].first <= localTime.time())
+      {
+	std::vector< std::pair<double, Connector*> >::iterator comm;
+	for (comm = schedule.begin ();
+	     comm != schedule.end() && (*comm).first <= localTime.time();
+	     ++comm)
+	  (*comm).second->tick ();
+	schedule.erase (schedule.begin (), comm);
+	scheduler->nextCommunication (schedule);
+      }
+  // ContInputConnectors write data to application here
+  for (std::vector<PostCommunicationConnector*>::iterator c =
+	 postCommunication.begin(); c != postCommunication.end(); ++c)
+    (*c)->postCommunication();
 }
 
 double

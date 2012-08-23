@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_NEGOTIATOR_HH
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #if MUSIC_USE_MPI
 #include <mpi.h>
 #include <vector>

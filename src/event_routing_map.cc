@@ -15,10 +15,12 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <iostream>
-#include "music/event_routing_map.hh"
+
+//#define MUSIC_DEBUG
+//#include "music/music-config.hh"
 
 #include "music/event_router.hh"
+#include "music/event_routing_map.hh"
 
 namespace MUSIC {
 

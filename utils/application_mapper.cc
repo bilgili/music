@@ -17,7 +17,7 @@
  */
 
 #include "music/error.hh"
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #include <iostream>
 #include <stdlib.h>
 #include <algorithm>

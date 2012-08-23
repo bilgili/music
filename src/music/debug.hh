@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef MUSIC_DEBUG_HH
-#include "music/music-config.hh"
 
 #ifdef MUSIC_DEBUG
 

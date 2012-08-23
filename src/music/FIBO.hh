@@ -17,7 +17,7 @@
  */
 
 #ifndef MUSIC_FIBO_HH
-#include "music/debug.hh"
+#include "music/music-config.hh"
 #include <vector>
 
 namespace MUSIC {

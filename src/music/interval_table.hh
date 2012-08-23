@@ -221,6 +221,7 @@ namespace MUSIC {
 
     recordProperties (ival);
 
+    MUSIC_LOG ("interval " << ival << " mapped to dataIndex " << dataIndex);
     for (PointType k = ival.begin (); k < ival.end (); ++k)
       (*preEntryMap_)[k].insert (dataIndex);
   }

@@ -129,8 +129,8 @@ getargs (int rank, int argc, char* argv[])
   if (argc == optind + 3)
     suffix = argv[optind + 2];
 }
-#define MUSIC_DEBUG
-#include "../src/music/debug.hh"
+
+
 int
 main (int argc, char *argv[])
 {

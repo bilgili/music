@@ -16,8 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include "music/debug.hh"
 #include "music/event.hh"
 #include "music/event_router.hh"
 

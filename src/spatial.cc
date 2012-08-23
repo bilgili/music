@@ -21,7 +21,6 @@
 
 #include <sstream>
 
-#include "music/debug.hh"
 #include "music/error.hh"
 #include "music/communication.hh"
 #include "music/connector.hh" // used only for debugging

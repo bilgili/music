@@ -23,4 +23,6 @@
 #define MUSIC_USE_MPI @MUSIC_USE_MPI@
 
 #define MUSIC_CONFIG_HH
+
+#include <music/debug.hh>
 #endif /* MUSIC_CONFIG_HH */

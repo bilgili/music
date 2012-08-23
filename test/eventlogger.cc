@@ -24,6 +24,7 @@ usage (int rank)
 		<< "  -b, --maxbuffered TICKS maximal amount of data buffered" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
+		<< "  -a, --all               each receiver rank reports all spikes" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
@@ -77,6 +78,7 @@ double latency = 0.0;
 int    maxbuffered = 0;
 std::string imaptype = "linear";
 std::string indextype = "global";
+bool all = false;
 
 int
 main (int argc, char* argv[])
@@ -96,6 +98,7 @@ main (int argc, char* argv[])
 	  {"maxbuffered", required_argument, 0, 'b'},
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"indextype", required_argument, 0, 'i'},
+	  {"all",	no_argument,	   0, 'a'},
 	  {"help",      no_argument,       0, 'h'},
 	  {0, 0, 0, 0}
 	};
@@ -103,7 +106,7 @@ main (int argc, char* argv[])
       int optionIndex = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+t:l:b:m:i:h", longOptions, &optionIndex);
+      int c = getopt_long (argc, argv, "+t:l:b:m:i:ah", longOptions, &optionIndex);
 
      //  detect the end of the options
       if (c == -1)
@@ -135,6 +138,9 @@ main (int argc, char* argv[])
 	      usage (rank);
 	      abort ();
 	    }
+	  continue;
+	case 'a':
+	  all = true;
 	  continue;
 	case '?':
 	  break; // ignore unknown options
@@ -186,7 +192,8 @@ main (int argc, char* argv[])
 	    }
 	  else
 	    firstId += rest;
-	  MUSIC::LinearIndex indexmap (firstId, nLocal);
+	  MUSIC::LinearIndex indexmap (all ? 0 : firstId,
+				       all ? width : nLocal);
       
 	  if (indextype == "global")
 	    if (maxbuffered > 0)
@@ -202,7 +209,7 @@ main (int argc, char* argv[])
       else
 	{
 	  std::vector<MUSIC::GlobalIndex> v;
-	  for (int i = rank; i < width; i += nProcesses)
+	  for (int i = all ? 0 : rank; i < width; i += all ? 1 : nProcesses)
 	    v.push_back (i);
 	  MUSIC::PermutationIndex indexmap (&v.front (), v.size ());
       

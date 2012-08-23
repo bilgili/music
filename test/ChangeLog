@@ -1,3 +1,8 @@
+2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventlogger.cc: Added option -a/--all meaning map all indices in
+	all ranks.
+
 2010-07-28  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Release 1.0.7

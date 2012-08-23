@@ -1,3 +1,9 @@
+2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/ordered_ilist.hh (OrderedIList::iterator): Satisfy BG/P
+	compiler which complained that an OrderedIList member creates a
+	circular reference with respect to type.
+
 2012-08-22  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/port.hh, port.cc (Port::checkIndexMap): New member.

@@ -72,21 +72,22 @@ namespace MUSIC {
     static const OrderedIList NIL;
 
     class iterator {
-      OrderedIList list_;
+      ListPtr lptr_;
+      OrderedIList list () const { return OrderedIList (lptr_); }
     public:
-      iterator (OrderedIList list) : list_ (list) { }
+      iterator (OrderedIList list) : lptr_ (list.lptr_) { }
       bool operator!= (const iterator& i) const
       {
-	return list_ != i.list_;
+	return lptr_ != i.lptr_;
       }
-      iterator& operator++ () { list_ = list_.next_ (); return *this; }
+      iterator& operator++ () { lptr_ = list ().next_ ().lptr_; return *this; }
       const Interval& operator* () const
       {
-	return node_[list_.lptr_].ival_;
+	return node_[lptr_].ival_;
       }
       const Interval* operator-> () const
       {
-	return &node_[list_.lptr_].ival_;
+	return &node_[lptr_].ival_;
       }
     };
 

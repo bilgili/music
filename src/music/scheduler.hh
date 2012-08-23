@@ -17,84 +17,85 @@
  */
 
 #ifndef MUSIC_SCHEDULER_HH
+
 //#define MUSIC_DEBUG
 #include "music/music-config.hh"
+
 #if MUSIC_USE_MPI
-#include <mpi.h>
 
 #include <limits>
 #include <vector>
 #include <music/clock.hh>
 #include <music/connector.hh>
+
 namespace MUSIC {
 
-// The Synchronizer is responsible for the timing involved in
-// communication, sampling, interpolation and buffering.  There is
-// one Synchronizer in each Connector.  The Subconnectors of a
-// Connector also have a reference to the Connector's synchronizer.
+// The Scheduler is responsible for the timing involved in
+// communication, sampling, interpolation and buffering.
 
-class Scheduler {
+  class Scheduler
+  {
 
-public:
-	class Connection;
-	class Node {
-		int id_;
-		Clock localTime_;
-		std::vector<Connection*> outputconnections_;
-		std::vector<Connection*> inputConnections_;
-	public:
-		Node(int id, const Clock &localTime);
-		void advance();
-		void addConnection(Connection *conn, bool input = false);
-		std::vector<Connection*> outputConnections() const {return outputconnections_;};
-		Clock localTime () const {return localTime_;};
-		double nextReceive() const;
-		int getId() const {return id_;}
-	};
+  public:
+    class Connection;
+    class Node {
+      int id_;
+      Clock localTime_;
+      std::vector<Connection*> outputConnections_;
+      std::vector<Connection*> inputConnections_;
+    public:
+      Node(int id, const Clock &localTime);
+      void advance();
+      void addConnection(Connection *conn, bool input = false);
+      std::vector<Connection*> outputConnections() const {return outputConnections_;};
+      Clock localTime () const {return localTime_;};
+      double nextReceive() const;
+      int getId() const {return id_;}
+    };
 
-	class Connection {
-		Clock nextSend_;
-		Clock nextReceive_;
-		int pre_id,post_id;
-		Node *pre_;
-		Node *post_;
-		ClockState latency_;
-		int maxBuffered_;
-		bool interpolate_;
-		int port_code_;
-		Connector *connector_;
-	public:
-		Connection(int pre,int post,const ClockState &latency,int maxBuffered,  bool interpolate, int port_code);
-		void initialize(std::vector<Node*> &nodes);
-		void advance();
-		Clock nextSend() const {return nextSend_;}
-		Clock nextReceive() const {return nextReceive_;}
-		Connector *getConnector() const {return connector_;}
-		void setConnector(Connector *conn) {connector_ = conn;}
-		int portCode() const {return port_code_;}
-		Node *preNode() const {return pre_;}
-		Node *postNode() const {return post_;}
-		ClockState getLatency()const{return latency_;}
-		bool getInterpolate()const{return interpolate_;}
-	private:
-		void _advance();
+    class Connection {
+      Clock nextSend_;
+      Clock nextReceive_;
+      int pre_id,post_id;
+      Node *pre_;
+      Node *post_;
+      ClockState latency_;
+      int maxBuffered_;
+      bool interpolate_;
+      int port_code_;
+      Connector *connector_;
+    public:
+      Connection(int pre,int post,const ClockState &latency,int maxBuffered,  bool interpolate, int port_code);
+      void initialize(std::vector<Node*> &nodes);
+      void advance();
+      Clock nextSend() const {return nextSend_;}
+      Clock nextReceive() const {return nextReceive_;}
+      Connector *getConnector() const {return connector_;}
+      void setConnector(Connector *conn) {connector_ = conn;}
+      int portCode() const {return port_code_;}
+      Node *preNode() const {return pre_;}
+      Node *postNode() const {return post_;}
+      ClockState getLatency()const{return latency_;}
+      bool getInterpolate()const{return interpolate_;}
+    private:
+      void _advance();
 
-	};
+    };
 
 
-private:
-	std::vector<Node*> nodes;
-	std::vector<Connection*>connections;
-	int self_node;
+  private:
+    std::vector<Node*> nodes;
+    std::vector<Connection*>connections;
+    int self_node;
 
-public:
-	Scheduler(int node_id);
-	~Scheduler();
-	void addNode(int id, const Clock &localTime);
-	void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, bool interpolate, int port_code);
-	void initialize(std::vector<Connector*> &connectors);
-	void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);
-};
+  public:
+    Scheduler(int node_id);
+    ~Scheduler();
+    void addNode(int id, const Clock &localTime);
+    void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, bool interpolate, int port_code);
+    void initialize(std::vector<Connector*> &connectors);
+    void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);
+  };
 /*
   class Synchronizer {
 
@@ -206,5 +207,6 @@ public:
 
 }
 #endif
+
 #define MUSIC_SCHEDULER_HH
 #endif

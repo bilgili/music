@@ -18,7 +18,11 @@
 
 //#define MUSIC_DEBUG
 #include "music/scheduler.hh"
+
+#include "music/debug.hh"
+
 #if MUSIC_USE_MPI
+
 #include <cmath>
 #include <iostream>
 
@@ -49,7 +53,7 @@ namespace MUSIC {
     if (input)
       inputConnections_.push_back (conn);
     else
-      outputconnections_.push_back (conn);
+      outputConnections_.push_back (conn);
   }
 
   double

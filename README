@@ -56,6 +56,23 @@ cd test
 mpirun -np 4 /usr/local/bin/music demo.music
 
 
+* Compilation and linking flags
+
+configure.ac contains mechanisms which try to identify which MPI
+implementation/environment is in use and, based on this, decide
+automagically which compiler, compilation flags and linking flags to
+use. To circumvent, pass variable definitions ro configure, e.g.:
+
+  ./configure MPI_CXXFLAGS="-g -O3"
+
+The variables are:
+
+MPI_CXX       The compiler to use for MPI code
+MPI_CXXFLAGS  C++ compilation flags
+MPI_CFLAGS    C compilation flags
+MPI_LDFLAGS   Linking flags
+
+
 * Porting
 
 When launching a set of applications in a multisimulation, MUSIC needs
@@ -72,7 +89,8 @@ installed and how to compiler MUSIC for that distribution.  The
 subdirectory mpidep contains all non-standard code.  If you are trying
 to port the MUSIC library to a new version of MPI, please supply new
 definitions for the functions getRank and getConfig in
-mpidep/mpidep.c.
+mpidep/mpidep.c.  For more details, see the file PORTING in this
+directory.
 
 
 * Where to find more information

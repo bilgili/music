@@ -48,7 +48,7 @@ namespace MUSIC {
   private:
   protected:
     //Synchronizer* synch;
-	  MPI::Datatype type_;
+    MPI::Datatype type_;
     MPI::Intercomm intercomm;
     int remoteRank_;		// rank in inter-communicatir
     int remoteWorldRank_;	// rank in COMM_WORLD
@@ -89,7 +89,10 @@ namespace MUSIC {
   public:
     BufferingOutputSubconnector (int elementSize);
     FIBO* outputBuffer () { return &buffer_; }
-    void report () { std::cout << buffer_.size () << std::endl; }
+    void report ()
+    {
+      std::cout << "Subconnector buffer size: " << buffer_.size () << std::endl; 
+    }
   };
 
   class InputSubconnector : virtual public Subconnector {

@@ -36,7 +36,7 @@ libmusic_la_SOURCES = \
 	FIBO.cc music/FIBO.hh music/message.hh \
 	interval.cc music/interval.hh music/interval_tree.hh \
 	music/interval_table.hh music/ordered_ilist.hh \
-	music/communication.hh \
+	music/communication.hh music/memory.hh memory.cc \
 	music/version.hh version.cc
 
 libmusic_la_HEADERS = music.hh
@@ -78,6 +78,6 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/cont_data.hh music/event.hh \
 		       music/message.hh music/music-config.hh \
 		       music/communication.hh music/version.hh \
-		       ../config.h
+		       music/memory.hh
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

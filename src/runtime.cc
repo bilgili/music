@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007-2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 //#define MUSIC_DEBUG
+//#define MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
 #include "music/runtime.hh"
 
 #if MUSIC_USE_MPI
@@ -29,6 +30,7 @@
 #include "music/temporal.hh"
 #include "music/error.hh"
 #include "music/connection.hh"
+#include "music/memory.hh"
 
 namespace MUSIC {
 
@@ -86,11 +88,15 @@ namespace MUSIC {
 
     delete s;
 #ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
+    if (MPI::COMM_WORLD.Get_rank () == 0)
+      reportMem ();
+#if 0
     // Code used for debugging and analysis
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
       (*connector)->report ();
+#endif
 #endif
   }
 

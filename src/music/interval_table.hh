@@ -142,9 +142,12 @@ namespace MUSIC {
 	    const Mem2 v = *reinterpret_cast<const Mem2*> (py);
 	    return u.f1 < v.f1 || (u.f1 == v.f1 && u.f0 < v.f0);
 	  }
-	else 
-	  // report error
-	  assert (sizeof (DataType) == sizeof (Mem0));
+	else
+	  {
+	    // report error
+	    assert (sizeof (DataType) == sizeof (Mem0));
+	    return false; // satisfy compiler
+	  }
       }
     };
 

@@ -1,4 +1,18 @@
+2012-08-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/runtime.hh, runtime.cc, music/connector.hh: Initial
+	support for MultiConnector:s. MultiConnector is an object
+	governing simultaneous communication through a set of
+	Connector:s.
+
+	* runtime.cc, music/connector.hh, music/subconnector.hh: Added
+	some debugging/analysis code.
+
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/scheduler.hh (Scheduler::Node::outputConnections),
+	scheduler.cc: Pass outputConnections as a pointer rather than as a
+	vector.
 
 	* event_routing_map.cc (OutputRoutingMap::fillRouter): Bugfix:
 	return -> continue.

@@ -66,6 +66,7 @@ namespace MUSIC {
 		  int receiverRank,
 		  int receiverPortCode);
     virtual ~Subconnector ();
+    virtual void report () { }
     virtual void initialCommunication (double param) { }
     virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
@@ -77,7 +78,7 @@ namespace MUSIC {
   
   class OutputSubconnector : virtual public Subconnector {
   protected:
-	  OutputSubconnector (){};
+    OutputSubconnector () {};
   public:
     virtual FIBO* outputBuffer () { return NULL; }
   };
@@ -88,6 +89,7 @@ namespace MUSIC {
   public:
     BufferingOutputSubconnector (int elementSize);
     FIBO* outputBuffer () { return &buffer_; }
+    void report () { std::cout << buffer_.size () << std::endl; }
   };
 
   class InputSubconnector : virtual public Subconnector {

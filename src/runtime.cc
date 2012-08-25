@@ -15,8 +15,10 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 //#define MUSIC_DEBUG
 #include "music/runtime.hh"
+
 #if MUSIC_USE_MPI
 
 #include <mpi.h>
@@ -27,6 +29,7 @@
 #include "music/temporal.hh"
 #include "music/error.hh"
 #include "music/connection.hh"
+
 namespace MUSIC {
 
   bool Runtime::isInstantiated_ = false;
@@ -82,12 +85,25 @@ namespace MUSIC {
       }
 
     delete s;
+#ifdef MUSIC_AFTER_RUNTIME_CONSTRUCTOR_REPORT
+    // Code used for debugging and analysis
+    for (std::vector<Connector*>::iterator connector = connectors.begin ();
+	 connector != connectors.end ();
+	 ++connector)
+      (*connector)->report ();
+#endif
   }
 
 
   Runtime::~Runtime ()
   {
     // delete connectors
+    for (std::vector<MultiConnector*>::iterator connector
+	   = multiConnectors.begin ();
+	 connector != multiConnectors.end ();
+	 ++connector)
+      if (*connector != NULL)
+	delete *connector;
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
@@ -319,10 +335,34 @@ namespace MUSIC {
       while (schedule[0].first <= localTime.time())
 	{
 	  std::vector< std::pair<double, Connector*> >::iterator comm;
+	  unsigned int multiId = 0;
 	  for (comm = schedule.begin ();
 	       comm != schedule.end() && (*comm).first <= localTime.time();
 	       ++comm)
-	    (*comm).second->tick ();
+	    {
+	      Connector* connector = comm->second;
+	      if (connector->idFlag ())
+		multiId |= connector->idFlag ();
+	      else
+		connector->tick ();
+	    }
+	  if (multiId)
+	    {
+	      abort ();
+ 	      if (multiConnectors[multiId] == NULL)
+		{
+		  MultiConnector* multiConnector = new MultiConnector ();
+		  for (comm = schedule.begin ();
+		       comm != schedule.end ()
+			 && comm->first <= localTime.time ();
+		       ++comm)
+		    if (comm->second->idFlag ())
+		      multiConnector->add (comm->second);
+		  multiConnectors[multiId] = multiConnector;
+		  multiConnector->initialize ();
+		}
+	      multiConnectors[multiId]->tick ();
+	    }
 	  schedule.erase (schedule.begin (), comm);
 	  scheduler->nextCommunication (schedule);
 	}

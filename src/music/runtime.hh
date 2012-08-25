@@ -59,6 +59,7 @@ namespace MUSIC {
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
+    std::vector<MultiConnector*> multiConnectors;
    // std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;

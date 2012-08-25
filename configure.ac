@@ -186,7 +186,7 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_CHECK_TYPES([long long])
 
-AC_CHECK_FUNCS([strrchr])
+AC_CHECK_FUNCS([strrchr mallinfo])
 
 dnl Other checks
 OPTIONAL_PROGRAMS=""

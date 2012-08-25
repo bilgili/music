@@ -32,8 +32,8 @@ namespace MUSIC {
   FIBO::configure (int es)
   {
     elementSize = es;
-    size = elementSize * nInitial;
-    buffer.resize (size);
+    size_ = elementSize * nInitial;
+    buffer.resize (size_);
     current = 0;
   }
 
@@ -48,8 +48,8 @@ namespace MUSIC {
   void*
   FIBO::insert ()
   {
-    if (current == size)
-      grow (2 * size);
+    if (current == size_)
+      grow (2 * size_);
     // Here we use the assumption that vector memory is contiguous
     // Josuttis says this is the intention of STL even though the
     // first version of the report is not clear about this.
@@ -63,7 +63,7 @@ namespace MUSIC {
   FIBO::insert (void* elements, int n_elements)
   {
     int blockSize = elementSize * n_elements;
-    if (current + blockSize > size)
+    if (current + blockSize > size_)
       grow (3 * (current + blockSize) / 2);
     // Here we use the assumption that vector memory is contiguous
     // Josuttis says this is the intention of STL even though the
@@ -101,8 +101,8 @@ namespace MUSIC {
   void
   FIBO::grow (int newSize)
   {
-    size = newSize;
-    buffer.resize (size);
+    size_ = newSize;
+    buffer.resize (size_);
   }
   
 }

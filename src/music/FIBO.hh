@@ -28,7 +28,7 @@ namespace MUSIC {
     
     std::vector<char> buffer;
     int elementSize;
-    int size;
+    int size_;
     int current;
 
     void grow (int newSize);
@@ -44,6 +44,7 @@ namespace MUSIC {
     void clear ();
     void nextBlockNoClear (void*& data, int& size);
     void nextBlock (void*& data, int& size);
+    unsigned int size () { return size_; } //*fixme* should be n elements
   };
   
   

@@ -333,22 +333,43 @@ namespace MUSIC {
    * instances are responsible for creating as much Subconnectors as necessary for each point2point connectivity
    * for output and input sides.
    */
-  class MultiConnector : virtual public Connector {
+
+  class MultiConnector {
+    std::vector<Connector*> connectors_;
   public:
-    void add (Connector* connector) { }
+    void add (Connector* connector) { connectors_.push_back (connector); }
+    void initialize () { }
+    void tick ()
+    {
+      for (std::vector<Connector*>::iterator c = connectors_.begin ();
+	   c != connectors_.end ();
+	   ++c)
+	(*c)->tick ();
+    }
   };
 
   class CollectiveConnector: virtual public Connector {
+  private:
+    unsigned int idFLag_;
+    static unsigned int nextFlag_;
+    static unsigned int makeFlag ()
+    {
+      unsigned int flag = nextFlag_;
+      nextFlag_ <<= 1;
+      return flag;
+    }
   protected:
     bool high_;
     Subconnector*subconnector;
     MPI::Intracomm intracomm_;
-    CollectiveConnector(bool high);
+    CollectiveConnector (bool high);
     virtual Subconnector* makeSubconnector (void *param)=0;
   public:
+    unsigned int idFlag () const { return idFLag_; }
     void createIntercomm ();
     void freeIntercomm ();
   };
+
   class ContCollectiveConnector: public CollectiveConnector{
     MPI::Datatype data_type;
   protected:
@@ -376,6 +397,7 @@ namespace MUSIC {
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     void addRoutingInterval(IndexInterval i, Subconnector* subconn);
   };
+
   class EventOutputCollectiveConnector:  public EventOutputConnector,public EventCollectiveConnector{
   public:
     EventOutputCollectiveConnector(ConnectorInfo connInfo,

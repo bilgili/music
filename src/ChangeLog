@@ -1,3 +1,10 @@
+2012-08-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* spatial.cc (SpatialNegotiator::send)
+	(SPatialNegotiator::receive): First send size of receive buffer in
+	order to avoid successive resizing. This is kinder to the memory
+	allocator.
+
 2012-08-25  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/memory.hh, memory.cc: New files.

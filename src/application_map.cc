@@ -166,7 +166,7 @@ namespace MUSIC {
       delete rbuf;
     }
     appColor2Leader.insert(appColor2Leader.begin(),leaders,leaders+nLeaders);
-    delete leaders;
+    delete[] leaders;
     return appColor2Leader;
   }
 #endif

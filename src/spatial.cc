@@ -464,16 +464,6 @@ namespace MUSIC {
     int nIntervals = intervals.size ();
     // first send size
     comm.Send (&nIntervals, 1, MPI::INT, destRank, SPATIAL_NEGOTIATION_MSG);
-    while (nIntervals >= TRANSMITTED_INTERVALS_MAX)
-      {
-	comm.Send (data,
-		   sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
-		   MPI::INT,
-		   destRank,
-		   SPATIAL_NEGOTIATION_MSG);
-	data += TRANSMITTED_INTERVALS_MAX;
-	nIntervals -= TRANSMITTED_INTERVALS_MAX;
-      }
     comm.Send (data,
 	       sizeof (SpatialNegotiationData) / sizeof (int) * nIntervals,
 	       MPI::INT,
@@ -492,23 +482,13 @@ namespace MUSIC {
     comm.Recv (&nIntervals, 1, MPI::INT, sourceRank, SPATIAL_NEGOTIATION_MSG,
 	       status);
     intervals.resize (nIntervals);
-    int nReceived;
-    int nextPos = 0;
-    do
-      {
-	comm.Recv (&intervals[nextPos],
-		   sizeof (SpatialNegotiationData) / sizeof (int)
-		   * TRANSMITTED_INTERVALS_MAX,
-		   MPI::INT,
-		   sourceRank,
-		   SPATIAL_NEGOTIATION_MSG,
-		   status);
-	nReceived = (status.Get_count (MPI::INT)
-		     / (sizeof (SpatialNegotiationData) / sizeof (int)));
-	nextPos += nReceived;
-      }
-    while (nReceived == TRANSMITTED_INTERVALS_MAX);
-    intervals.resize (nextPos);
+    comm.Recv (&intervals[0],
+	       sizeof (SpatialNegotiationData) / sizeof (int)
+	       * nIntervals,
+	       MPI::INT,
+	       sourceRank,
+	       SPATIAL_NEGOTIATION_MSG,
+	       status);
   }
 
 

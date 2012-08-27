@@ -1,7 +1,10 @@
 2012-08-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/spatial.hh, spatial.cc: Simplification made possible by
+	previous change.
+
 	* spatial.cc (SpatialNegotiator::send)
-	(SPatialNegotiator::receive): First send size of receive buffer in
+	(SpatialNegotiator::receive): First send size of receive buffer in
 	order to avoid successive resizing. This is kinder to the memory
 	allocator.
 

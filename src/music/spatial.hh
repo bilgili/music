@@ -27,8 +27,6 @@
 
 namespace MUSIC {
 
-  const int TRANSMITTED_INTERVALS_MAX = 10000;
-
   class SpatialNegotiationData {
     IndexInterval interval_;
     int rank_;

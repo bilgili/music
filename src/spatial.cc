@@ -477,18 +477,15 @@ namespace MUSIC {
 			      int sourceRank,
 			      NegotiationIntervals& intervals)
   {
-    MPI::Status status;
     int nIntervals;
-    comm.Recv (&nIntervals, 1, MPI::INT, sourceRank, SPATIAL_NEGOTIATION_MSG,
-	       status);
+    comm.Recv (&nIntervals, 1, MPI::INT, sourceRank, SPATIAL_NEGOTIATION_MSG);
     intervals.resize (nIntervals);
     comm.Recv (&intervals[0],
 	       sizeof (SpatialNegotiationData) / sizeof (int)
 	       * nIntervals,
 	       MPI::INT,
 	       sourceRank,
-	       SPATIAL_NEGOTIATION_MSG,
-	       status);
+	       SPATIAL_NEGOTIATION_MSG);
   }
 
 

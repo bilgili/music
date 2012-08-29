@@ -959,7 +959,6 @@ namespace MUSIC {
   ContInputCollectiveConnector::receiveRemoteCommRankID(std::map<int,int> &remoteToCollectiveRankMap)
   {
     int nProcesses, intra_rank;
-    MPI::Status status;
     nProcesses = intercomm.Get_remote_size();
 
     for (int i =0; i < nProcesses; ++i)
@@ -968,8 +967,7 @@ namespace MUSIC {
 			1,
 			MPI::INT,
 			i,
-			SPATIAL_NEGOTIATION_MSG,
-			status);
+			SPATIAL_NEGOTIATION_MSG);
 	remoteToCollectiveRankMap.insert(std::make_pair(i,intra_rank));
 	MUSIC_LOG0( "Remote Communication Rank:" << i << "is mapped to Collective Communication Rank:" << intra_rank );
       }
@@ -1008,7 +1006,6 @@ namespace MUSIC {
   ContOutputCollectiveConnector::sendLocalCommRankID()
   {
     int nProcesses, intra_rank;
-    MPI::Status status;
     nProcesses = intercomm.Get_remote_size();
     intra_rank = intracomm_.Get_rank();
     std::map<int,int> rCommToCollCommRankMap;

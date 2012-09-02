@@ -1,3 +1,10 @@
+2012-09-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (Setup::leader): Added selector.
+
+	* music/configuration.hh, configuration.cc
+	(Configuration::leader): Added selector.
+
 2012-08-27  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/spatial.hh, spatial.cc: Simplification made possible by

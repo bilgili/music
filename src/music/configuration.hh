@@ -39,6 +39,7 @@ namespace MUSIC {
     bool launchedByMusic_;
     std::string applicationName_;
     int color_;
+    int leader_;
     Configuration* defaultConfig;
     ApplicationMap* applications_;
     Connectivity* connectivityMap_;
@@ -63,7 +64,8 @@ namespace MUSIC {
     ~Configuration ();
     bool launchedByMusic () { return launchedByMusic_; }
     void writeEnv ();
-    int color () { return color_; };
+    int color () { return color_; }
+    int leader () { return leader_; }
     bool lookup (std::string name);
     bool lookup (std::string name, std::string* result);
     bool lookup (std::string name, int* result);

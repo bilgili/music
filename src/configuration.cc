@@ -77,6 +77,9 @@ Configuration::Configuration (char *app_name)
 
 			insert (name, IOUtils::read (env));
 		}
+		
+		ApplicationInfo* ai = applications_->lookup (applicationName_);
+		leader_ = ai->leader ();
 	}
 }
 #endif

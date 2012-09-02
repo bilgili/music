@@ -165,17 +165,25 @@ namespace MUSIC {
   {
     return config_->applications ();
   }
+
   int
   Setup::applicationColor ()
   {
 	  return config_->color();
   }
-std::string
-Setup::applicationName()
-{
-	return config_->ApplicationName();
 
-}
+  std::string
+  Setup::applicationName()
+  {
+    return config_->ApplicationName();
+  }
+
+  int
+  Setup::leader ()
+  {
+    return config_->leader ();
+  }
+
   ConnectivityInfo::PortDirection
   Setup::portDirection (const std::string localName)
   {

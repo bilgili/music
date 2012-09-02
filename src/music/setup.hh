@@ -108,6 +108,7 @@ namespace MUSIC {
     ApplicationMap* applicationMap ();
     int applicationColor();
     std::string applicationName();
+    int leader ();
 
     ConnectivityInfo::PortDirection
     portDirection (const std::string localName);

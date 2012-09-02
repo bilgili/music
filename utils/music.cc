@@ -44,7 +44,7 @@ usage (int rank)
 		<< "`music' launches an application as part of a multi-simulation job." << std::endl << std::endl
 		<< "  -h, --help            print this help message" << std::endl
 		<< "  -m, --map             print application rank map" << std::endl
-		<< "  -f, --file-map     creates a file with the list of environment variable of each application" << std::endl
+//		<< "  -f, --file-map        creates a file with the list of environment variable of each application" << std::endl
 		<< "  -e, --export-scripts  export launcher scripts" << std::endl
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
@@ -121,7 +121,7 @@ print_version (int rank)
   if (rank <= 0)
     {
       std::cout << "MUSIC " << MUSIC::version () << std::endl
-		<< "Copyright (C) 2007-2011 INCF." << std::endl
+		<< "Copyright (C) 2007-2012 INCF." << std::endl
 		<< "You may redistribute copies of MUSIC" << std::endl
 		<< "under the terms of the GNU General Public License." << std::endl
 		<< "For more information about these matters, see the file named COPYING." << std::endl;

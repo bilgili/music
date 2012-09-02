@@ -19,6 +19,9 @@
 #include "music/event.hh"
 #include "music/event_router.hh"
 
+#include <cassert>
+#include <cstring>
+
 namespace MUSIC {
 
   OutputRoutingData::OutputRoutingData (const IndexInterval &i, FIBO* b) : EventRoutingData(i), buffer_ (b)
@@ -31,6 +34,27 @@ namespace MUSIC {
     Event* e = static_cast<Event*> (buffer_->insert ());
     e->t = t;
     e->id = id;
+  }
+
+  void
+  DirectRouter::processExtra (double t, int id)
+  {
+    unsigned int pos = extra_.size ();
+    extra_.resize (pos + sizeof (Event));
+    Event* e = static_cast<Event*> (static_cast<void*> (&extra_[pos]));
+    e->t = t;
+    e->id = id;
+  }
+
+  void
+  DirectRouter::setOutputBuffer (void* buffer, unsigned int size)
+  {
+    assert (size - size_ == extra_.size ());
+    buffer_ = static_cast<char*> (buffer);
+    memcpy (buffer_ + size_, &extra_[0], extra_.size ());
+    extra_.clear ();
+    std::vector<char> (extra_).swap (extra_); // trim
+    size_ = size;
   }
 
 }

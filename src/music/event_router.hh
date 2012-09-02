@@ -190,6 +190,31 @@ namespace MUSIC {
     bool needFewPoints () const { return true; }
   };
 
+  class DirectRouter : public EventRouter {
+    char* buffer_;
+    unsigned int size_;
+    unsigned int pos_;
+    std::vector<char> extra_;
+  public:
+    DirectRouter () : size_ (0), pos_ (0) { }
+    unsigned int dataSize () { return pos_ + extra_.size (); }
+    inline void processEvent (double t, int id)
+    {
+      if (pos_ < size_)
+	{
+	  Event* e = static_cast<Event*> (static_cast<void*> (buffer_ + pos_));
+	  e->t = t;
+	  e->id = id;
+	  pos_ += sizeof (Event);
+	}
+      else
+	processExtra (t, id);
+    }
+    void processExtra (double t, int id);
+    void setOutputBuffer (void* buffer, unsigned int size);
+    void fillOutputBuffer () { pos_ = 0; }
+  };
+
 }
 #define MUSIC_EVENT_ROUTER_HH
 #endif

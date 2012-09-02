@@ -1,5 +1,8 @@
 2012-09-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/event_router.hh, event_router.cc (DirectRouter): New
+	class.
+
 	* music/setup.hh, setup.cc (Setup::leader): Added selector.
 
 	* music/configuration.hh, configuration.cc

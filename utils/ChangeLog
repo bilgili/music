@@ -1,3 +1,8 @@
+2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventgenerator.cc, eventsink.cc: Take options --out and -in for
+	assigning the output and input port names, respectively.
+
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventsource.cc: Take option --out for assigning the output port

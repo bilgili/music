@@ -46,6 +46,7 @@ usage (int rank)
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -m, --imaptype TYPE     linear (default) or roundrobin" << std::endl
 		<< "  -i, --indextype TYPE    global (default) or local" << std::endl
+		<< "      --in PORTNAME       input port name (default: in)" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
@@ -70,6 +71,7 @@ public:
   }
 };
 
+string portName ("in");
 int nUnits;
 double timestep = DEFAULT_TIMESTEP;
 string imaptype = "linear";
@@ -80,6 +82,7 @@ string suffix = ".dat";
 void
 getargs (int rank, int argc, char* argv[])
 {
+  enum { IN };
   opterr = 0; // handle errors ourselves
   while (1)
     {
@@ -89,6 +92,7 @@ getargs (int rank, int argc, char* argv[])
 	  {"imaptype",  required_argument, 0, 'm'},
 	  {"indextype", required_argument, 0, 'i'},
 	  {"help",      no_argument,       0, 'h'},
+	  {"in",	required_argument, 0, IN},
 	  {0, 0, 0, 0}
 	};
       /* `getopt_long' stores the option index here. */
@@ -122,6 +126,9 @@ getargs (int rank, int argc, char* argv[])
 	      abort ();
 	    }
 	  continue;
+	case IN:
+	  portName = optarg;
+	  continue;
 	case '?':
 	  break; // ignore unknown options
 	case 'h':
@@ -152,7 +159,7 @@ main (int argc, char *argv[])
   
   getargs (rank, argc, argv);
 
-  MUSIC::EventInputPort* in = setup->publishEventInput ("in");
+  MUSIC::EventInputPort* in = setup->publishEventInput (portName);
   if (!in->isConnected ())
     {
       if (rank == 0)

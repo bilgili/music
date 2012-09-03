@@ -32,8 +32,8 @@
 
 namespace MUSIC {
 
-  Scheduler::Node::Node (int id, const Clock &localTime)
-    : id_ (id), localTime_ (localTime)
+  Scheduler::Node::Node (int id, const Clock &localTime, int leader, int nProcs)
+    : id_ (id), localTime_ (localTime), leader_ (leader), nProcs_ (nProcs)
   {
   }
 
@@ -157,9 +157,9 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::addNode (int id, const Clock &localTime)
+  Scheduler::addNode (int id, const Clock &localTime, int leader, int nProcs)
   {
-    nodes.push_back (new Node (id, localTime));
+    nodes.push_back (new Node (id, localTime, leader, nProcs));
   }
 
   void
@@ -179,34 +179,35 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::initialize (std::vector<Connector*> &connectors)
+  Scheduler::initialize (std::vector<Connector*>& connectors)
   {
     std::vector<Connection*>::iterator conn;
 
     //MUSIC_LOGR ("#of nodes:" << nodes.size () << ":#of connections:" <<  connections.size ());
-    for ( conn = connections.begin (); conn < connections.end (); conn++)
+    for (conn = connections.begin (); conn < connections.end (); conn++)
       {
 	(*conn)->initialize (nodes);
-      }
-    for (std::vector<Connector*>::iterator c = connectors.begin ();
-	 c != connectors.end ();
-	 ++c)
-      {
-	for ( conn = connections.begin (); conn < connections.end (); conn++)
+	bool foundLocalConnector = false;
+	for (std::vector<Connector*>::iterator c = connectors.begin ();
+	     c != connectors.end ();
+	     ++c)
 	  {
-
 	    if ((*conn)->portCode () == (*c)->receiverPortCode ())
 	      {
+		foundLocalConnector = true;
 		(*conn)->setConnector ((*c));
 		(*c)->setInterpolate ((*conn)->getInterpolate ());
 		(*c)->setLatency ((*conn)->getLatency ());
 		(*c)->initialize ();
 	      }
-
 	  }
-
+	if (!foundLocalConnector)
+	  (*conn)->setConnector
+	    (new ProxyConnector ((*conn)->preNode ()->leader (),
+				 (*conn)->preNode ()->nProcs (),
+				 (*conn)->postNode ()->leader (),
+				 (*conn)->postNode ()->nProcs ()));
       }
-
   }
 
   void

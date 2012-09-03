@@ -175,7 +175,9 @@ namespace MUSIC {
     negotiationData = allocNegotiationData (1, nLocalConnections);
     negotiationData->timebase = setup_->timebase ();
     negotiationData->tickInterval = ti;
-    negotiationData->color = setup_->applicationColor();
+    negotiationData->color = setup_->applicationColor ();
+    negotiationData->leader = setup_->leader ();
+    negotiationData->nProcs = setup_->nProcs ();
     negotiationData->nOutConnections = outputConnections.size ();
     negotiationData->nInConnections = inputConnections.size ();
     
@@ -532,11 +534,13 @@ namespace MUSIC {
 	  int nInput = negotiationData_->nInConnections;
 	  int nOutput = negotiationData_->nOutConnections;
 	  int node_id = negotiationData_->color;
+	  int leader = negotiationData_->leader;
+	  int nProcs = negotiationData_->nProcs;
 
 	  Clock localTime;
 	  localTime.configure(negotiationData_->timebase, negotiationData_->tickInterval);
 
-	  scheduler->addNode(node_id,localTime);
+	  scheduler->addNode (node_id, localTime, leader, nProcs);
 
 	  MUSIC_LOG0("Node "<<node_id <<":in:"<<nInput << ":out:" << nOutput);
 	  for(int k = 0; k < nInput; ++k){

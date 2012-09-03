@@ -40,7 +40,8 @@ namespace MUSIC {
     : info (info_),
       indices_ (indices->copy()),
       type_ (type),
-      comm (c)
+      comm (c),
+      idFlag_ (0)
   {
   }
 
@@ -54,7 +55,8 @@ namespace MUSIC {
       indices_ (indices->copy()),
       type_ (type),
       comm (c),
-      intercomm (ic)
+      intercomm (ic),
+      idFlag_ (0)
   {
   }
 
@@ -767,11 +769,13 @@ namespace MUSIC {
    *
    ********************************************************************/
 
+  unsigned int CollectiveConnector::nextFlag_ = 1;
+
   CollectiveConnector::CollectiveConnector(bool high):
     high_(high),
     subconnector(NULL)
   {
-
+    idFlag_ = makeFlag ();
   }
 
 

@@ -41,10 +41,12 @@ namespace MUSIC {
     class Node {
       int id_;
       Clock localTime_;
+      int leader_;
+      int nProcs_;
       std::vector<Connection*> outputConnections_;
       std::vector<Connection*> inputConnections_;
     public:
-      Node(int id, const Clock &localTime);
+      Node(int id, const Clock &localTime, int leader, int nProcs);
       void advance();
       void addConnection(Connection *conn, bool input = false);
       std::vector<Connection*>* outputConnections ()
@@ -54,6 +56,8 @@ namespace MUSIC {
       Clock localTime () const {return localTime_;};
       double nextReceive() const;
       int getId() const {return id_;}
+      int leader () const { return leader_; }
+      int nProcs () const { return nProcs_; }
     };
 
     class Connection {
@@ -94,7 +98,8 @@ namespace MUSIC {
   public:
     Scheduler(int node_id);
     ~Scheduler();
-    void addNode(int id, const Clock &localTime);
+    // addNode is called from TemporalNegotiator::fillScheduler
+    void addNode(int id, const Clock &localTime, int leader, int nProcs);
     void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, bool interpolate, int port_code);
     void initialize(std::vector<Connector*> &connectors);
     void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);

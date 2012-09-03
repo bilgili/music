@@ -1,3 +1,29 @@
+2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* scheduler.cc (Scheduler::initialize): Setup ProxyConnector
+	representing a distant connection.
+
+	* music/scheduler.hh (Scheduler::Node): New member functions
+	leader and nProcs.
+
+	* music/scheduler.hh, scheduler.cc (Scheduler::addNode,
+	Scheduler::Node::Node): New arguments leader and nProcs.
+
+	* music/setup.hh, setup.cc (Setup::nProcs): New member function.
+
+	* music/temporal.hh (TemporalNegotiationData): Added new members
+	leader and nProcs.
+
+	* temporal.cc (TemporalNegotiator::collectNegotiationData): Set
+	leader and nProcs.
+	(TemporalNegotiator::fillScheduler): Pass leader and nProcs to
+	Scheduler::addNode.
+
+	* music/connector.hh (ProxyConnector): New class. These objects
+	will represent connections which the local application doesn't
+	participate in but still need to be aware of in order to schedule
+	common collective communication events.
+
 2012-09-02  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/event_router.hh, event_router.cc (DirectRouter): New

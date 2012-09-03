@@ -184,6 +184,12 @@ namespace MUSIC {
     return config_->leader ();
   }
 
+  int
+  Setup::nProcs ()
+  {
+    return comm.Get_size ();
+  }
+
   ConnectivityInfo::PortDirection
   Setup::portDirection (const std::string localName)
   {

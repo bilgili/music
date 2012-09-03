@@ -109,6 +109,7 @@ namespace MUSIC {
     int applicationColor();
     std::string applicationName();
     int leader ();
+    int nProcs ();
 
     ConnectivityInfo::PortDirection
     portDirection (const std::string localName);

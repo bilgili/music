@@ -47,6 +47,8 @@ namespace MUSIC {
     double timebase;
     ClockState tickInterval;
     int color;
+    int leader;
+    int nProcs;
     int nOutConnections;
     int nInConnections;
     ConnectionDescriptor connection[1];

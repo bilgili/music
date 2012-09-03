@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2007, 2008, 2009 INCF
+ *  Copyright (C) 2007, 2008, 2009, 2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
 #include <music/event_routing_map.hh>
 #include <music/clock.hh>
 #include <music/subconnector.hh>
+
 namespace MUSIC {
   /* remedius
    * New type of Connector was introduced: CollectiveConnector.
@@ -65,6 +66,7 @@ namespace MUSIC {
     bool interpolate_;
     int width_;
     int maxLocalWidth_;
+    unsigned int idFlag_;
 
     Connector () { };
     Connector (ConnectorInfo info_,
@@ -93,7 +95,7 @@ namespace MUSIC {
     }
     virtual void specialize (Clock& localTime) { }
 
-    virtual unsigned int idFlag () const { return 0; }
+    unsigned int idFlag () const { return idFlag_; }
     std::string receiverAppName () const { return info.receiverAppName (); }
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
@@ -143,6 +145,20 @@ namespace MUSIC {
 
     virtual void spatialNegotiation (SpatialNegotiator *spatialNegotiator_);
     virtual SpatialNegotiator *createSpatialNegotiator(){return NULL;};
+  };
+
+
+  class ProxyConnector : virtual public Connector {
+    int senderLeader_;
+    int senderNProcs_;
+    int receiverLeader_;
+    int receiverNProcs_;
+  public:
+    ProxyConnector (int senderLeader, int senderNProcs,
+		    int receiverLeader, int receiverNProcs)
+      : senderLeader_ (senderLeader), senderNProcs_ (senderNProcs),
+	receiverLeader_ (receiverLeader), receiverNProcs_ (receiverNProcs)
+    { }
   };
 
 
@@ -350,7 +366,6 @@ namespace MUSIC {
 
   class CollectiveConnector: virtual public Connector {
   private:
-    unsigned int idFLag_;
     static unsigned int nextFlag_;
     static unsigned int makeFlag ()
     {
@@ -365,7 +380,6 @@ namespace MUSIC {
     CollectiveConnector (bool high);
     virtual Subconnector* makeSubconnector (void *param)=0;
   public:
-    unsigned int idFlag () const { return idFLag_; }
     void createIntercomm ();
     void freeIntercomm ();
   };

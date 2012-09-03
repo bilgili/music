@@ -40,9 +40,9 @@ usage (int rank)
 {
   if (rank == 0)
     {
-      std::cerr << "Usage: eventdelay [OPTION...] N_UNITS PREFIX [SUFFIX]" << std::endl
+      std::cerr << "Usage: eventdelay [OPTION...]" << std::endl
 		<< "`eventdelay' receives spikes through a MUSIC input port" << std::endl
-		<< "and writes these to a set of files with names PREFIX RANK SUFFIX" << std::endl << std:: endl
+		<< "and relays them to an output port" << std::endl << std:: endl
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -d, --delay SECS        amount of delay" << std::endl
 		<< "  -b, --maxbuffer TICKS   maximal buffer" << std::endl

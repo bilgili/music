@@ -46,6 +46,7 @@ usage (int rank)
 		<< "  -t, --timestep TIMESTEP time between tick() calls (default " << DEFAULT_TIMESTEP << " s)" << std::endl
 		<< "  -d, --delay SECS        amount of delay" << std::endl
 		<< "  -b, --maxbuffer TICKS   maximal buffer" << std::endl
+		<< "  -L, --label LABEL       log events using LABEL" << std::endl
 		<< "  -h, --help              print this help message" << std::endl << std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
     }
@@ -65,8 +66,9 @@ public:
   void operator () (double t, MUSIC::LocalIndex id)
   {
     eventBuffer.push_back (MUSIC::Event (t + delay, id));
-    std::cout << label << ":Got(" << id <<
-      ", " << t + delay << ")" << std::endl;
+    if (label != -1)
+      std::cout << label << ":Got(" << id <<
+	", " << t + delay << ")" << std::endl;
   }
 };
 
@@ -195,9 +197,10 @@ main (int argc, char *argv[])
 	{
 	  if (i->t < runtime->time () + timestep)
 	    {
-	      std::cout << label << ":Sent(" << i->id << ", "
-			<< i->t << " @" << runtime->time ()
-			<< ")" << std::endl;
+	      if (label != -1)
+		std::cout << label << ":Sent(" << i->id << ", "
+			  << i->t << " @" << runtime->time ()
+			  << ")" << std::endl;
 	      out->insertEvent (i->t, MUSIC::LocalIndex(i->id));
 	    }
 	  else

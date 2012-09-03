@@ -1,3 +1,7 @@
+2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* eventdelay.cc: Don't log events if not given -L option.
+
 2012-08-23  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* multicomm.music: New file. Tests the case with two connector

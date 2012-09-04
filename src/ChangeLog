@@ -1,5 +1,13 @@
 2012-09-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* music/scheduler.hh (SConnection): Renamed from Connection in
+	order not to be confused with connection.hh::Connection.
+
+	* connector.cc (Connector::isProxy): New member function.
+
+	* scheduler.cc (Scheduler::nextCommunication): Also put
+	ProxyConnectors into the schedule.
+
 	* music/scheduler.hh, scheduler.cc (Scheduler::addConnection): New
 	argument multiComm.
 	(Scheduler::Connection): New member multiComm.

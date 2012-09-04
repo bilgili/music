@@ -33,6 +33,8 @@
 
 namespace MUSIC {
 
+  unsigned int Connector::nextFlag_ = 1;
+
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
@@ -768,8 +770,6 @@ namespace MUSIC {
    * Collective Connector
    *
    ********************************************************************/
-
-  unsigned int CollectiveConnector::nextFlag_ = 1;
 
   CollectiveConnector::CollectiveConnector(bool high):
     high_(high),

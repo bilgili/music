@@ -204,7 +204,6 @@ namespace MUSIC {
   void
   Runtime::specializeConnectors (Connections* connections)
   {
-    unsigned int multiId = 0;
     for (Connections::iterator c = connections->begin ();
 	 c != connections->end ();
 	 ++c)
@@ -213,9 +212,7 @@ namespace MUSIC {
 	connector->specialize (localTime);
 	//(*c)->setConnector (connector);
 	connectors.push_back (connector);
-	multiId |= connector->idFlag ();
       }
-    multiConnectors.resize (multiId + 1);
   }
 
 
@@ -267,6 +264,9 @@ namespace MUSIC {
      * connector's initialization was moved to scheduler->initialize()
      */
     scheduler->initialize(connectors);
+
+    multiConnectors.resize (Connector::idRange ());
+
     scheduler->nextCommunication(schedule);
 
     // compensate for first localTime.tick () in Runtime::tick ()
@@ -363,8 +363,10 @@ namespace MUSIC {
 		       comm != schedule.end ()
 			 && comm->first <= localTime.time ();
 		       ++comm)
-		    if (comm->second->idFlag ())
-		      multiConnector->add (comm->second);
+		    {
+		      if (comm->second->idFlag ())
+			multiConnector->add (comm->second);
+		    }
 		  multiConnectors[multiId] = multiConnector;
 		  multiConnector->initialize ();
 		}

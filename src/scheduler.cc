@@ -48,7 +48,7 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::Node::addConnection (Connection *conn, bool input)
+  Scheduler::Node::addConnection (SConnection *conn, bool input)
   {
     if (input)
       inputConnections_.push_back (conn);
@@ -59,7 +59,7 @@ namespace MUSIC {
   double
   Scheduler::Node::nextReceive () const
   {
-    std::vector<Connection*>::const_iterator conn;
+    std::vector<SConnection*>::const_iterator conn;
     double nextTime = std::numeric_limits<double>::infinity ();
     for (conn = inputConnections_.begin ();
 	 conn < inputConnections_.end ();
@@ -71,25 +71,26 @@ namespace MUSIC {
     return nextTime;
   }
 
-  Scheduler::Connection::Connection (int pre,
-				     int post,
-				     const ClockState &latency,
-				     int maxBuffered,
-				     bool interpolate,
-				     bool multiComm,
-				     int port_code)
+  Scheduler::SConnection::SConnection (int pre,
+				       int post,
+				       const ClockState &latency,
+				       int maxBuffered,
+				       bool interpolate,
+				       bool multiComm,
+				       int port_code)
     : pre_id (pre),
       post_id (post),
       latency_ (latency),
       maxBuffered_ (maxBuffered),
       interpolate_ (interpolate),
       multiComm_ (multiComm),
-      port_code_ (port_code)
+      port_code_ (port_code),
+      connector_ (NULL)
   {
   }
   
   void
-  Scheduler::Connection::initialize (std::vector<Node*> &nodes)
+  Scheduler::SConnection::initialize (std::vector<Node*> &nodes)
   {
     pre_ = nodes.at (pre_id);
     post_ = nodes.at (post_id);
@@ -103,7 +104,7 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::Connection::advance ()
+  Scheduler::SConnection::advance ()
   {
     _advance ();
     Clock  r = nextReceive_;
@@ -120,7 +121,7 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::Connection::_advance ()
+  Scheduler::SConnection::_advance ()
   {
     ClockState limit = (nextSend_.integerTime ()
 			+ latency_
@@ -148,7 +149,7 @@ namespace MUSIC {
 
   Scheduler::~Scheduler ()
   {
-    for (std::vector<Connection*>::iterator conn=connections.begin ();
+    for (std::vector<SConnection*>::iterator conn=connections.begin ();
 	 conn < connections.end ();
 	 conn++)
       delete (*conn);
@@ -173,7 +174,7 @@ namespace MUSIC {
 			    bool multiComm,
 			    int port_code)
   {
-    connections.push_back (new Connection (pre_id,
+    connections.push_back (new SConnection (pre_id,
 					   post_id,
 					   latency,
 					   maxBuffered,
@@ -185,7 +186,7 @@ namespace MUSIC {
   void
   Scheduler::initialize (std::vector<Connector*>& connectors)
   {
-    std::vector<Connection*>::iterator conn;
+    std::vector<SConnection*>::iterator conn;
 
     //MUSIC_LOGR ("#of nodes:" << nodes.size () << ":#of connections:" <<  connections.size ());
     for (conn = connections.begin (); conn < connections.end (); conn++)
@@ -205,12 +206,16 @@ namespace MUSIC {
 		(*c)->initialize ();
 	      }
 	  }
+#if 0
 	if (!foundLocalConnector && (*conn)->needsMultiCommunication ())
-	  (*conn)->setConnector
-	    (new ProxyConnector ((*conn)->preNode ()->leader (),
-				 (*conn)->preNode ()->nProcs (),
-				 (*conn)->postNode ()->leader (),
-				 (*conn)->postNode ()->nProcs ()));
+	  {
+	    (*conn)->setConnector
+	      (new ProxyConnector ((*conn)->preNode ()->leader (),
+				   (*conn)->preNode ()->nProcs (),
+				   (*conn)->postNode ()->leader (),
+				   (*conn)->postNode ()->nProcs ()));
+	  }
+#endif
       }
   }
 
@@ -225,8 +230,8 @@ namespace MUSIC {
 	    if ((*node)->nextReceive () > (*node)->localTime ().time ())
 	      (*node)->advance ();
 
-	    std::vector<Connection*>* conns = (*node)->outputConnections ();
-	    std::vector<Connection*>::iterator conn;
+	    std::vector<SConnection*>* conns = (*node)->outputConnections ();
+	    std::vector<SConnection*>::iterator conn;
 	    for (conn = conns->begin (); conn < conns->end (); conn++)
 	      //do we have data ready to be sent?
 	      if ((*conn)->nextSend () <= (*conn)->preNode ()->localTime ()
@@ -239,7 +244,9 @@ namespace MUSIC {
 			= (self_node == (*conn)->postNode ()->getId ()
 			   ? (*conn)->postNode ()->localTime ().time ()
 			   : (*conn)->preNode ()->localTime ().time ());
-		      schedule.push_back (std::pair<double, Connector*>(nextComm, (*conn)->getConnector ()));
+		      schedule.push_back
+			(std::pair<double, Connector*>(nextComm,
+						       (*conn)->getConnector ()));
 		    }
 
 		  MUSIC_LOG0 ("Scheduled communication:"<< (*conn)->preNode ()->getId () <<"->"<< (*conn)->postNode ()->getId () << "at(" << (*conn)->preNode ()->localTime ().time () << ", "<< (*conn)->postNode ()->localTime ().time () <<")");

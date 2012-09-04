@@ -54,6 +54,8 @@ namespace MUSIC {
 
   class Connector
   {
+  private:
+    static unsigned int nextFlag_;
   protected:
     ConnectorInfo info;
     IndexMap* indices_;
@@ -78,7 +80,18 @@ namespace MUSIC {
 	       Index::Type type,
 	       MPI::Intracomm c,
 	       MPI::Intercomm ic);
+
+    static unsigned int makeFlag ()
+    {
+      unsigned int flag = nextFlag_;
+      nextFlag_ <<= 1;
+      return flag;
+    }
+
   public:
+
+    static unsigned int idRange () { return nextFlag_; }
+
     void report ()
     {
       for (std::vector<Subconnector*>::iterator subconnector = rsubconn.begin ();
@@ -96,6 +109,7 @@ namespace MUSIC {
     virtual void specialize (Clock& localTime) { }
 
     unsigned int idFlag () const { return idFlag_; }
+    virtual bool isProxy () const { return false; }
     std::string receiverAppName () const { return info.receiverAppName (); }
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
@@ -158,7 +172,13 @@ namespace MUSIC {
 		    int receiverLeader, int receiverNProcs)
       : senderLeader_ (senderLeader), senderNProcs_ (senderNProcs),
 	receiverLeader_ (receiverLeader), receiverNProcs_ (receiverNProcs)
-    { }
+    { idFlag_ = makeFlag (); }
+    bool isProxy () const { return true; }
+    void tick () { }
+    int senderLeader () const { return senderLeader_; }
+    int senderNProcs () const { return senderNProcs_; }
+    int receiverLeader () const { return receiverLeader_; }
+    int receiverNProcs () const { return receiverNProcs_; }
   };
 
 
@@ -365,14 +385,6 @@ namespace MUSIC {
   };
 
   class CollectiveConnector: virtual public Connector {
-  private:
-    static unsigned int nextFlag_;
-    static unsigned int makeFlag ()
-    {
-      unsigned int flag = nextFlag_;
-      nextFlag_ <<= 1;
-      return flag;
-    }
   protected:
     bool high_;
     Subconnector*subconnector;

@@ -37,19 +37,19 @@ namespace MUSIC {
   {
 
   public:
-    class Connection;
+    class SConnection;
     class Node {
       int id_;
       Clock localTime_;
       int leader_;
       int nProcs_;
-      std::vector<Connection*> outputConnections_;
-      std::vector<Connection*> inputConnections_;
+      std::vector<SConnection*> outputConnections_;
+      std::vector<SConnection*> inputConnections_;
     public:
       Node(int id, const Clock &localTime, int leader, int nProcs);
       void advance();
-      void addConnection(Connection *conn, bool input = false);
-      std::vector<Connection*>* outputConnections ()
+      void addConnection(SConnection *conn, bool input = false);
+      std::vector<SConnection*>* outputConnections ()
       {
 	return &outputConnections_;
       };
@@ -60,7 +60,7 @@ namespace MUSIC {
       int nProcs () const { return nProcs_; }
     };
 
-    class Connection {
+    class SConnection {
       Clock nextSend_;
       Clock nextReceive_;
       int pre_id,post_id;
@@ -73,9 +73,9 @@ namespace MUSIC {
       int port_code_;
       Connector *connector_;
     public:
-      Connection (int pre, int post, const ClockState &latency,
-		  int maxBuffered, bool interpolate,
-		  bool multiComm, int port_code);
+      SConnection (int pre, int post, const ClockState &latency,
+		   int maxBuffered, bool interpolate,
+		   bool multiComm, int port_code);
       void initialize(std::vector<Node*> &nodes);
       void advance();
       Clock nextSend() const { return nextSend_; }
@@ -96,7 +96,7 @@ namespace MUSIC {
 
   private:
     std::vector<Node*> nodes;
-    std::vector<Connection*>connections;
+    std::vector<SConnection*>connections;
     int self_node;
 
   public:

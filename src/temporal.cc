@@ -18,6 +18,7 @@
 
 #include "music/temporal.hh"  // Must be included first on BG/L
 
+//#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 #if MUSIC_USE_MPI
@@ -205,7 +206,7 @@ namespace MUSIC {
 	negotiationData->connection[nOut + i].remoteNode = leaderToNode[remote];
 	negotiationData->connection[nOut + i].receiverPort
 	  = inputConnections[i].connector ()->receiverPortCode ();
-	negotiationData->connection[i].multiComm
+	negotiationData->connection[nOut + i].multiComm
 	  = inputConnections[i].connector ()->idFlag ();
 	negotiationData->connection[nOut + i].maxBuffered
 	  = inputConnections[i].maxBuffered ();
@@ -561,7 +562,8 @@ namespace MUSIC {
       MUSIC_LOG0 ("Connection added to the schedule:" << edge.remoteNode
 		  << "->" << node_id
 		  << ";latency =" << edge.accLatency
-		  << ";buffered=" <<edge.maxBuffered);
+		  << ";buffered=" <<edge.maxBuffered
+		  << ";multiComm=" <<edge.multiComm);
     }
   }
 

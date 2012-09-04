@@ -69,21 +69,25 @@ namespace MUSIC {
       ClockState latency_;
       int maxBuffered_;
       bool interpolate_;
+      bool multiComm_;
       int port_code_;
       Connector *connector_;
     public:
-      Connection(int pre,int post,const ClockState &latency,int maxBuffered,  bool interpolate, int port_code);
+      Connection (int pre, int post, const ClockState &latency,
+		  int maxBuffered, bool interpolate,
+		  bool multiComm, int port_code);
       void initialize(std::vector<Node*> &nodes);
       void advance();
-      Clock nextSend() const {return nextSend_;}
-      Clock nextReceive() const {return nextReceive_;}
-      Connector *getConnector() const {return connector_;}
-      void setConnector(Connector *conn) {connector_ = conn;}
-      int portCode() const {return port_code_;}
-      Node *preNode() const {return pre_;}
-      Node *postNode() const {return post_;}
-      ClockState getLatency()const{return latency_;}
-      bool getInterpolate()const{return interpolate_;}
+      Clock nextSend() const { return nextSend_; }
+      Clock nextReceive() const { return nextReceive_; }
+      Connector *getConnector() const { return connector_; }
+      void setConnector (Connector *conn) { connector_ = conn; }
+      int portCode() const { return port_code_; }
+      Node *preNode() const { return pre_; }
+      Node *postNode() const { return post_; }
+      ClockState getLatency() const { return latency_; }
+      bool getInterpolate() const { return interpolate_; }
+      bool needsMultiCommunication () const { return multiComm_; }
     private:
       void _advance();
 
@@ -100,7 +104,9 @@ namespace MUSIC {
     ~Scheduler();
     // addNode is called from TemporalNegotiator::fillScheduler
     void addNode(int id, const Clock &localTime, int leader, int nProcs);
-    void addConnection(int pre_id,int post_id,const ClockState &latency, int maxBuffered, bool interpolate, int port_code);
+    void addConnection (int pre_id, int post_id, const ClockState &latency,
+			int maxBuffered, bool interpolate,
+			bool multiComm, int port_code);
     void initialize(std::vector<Connector*> &connectors);
     void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);
   };

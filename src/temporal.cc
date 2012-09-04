@@ -188,6 +188,7 @@ namespace MUSIC {
 	negotiationData->connection[i].remoteNode = leaderToNode[remote];
 	negotiationData->connection[i].receiverPort
 	  = connector->receiverPortCode ();
+	negotiationData->connection[i].multiComm = connector->idFlag ();
 	negotiationData->connection[i].maxBuffered
 	  = outputConnections[i].maxBuffered ();
 	negotiationData->connection[i].defaultMaxBuffered
@@ -204,6 +205,8 @@ namespace MUSIC {
 	negotiationData->connection[nOut + i].remoteNode = leaderToNode[remote];
 	negotiationData->connection[nOut + i].receiverPort
 	  = inputConnections[i].connector ()->receiverPortCode ();
+	negotiationData->connection[i].multiComm
+	  = inputConnections[i].connector ()->idFlag ();
 	negotiationData->connection[nOut + i].maxBuffered
 	  = inputConnections[i].maxBuffered ();
 	negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
@@ -529,28 +532,38 @@ namespace MUSIC {
   }
 
   void
-  TemporalNegotiator::fillScheduler( Scheduler *scheduler,  TemporalNegotiationData* negotiationData_){
+  TemporalNegotiator::fillScheduler (Scheduler *scheduler,
+				     TemporalNegotiationData* negotiationData_)
+  {
+    int nInput = negotiationData_->nInConnections;
+    int nOutput = negotiationData_->nOutConnections;
+    int node_id = negotiationData_->color;
+    int leader = negotiationData_->leader;
+    int nProcs = negotiationData_->nProcs;
 
-	  int nInput = negotiationData_->nInConnections;
-	  int nOutput = negotiationData_->nOutConnections;
-	  int node_id = negotiationData_->color;
-	  int leader = negotiationData_->leader;
-	  int nProcs = negotiationData_->nProcs;
+    Clock localTime;
+    localTime.configure (negotiationData_->timebase,
+			 negotiationData_->tickInterval);
 
-	  Clock localTime;
-	  localTime.configure(negotiationData_->timebase, negotiationData_->tickInterval);
+    scheduler->addNode (node_id, localTime, leader, nProcs);
 
-	  scheduler->addNode (node_id, localTime, leader, nProcs);
-
-	  MUSIC_LOG0("Node "<<node_id <<":in:"<<nInput << ":out:" << nOutput);
-	  for(int k = 0; k < nInput; ++k){
-		  ConnectionDescriptor edge = negotiationData_->connection[k+nOutput];
-		  scheduler->addConnection( edge.remoteNode,node_id, edge.accLatency,edge.maxBuffered, edge.interpolate, edge.receiverPort);
-		  MUSIC_LOG0 ( "Connection added to the schedule:" <<edge.remoteNode<< "->" << node_id  << ";latency =" << edge.accLatency << ";buffered=" <<edge.maxBuffered);
-
-	  }
-
-}
+    MUSIC_LOG0 ("Node " << node_id << ":in:" << nInput << ":out:" << nOutput);
+    for (int k = 0; k < nInput; ++k)
+      {
+	ConnectionDescriptor edge = negotiationData_->connection[k+nOutput];
+	scheduler->addConnection (edge.remoteNode,
+				  node_id,
+				  edge.accLatency,
+				  edge.maxBuffered,
+				  edge.interpolate,
+				  edge.multiComm,
+				  edge.receiverPort);
+      MUSIC_LOG0 ("Connection added to the schedule:" << edge.remoteNode
+		  << "->" << node_id
+		  << ";latency =" << edge.accLatency
+		  << ";buffered=" <<edge.maxBuffered);
+    }
+  }
 
   std::string
   ApplicationNode::name ()

@@ -76,12 +76,14 @@ namespace MUSIC {
 				     const ClockState &latency,
 				     int maxBuffered,
 				     bool interpolate,
+				     bool multiComm,
 				     int port_code)
     : pre_id (pre),
       post_id (post),
       latency_ (latency),
       maxBuffered_ (maxBuffered),
       interpolate_ (interpolate),
+      multiComm_ (multiComm),
       port_code_ (port_code)
   {
   }
@@ -168,6 +170,7 @@ namespace MUSIC {
 			    const ClockState &latency,
 			    int maxBuffered,
 			    bool interpolate,
+			    bool multiComm,
 			    int port_code)
   {
     connections.push_back (new Connection (pre_id,
@@ -175,6 +178,7 @@ namespace MUSIC {
 					   latency,
 					   maxBuffered,
 					   interpolate,
+					   multiComm,
 					   port_code));
   }
 
@@ -201,7 +205,7 @@ namespace MUSIC {
 		(*c)->initialize ();
 	      }
 	  }
-	if (!foundLocalConnector)
+	if (!foundLocalConnector && (*conn)->needsMultiCommunication ())
 	  (*conn)->setConnector
 	    (new ProxyConnector ((*conn)->preNode ()->leader (),
 				 (*conn)->preNode ()->nProcs (),

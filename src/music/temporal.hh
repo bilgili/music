@@ -38,6 +38,7 @@ namespace MUSIC {
     int maxBuffered;
     int defaultMaxBuffered; // not used for input connections
     bool interpolate;
+    bool multiComm;
     ClockState accLatency;
     ClockState remoteTickInterval;
   };

@@ -1,3 +1,19 @@
+2012-09-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/scheduler.hh, scheduler.cc (Scheduler::addConnection): New
+	argument multiComm.
+	(Scheduler::Connection): New member multiComm.
+
+	* music/temporal.hh, temporal.cc (ConnectionDescriptor): New
+	member multiComm.
+	(TemporalNegotiator::collectNegotiationData): Set multiComm.
+	(TemporalNegotiator::fillScheduler): Pass multiComm to
+	Scheduler::addConnection.
+
+	* scheduler.cc (Scheduler::initialize): Only create
+	ProxyConnectors for Connectors in need for collective
+	communication.
+
 2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* scheduler.cc (Scheduler::initialize): Setup ProxyConnector

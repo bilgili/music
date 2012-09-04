@@ -1,12 +1,12 @@
 2012-09-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* scheduler.cc (Scheduler::nextCommunication): Make sure that all
+	events from the first point in time are scheduled.
+
 	* music/scheduler.hh (SConnection): Renamed from Connection in
 	order not to be confused with connection.hh::Connection.
 
 	* connector.cc (Connector::isProxy): New member function.
-
-	* scheduler.cc (Scheduler::nextCommunication): Also put
-	ProxyConnectors into the schedule.
 
 	* music/scheduler.hh, scheduler.cc (Scheduler::addConnection): New
 	argument multiComm.
@@ -17,10 +17,6 @@
 	(TemporalNegotiator::collectNegotiationData): Set multiComm.
 	(TemporalNegotiator::fillScheduler): Pass multiComm to
 	Scheduler::addConnection.
-
-	* scheduler.cc (Scheduler::initialize): Only create
-	ProxyConnectors for Connectors in need for collective
-	communication.
 
 2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 

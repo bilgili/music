@@ -108,7 +108,8 @@ namespace MUSIC {
 			int maxBuffered, bool interpolate,
 			bool multiComm, int port_code);
     void initialize(std::vector<Connector*> &connectors);
-    void nextCommunication (std::vector<std::pair<double, Connector *> > &schedule);
+    void nextCommunication (Clock& localTime,
+			    std::vector<std::pair<double, Connector *> > &schedule);
   };
 /*
   class Synchronizer {

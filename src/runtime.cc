@@ -263,11 +263,11 @@ namespace MUSIC {
     /* renedius
      * connector's initialization was moved to scheduler->initialize()
      */
-    scheduler->initialize(connectors);
+    scheduler->initialize (connectors);
 
     multiConnectors.resize (Connector::idRange ());
 
-    scheduler->nextCommunication(schedule);
+    scheduler->nextCommunication (localTime, schedule);
 
     // compensate for first localTime.tick () in Runtime::tick ()
     localTime.ticks (-1);
@@ -302,7 +302,7 @@ namespace MUSIC {
 		cnn_ports.erase ((*comm).second->receiverPortCode ());
 	    }
 	  schedule.clear ();
-	  scheduler->nextCommunication (schedule);
+	  scheduler->nextCommunication (localTime, schedule);
 
 	  for (std::vector<PostCommunicationConnector*>::iterator c =
 		 postCommunication.begin ();
@@ -359,13 +359,14 @@ namespace MUSIC {
  	      if (multiConnectors[multiId] == NULL)
 		{
 		  MultiConnector* multiConnector = new MultiConnector ();
-		  for (comm = schedule.begin ();
-		       comm != schedule.end ()
-			 && comm->first <= localTime.time ();
-		       ++comm)
+		  for (std::vector< std::pair<double, Connector*> >::iterator
+			 mcomm = schedule.begin ();
+		       mcomm != schedule.end ()
+			 && mcomm->first <= localTime.time ();
+		       ++mcomm)
 		    {
-		      if (comm->second->idFlag ())
-			multiConnector->add (comm->second);
+		      if (mcomm->second->idFlag ())
+			multiConnector->add (mcomm->second);
 		    }
 		  multiConnectors[multiId] = multiConnector;
 		  multiConnector->initialize ();
@@ -373,7 +374,7 @@ namespace MUSIC {
 	      multiConnectors[multiId]->tick ();
 	    }
 	  schedule.erase (schedule.begin (), comm);
-	  scheduler->nextCommunication (schedule);
+	  scheduler->nextCommunication (localTime, schedule);
 	}
     // ContInputConnectors write data to application here
     for (std::vector<PostCommunicationConnector*>::iterator c =

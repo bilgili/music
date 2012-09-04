@@ -192,14 +192,12 @@ namespace MUSIC {
     for (conn = connections.begin (); conn < connections.end (); conn++)
       {
 	(*conn)->initialize (nodes);
-	bool foundLocalConnector = false;
 	for (std::vector<Connector*>::iterator c = connectors.begin ();
 	     c != connectors.end ();
 	     ++c)
 	  {
 	    if ((*conn)->portCode () == (*c)->receiverPortCode ())
 	      {
-		foundLocalConnector = true;
 		(*conn)->setConnector ((*c));
 		(*c)->setInterpolate ((*conn)->getInterpolate ());
 		(*c)->setLatency ((*conn)->getLatency ());
@@ -220,9 +218,13 @@ namespace MUSIC {
   }
 
   void
-  Scheduler::nextCommunication (std::vector<std::pair<double, Connector *> > &schedule)
+  Scheduler::nextCommunication (Clock& localTime,
+				std::vector<std::pair<double, Connector *> > &schedule)
   {
-    while (schedule.empty ())
+    while (schedule.empty () 
+	   // always plan forward past the first time point to make
+	   // sure that all events at that time are scheduled
+	   || schedule.front ().first == schedule.back ().first)
       {
 	std::vector<Node*>::iterator node;
 	for ( node=nodes.begin (); node < nodes.end (); node++ )
@@ -254,6 +256,14 @@ namespace MUSIC {
 		}
 	  }
       }
+#if 0
+    static int count;
+    if (count++ < 3)
+      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+		<< ": time = " << localTime.time ()
+		<< ", scheduled comm at " << schedule[0].first
+		<< std::endl;
+#endif
   }
 }
 

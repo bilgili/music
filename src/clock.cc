@@ -60,7 +60,14 @@ namespace MUSIC {
     tickInterval_ = ti;
   }
 
-  
+
+  void
+  Clock::reset ()
+  {
+    state_ = 0;
+  }
+
+
   void
   Clock::tick ()
   {

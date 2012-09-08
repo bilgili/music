@@ -63,6 +63,7 @@ namespace MUSIC {
     Clock () { };
     Clock (double tb, double h);
     void configure (double tb, ClockState ti);
+    void reset ();
     void tick ();
     void ticks (int n);
     ClockState tickInterval () { return tickInterval_; }

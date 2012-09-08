@@ -1,3 +1,7 @@
+2012-09-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/clock.hh, clock.cc (Clock::reset): New member function.
+
 2012-09-04  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* scheduler.cc (Scheduler::nextCommunication): Make sure that all

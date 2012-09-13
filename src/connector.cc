@@ -775,7 +775,7 @@ namespace MUSIC {
     high_(high),
     subconnector(NULL)
   {
-    idFlag_ = makeFlag ();
+    //idFlag_ = makeFlag ();
   }
 
 

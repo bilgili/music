@@ -159,9 +159,7 @@ namespace MUSIC {
   {
     return ((c1->remoteRank () >= c1->localRank ()
 	     && c2->remoteRank () < c1->localRank ())
-	    || c1->remoteRank () < c2->remoteRank ()
-  	    || (c1->remoteRank () == c2->remoteRank ()
-  		&& c1->receiverPortCode () < c2->receiverPortCode ()));
+	    || lessInputSubconnector (c1, c2));
   }
 
 

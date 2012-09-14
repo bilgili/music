@@ -136,22 +136,40 @@ namespace MUSIC {
   }
 
 
-  /* remedius
-   * lessSubconnector function was moved from runtime.cc since
-   * Runtime object doesn't contain vector of subconnectors anymore.
-   */
+  // The following ordering of subconnectors leads to a reasonably
+  // efficient communication schedule where the number of
+  // communications that weill have to happen sequentially is O(P)
+  // where P is the number of processors.
+  //
+  // Mikael Djurfeldt et al. (2005) "Massively parallel simulation
+  // of brain-scale neuronal network models." Tech. Rep.
+  // TRITA-NA-P0513, CSC, KTH, Stockholm.
+
   bool
-  lessSubconnector (const Subconnector* c1, const Subconnector* c2)
+  lessInputSubconnector (const Subconnector* c1, const Subconnector* c2)
   {
-    return (c1->remoteWorldRank () < c2->remoteWorldRank ()
-  	    || (c1->remoteWorldRank () == c2->remoteWorldRank ()
+    return (c1->remoteRank () < c2->remoteRank ()
+  	    || (c1->remoteRank () == c2->remoteRank ()
+  		&& c1->receiverPortCode () < c2->receiverPortCode ()));
+  }
+
+
+  bool
+  lessOutputSubconnector (const Subconnector* c1, const Subconnector* c2)
+  {
+    return ((c1->remoteRank () >= c1->localRank ()
+	     && c2->remoteRank () < c2->localRank ())
+	    || c1->remoteRank () < c2->remoteRank ()
+  	    || (c1->remoteRank () == c2->remoteRank ()
   		&& c1->receiverPortCode () < c2->receiverPortCode ()));
   }
 
 
   void Connector::initialize ()
   {
-    sort (rsubconn.begin (), rsubconn.end (),  lessSubconnector);
+    sort (rsubconn.begin (),
+	  rsubconn.end (),
+	  isInput () ? lessInputSubconnector : lessOutputSubconnector);
   }
 
 

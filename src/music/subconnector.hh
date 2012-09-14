@@ -70,7 +70,9 @@ namespace MUSIC {
     virtual void initialCommunication (double param) { }
     virtual void maybeCommunicate () = 0;
     virtual void flush (bool& dataStillFlowing) = 0;
+    int localRank () const { return intercomm.Get_rank (); }
     int remoteRank () const { return remoteRank_; }
+    //*fixme* are the following still needed or can they be removed?
     int remoteWorldRank () const { return remoteWorldRank_; }
     int receiverRank () const { return receiverRank_; }
     int receiverPortCode () const { return receiverPortCode_; }

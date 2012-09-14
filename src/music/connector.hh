@@ -110,6 +110,7 @@ namespace MUSIC {
 
     unsigned int idFlag () const { return idFlag_; }
     virtual bool isProxy () const { return false; }
+    virtual bool isInput () const { return false; }
     std::string receiverAppName () const { return info.receiverAppName (); }
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
@@ -201,6 +202,7 @@ namespace MUSIC {
   public:
   protected:
     InputConnector(){};
+    bool isInput () const { return true; }
     SpatialNegotiator *createSpatialNegotiator();
   };
 

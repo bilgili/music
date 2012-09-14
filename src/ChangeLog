@@ -1,3 +1,17 @@
+2012-09-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* connector.cc (Connector::initialize): Sort input and output
+	subconnectors according to different criteria in order to obtain
+	the communication schedule described in Mikael Djurfeldt et
+	al. (2005) "Massively parallel simulation of brain-scale neuronal
+	network models."
+
+	* music/connector.hh (Connector::isInput)
+	(InputConnector::isInput): New member function.
+
+	* music/subconnector.hh (Sbconnector::localRank): New member
+	function.
+
 2012-09-08  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* music/clock.hh, clock.cc (Clock::reset): New member function.

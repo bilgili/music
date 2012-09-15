@@ -158,8 +158,8 @@ namespace MUSIC {
   lessOutputSubconnector (const Subconnector* c1, const Subconnector* c2)
   {
     if ((c1->remoteRank () > c1->localRank ()
-	 && c2->remoteRank () < c1->localRank ())
-	|| (c1->remoteRank () < c1->localRank ()
+	 && c2->remoteRank () <= c1->localRank ())
+	|| (c1->remoteRank () <= c1->localRank ()
 	    && c2->remoteRank () > c1->localRank ()))
       return c1->remoteRank () > c2->remoteRank ();
     else

@@ -1,3 +1,8 @@
+2012-09-15  Mikael Djurfeldt  <djurfeldt@hambach.cluster>
+
+	* connector.cc (lessOutputSubconnector): Make less condition
+	consistent.
+
 2012-09-14  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* connector.cc (Connector::initialize): Sort input and output
@@ -9,7 +14,7 @@
 	* music/connector.hh (Connector::isInput)
 	(InputConnector::isInput): New member function.
 
-	* music/subconnector.hh (Sbconnector::localRank): New member
+	* music/subconnector.hh (Subconnector::localRank): New member
 	function.
 
 2012-09-08  Mikael Djurfeldt  <mikael@djurfeldt.com>

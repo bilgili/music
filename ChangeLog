@@ -1,5 +1,7 @@
 2012-09-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
+	* Version 1.1.8
+
 	* configure.ac: New configuration options --enable-isend,
 	--enable-anysource.
 

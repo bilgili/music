@@ -213,7 +213,7 @@ AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_th
 ac_have_cxx_mpi_init_thread=yes
 )
 AC_ARG_ENABLE(mpi,
-              [  --disable-mpi          Disabling mpi support],
+              [  --disable-mpi           disable mpi support],
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
 if test $MUSIC_USE_MPI = yes ; then 
   MUSIC_USE_MPI=1
@@ -221,15 +221,15 @@ else
   MUSIC_USE_MPI=0
 fi
 AC_ARG_ENABLE(isend,
-              [  --enable-isend          Enabling isend],
+              [  --enable-isend          enable isend],
               MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="no")
 if test $MUSIC_ISENDWAITALL = yes ; then 
   MUSIC_ISENDWAITALL=1
 else
   MUSIC_ISENDWAITALL=0
 fi
-AC_ARG_ENABLE(asreceiv,
-              [  --enable-asreceiv          Enabling any source receive],
+AC_ARG_ENABLE(anysource,
+              [  --enable-anysource      enable any source receive],
               MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="no")
 if test $MUSIC_ANYSOURCE = yes ; then 
   MUSIC_ANYSOURCE=1

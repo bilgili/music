@@ -1,3 +1,8 @@
+2012-09-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac: New configuration options --enable-isend,
+	--enable-anysource.
+
 2012-08-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* PORTING: New file.

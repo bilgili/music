@@ -220,13 +220,22 @@ if test $MUSIC_USE_MPI = yes ; then
 else
   MUSIC_USE_MPI=0
 fi
-#AC_DEFINE([MUSIC_USE_MPI], [1], [Define to 1 if you want debug output])
-# AC_ARG_ENABLE(debug,
-#              [  --enable-debug          Enable debugging information],
-#              USE_DEBUG="$enableval", USE_DEBUG="no")
-#if test $USE_DEBUG = yes ; then 
-#	AC_DEFINE([MUSIC_DEBUG], [1], [Define to 1 if you want debug output])
-# fi
+AC_ARG_ENABLE(isend,
+              [  --enable-isend          Enabling isend],
+              MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="no")
+if test $MUSIC_ISENDWAITALL = yes ; then 
+  MUSIC_ISENDWAITALL=1
+else
+  MUSIC_ISENDWAITALL=0
+fi
+AC_ARG_ENABLE(asreceiv,
+              [  --enable-asreceiv          Enabling any source receive],
+              MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="no")
+if test $MUSIC_ANYSOURCE = yes ; then 
+  MUSIC_ANYSOURCE=1
+else
+  MUSIC_ANYSOURCE=0
+fi
 
 AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 LIBS="$save_LIBS"
@@ -251,6 +260,8 @@ AC_SUBST(MPI_LDFLAGS)
 AC_SUBST(MUSIC_HAVE_SIZE_T)
 AC_SUBST(MUSIC_HAVE_LONG_LONG)
 AC_SUBST(MUSIC_USE_MPI)
+AC_SUBST(MUSIC_ISENDWAITALL)
+AC_SUBST(MUSIC_ANYSOURCE)
 AC_SUBST(OPTIONAL_UTILS)
 
 AC_CONFIG_FILES([

@@ -256,39 +256,48 @@ EventOutputSubconnector::EventOutputSubconnector (//Synchronizer* synch_,
 {
 }
 
-
 void
 EventOutputSubconnector::maybeCommunicate ()
 {
-	if (!flushed )//&&  synch->communicate ())
-		send ();
+	send ();
 
 }
-
+void
+EventOutputSubconnector::maybeCommunicate (std::vector<MPI::Request> &requests)
+{
+	send (requests);
+}
 
 void
-EventOutputSubconnector::send ()
+EventOutputSubconnector::send (std::vector<MPI::Request> &requests)
 {
-	MUSIC_LOGRE ("send");
+	MUSIC_LOGRE ("ISend");
 	void* data;
 	int size;
 	buffer_.nextBlock (data, size);
-	// NOTE: marshalling
 	char* buffer = static_cast <char*> (data);
-	// double starttime, endtime;
-	// starttime = MPI_Wtime();
 	while (size >= SPIKE_BUFFER_MAX)
 	{
-		/*intercomm.Send (buffer,
-			SPIKE_BUFFER_MAX,
-			MPI::BYTE,
-			remoteRank_,
-			SPIKE_MSG);*/
-		/* remedius
-		 * blocking non-synchronous send was replaced to
-		 * blocking synchronous send due to the communication overhead on the HPS systems.
-		 *
-		 */
+		requests.push_back(intercomm.Isend (buffer,
+				SPIKE_BUFFER_MAX,
+				type_,
+				remoteRank_,
+				SPIKE_MSG));
+		buffer += SPIKE_BUFFER_MAX;
+		size -= SPIKE_BUFFER_MAX;
+	}
+	requests.push_back( intercomm.Isend (buffer, size, type_, remoteRank_, SPIKE_MSG));
+}
+void
+EventOutputSubconnector::send ()
+{
+	MUSIC_LOGRE ("Ssend");
+	void* data;
+	int size;
+	buffer_.nextBlock (data, size);
+	char* buffer = static_cast <char*> (data);
+	while (size >= SPIKE_BUFFER_MAX)
+	{
 		intercomm.Ssend (buffer,
 				SPIKE_BUFFER_MAX,
 				type_,
@@ -298,12 +307,7 @@ EventOutputSubconnector::send ()
 		size -= SPIKE_BUFFER_MAX;
 	}
 	intercomm.Ssend (buffer, size, type_, remoteRank_, SPIKE_MSG);
-	// endtime = MPI_Wtime();
-	//endtime = endtime-starttime;
-	//if(tt < endtime)
-	//tt = endtime;
 }
-
 
 void
 EventOutputSubconnector::flush (bool& dataStillFlowing)
@@ -410,11 +414,32 @@ EventInputSubconnectorLocal::EventInputSubconnectorLocal
 void
 EventInputSubconnector::maybeCommunicate ()
 {
-	if (!flushed ) //&& synch->communicate ())
+	if (!flushed )
 		receive ();
 }
 
-
+bool
+EventInputSubconnectorGlobal::receive (char *data, int size)
+{
+		Event* ev = (Event*) data;
+		/* remedius
+		 * since the message can be of size 0 and contains garbage=FLUSH_MARK,
+		 * the check for the size of the message was added.
+		 */
+		if (ev[0].id == FLUSH_MARK  && size > 0)
+		{
+			flushed = true;
+			MUSIC_LOGR ("received flush message");
+		}
+		else
+		{
+			int nEvents = size / sizeof (Event);
+			for (int i = 0; i < nEvents; ++i){
+				(*handleEvent) (ev[i].t, ev[i].id);
+			}
+		}
+		return flushed;
+}
 // NOTE: isolate difference between global and local to avoid code repetition
 void
 EventInputSubconnectorGlobal::receive ()
@@ -490,7 +515,6 @@ EventInputSubconnectorLocal::receive ()
 			flushed = true;
 			return;
 		}
-		size = status.Get_count (type_);
 		int nEvents = size / sizeof (Event);
 		for (int i = 0; i < nEvents; ++i)
 			(*handleEvent) (ev[i].t, ev[i].id);

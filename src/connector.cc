@@ -24,7 +24,6 @@
 // connector.hh needs to be included first since it causes inclusion
 // of mpi.h (in data_map.hh).  mpi.h must be included before other
 // header files on BG/L
-
 #include "music/error.hh"
 #include "music/communication.hh"
 #include "music/event_router.hh"
@@ -189,7 +188,6 @@ namespace MUSIC {
     for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
 	 ++s){
       (*s)->maybeCommunicate();
-
     }
   }
 
@@ -200,6 +198,19 @@ namespace MUSIC {
     return new SpatialOutputNegotiator(indices_, type_, comm, intercomm );
   }
 
+#ifdef MUSIC_ISENDWAITALL
+  void
+  OutputConnector::tick ()
+  {
+	  std::vector<MPI::Request>requests;
+	  for (std::vector<Subconnector*>::iterator s = rsubconn.begin ();	 s != rsubconn.end ();
+			  ++s){
+		  (*s)->maybeCommunicate(requests);
+	  }
+	  //The spec  guarantees vectors store their elements contiguously:
+	  MPI::Request::Waitall(requests.size(),  (MPI::Request *)&requests[0]);
+  }
+#endif //MUSIC_ISENDWAITALL
 
   SpatialNegotiator *
   InputConnector::createSpatialNegotiator ()
@@ -671,20 +682,24 @@ namespace MUSIC {
     OutputSubconnector* osubconn= dynamic_cast<OutputSubconnector*>(subconn);
     routingMap_-> insert (i, osubconn->outputBuffer());
   }
-  
 
   Subconnector*
   EventInputConnector::makeSubconnector (int remoteRank)
   {
     int receiverRank = intercomm.Get_rank ();
-    if (type_ == Index::GLOBAL)
-      return new EventInputSubconnectorGlobal (//&synch,
+    if (type_ == Index::GLOBAL){
+    	EventInputSubconnectorGlobal *subcc =
+    	 new EventInputSubconnectorGlobal (//&synch,
 					       intercomm,
 					       remoteLeader (),
 					       remoteRank,
 					       receiverRank,
 					       receiverPortCode (),
 					       handleEvent_);
+    	rRank2Subconnector[remoteRank] = subcc;
+    	flushes++;
+    	return subcc;
+    }
     else
       return new EventInputSubconnectorLocal (//&synch,
 					      intercomm,
@@ -697,12 +712,37 @@ namespace MUSIC {
 
 
 
-  void EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
+  void
+  EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
   {
     //routingMap_-> insert (i, handleEvent_.global());
   }
+#ifdef MUSIC_ANYSOURCE
+ void
+ EventInputConnector::tick ()
+   {
+	  //SPIKE_BUFFER_MAX size
+	  //MPI::BYTE type
+	  //SPIKE_MSG tag
+	  int size = rsubconn.size();
+	  char data[SPIKE_BUFFER_MAX];
+	  MPI::Status status;
+	  while(size > 0 && flushes > 0){
+	  intercomm.Recv (data,
+	  				SPIKE_BUFFER_MAX,
+	  				MPI::BYTE,
+	  				MPI_ANY_SOURCE,
+	  				SPIKE_MSG,
+	  				status);
 
-
+	  int msize = status.Get_count(MPI::BYTE);
+	  if (rRank2Subconnector[status.Get_source()]->receive(data, msize))
+		  flushes--;
+	  if( msize < SPIKE_BUFFER_MAX)
+		 size--;
+	  }
+   }
+#endif //MUSIC_ANYSOURCE
   /********************************************************************
    *
    * Message Connectors

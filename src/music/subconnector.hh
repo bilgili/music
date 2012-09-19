@@ -69,6 +69,7 @@ namespace MUSIC {
     virtual void report () { }
     virtual void initialCommunication (double param) { }
     virtual void maybeCommunicate () = 0;
+    virtual void maybeCommunicate (std::vector<MPI::Request> &) {};
     virtual void flush (bool& dataStillFlowing) = 0;
     int localRank () const { return intercomm.Get_rank (); }
     int remoteRank () const { return remoteRank_; }
@@ -159,7 +160,10 @@ namespace MUSIC {
   			     int remoteRank,
   			     int receiverPortCode);
       void maybeCommunicate ();
+      void maybeCommunicate (std::vector<MPI::Request> &);
+
       void send ();
+      void send (std::vector<MPI::Request> &);
       void flush (bool& dataStillFlowing);
 
     };
@@ -191,6 +195,7 @@ namespace MUSIC {
 				  int receiverRank,
 				  int receiverPortCode,
 				  EventHandlerGlobalIndex* eh);
+    bool receive(char *data, int size);
     void receive ();
   //  void flush (bool& dataStillFlowing);
   };

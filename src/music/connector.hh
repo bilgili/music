@@ -193,13 +193,21 @@ namespace MUSIC {
   };
   class OutputConnector : virtual public Connector {
   public:
+#ifdef MUSIC_ISENDWAITALL
+   virtual void tick ();
+#endif // MUSIC_ISENDWAITALL
   protected:
     OutputConnector(){};
     SpatialNegotiator *createSpatialNegotiator();
   };
 
   class InputConnector : virtual public Connector {
+/*
   public:
+#ifdef MUSIC_ANYSOURCE
+	  virtual void tick ();
+#endif // MUSIC_ANYSOURCE
+*/
   protected:
     InputConnector(){};
     bool isInput () const { return true; }
@@ -239,7 +247,10 @@ namespace MUSIC {
 			 Sampler& sampler,
 			 MPI::Datatype data_type);
     ~ContOutputConnector();
-
+    //MUSIC_ISENDWAITALL is not supported temporarily for cont. ports
+#ifdef MUSIC_ISENDWAITALL
+    void tick (){Connector::tick();};
+#endif
     void specialize (Clock& localTime);
     void preCommunication () {connector->preCommunication(); }
     void initialize (){connector->initialize();ContConnector::initialize();};
@@ -267,11 +278,13 @@ namespace MUSIC {
 			MPI::Datatype data_type,
 			double delay);
     ~ContInputConnector();
-
     void specialize (Clock& localTime);
-
     void postCommunication () {connector->postCommunication(); }
     void initialize (){connector->initialize();ContConnector::initialize();};
+    //MUSIC_ANYSOURCE is not supported temporarily for cont. ports
+//#ifdef MUSIC_ANYSOURCE
+//  virtual void tick {Connector::tick();};
+//#endif // MUSIC_ANYSOURCE
   protected:
     void addRoutingInterval (IndexInterval i, Subconnector* isubconn);
     void initialCommunication();
@@ -294,6 +307,7 @@ namespace MUSIC {
 							       routingMap_(routingMap){
     };
     ~EventOutputConnector(){}
+
   protected:
     EventOutputConnector():routingMap_(NULL){};
     EventOutputConnector(EventRoutingMap<FIBO*>* routingMap): routingMap_(routingMap){};
@@ -304,6 +318,8 @@ namespace MUSIC {
   protected:
     //	EventRoutingMap<EventHandlerGlobalIndex*>* routingMap_;
     EventHandlerPtr handleEvent_;
+    std::map<int,EventInputSubconnectorGlobal*> rRank2Subconnector;
+    int flushes;
   public:
 
     EventInputConnector (ConnectorInfo connInfo,
@@ -311,8 +327,12 @@ namespace MUSIC {
 			 Index::Type type,
 			 MPI::Intracomm comm,
 			 EventHandlerPtr handleEvent):Connector(connInfo, indices, type ,comm),
-						      handleEvent_(handleEvent){};
+						      handleEvent_(handleEvent),flushes(0){};
     ~EventInputConnector(){}
+    //probably should be moved to InputConnector later
+#ifdef MUSIC_ANYSOURCE
+  virtual void tick ();
+#endif // MUSIC_ANYSOURCE
   protected:
     EventInputConnector(){};
     EventInputConnector (EventHandlerPtr handleEvent): handleEvent_(handleEvent){};
@@ -344,6 +364,10 @@ namespace MUSIC {
 			    std::vector<FIBO*>& buffers);
 
     void postCommunication ();
+    //MUSIC_ISENDWAITALL is not supported temporarily for message ports
+#ifdef MUSIC_ISENDWAITALL
+    void tick (){Connector::tick();};
+#endif
   protected:
     void addRoutingInterval (IndexInterval i, Subconnector* subconn);
     Subconnector* makeSubconnector (int remoteRank);
@@ -360,6 +384,12 @@ namespace MUSIC {
 			   Index::Type type,
 			   MessageHandler* handleMessage,
 			   MPI::Intracomm comm);
+    //MUSIC_ANYSOURCE is not supported temporarily for message ports
+/*
+#ifdef MUSIC_ANYSOURCE
+  virtual void tick {Connector::tick();};
+#endif // MUSIC_ANYSOURCE
+*/
   protected:
     Subconnector* makeSubconnector (int remoteRank);
   };
@@ -421,6 +451,11 @@ namespace MUSIC {
 				  MPI::Intracomm comm,
 				  EventHandlerPtr handleEvent);
     ~EventInputCollectiveConnector();
+/*
+#ifdef MUSIC_ANYSOURCE
+  virtual void tick {Connector::tick();};
+#endif // MUSIC_ANYSOURCE
+*/
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     void addRoutingInterval(IndexInterval i, Subconnector* subconn);
@@ -434,6 +469,9 @@ namespace MUSIC {
 				   MPI::Intracomm comm,
 				   EventRoutingMap<FIBO *>* routingMap);
     ~EventOutputCollectiveConnector();
+#ifdef MUSIC_ISENDWAITALL
+    void tick (){Connector::tick();};
+#endif //MUSIC_ISENDWAITALL
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   };
@@ -448,6 +486,11 @@ namespace MUSIC {
 				 Sampler& sampler,
 				 MPI::Datatype data_type,
 				 double delay);
+/*
+#ifdef MUSIC_ANYSOURCE
+  virtual void tick {Connector::tick();};
+#endif // MUSIC_ANYSOURCE
+*/
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   private:
@@ -463,6 +506,9 @@ namespace MUSIC {
 				  MPI::Intracomm comm,
 				  Sampler& sampler,
 				  MPI::Datatype data_type);
+#ifdef MUSIC_ISENDWAITALL
+    void tick (){Connector::tick();};
+#endif
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   private:

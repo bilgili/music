@@ -15,10 +15,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include "music/music-config.hh"
+
 #if MUSIC_USE_MPI
 #include <mpi.h>
 #endif
-#include <music/error.hh>
+
+#include "music/error.hh"
 
 #include <iostream>
 #include <stdlib.h>

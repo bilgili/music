@@ -34,6 +34,8 @@ namespace MUSIC {
 
   unsigned int Connector::nextFlag_ = 1;
 
+  unsigned int Connector::nextProxyFlag_ = 1;
+
   Connector::Connector (ConnectorInfo info_,
 			IndexMap* indices,
 			Index::Type type,
@@ -42,7 +44,8 @@ namespace MUSIC {
       indices_ (indices->copy()),
       type_ (type),
       comm (c),
-      idFlag_ (0)
+      idFlag_ (0),
+      finalized_ (false)
   {
   }
 
@@ -57,7 +60,8 @@ namespace MUSIC {
       type_ (type),
       comm (c),
       intercomm (ic),
-      idFlag_ (0)
+      idFlag_ (0),
+      finalized_ (false)
   {
   }
 
@@ -174,12 +178,13 @@ namespace MUSIC {
   }
 
 
-  bool Connector::finalizeSimulation ()
+  void
+  Connector::finalize ()
   {
     bool dataStillFlowing = false;
     for (std::vector<Subconnector*>::iterator s = rsubconn.begin (); 	 s != rsubconn.end ();  	 ++s)
       (*s)->flush(dataStillFlowing);
-    return !dataStillFlowing;
+    finalized_ = !dataStillFlowing;
   }
 
 
@@ -831,70 +836,67 @@ namespace MUSIC {
    *
    ********************************************************************/
 
-  CollectiveConnector::CollectiveConnector(bool high):
-    high_(high),
-    subconnector(NULL)
+  CollectiveConnector::CollectiveConnector (bool high)
+    : high_ (high), subconnector_ (NULL)
   {
     //idFlag_ = makeFlag ();
   }
 
 
   void
-  CollectiveConnector::createIntercomm()
+  CollectiveConnector::createIntercomm ()
   {
-    Connector::createIntercomm();
-    intracomm_ = intercomm.Merge(high_);
+    Connector::createIntercomm ();
+    intracomm_ = intercomm.Merge (high_);
   }
 
 
   void
-  CollectiveConnector::freeIntercomm()
+  CollectiveConnector::freeIntercomm ()
   {
-    intracomm_.Free();
-    Connector::freeIntercomm();
-
+    intracomm_.Free ();
+    Connector::freeIntercomm ();
   }
 
 
-  ContCollectiveConnector::ContCollectiveConnector( MPI::Datatype type, bool high):
-    CollectiveConnector(high),
-    data_type(type)
-  {
-
-  }
-
-
-  Subconnector*
-  ContCollectiveConnector::makeSubconnector (void *param) {
-    std::multimap< int, Interval> intrvs= *static_cast< std::multimap< int, Interval>*>(param);
-    if(subconnector == NULL){
-      subconnector = new ContCollectiveSubconnector(intrvs,
-						    width(),
-						    intracomm_,
-						    data_type);
-    }
-    return subconnector;
-  }
-
-
-  EventCollectiveConnector::EventCollectiveConnector(bool high):
-    CollectiveConnector(high),
-    router_(NULL)
+  ContCollectiveConnector::ContCollectiveConnector (MPI::Datatype type,
+						    bool high):
+    CollectiveConnector (high),
+    data_type (type)
   {
 
   }
 
 
   Subconnector*
-  EventCollectiveConnector::makeSubconnector (void *param) {
-    //  EventRouter * router_ = static_cast<EventRouter*>(param);
+  ContCollectiveConnector::makeSubconnector (void *param)
+  {
+    std::multimap< int, Interval> intrvs
+      = *static_cast< std::multimap< int, Interval>*> (param);
+    if (subconnector_ == NULL)
+      {
+	subconnector_ = new ContCollectiveSubconnector (intrvs,
+							width (),
+							intracomm_,
+							data_type);
+      }
+    return subconnector_;
+  }
 
-    if(subconnector == NULL){
-      subconnector = new EventCollectiveSubconnector(
-						     intracomm_,
-						     router_);
-    }
-    return subconnector;
+
+  EventCollectiveConnector::EventCollectiveConnector (bool high)
+    : CollectiveConnector (high), router_ (NULL)
+  {
+    idFlag_ = makeFlag ();
+  }
+
+
+  Subconnector*
+  EventInputCollectiveConnector::makeSubconnector (void *param)
+  {
+    if (subconnector_ == NULL)
+      subconnector_ = new EventInputCollectiveSubconnector (router_);
+    return subconnector_;
   }
 
 
@@ -930,9 +932,11 @@ namespace MUSIC {
 
 
   void
-  EventInputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_){
-    routingMap_input = new InputRoutingMap();
-    Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
+  EventInputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_)
+  {
+    routingMap_input = new InputRoutingMap ();
+    Subconnector* subconn
+      = EventInputCollectiveConnector::makeSubconnector (NULL);
     rsubconn.push_back (subconn);
     for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
       addRoutingInterval (i->interval (), subconn);
@@ -943,9 +947,10 @@ namespace MUSIC {
 
 
   void
-  EventInputCollectiveConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
+  EventInputCollectiveConnector::addRoutingInterval (IndexInterval i,
+						     Subconnector* subconn)
   {
-    routingMap_input-> insert (i,  &handleEvent_ );
+    routingMap_input->insert (i, &handleEvent_);
   }
 
 
@@ -954,28 +959,39 @@ namespace MUSIC {
    IndexMap* indices,
    Index::Type type,
    MPI::Intracomm comm,
-   EventRoutingMap<FIBO *>* routingMap)
-    : Connector(connInfo,indices, type,comm),
-      EventOutputConnector( routingMap),
-      EventCollectiveConnector(false)
+   DirectRouter* router)
+    : Connector (connInfo, indices, type, comm),
+      EventOutputConnector (NULL),
+      EventCollectiveConnector (false),
+      router_ (router)
   {
-    router_ = new EventRouter();
   }
 
 
   EventOutputCollectiveConnector::~EventOutputCollectiveConnector()
   {
-    delete router_;
   }
 
+
+  Subconnector*
+  EventOutputCollectiveConnector::makeSubconnector (void *param)
+  {
+    //  EventRouter * router_ = static_cast<EventRouter*>(param);
+    if(subconnector_ == NULL){
+      subconnector_ = new EventOutputCollectiveSubconnector ();
+    }
+    return subconnector_;
+  }
 
   void
   EventOutputCollectiveConnector::spatialNegotiation (SpatialNegotiator* spatialNegotiator_)
   {
-    Subconnector *subconn = EventCollectiveConnector::makeSubconnector(NULL);
+    EventOutputCollectiveSubconnector* subconn
+      = dynamic_cast<EventOutputCollectiveSubconnector*>
+      (EventOutputCollectiveConnector::makeSubconnector (NULL));
     rsubconn.push_back (subconn);
-    for (NegotiationIterator i = spatialNegotiator_->negotiateSimple (); !i.end (); ++i)
-      addRoutingInterval (i->interval (), subconn);
+    subconn->setRouter (router_);
+    //spatialNegotiator_->negotiateSimple ();
   }
 
 

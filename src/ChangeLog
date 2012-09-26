@@ -1,3 +1,11 @@
+2012-09-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am, connector.cc, event_router.cc, multibuffer.cc,
+	music/connectivity.hh, music/connector.hh, music/multibuffer.hh,
+	music/runtime.hh, music/scheduler.hh, music/subconnector.hh,
+	port.cc, runtime.cc, scheduler.cc, subconnector.cc: Implementation
+	of multiconnectors.
+
 2012-09-15  Mikael Djurfeldt  <djurfeldt@hambach.cluster>
 
 	* connector.cc (lessOutputSubconnector): Make less condition

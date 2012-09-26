@@ -378,8 +378,9 @@ namespace MUSIC {
       {
 	int commType = ConnectivityInfo_->connections ()[0].communicationType ();
 	int procMethod = ConnectivityInfo_->connections ()[0].processingMethod ();
-	if (procMethod == ConnectorInfo::TREE
-	    && commType == ConnectorInfo::POINTTOPOINT)
+	if (commType == ConnectorInfo::COLLECTIVE)
+	  router = new DirectRouter ();
+	else if (procMethod == ConnectorInfo::TREE)
 	  router = new TreeProcessingOutputRouter ();
 	else
 	  router = new TableProcessingOutputRouter ();
@@ -418,22 +419,23 @@ namespace MUSIC {
   Connector*
   EventOutputPort::makeConnector (ConnectorInfo connInfo)
   {
-	  Connector *conn;
-	  // we need to choose a right connector according to the communication type
-	  if(connInfo.communicationType() ==  ConnectorInfo::POINTTOPOINT)
-		  conn = new EventOutputConnector (connInfo,
-				     indices_,
-		  			 index_type_,
-				     setup_->communicator (),
-				     routingMap);
-	  else
-		  conn = new EventOutputCollectiveConnector(connInfo,
-	  	 			  indices_,
-		  			  index_type_,
-	  	 			  setup_->communicator (),
-	  	 			  routingMap);
+    Connector *conn;
+    // we need to choose a right connector according to the communication type
+    if (connInfo.communicationType () ==  ConnectorInfo::POINTTOPOINT)
+      conn = new EventOutputConnector (connInfo,
+				       indices_,
+				       index_type_,
+				       setup_->communicator (),
+				       routingMap);
+    else
+      conn = new EventOutputCollectiveConnector
+	(connInfo,
+	 indices_,
+	 index_type_,
+	 setup_->communicator (),
+	 static_cast<DirectRouter*> (router));
 
-	 return conn;
+    return conn;
   }
   
   

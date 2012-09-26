@@ -192,24 +192,29 @@ namespace MUSIC {
     for (conn = connections.begin (); conn < connections.end (); conn++)
       {
 	(*conn)->initialize (nodes);
+	bool foundLocalConnector = false;
 	for (std::vector<Connector*>::iterator c = connectors.begin ();
 	     c != connectors.end ();
 	     ++c)
 	  {
 	    if ((*conn)->portCode () == (*c)->receiverPortCode ())
 	      {
+		foundLocalConnector = true;
 		(*conn)->setConnector ((*c));
 		(*c)->setInterpolate ((*conn)->getInterpolate ());
 		(*c)->setLatency ((*conn)->getLatency ());
 		(*c)->initialize ();
+		break;
 	      }
 	  }
-#if 0
+#if 1
 	if (!foundLocalConnector && (*conn)->needsMultiCommunication ())
 	  {
 	    (*conn)->setConnector
-	      (new ProxyConnector ((*conn)->preNode ()->leader (),
+	      (new ProxyConnector ((*conn)->preNode ()->getId (),
+				   (*conn)->preNode ()->leader (),
 				   (*conn)->preNode ()->nProcs (),
+				   (*conn)->postNode ()->getId (),
 				   (*conn)->postNode ()->leader (),
 				   (*conn)->postNode ()->nProcs ()));
 	  }
@@ -217,9 +222,84 @@ namespace MUSIC {
       }
   }
 
+
   void
-  Scheduler::nextCommunication (Clock& localTime,
-				std::vector<std::pair<double, Connector *> > &schedule)
+  Scheduler::createMultiConnectors (Clock localTime,
+				    std::vector<Connector*>& connectors,
+				    MultiBuffer* multiBuffer,
+				    std::vector<MultiConnector*>& multiConnectors)
+  {
+    //if (MPI::COMM_WORLD.Get_rank () == 2)
+    //  std::cout << "prep localTime = " << localTime.time () << std::endl;
+    // We need to create the MultiConnectors ahead of time since their
+    // creation requires communication between all members of
+    // COMM_WORLD.  Temporary solution: Create all MultiConnectors
+    // that will be needed during the first 100 steps.
+    std::vector<std::pair<double, Connector *> > schedule;
+
+    std::vector<bool> multiProxies;
+    multiProxies.resize (Connector::proxyIdRange ());
+    
+    for (int self_node = 0; self_node < (int) nodes.size (); ++self_node)
+      {
+	localTime.reset ();
+
+	createMultiConnNext (self_node,
+			     localTime,
+			     connectors,
+			     multiBuffer,
+			     schedule);
+    
+	localTime.ticks (-1);
+
+	std::vector<Connector*> cCache;
+	for (int i = 0; i < 100; ++i)
+	  {
+	    localTime.tick ();
+	    createMultiConnStep (self_node,
+				 localTime,
+				 connectors,
+				 multiBuffer,
+				 multiConnectors,
+				 multiProxies,
+				 cCache,
+				 schedule,
+				 false);
+	  }
+	createMultiConnStep (self_node,
+			     localTime,
+			     connectors,
+			     multiBuffer,
+			     multiConnectors,
+			     multiProxies,
+			     cCache,
+			     schedule,
+			     true);
+	schedule.clear ();
+
+	// Now reset node and connection clocks to starting values
+	for (std::vector<Node*>::iterator node = nodes.begin ();
+	     node != nodes.end ();
+	     ++node)
+	  (*node)->resetClock ();
+
+	for (std::vector<SConnection*>::iterator conn = connections.begin ();
+	     conn != connections.end ();
+	     ++conn)
+	  {
+	    (*conn)->resetClocks ();
+	    (*conn)->advance ();
+	  }
+      }
+  }
+
+
+  void
+  Scheduler::createMultiConnNext (int self_node,
+				  Clock& localTime,
+				  std::vector<Connector*>& connectors,
+				  MultiBuffer* multiBuffer_,
+				  std::vector<std::pair<double, Connector *> > &schedule)
   {
     while (schedule.empty () 
 	   // always plan forward past the first time point to make
@@ -256,14 +336,171 @@ namespace MUSIC {
 		}
 	  }
       }
-#if 0
-    static int count;
-    if (count++ < 3)
-      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-		<< ": time = " << localTime.time ()
-		<< ", scheduled comm at " << schedule[0].first
-		<< std::endl;
-#endif
+  }
+
+
+  void
+  Scheduler::createMultiConnStep (int self_node,
+				  Clock& localTime,
+				  std::vector<Connector*>& connectors,
+				  MultiBuffer* multiBuffer_,
+				  std::vector<MultiConnector*>& multiConnectors,
+				  std::vector<bool>& multiProxies,
+				  std::vector<Connector*>& cCache,
+				  std::vector<std::pair<double, Connector *> > &schedule,
+				  bool finalize)
+  {
+    std::set<int>* connsToFinalize;
+    int finalCount = 0;
+
+    if (finalize)
+      {
+	connsToFinalize = new std::set<int>;
+	for (std::vector<Connector*>::iterator c = connectors.begin ();
+	     c != connectors.end ();
+	     ++c)
+	  connsToFinalize->insert ((*c)->receiverPortCode ());
+      }
+
+    while (schedule[0].first <= localTime.time()
+	   || (finalize && //!connsToFinalize->empty ()
+	       ++finalCount <= 4000))
+      {
+	std::vector< std::pair<double, Connector*> >::iterator comm;
+	for (comm = schedule.begin ();
+	     comm != schedule.end() && comm->first <= localTime.time ();
+	     ++comm)
+	  {
+	    Connector* connector = comm->second;
+
+	    if (connector == NULL)
+	      continue;
+
+	    if (finalize)
+	      connsToFinalize->erase (connector->receiverPortCode ());
+
+	    if (!connector->idFlag ())
+	      continue;
+
+	    unsigned int multiId = 0;
+	    unsigned int multiProxyId = 0;
+	    if (!connector->isProxy ())
+	      {
+		multiId = connector->idFlag ();
+		cCache.push_back (connector);
+	      }
+	    else
+	      {
+		dynamic_cast<ProxyConnector*> (connector)->setNode (self_node);
+		multiProxyId = connector->idFlag ();
+	      }
+	    bool isProxy = connector->isProxy ();
+	    int remoteLeader = connector->remoteLeader ();
+	    bool direction = connector->isInput ();
+	    // yes, horrible quadratic algorithm for now
+	    for (std::vector< std::pair<double, Connector*> >::iterator c
+		   = comm + 1;
+		 c != schedule.end () && c->first <= localTime.time();
+		 ++c)
+	      {
+		if (c->second == NULL || c->second->idFlag () == 0)
+		  continue;
+		if (c->second->isProxy ())
+		  dynamic_cast<ProxyConnector*> (c->second)->setNode (self_node);
+		// lumping criterion
+		if (!(c->second->isProxy () ^ isProxy)
+		    && c->second->remoteLeader () == remoteLeader
+		    && c->second->isInput () == direction)
+		  {
+		    if (finalize)
+		      connsToFinalize->erase (c->second->receiverPortCode ());
+		    if (!c->second->isProxy ())
+		      {
+			cCache.push_back (c->second);
+			multiId |= c->second->idFlag ();
+		      }
+		    else
+		      {
+			multiProxyId |= c->second->idFlag ();
+		      }
+		    c->second = NULL; // taken
+		  }
+	      }
+
+	    //if (MPI::COMM_WORLD.Get_rank () == 2)
+	    //	std::cout << "Prep multiId = " << multiId << std::endl;
+	    if (cCache.size () == 0)
+	      {
+		if (!multiProxies[multiProxyId])
+		  {
+		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+		    MPI::COMM_WORLD.Barrier ();
+		    //*fixme* Impossible to delete the following object
+		    multiProxies[multiProxyId] = true;
+		  }
+	      }
+	    else if (multiConnectors[multiId] == NULL)
+	      {
+		multiConnectors[multiId]
+		  = new MultiConnector (multiBuffer_, cCache);
+	      }
+	    cCache.clear ();
+	  }
+	schedule.erase (schedule.begin (), comm);
+	createMultiConnNext (self_node,
+			     localTime,
+			     connectors,
+			     multiBuffer_,
+			     schedule);
+      }
+
+    if (finalize)
+      delete connsToFinalize;
+    
+  }
+
+
+  void
+  Scheduler::nextCommunication (Clock& localTime,
+				std::vector<std::pair<double, Connector *> > &schedule)
+  {
+    //if (MPI::COMM_WORLD.Get_rank () == 2)
+    //  std::cout << "localTime = " << localTime.time () << std::endl;
+    while (schedule.empty () 
+	   // always plan forward past the first time point to make
+	   // sure that all events at that time are scheduled
+	   || schedule.front ().first == schedule.back ().first)
+      {
+	std::vector<Node*>::iterator node;
+	for ( node=nodes.begin (); node < nodes.end (); node++ )
+	  {
+	    if ((*node)->nextReceive () > (*node)->localTime ().time ())
+	      (*node)->advance ();
+
+	    std::vector<SConnection*>* conns = (*node)->outputConnections ();
+	    std::vector<SConnection*>::iterator conn;
+	    for (conn = conns->begin (); conn < conns->end (); conn++)
+	      //do we have data ready to be sent?
+	      if ((*conn)->nextSend () <= (*conn)->preNode ()->localTime ()
+		  && (*conn)->nextReceive () == (*conn)->postNode ()->localTime ())
+		{
+		  if (self_node == (*conn)->postNode ()->getId () //input
+		      || self_node == (*conn)->preNode ()->getId ()) //output
+		    {
+		      double nextComm
+			= (self_node == (*conn)->postNode ()->getId ()
+			   ? (*conn)->postNode ()->localTime ().time ()
+			   : (*conn)->preNode ()->localTime ().time ());
+		      schedule.push_back
+			(std::pair<double, Connector*>(nextComm,
+						       (*conn)->getConnector ()));
+		    }
+
+		  MUSIC_LOG0 ("Scheduled communication:"<< (*conn)->preNode ()->getId () <<"->"<< (*conn)->postNode ()->getId () << "at(" << (*conn)->preNode ()->localTime ().time () << ", "<< (*conn)->postNode ()->localTime ().time () <<")");
+		  (*conn)->advance ();
+		}
+	  }
+      }
   }
 }
 

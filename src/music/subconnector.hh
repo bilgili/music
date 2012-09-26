@@ -71,6 +71,7 @@ namespace MUSIC {
     virtual void maybeCommunicate () = 0;
     virtual void maybeCommunicate (std::vector<MPI::Request> &) {};
     virtual void flush (bool& dataStillFlowing) = 0;
+    bool isFlushed () { return flushed; }
     int localRank () const { return intercomm.Get_rank (); }
     int remoteRank () const { return remoteRank_; }
     //*fixme* are the following still needed or can they be removed?
@@ -84,6 +85,11 @@ namespace MUSIC {
     OutputSubconnector () {};
   public:
     virtual FIBO* outputBuffer () { return NULL; }
+    // the following is part of the MultiConnector protocol
+    virtual void nextBlock () { }
+    virtual unsigned int dataSize () { return 0; }
+    virtual void setOutputBuffer (void* buffer, unsigned int size) { }
+    virtual void fillOutputBuffer () { }
   };
   
   class BufferingOutputSubconnector : virtual public OutputSubconnector {
@@ -103,6 +109,8 @@ namespace MUSIC {
     InputSubconnector (){};
   public:
     virtual BIFO* inputBuffer () { return NULL; }
+    // the following is part of the MultiConnector protocol
+    virtual void processData (void* data, unsigned int size) { }
   };
 
   class ContOutputSubconnector : public BufferingOutputSubconnector{
@@ -251,56 +259,104 @@ namespace MUSIC {
     void receive ();
     void flush (bool& dataStillFlowing);
   };
+
   /* remedius
-     * CollectiveSubconnector class is used for collective communication
-     * based on MPI::ALLGATHER function.
-     */
-    class CollectiveSubconnector: public virtual Subconnector
-    {
-    	int nProcesses, *ppBytes, *displ;
-    protected:
-  	  MPI::Intracomm intracomm_;
+   * CollectiveSubconnector class is used for collective communication
+   * based on MPI::ALLGATHER function.
+   */
+  class CollectiveSubconnector : public virtual Subconnector
+  {
+    int nProcesses, *ppBytes, *displ;
+  protected:
+    MPI::Intracomm intracomm_;
 
-    protected:
-  	  virtual ~CollectiveSubconnector();
-  	  CollectiveSubconnector(MPI::Intracomm intracomm);
-  	  void maybeCommunicate ();
-  	  int calcCommDataSize(int local_data_size);
-  	  std::vector<char> getCommData(char *cur_buff, int size);
-  	  const int* getDisplArr(){return displ;}
-  	  const int* getSizeArr(){return ppBytes;}
-  	  virtual void communicate() = 0;
-    };
+  protected:
+    virtual ~CollectiveSubconnector ();
+    CollectiveSubconnector (MPI::Intracomm intracomm);
+    void maybeCommunicate ();
+    int calcCommDataSize (int local_data_size);
+    std::vector<char> getCommData(char *cur_buff, int size);
+    const int* getDisplArr(){return displ;}
+    const int* getSizeArr(){return ppBytes;}
+    virtual void communicate () { };
+    void allocAllgathervArrays ();
+    void freeAllgathervArrays ();
+  };
 
-    class EventCollectiveSubconnector: public EventInputSubconnector, public EventOutputSubconnector,  public CollectiveSubconnector{
-    protected:
-    	EventRouter *router_;
-    public:
-    	EventCollectiveSubconnector( MPI::Intracomm intracomm,  EventRouter *router):
-    		CollectiveSubconnector (intracomm),
-    		router_(router){};
-    	void flush (bool& dataStillFlowing);
-    	void maybeCommunicate ();
-    private:
-    	void communicate();
-    };
-    class ContCollectiveSubconnector: public ContInputSubconnector, public ContOutputSubconnector,  public CollectiveSubconnector{
-    	std::multimap< int, Interval> intervals_; //the data we want
-    	std::map<int,int> blockSizePerRank_; //contains mapping of rank->size of the communication data
+
+  class DirectRouter;
+  
+
+  class EventOutputCollectiveSubconnector
+    : public OutputSubconnector,
+      public EventSubconnector,
+      public CollectiveSubconnector
+  {
+    DirectRouter* router_;
+  public:
+    EventOutputCollectiveSubconnector ()
+      : CollectiveSubconnector (intracomm_)
+    { }
+    void setRouter (DirectRouter* router) { router_ = router; }
+
+    // the following is part of the MultiConnector protocol
+    void nextBlock () { }
+    unsigned int dataSize ();
+    void setOutputBuffer (void* buffer, unsigned int size);
+    void fillOutputBuffer ();
+
+    void flush (bool& dataStillFlowing);
+    void maybeCommunicate () { }
+  };
+
+
+  class EventInputCollectiveSubconnector
+    : public EventInputSubconnector, public CollectiveSubconnector
+  {
+  protected:
+    EventRouter *router_;
+  public:
+    EventInputCollectiveSubconnector (EventRouter *router)
+    : CollectiveSubconnector (intracomm_),
+      router_(router)
+    { }
+    // the following is part of the MultiConnector protocol
+    void processData (void* data, unsigned int size);
+  private:
+    void maybeCommunicate () { }
+  };
+
+
+    class ContCollectiveSubconnector
+      : public ContInputSubconnector,
+	public ContOutputSubconnector,
+	public CollectiveSubconnector {
+      std::multimap< int, Interval> intervals_; //the data we want
+      std::map<int,int> blockSizePerRank_; //contains mapping of rank->size of the communication data
     										//(size of communication data/nBuffered per rank is constant).
-    	int width_; //port width in bytes
+      int width_; //port width in bytes
     public:
-    	ContCollectiveSubconnector (std::multimap<int, Interval > intervals, int width, MPI::Intracomm intracomm,  MPI::Datatype type):
-    		Subconnector(type),
-    		CollectiveSubconnector (intracomm),
-    		intervals_(intervals),
-    		width_(width*type.Get_size ()){}
-    	void initialCommunication (double initialBufferedTicks);
-    	void maybeCommunicate ();
-    	void flush (bool& dataStillFlowing);
+      ContCollectiveSubconnector (std::multimap<int, Interval> intervals,
+				  int width,
+				  MPI::Intracomm intracomm,
+				  MPI::Datatype type)
+	: Subconnector(type),
+	  CollectiveSubconnector (intracomm),
+	  intervals_(intervals),
+	  width_(width*type.Get_size ())
+      {
+	allocAllgathervArrays ();
+      }
+      ~ContCollectiveSubconnector ()
+      {
+	void freeAllgathervArrays ();
+      }
+      void initialCommunication (double initialBufferedTicks);
+      void maybeCommunicate ();
+      void flush (bool& dataStillFlowing);
     private:
-    	void communicate();
-    	void fillBlockSizes();
+      void communicate();
+      void fillBlockSizes();
     };
 
 }

@@ -707,113 +707,139 @@ MessageInputSubconnector::flush (bool& dataStillFlowing)
  * Collective Subconnector
  *
  ********************************************************************/
-CollectiveSubconnector::CollectiveSubconnector(MPI::Intracomm intracomm): intracomm_(intracomm)
+
+CollectiveSubconnector::CollectiveSubconnector (MPI::Intracomm intracomm)
+  : intracomm_ (intracomm)
 {
-	MPI_Comm_size(intracomm_,&nProcesses);
-	ppBytes = new int[nProcesses];
-	displ = new int[nProcesses];
 }
-CollectiveSubconnector::~CollectiveSubconnector()
+
+
+CollectiveSubconnector::~CollectiveSubconnector ()
 {
-	delete ppBytes;
-	delete displ;
 }
-void CollectiveSubconnector::maybeCommunicate(){
-	if (!flushed){
-		communicate();
-	}
+
+void
+CollectiveSubconnector::allocAllgathervArrays ()
+{
+  nProcesses = intracomm_.Get_size ();
+  ppBytes = new int[nProcesses];
+  displ = new int[nProcesses];
 }
-int CollectiveSubconnector::calcCommDataSize(int local_data_size){
-	int dsize;
-	//distributing the size of the buffer
-	intracomm_.Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT);
-	//could it be that dsize is more then unsigned int?
-	dsize = 0;
-	for(int i=0; i < nProcesses; ++i){
-		displ[i] = dsize;
-		dsize += ppBytes[i];
-		//ppBytes[i] /= type_.Get_size();
-		/*		  if(ppBytes[i] > max_size)
-				  max_size = ppBytes[i];*/
-	}
-	return dsize;
+
+void
+CollectiveSubconnector::freeAllgathervArrays ()
+{
+  delete ppBytes;
+  delete displ;  
 }
+
+void
+CollectiveSubconnector::maybeCommunicate ()
+{
+  if (!flushed)
+    communicate ();
+}
+
+int
+CollectiveSubconnector::calcCommDataSize (int local_data_size)
+{
+  int dsize;
+  //distributing the size of the buffer
+  intracomm_.Allgather (&local_data_size, 1, MPI_INT, ppBytes, 1, MPI_INT);
+  //could it be that dsize is more then unsigned int?
+  dsize = 0;
+  for(int i=0; i < nProcesses; ++i){
+    displ[i] = dsize;
+    dsize += ppBytes[i];
+    //ppBytes[i] /= type_.Get_size();
+    /*		  if(ppBytes[i] > max_size)
+		  max_size = ppBytes[i];*/
+  }
+  return dsize;
+}
+
 /* remedius
  * current collective communication is realized through two times calls of
  * mpi allgather function: first time the size of the data is distributed,
  * the second time the data by itself is distributed.
  * Probably that could be not optimal for a huge # of ranks.
  */
-std::vector<char> CollectiveSubconnector::getCommData(char *cur_buff, int size){
-	unsigned int dsize;
-	char *recv_buff;
-	std::vector<char> commData;
-	recv_buff=NULL;
+std::vector<char> CollectiveSubconnector::getCommData(char *cur_buff, int size)
+{
+  unsigned int dsize;
+  char *recv_buff;
+  std::vector<char> commData;
+  recv_buff=NULL;
 
-	dsize = calcCommDataSize(size);
+  dsize = calcCommDataSize(size);
 
-	if(dsize > 0){
-		//distributing the data
-		recv_buff = new char[dsize];
-		intracomm_.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
-		std::copy(recv_buff,recv_buff+dsize,std::back_inserter(commData));
-		delete[] recv_buff;
-	}
-	return commData;
+  if(dsize > 0){
+    //distributing the data
+    recv_buff = new char[dsize];
+    intracomm_.Allgatherv(cur_buff, size, MPI::BYTE, recv_buff, ppBytes, displ, MPI::BYTE );
+    std::copy(recv_buff,recv_buff+dsize,std::back_inserter(commData));
+    delete[] recv_buff;
+  }
+  return commData;
 }
+
+
 void
-EventCollectiveSubconnector::maybeCommunicate(){
-
-	CollectiveSubconnector::maybeCommunicate();
+EventOutputCollectiveSubconnector::setOutputBuffer (void* buffer,
+						    unsigned int size)
+{
+  router_->setOutputBuffer (buffer, size);
 }
-void EventCollectiveSubconnector::communicate(){
 
-	int size, dsize;
-	void *data;
-	char* cur_buff;
-	std::vector<char> commData;
-	if(flushed)
-		return;
-	unsigned int sEvent = sizeof(Event);
-	buffer_.nextBlock (data, size);
-    cur_buff = static_cast <char*> (data);
 
-	commData = getCommData(cur_buff, size);
-//	std::copy(commData.begin(),commData.end(),cur_buff);
-	cur_buff = (char*)static_cast<void*> (&commData[0]);
-	//processing the data
-	dsize = commData.size();
-	flushed = dsize == 0 ? false : true;
-
-	for(int i = 0; i < dsize; i+=sEvent){
-		Event* e = static_cast<Event*> ((void*)(cur_buff+i));
-		if (e->id != FLUSH_MARK)
-		{
-			router_->processEvent(e->t, e->id);
-			flushed = false;
-		}
-	}
+unsigned int
+EventOutputCollectiveSubconnector::dataSize ()
+{
+  return router_->dataSize ();
 }
-void EventCollectiveSubconnector::flush(bool& dataStillFlowing){
-	if (!flushed)
+
+
+void
+EventOutputCollectiveSubconnector::fillOutputBuffer ()
+{
+  router_->fillOutputBuffer ();
+}
+
+
+void
+EventOutputCollectiveSubconnector::flush (bool& dataStillFlowing)
+{
+  if (!flushed)
+    {
+      if (router_->dataSize () > 0)
 	{
-		if (!buffer_.isEmpty ())
-		{
-			MUSIC_LOGR ("sending data remaining in buffers");
-			maybeCommunicate ();
-			dataStillFlowing = true;
-		}
-		else
-		{
-			Event* e = static_cast<Event*> (buffer_.insert ());
-			e->id = FLUSH_MARK;
-			// MUSIC_LOGR("sending FLUSH_MARK");
-			communicate ();
-			if(!flushed)
-				dataStillFlowing = true;
-		}
+	  MUSIC_LOGR ("sending data remaining in buffers");
+	  dataStillFlowing = true;
 	}
+      else
+	{
+	  router_->processEvent (0.0, FLUSH_MARK);
+	}
+    }
 }
+
+
+void
+EventInputCollectiveSubconnector::processData (void* data, unsigned int size)
+{
+  Event* e = static_cast<Event*> (data);
+  if (e->id == FLUSH_MARK)
+    flushed = true; // we expect every sender process to flush simultaneously
+  else
+    while (size > 0)
+      {
+	router_->processEvent (e->t, e->id);
+	++e;
+	size -= sizeof (Event);
+      }
+}
+
+
 void
 ContCollectiveSubconnector::maybeCommunicate(){
 	CollectiveSubconnector::maybeCommunicate();

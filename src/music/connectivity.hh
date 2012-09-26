@@ -61,6 +61,7 @@ namespace MUSIC {
     std::string receiverPortName () const { return recPort_; }
     int receiverPortCode () const { return recCode_; }
     int remoteLeader () const { return remoteLeader_; }
+    void setRemoteLeader (int leader) { remoteLeader_ = leader; }
     // NOTE: nProcesses should have "remote" in name
     int nProcesses () const { return nProc_; }
     int communicationType() const {return commType_;}

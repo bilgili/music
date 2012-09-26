@@ -52,10 +52,13 @@ namespace MUSIC {
   /* remedius
    */
 
+  class MultiBuffer;
+
   class Connector
   {
   private:
     static unsigned int nextFlag_;
+    static unsigned int nextProxyFlag_;
   protected:
     ConnectorInfo info;
     IndexMap* indices_;
@@ -69,6 +72,7 @@ namespace MUSIC {
     int width_;
     int maxLocalWidth_;
     unsigned int idFlag_;
+    bool finalized_;
 
     Connector () { };
     Connector (ConnectorInfo info_,
@@ -88,9 +92,18 @@ namespace MUSIC {
       return flag;
     }
 
+    static unsigned int makeProxyFlag ()
+    {
+      unsigned int flag = nextProxyFlag_;
+      nextProxyFlag_ <<= 1;
+      return flag;
+    }
+
   public:
 
     static unsigned int idRange () { return nextFlag_; }
+
+    static unsigned int proxyIdRange () { return nextProxyFlag_; }
 
     void report ()
     {
@@ -115,6 +128,7 @@ namespace MUSIC {
     std::string receiverPortName () const { return info.receiverPortName (); }
     int receiverPortCode () const { return info.receiverPortCode (); }
     int remoteLeader () const { return info.remoteLeader (); }
+    int remoteNProcs () const { return info.nProcesses (); }
     int width(){return width_;}
     int maxLocalWidth () { return maxLocalWidth_; }
     bool isLeader ();
@@ -139,9 +153,12 @@ namespace MUSIC {
     virtual void initialize ();
 
     /* remedius
-     * finalizeSimulation method iterates its subconnectors and calls accordring flush method
+     * finalize method iterates its subconnectors and calls accordring flush method
      */
-    bool finalizeSimulation();
+    virtual void finalize ();
+
+    virtual bool isFinalized () { return finalized_; }
+
     /* remedius
      * tick method iterates its subconnectors and call according function to perform communication;
      * requestCommunication method argument was removed since there is no need anymore to check for next communication.
@@ -164,18 +181,31 @@ namespace MUSIC {
 
 
   class ProxyConnector : virtual public Connector {
+    int senderNode_;
     int senderLeader_;
     int senderNProcs_;
+    int receiverNode_;
     int receiverLeader_;
     int receiverNProcs_;
+    int currentNode_;
   public:
-    ProxyConnector (int senderLeader, int senderNProcs,
-		    int receiverLeader, int receiverNProcs)
+    ProxyConnector (int senderNode, int senderLeader, int senderNProcs,
+		    int receiverNode, int receiverLeader, int receiverNProcs)
       : senderLeader_ (senderLeader), senderNProcs_ (senderNProcs),
 	receiverLeader_ (receiverLeader), receiverNProcs_ (receiverNProcs)
-    { idFlag_ = makeFlag (); }
+    { idFlag_ = makeProxyFlag (); }
     bool isProxy () const { return true; }
     void tick () { }
+    void setNode (int nodeId)
+    {
+      currentNode_ = nodeId;
+      //*fixme*
+      if (isInput ())
+	info.setRemoteLeader (senderLeader ());
+      else
+	info.setRemoteLeader (receiverLeader ());
+    }
+    bool isInput () { return receiverNode_ == currentNode_; }
     int senderLeader () const { return senderLeader_; }
     int senderNProcs () const { return senderNProcs_; }
     int receiverLeader () const { return receiverLeader_; }
@@ -402,44 +432,33 @@ namespace MUSIC {
    * for output and input sides.
    */
 
-  class MultiConnector {
-    std::vector<Connector*> connectors_;
-  public:
-    void add (Connector* connector) { connectors_.push_back (connector); }
-    void initialize () { }
-    void tick ()
-    {
-      for (std::vector<Connector*>::iterator c = connectors_.begin ();
-	   c != connectors_.end ();
-	   ++c)
-	(*c)->tick ();
-    }
-  };
-
   class CollectiveConnector: virtual public Connector {
-  protected:
     bool high_;
-    Subconnector*subconnector;
+  protected:
     MPI::Intracomm intracomm_;
-    CollectiveConnector (bool high);
-    virtual Subconnector* makeSubconnector (void *param)=0;
+    Subconnector* subconnector_;
   public:
+    CollectiveConnector (bool high);
+    virtual Subconnector* makeSubconnector (void *param) = 0;
     void createIntercomm ();
     void freeIntercomm ();
+    Subconnector* subconnector () { return subconnector_; }
   };
 
-  class ContCollectiveConnector: public CollectiveConnector{
+  class ContCollectiveConnector: public CollectiveConnector {
     MPI::Datatype data_type;
   protected:
     ContCollectiveConnector( MPI::Datatype type, bool high);
     Subconnector* makeSubconnector (void *param);
   };
 
-  class EventCollectiveConnector: public CollectiveConnector{
+  class EventCollectiveConnector: public CollectiveConnector {
   protected:
     EventRouter *router_; //is used for processing received information
     EventCollectiveConnector( bool high);
-    Subconnector* makeSubconnector (void *param);
+  public:
+    void createIntercomm () { Connector::createIntercomm (); }
+    void freeIntercomm () { Connector::freeIntercomm (); }
   };
 
   class EventInputCollectiveConnector:  public EventInputConnector, public EventCollectiveConnector {
@@ -459,21 +478,28 @@ namespace MUSIC {
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     void addRoutingInterval(IndexInterval i, Subconnector* subconn);
+    Subconnector* makeSubconnector (void *param);
+    void finalize () { };
+    bool isFinalized () { return subconnector ()->isFlushed (); }
   };
 
+  class DirectRouter;
+
   class EventOutputCollectiveConnector:  public EventOutputConnector,public EventCollectiveConnector{
+    DirectRouter* router_;
   public:
     EventOutputCollectiveConnector(ConnectorInfo connInfo,
 				   IndexMap* indices,
 				   Index::Type type,
 				   MPI::Intracomm comm,
-				   EventRoutingMap<FIBO *>* routingMap);
+				   DirectRouter* router);
     ~EventOutputCollectiveConnector();
 #ifdef MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif //MUSIC_ISENDWAITALL
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
+    Subconnector* makeSubconnector (void *param);
   };
 
   class ContInputCollectiveConnector: public ContInputConnector, public ContCollectiveConnector

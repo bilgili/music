@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2011, 2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include <vector>
 #include <music/clock.hh>
 #include <music/connector.hh>
+#include <music/multibuffer.hh>
 
 namespace MUSIC {
 
@@ -47,6 +48,7 @@ namespace MUSIC {
       std::vector<SConnection*> inputConnections_;
     public:
       Node(int id, const Clock &localTime, int leader, int nProcs);
+      void resetClock () { localTime_.reset (); }
       void advance();
       void addConnection(SConnection *conn, bool input = false);
       std::vector<SConnection*>* outputConnections ()
@@ -77,6 +79,7 @@ namespace MUSIC {
 		   int maxBuffered, bool interpolate,
 		   bool multiComm, int port_code);
       void initialize(std::vector<Node*> &nodes);
+      void resetClocks () { nextSend_.reset (); nextReceive_.reset (); }
       void advance();
       Clock nextSend() const { return nextSend_; }
       Clock nextReceive() const { return nextReceive_; }
@@ -96,7 +99,7 @@ namespace MUSIC {
 
   private:
     std::vector<Node*> nodes;
-    std::vector<SConnection*>connections;
+    std::vector<SConnection*> connections;
     int self_node;
 
   public:
@@ -108,6 +111,24 @@ namespace MUSIC {
 			int maxBuffered, bool interpolate,
 			bool multiComm, int port_code);
     void initialize(std::vector<Connector*> &connectors);
+    void createMultiConnectors (Clock localTime,
+				std::vector<Connector*>& connectors,
+				MultiBuffer* multiBuffer,
+				std::vector<MultiConnector*>& multiConnectors);
+    void createMultiConnNext (int self_node,
+			      Clock& localTime,
+			      std::vector<Connector*>& connectors,
+			      MultiBuffer* multiBuffer,
+			      std::vector<std::pair<double, Connector *> > &schedule);
+    void createMultiConnStep (int self_node,
+			      Clock& localTime,
+			      std::vector<Connector*>& connectors,
+			      MultiBuffer* multiBuffer,
+			      std::vector<MultiConnector*>& multiConnectors,
+			      std::vector<bool>& multiProxies,
+			      std::vector<Connector*>& cCache,
+			      std::vector<std::pair<double, Connector *> > &schedule,
+			      bool finalize);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
   };

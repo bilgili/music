@@ -50,7 +50,7 @@ namespace MUSIC {
     int neededSize = nElements * elementSize_;
     if (neededSize > size)
       grow (neededSize);
-    
+
     if (end - current != elementSize_)
       error ("internal error: BIFO in erroneous state before fill");
     

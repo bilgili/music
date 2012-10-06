@@ -198,7 +198,7 @@ namespace MUSIC {
     return new SpatialOutputNegotiator(indices_, type_, comm, intercomm );
   }
 
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
   void
   OutputConnector::tick ()
   {
@@ -717,7 +717,7 @@ namespace MUSIC {
   {
     //routingMap_-> insert (i, handleEvent_.global());
   }
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
  void
  EventInputConnector::tick ()
    {

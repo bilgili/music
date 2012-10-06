@@ -193,7 +193,7 @@ namespace MUSIC {
   };
   class OutputConnector : virtual public Connector {
   public:
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
    virtual void tick ();
 #endif // MUSIC_ISENDWAITALL
   protected:
@@ -204,7 +204,7 @@ namespace MUSIC {
   class InputConnector : virtual public Connector {
 /*
   public:
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
 	  virtual void tick ();
 #endif // MUSIC_ANYSOURCE
 */
@@ -248,7 +248,7 @@ namespace MUSIC {
 			 MPI::Datatype data_type);
     ~ContOutputConnector();
     //MUSIC_ISENDWAITALL is not supported temporarily for cont. ports
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif
     void specialize (Clock& localTime);
@@ -330,7 +330,7 @@ namespace MUSIC {
 						      handleEvent_(handleEvent),flushes(0){};
     ~EventInputConnector(){}
     //probably should be moved to InputConnector later
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
   virtual void tick ();
 #endif // MUSIC_ANYSOURCE
   protected:
@@ -365,7 +365,7 @@ namespace MUSIC {
 
     void postCommunication ();
     //MUSIC_ISENDWAITALL is not supported temporarily for message ports
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif
   protected:
@@ -386,7 +386,7 @@ namespace MUSIC {
 			   MPI::Intracomm comm);
     //MUSIC_ANYSOURCE is not supported temporarily for message ports
 /*
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
   virtual void tick {Connector::tick();};
 #endif // MUSIC_ANYSOURCE
 */
@@ -452,7 +452,7 @@ namespace MUSIC {
 				  EventHandlerPtr handleEvent);
     ~EventInputCollectiveConnector();
 /*
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
   virtual void tick {Connector::tick();};
 #endif // MUSIC_ANYSOURCE
 */
@@ -469,7 +469,7 @@ namespace MUSIC {
 				   MPI::Intracomm comm,
 				   EventRoutingMap<FIBO *>* routingMap);
     ~EventOutputCollectiveConnector();
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif //MUSIC_ISENDWAITALL
   protected:
@@ -487,7 +487,7 @@ namespace MUSIC {
 				 MPI::Datatype data_type,
 				 double delay);
 /*
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
   virtual void tick {Connector::tick();};
 #endif // MUSIC_ANYSOURCE
 */
@@ -506,7 +506,7 @@ namespace MUSIC {
 				  MPI::Intracomm comm,
 				  Sampler& sampler,
 				  MPI::Datatype data_type);
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
     void tick (){Connector::tick();};
 #endif
   protected:

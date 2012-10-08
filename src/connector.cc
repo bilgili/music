@@ -701,6 +701,10 @@ namespace MUSIC {
     	return subcc;
     }
     else
+{
+#if MUSIC_ANYSOURCE
+error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
+#endif
       return new EventInputSubconnectorLocal (//&synch,
 					      intercomm,
 					      remoteLeader (),
@@ -710,7 +714,7 @@ namespace MUSIC {
 					      handleEvent_);
   }
 
-
+}
 
   void
   EventInputConnector::addRoutingInterval(IndexInterval i, Subconnector* subconn)
@@ -720,7 +724,7 @@ namespace MUSIC {
 #if MUSIC_ANYSOURCE
  void
  EventInputConnector::tick ()
-   {
+{
 	  //SPIKE_BUFFER_MAX size
 	  //MPI::BYTE type
 	  //SPIKE_MSG tag
@@ -734,7 +738,6 @@ namespace MUSIC {
 	  				MPI_ANY_SOURCE,
 	  				SPIKE_MSG,
 	  				status);
-
 	  int msize = status.Get_count(MPI::BYTE);
 	  if (rRank2Subconnector[status.Get_source()]->receive(data, msize))
 		  flushes--;

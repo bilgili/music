@@ -61,6 +61,7 @@ double delay = 0.0;
 int label = -1;
 int maxbuffered = 0;
 
+#ifdef MUSIC_LOCAL
 class MyEventHandler: public MUSIC::EventHandlerLocalIndex {
 public:
   void operator () (double t, MUSIC::LocalIndex id)
@@ -71,7 +72,18 @@ public:
 	", " << t + delay << ")" << std::endl;
   }
 };
-
+#else
+class MyEventHandler: public MUSIC::EventHandlerGlobalIndex {
+public:
+  void operator () (double t, MUSIC::GlobalIndex id)
+  {
+    eventBuffer.push_back (MUSIC::Event (t + delay, id));
+    if (label != -1)
+      std::cout << label << ":Got(" << id <<
+	", " << t + delay << ")" << std::endl;
+  }
+};
+#endif
 
 void
 getargs (int rank, int argc, char* argv[])
@@ -175,7 +187,11 @@ main (int argc, char *argv[])
   else
     in->map (&indices, &evhandler, delay);
 
+#ifdef MUSIC_LOCAL
   out->map (&indices, MUSIC::Index::LOCAL);
+#else
+  out->map (&indices, MUSIC::Index::GLOBAL);
+#endif
   if (aux->isConnected ())
     {
       if (maxbuffered)
@@ -201,7 +217,11 @@ main (int argc, char *argv[])
 		std::cout << label << ":Sent(" << i->id << ", "
 			  << i->t << " @" << runtime->time ()
 			  << ")" << std::endl;
-	      out->insertEvent (i->t, MUSIC::LocalIndex(i->id));
+#ifdef MUSIC_LOCAL
+	      out->insertEvent (i->t, MUSIC::LocalIndex (i->id));
+#else
+	      out->insertEvent (i->t, MUSIC::GlobalIndex (i->id));
+#endif
 	    }
 	  else
 	    overflowBuffer.push_back (*i);

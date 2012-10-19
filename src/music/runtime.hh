@@ -29,7 +29,7 @@
 #include "music/connector.hh"
 #include "music/scheduler.hh"
 #include "music/multibuffer.hh"
-
+#include "music/scheduler_agent.hh"
 namespace MUSIC {
 
   /*
@@ -68,6 +68,7 @@ namespace MUSIC {
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;
     Scheduler *scheduler;
+    std::vector<SchedulerAgent*> sAgents;
     static bool isInstantiated_;
 
     typedef std::vector<Connection*> Connections;

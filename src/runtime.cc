@@ -44,6 +44,10 @@ namespace MUSIC {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
 
     scheduler = new Scheduler(s->applicationColor());
+    sAgents.push_back(new MulticommAgent(scheduler));
+    sAgents.push_back(new UnicommAgent(scheduler));
+    scheduler->setAgent(sAgents[0]);
+    scheduler->setAgent(sAgents[1]);
     app_name = s->applicationName();
     leader_ = s->leader ();
 
@@ -129,6 +133,10 @@ namespace MUSIC {
     for (std::vector<Port *>::iterator it=ports.begin() ; it < ports.end(); it++ )
       delete (*it);
 #endif
+    for (std::vector<SchedulerAgent *>::iterator it = sAgents.begin();
+        it != sAgents.end();
+        it++)
+      delete (*it);
     delete scheduler;
     isInstantiated_ = false;
   }

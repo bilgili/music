@@ -34,6 +34,7 @@ namespace MUSIC {
 // The Scheduler is responsible for the timing involved in
 // communication, sampling, interpolation and buffering.
 
+  class SchedulerAgent;
   class Scheduler
   {
 
@@ -65,6 +66,7 @@ namespace MUSIC {
     class SConnection {
       Clock nextSend_;
       Clock nextReceive_;
+      Clock sSend_;
       int pre_id,post_id;
       Node *pre_;
       Node *post_;
@@ -74,7 +76,9 @@ namespace MUSIC {
       bool multiComm_;
       int port_code_;
       Connector *connector_;
+	  
     public:
+      SConnection(){};
       SConnection (int pre, int post, const ClockState &latency,
 		   int maxBuffered, bool interpolate,
 		   bool multiComm, int port_code);
@@ -83,6 +87,8 @@ namespace MUSIC {
       void advance();
       Clock nextSend() const { return nextSend_; }
       Clock nextReceive() const { return nextReceive_; }
+      Clock scheduledSend() const {return sSend_; }
+      void postponeNextSend(Clock newTime) {sSend_ = nextSend_; nextSend_ = newTime;}
       Connector *getConnector() const { return connector_; }
       void setConnector (Connector *conn) { connector_ = conn; }
       int portCode() const { return port_code_; }
@@ -102,6 +108,11 @@ namespace MUSIC {
     std::vector<SConnection*> connections;
     int self_node;
 
+    int iter_node;
+    int iter_conn;
+    double compTime;
+    std::vector<SchedulerAgent *> agents_;
+    SConnection last_sconn_;
   public:
     Scheduler(int node_id);
     ~Scheduler();
@@ -129,8 +140,13 @@ namespace MUSIC {
 			      std::vector<Connector*>& cCache,
 			      std::vector<std::pair<double, Connector *> > &schedule,
 			      bool finalize);
+    void setAgent(SchedulerAgent* agent);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
+  private:
+    SConnection nextSConnection();
+    friend class MulticommAgent;
+    friend class UnicommAgent;
   };
 /*
   class Synchronizer {

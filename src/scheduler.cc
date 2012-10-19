@@ -18,6 +18,7 @@
 
 //#define MUSIC_DEBUG
 #include "music/scheduler.hh"
+#include "music/scheduler_agent.hh"
 
 #include "music/debug.hh"
 
@@ -143,7 +144,7 @@ namespace MUSIC {
   }
   
   Scheduler::Scheduler (int node_id)
-    :self_node (node_id)
+    :self_node (node_id), iter_node(0), iter_conn(-1), compTime(0.0)
   {
   }
 
@@ -184,6 +185,12 @@ namespace MUSIC {
   }
 
   void
+  Scheduler::setAgent(SchedulerAgent* agent)
+  {
+    agent->initialize();
+    agents_.push_back(agent);
+  }
+  void
   Scheduler::initialize (std::vector<Connector*>& connectors)
   {
     std::vector<SConnection*>::iterator conn;
@@ -220,9 +227,42 @@ namespace MUSIC {
 	  }
 #endif
       }
+        last_sconn_ = nextSConnection();
   }
 
+  Scheduler::SConnection
+  Scheduler::nextSConnection ()
+  {
+    while (true)  
+      {
+	//	std::vector<Node*>::iterator node;
+	for (; iter_node < nodes.size (); iter_node++ )
+	  {
+	    Node *node = nodes.at(iter_node);
+	    if (node->nextReceive () > node->localTime ().time ())
+	      node->advance ();
 
+	    std::vector<SConnection*>* conns = node->outputConnections ();
+	    // std::vector<SConnection*>::iterator conn;
+	    
+	    for (++iter_conn; iter_conn < conns->size(); iter_conn++)
+	      {
+		SConnection *conn = conns->at(iter_conn);
+		//do we have data ready to be sent?
+		if (conn->nextSend () <= conn->preNode ()->localTime ()
+		    && conn->nextReceive () == conn->postNode ()->localTime ())
+		  {
+		    SConnection sconn = *conn;
+		    sconn.postponeNextSend( conn->preNode()->localTime());
+		    conn->advance();
+		    return sconn;
+		  }
+	      }
+	    iter_conn = -1;
+	  }
+	iter_node = 0;
+      }
+}
   void
   Scheduler::createMultiConnectors (Clock localTime,
 				    std::vector<Connector*>& connectors,
@@ -460,47 +500,35 @@ namespace MUSIC {
   }
 
 
-  void
-  Scheduler::nextCommunication (Clock& localTime,
-				std::vector<std::pair<double, Connector *> > &schedule)
+   void
+  Scheduler::nextCommunication  (Clock& localTime,
+				 std::vector<std::pair<double, Connector *> > &schedule)
   {
-    //if (MPI::COMM_WORLD.Get_rank () == 2)
-    //  std::cout << "localTime = " << localTime.time () << std::endl;
-    while (schedule.empty () 
-	   // always plan forward past the first time point to make
-	   // sure that all events at that time are scheduled
-	   || schedule.front ().first == schedule.back ().first)
+
+/*	  struct timeval tv;
+	 	gettimeofday (&tv, NULL);
+	  	time_t start = tv.tv_usec;*/
+
+    while(schedule.empty ()
+	  // always plan forward past the first time point to make
+	  // sure that all events at that time are scheduled
+	  || schedule.front ().first == schedule.back ().first)
       {
-	std::vector<Node*>::iterator node;
-	for ( node=nodes.begin (); node < nodes.end (); node++ )
-	  {
-	    if ((*node)->nextReceive () > (*node)->localTime ().time ())
-	      (*node)->advance ();
 
-	    std::vector<SConnection*>* conns = (*node)->outputConnections ();
-	    std::vector<SConnection*>::iterator conn;
-	    for (conn = conns->begin (); conn < conns->end (); conn++)
-	      //do we have data ready to be sent?
-	      if ((*conn)->nextSend () <= (*conn)->preNode ()->localTime ()
-		  && (*conn)->nextReceive () == (*conn)->postNode ()->localTime ())
-		{
-		  if (self_node == (*conn)->postNode ()->getId () //input
-		      || self_node == (*conn)->preNode ()->getId ()) //output
-		    {
-		      double nextComm
-			= (self_node == (*conn)->postNode ()->getId ()
-			   ? (*conn)->postNode ()->localTime ().time ()
-			   : (*conn)->preNode ()->localTime ().time ());
-		      schedule.push_back
-			(std::pair<double, Connector*>(nextComm,
-						       (*conn)->getConnector ()));
-		    }
+        bool done = false;
 
-		  MUSIC_LOG0 ("Scheduled communication:"<< (*conn)->preNode ()->getId () <<"->"<< (*conn)->postNode ()->getId () << "at(" << (*conn)->preNode ()->localTime ().time () << ", "<< (*conn)->postNode ()->localTime ().time () <<")");
-		  (*conn)->advance ();
-		}
-	  }
+        for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
+            it != agents_.end() && !done;
+            it++)
+        {
+         if ( (*it)->fillSchedule(schedule, last_sconn_))
+           done = true;
+        }
+
+	//MUSIC_LOG0 ("Scheduled communication:"<< conn.preNode ()->getId () <<"->"<< conn.postNode ()->getId () << "at(" << conn.preNode ()->localTime ().time () << ", "<< conn.postNode ()->localTime ().time () <<")");
       }
+ /*   gettimeofday (&tv, NULL);
+    compTime += (tv.tv_usec - start)/1000.0;*/
   }
 }
 

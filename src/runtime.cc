@@ -243,7 +243,6 @@ namespace MUSIC {
 	(*c)->spatialNegotiation ();
 	multiId |= (*c)->idFlag ();
       }
-    multiConnectors.resize (multiId + 1);
     multiBuffer_ = new MultiBuffer (comm, leader_, connectors);
   }
 

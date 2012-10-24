@@ -36,7 +36,8 @@ namespace MUSIC {
 	   * In particular, it's used on BGP machine
 	   */
 #if MUSIC_USE_MPI
-	  appColor2Leader = assignLeaders(nApp, color);
+	  if (color != -1)
+	    appColor2Leader = assignLeaders(nApp, color);
 #endif
 	  read (in, nApp, appColor2Leader);
   }
@@ -60,6 +61,22 @@ namespace MUSIC {
 	  return &*i;
       }
     return 0;
+  }
+
+
+  ApplicationInfo*
+  ApplicationMap::applicationFromRank (int rank)
+  {
+    int rankEnd = 0;
+    for (iterator ai = begin (); ai != end (); ++ai)
+      {
+	rankEnd += ai->nProc ();
+	if (rank < rankEnd)
+	  {
+	    return &*ai;
+	  }
+      }
+    return NULL;
   }
   
 

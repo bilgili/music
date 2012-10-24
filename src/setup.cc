@@ -61,7 +61,6 @@ namespace MUSIC {
   Setup::init (int& argc, char**& argv)
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
-    char dummy_name;
     char *app_node;
 /*
  * remedius
@@ -71,7 +70,7 @@ namespace MUSIC {
 #if defined(__bgp__)
     app_node = argv[1];
 #else
-    app_node = &dummy_name;
+    app_node = NULL;
 #endif
     config_ = new Configuration (app_node);
 

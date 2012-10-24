@@ -92,16 +92,15 @@ Configuration::~Configuration ()
 
 #if MUSIC_USE_MPI
 void
-Configuration::getEnv(char *app_name,  std::string* result)
+Configuration::getEnvFromFile (char *app_name,  std::string* result)
 {
-#if defined(__bgp__)
 	int rank = MPI::COMM_WORLD.Get_rank ();
 	std::ifstream mapFile;
 	char* buffer;
 	int size = 0;
 	// Rank #0 is reading a file and broadcast it to each rank in the launch
 	if(rank == 0){
-		mapFile.open(mapFileName);
+	  mapFile.open (result->empty () ? mapFileName : result->c_str ());
 		if (!mapFile.is_open())
 		{
 			std::ostringstream oss;
@@ -127,51 +126,79 @@ Configuration::getEnv(char *app_name,  std::string* result)
 	if(rank == 0)
 		mapFile.close();
 	delete[] buffer;
-#else
-	char* res = getenv (configEnvVarName);
-	if (res != NULL)
-	  result->assign (res);
-#endif
-
 }
+
+void
+Configuration::getEnv(char *app_name,  std::string* result)
+{
+#if !defined(__bgp__)
+  char* res = getenv (configEnvVarName);
+  if (res != NULL)
+    result->assign (res);
+  if (result->find (':') != std::string::npos)
+    return;
 #endif
+  getEnvFromFile (app_name, result);
+}
+
 /* remedius
  * Each rank is responsible for parsing <map_file> and
  * retrieving according environment variable value (<result>)
  */
 
 
-#if defined(__bgp__)
 void
 Configuration::parseMapFile(char *app_name, std::string map_file, std::string *result)
 {
 	int pos, sLen, color;
+	std::string thisApplicationName;
 	std::string applicationName;
+
+	if (app_name == NULL)
+	  {
+	    std::istringstream env (map_file);
+	    IOUtils::read (env);
+	    env.ignore ();
+	    env >> color;
+	    env.ignore ();
+	    applications_ = new ApplicationMap (env, -1);
+	    int rank = MPI::COMM_WORLD.Get_rank ();
+	    ApplicationInfo* ai = applications_->applicationFromRank (rank);
+	    thisApplicationName = ai->name ();
+	    delete applications_;
+	  }
+	else
+	  thisApplicationName = app_name;
+
+	result->clear ();
 	pos = 0;
 	sLen = map_file.length();
-	do{
-		size_t occ_e = map_file.find_first_of ("\n", pos);
-		std::istringstream env (map_file.substr(pos,occ_e));
-		applicationName = IOUtils::read (env);
-		env.ignore ();
-		env >> color;
-		if(!applicationName.compare(app_name)){
-			if(result->length() > 0){
-				std::ostringstream oss;
-				oss << "Multiple applications with the same name are listed in <music.map> file." << std::endl;
-				error (oss.str ());
-			}
-			*result =map_file.substr(pos,occ_e);
-			//return;
+	do
+	  {
+	    size_t occ_e = map_file.find_first_of ("\n", pos);
+	    std::istringstream env (map_file.substr(pos,occ_e));
+	    applicationName = IOUtils::read (env);
+	    env.ignore ();
+	    env >> color;
+	    if (!applicationName.compare(thisApplicationName))
+	      {
+		if(result->length() > 0){
+		  std::ostringstream oss;
+		  oss << "Multiple applications with the same name are listed in <music.map> file." << std::endl;
+		  error (oss.str ());
 		}
-		pos = occ_e+1;
-	}while(pos < sLen);
-	if(result->length() == 0){
-		std::ostringstream oss;
-		oss << "There is a mismatch between the information in the file <music.map> and the given application color." << std::endl
-				<< "Try to generate the file (run MUSIC with -f option) again.";
-		error (oss.str ());
-	}
+		*result = map_file.substr (pos,occ_e);
+		//return;
+	      }
+	    pos = occ_e+1;
+	  } while (pos < sLen);
+	if (result->length() == 0)
+	  {
+	    std::ostringstream oss;
+	    oss << "There is a mismatch between the information in the file <music.map> and the given application color." << std::endl
+		<< "Try to generate the file (run MUSIC with -f option) again.";
+	    error (oss.str ());
+	  }
 }
 #endif
 

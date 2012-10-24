@@ -43,6 +43,7 @@ namespace MUSIC {
     ApplicationMap () { }
     ApplicationMap (std::istringstream& in, int color);
     ApplicationInfo* lookup (std::string appName);
+    ApplicationInfo* applicationFromRank (int rank);
     int nProcesses ();
     void add (std::string name, int l, int n, int c);
     void write (std::ostringstream& out);

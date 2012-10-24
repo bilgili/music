@@ -47,10 +47,9 @@ namespace MUSIC {
     std::map<std::string, std::string> dict;
     void write (std::ostringstream& env, Configuration* mask);
 #if MUSIC_USE_MPI
-    void getEnv(char *app_name, std::string* result);
-#endif
+    void getEnvFromFile (char *app_name, std::string* result);
+    void getEnv (char *app_name, std::string* result);
 
-#if defined(__bgp__)
     /* remedius
      * Parses <map_file> in order to read configEnvVarName(<result>) that suites current rank.
      */

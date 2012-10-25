@@ -239,7 +239,7 @@ namespace MUSIC {
 	for (; iter_node < nodes.size (); iter_node++ )
 	  {
 	    Node *node = nodes.at(iter_node);
-	    if (node->nextReceive () > node->localTime ().time ())
+	    if (iter_conn < 0 && node->nextReceive () > node->localTime ().time ())
 	      node->advance ();
 
 	    std::vector<SConnection*>* conns = node->outputConnections ();

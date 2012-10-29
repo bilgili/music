@@ -140,7 +140,7 @@ namespace MUSIC {
         commTimes.clear();
         rNodes=0;
 
-        iter_bound = std::partition (std::partition (cur_bound, last, *filter1),
+        iter_bound = std::stable_partition (std::stable_partition (cur_bound, last, *filter1),
             last,
             *filter2);
 
@@ -203,8 +203,9 @@ namespace MUSIC {
             schedule.push_back
             (std::pair<double, Connector*>(nextComm,
                 last_sconn.getConnector ()));
-            last_sconn = scheduler_->nextSConnection();
+            MUSIC_LOG0 ("Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"<< last_sconn.postNode ()->getId () << "at(" << last_sconn.nextSend ().time () << ", "<< last_sconn.nextReceive ().time () <<")");
           }
+        last_sconn = scheduler_->nextSConnection();
         return true;
       }
     else

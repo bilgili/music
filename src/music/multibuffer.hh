@@ -215,10 +215,16 @@ namespace MUSIC {
 
     OutputSubconnectorInfo* getOutputSubconnectorInfo (Connector* connector);
 
+    void clearErrorFlag ()
+    {
+      headerPtr (buffer_)[0] = false;
+    }
+
     void setErrorFlag ()
     {
       headerPtr (buffer_)[0] = true;
     }
+
     void writeRequestedDataSize (int i, unsigned int size)
     {
       headerPtr (buffer_)[1 + i] = size;

@@ -177,6 +177,9 @@ namespace MUSIC {
     // allocate buffer
     size_ = start;
     buffer_ = BufferType (malloc (size_));
+    
+    // clear error flag in staging area
+    clearErrorFlag ();
 
     // write header fields into buffer
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
@@ -200,6 +203,10 @@ namespace MUSIC {
 	else
 	  {
 	    // this block requires more space
+#if 0
+	    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+		      << ": block " << b->rank () << " requires more space" << std::endl;
+#endif
 	    unsigned int blockSize = sizeof (HeaderType); // error flag
 	    int i = 0;
 	    for (BufferInfoPtrs::iterator bi = b->begin ();
@@ -209,7 +216,15 @@ namespace MUSIC {
 		blockSize += sizeof (HeaderType); // size field
 		unsigned int requested = b->requestedDataSize (buffer_, i);
 		if (requested > (*bi)->size ())
-		  blockSize += requested;
+		  {
+		    blockSize += requested;
+#if 1
+		    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+			      << ": block " << b->rank () << " requires more space ("
+			      << requested << ") for buffer " << i
+			      << std::endl;
+#endif
+		  }
 		else
 		  blockSize += (*bi)->size ();
 	      }
@@ -543,6 +558,12 @@ namespace MUSIC {
 	    unsigned int size = (*osi)->bufferInfo ()->size ();
 	    unsigned int dataSize = (*osi)->subconnector ()->dataSize ();
 	    multiBuffer_->writeRequestedDataSize (i, std::max (size, dataSize));
+#if 1
+	    if (dataSize > size)
+	      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+			<< ": Need more space (" << dataSize
+			<< ") for buffer " << i << std::endl;
+#endif
 	  }
 	return false;
       }

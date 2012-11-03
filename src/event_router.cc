@@ -51,12 +51,16 @@ namespace MUSIC {
   {
     if (size - size_ != extra_.size ())
       {
+#if 0
 	std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
 		  << ": DirectRouter: Had " << extra_.size ()
 		  << " extra spike space, size changed from "
 		  << size_ << " to " << size << " = " << size - size_
 		  << std::endl;
-	assert (size - size_ == extra_.size ());
+#endif
+	assert (size == size_);
+	buffer_ = static_cast<char*> (buffer);
+	return;
       }
     buffer_ = static_cast<char*> (buffer);
     memcpy (buffer_ + size_, &extra_[0], extra_.size ());

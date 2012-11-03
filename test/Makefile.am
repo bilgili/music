@@ -2,8 +2,8 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = eventlogger
-noinst_PROGRAMS = clocksource contsink constsource eventdelay contdelay \
+bin_PROGRAMS = eventlogger eventdelay multiport
+noinst_PROGRAMS = clocksource contsink constsource contdelay \
 		  messagesource waveproducer waveconsumer
 
 EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
@@ -41,6 +41,10 @@ constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 eventdelay_SOURCES = eventdelay.cc
 eventdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+multiport_SOURCES = multiport.cc
+multiport_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+multiport_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 contdelay_SOURCES = contdelay.cc
 contdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@

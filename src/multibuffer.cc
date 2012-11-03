@@ -203,10 +203,6 @@ namespace MUSIC {
 	else
 	  {
 	    // this block requires more space
-#if 0
-	    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-		      << ": block " << b->rank () << " requires more space" << std::endl;
-#endif
 	    unsigned int blockSize = sizeof (HeaderType); // error flag
 	    int i = 0;
 	    for (BufferInfoPtrs::iterator bi = b->begin ();
@@ -218,12 +214,6 @@ namespace MUSIC {
 		if (requested > (*bi)->size ())
 		  {
 		    blockSize += requested;
-#if 1
-		    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-			      << ": block " << b->rank () << " requires more space ("
-			      << requested << ") for buffer " << i
-			      << std::endl;
-#endif
 		  }
 		else
 		  blockSize += (*bi)->size ();
@@ -238,8 +228,6 @@ namespace MUSIC {
   void
   MultiBuffer::restructure ()
   {
-    //static bool hang = true;
-    //while (hang) ;
     unsigned int size = computeSize ();
     // resize multi-buffer
     if (size > size_)
@@ -302,6 +290,7 @@ namespace MUSIC {
 	      }
 	    b->setStart (newStart);
 	    b->setSize (blockSize);
+	    b->clearBufferErrorFlag (buffer_);
 	  }
       }
 
@@ -512,6 +501,18 @@ namespace MUSIC {
   MultiConnector::update ()
   {
     buffer_ = multiBuffer_->buffer ();
+    for (OutputSubconnectorInfos::iterator osi
+	   = outputSubconnectorInfo_.begin ();
+	 osi != outputSubconnectorInfo_.end ();
+	 ++osi)
+      {
+	unsigned int dataSize = (*osi)->subconnector ()->dataSize ();
+	BufferInfo* bi = (*osi)->bufferInfo ();
+	bi->writeDataSize (buffer_, dataSize);
+	(*osi)->subconnector ()->setOutputBuffer (buffer_
+						  + bi->start (),
+						  bi->size ());
+      }
     for (int r = 0; r < size (); ++r)
       {
 	Block* block = block_[r];
@@ -558,12 +559,6 @@ namespace MUSIC {
 	    unsigned int size = (*osi)->bufferInfo ()->size ();
 	    unsigned int dataSize = (*osi)->subconnector ()->dataSize ();
 	    multiBuffer_->writeRequestedDataSize (i, std::max (size, dataSize));
-#if 1
-	    if (dataSize > size)
-	      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-			<< ": Need more space (" << dataSize
-			<< ") for buffer " << i << std::endl;
-#endif
 	  }
 	return false;
       }
@@ -603,8 +598,6 @@ namespace MUSIC {
   void
   MultiConnector::tick ()
   {
-    //bool hang = true;
-    //while (hang) ;
     if (writeSizes ())
       // Data will fit
       fillBuffers ();
@@ -619,18 +612,6 @@ namespace MUSIC {
 	  multiBuffer_->restructure ();
 	  restructuring_ = false;
 	  recvcountInvalid_ = false;
-	  for (OutputSubconnectorInfos::iterator osi
-		 = outputSubconnectorInfo_.begin ();
-	       osi != outputSubconnectorInfo_.end ();
-	       ++osi)
-	    {
-	      unsigned int dataSize = (*osi)->subconnector ()->dataSize ();
-	      BufferInfo* bi = (*osi)->bufferInfo ();
-	      bi->writeDataSize (buffer_, dataSize);
-	      (*osi)->subconnector ()->setOutputBuffer (buffer_
-							+ bi->start (),
-							bi->size ());
-	    }
 	  fillBuffers ();
 	  comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			    buffer_, recvcounts_, displs_, MPI::BYTE);

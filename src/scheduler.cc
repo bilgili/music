@@ -530,6 +530,22 @@ namespace MUSIC {
  /*   gettimeofday (&tv, NULL);
     compTime += (tv.tv_usec - start)/1000.0;*/
   }
+
+
+  void
+  Scheduler::tick (Clock& localTime)
+  {
+    bool done = false;
+
+    for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
+	 it != agents_.end () && !done;
+	 it++)
+      {
+	if ((*it)->tick (localTime))
+	  done = true;
+      }
+  }
+
 }
 
 #endif

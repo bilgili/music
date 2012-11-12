@@ -443,6 +443,9 @@ namespace MUSIC {
 	   preCommunication.begin(); c != preCommunication.end(); ++c)
       (*c)->preCommunication();
 
+#if 1
+    scheduler->tick (localTime);
+#else
     if (!schedule.empty ())
       while (schedule[0].first <= localTime.time())
 	{
@@ -498,6 +501,8 @@ namespace MUSIC {
 	  schedule.erase (schedule.begin (), comm);
 	  scheduler->nextCommunication (localTime, schedule);
 	}
+#endif
+
     // ContInputConnectors write data to application here
     for (std::vector<PostCommunicationConnector*>::iterator c =
 	   postCommunication.begin(); c != postCommunication.end(); ++c)

@@ -143,6 +143,7 @@ namespace MUSIC {
     void setAgent(SchedulerAgent* agent);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
+    void tick (Clock& localTime);
   private:
     SConnection nextSConnection();
     friend class MulticommAgent;

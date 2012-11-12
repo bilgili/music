@@ -182,6 +182,13 @@ namespace MUSIC {
         MUSIC_LOG0 ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
   }
+
+  bool
+  MulticommAgent::tick (Clock& localTime)
+  {
+    return true;
+  }
+
   UnicommAgent::UnicommAgent(Scheduler *scheduler):SchedulerAgent(scheduler)
   {
 
@@ -212,6 +219,13 @@ namespace MUSIC {
       return false;
 
   }
+
+  bool
+  UnicommAgent::tick (Clock& localTime)
+  {
+    return true;
+  }
+
 
 }
 #endif

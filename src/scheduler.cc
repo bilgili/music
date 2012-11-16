@@ -516,13 +516,13 @@ namespace MUSIC {
 	  || schedule.front ().first == schedule.back ().first)
       {
 
-        bool done = false;
 
+        bool done = false;
         for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
             it != agents_.end() && !done;
             it++)
         {
-         if ( (*it)->fillSchedule(schedule, last_sconn_))
+         if ( (*it)->fillSchedule())
            done = true;
         }
 
@@ -533,50 +533,68 @@ namespace MUSIC {
   }
 
 
-  void
-  Scheduler::tick (Clock& localTime)
-  {
-    while (nextCommTime () <= localTime.time ())
-      {
-	bool done = false;
+   void
+   Scheduler::tick (Clock& localTime)
+   {
+     if(MPI::COMM_WORLD.Get_rank() == 2)
+     std::cerr << localTime.time() << std::endl;
+     std::vector< std::pair<double, Connector*> >::iterator comm;
+     do
+       {
+         for(comm = schedule.begin(); comm != schedule.end() && (*comm).first <= localTime.time(); comm++)
+           (*comm).second->tick();
+         schedule.erase(schedule.begin(),comm);
+         bool done = !schedule.empty ();
+         for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
+             it != agents_.end() && !done;
+             it++)
+           done = (*it)->fillSchedule();
+       }while( schedule[0].first <= localTime.time());
 
-	for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
-	     it != agents_.end () && !done;
-	     it++)
-	  {
-	    if ((*it)->tick (localTime, last_sconn_))
-	      done = true;
-	  }
-      }
-  }
+   }
+   void
+   Scheduler::finalize (Clock& localTime,
+       std::vector<Connector*>& connectors)
+   {
+     /* remedius
+      * set of receiver port codes that still has to be finalized
+      */
+     std::set<int> cnn_ports;
+     for (std::vector<Connector*>::iterator c = connectors.begin ();
+         c != connectors.end ();
+         ++c)
+       cnn_ports.insert ((*c)->receiverPortCode ());
+     std::vector< std::pair<double, Connector*> >::iterator comm;
+     do
+       {
+         for (comm = schedule.begin (); comm != schedule.end (); ++comm)
+           {
+             Connector* connector = comm->second;
+             if (connector == NULL
+                 || (cnn_ports.find (connector->receiverPortCode ())
+                     == cnn_ports.end ()))
+               continue;
+             if (connector->isFinalized ())
+               // an output port was finalized in tick ()
+               {
+                 cnn_ports.erase (connector->receiverPortCode ());
+                 continue;
+               }
+             // finalize () needs to come after isFinalized check
+             // since it can itself set finalized state
+             connector->finalize ();
 
+           }
+         schedule.clear ();
+         bool done = false;
+         for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
+             it != agents_.end() && !done;
+             it++)
+           done = (*it)->finalize();
+       } while (!cnn_ports.empty ());
 
-  void
-  Scheduler::finalize (Clock& localTime,
-		       std::vector<Connector*>& connectors)
-  {
-    /* remedius
-     * set of receiver port codes that still has to be finalized
-     */
-    std::set<int> cnn_ports;
-    for (std::vector<Connector*>::iterator c = connectors.begin ();
-	 c != connectors.end ();
-	 ++c)
-      cnn_ports.insert ((*c)->receiverPortCode ());
+   }
 
-    while (!cnn_ports.empty ())
-      {
-	bool done = false;
-
-	for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
-	     it != agents_.end () && !done;
-	     it++)
-	  {
-	    if ((*it)->finalize (localTime, last_sconn_, cnn_ports))
-	      done = true;
-	  }
-      }
-  }
 
 }
 

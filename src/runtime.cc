@@ -281,13 +281,14 @@ namespace MUSIC {
     scheduler->initialize (connectors);
 
     multiConnectors.resize (Connector::idRange ());
+
     scheduler->createMultiConnectors (localTime,
 				      connectors,
 				      multiBuffer_,
 				      multiConnectors);
 
-    scheduler->nextCommunication (localTime, schedule);
-
+   // scheduler->nextCommunication (localTime, schedule);
+    scheduler->tick (localTime);
     // compensate for first localTime.tick () in Runtime::tick ()
     localTime.ticks (-1);
     // the time zero tick () (where we may or may not communicate)
@@ -320,6 +321,7 @@ namespace MUSIC {
      * Connector::finalize () is called, followed by a multi-tick
      * until Connector::isFInalized () returns true.
      */
+
     std::vector<Connector*> cCache;
 
     if (!schedule.empty ())
@@ -410,7 +412,7 @@ namespace MUSIC {
 
 	  schedule.clear ();
 	  scheduler->nextCommunication (localTime, schedule);
-
+	  //scheduler->tick(localTime);
 	  for (std::vector<PostCommunicationConnector*>::iterator c =
 		 postCommunication.begin ();
 	       c != postCommunication.end ();
@@ -504,7 +506,7 @@ namespace MUSIC {
 	    }
 	  schedule.erase (schedule.begin (), comm);
 	  scheduler->nextCommunication (localTime, schedule);
-	}
+	}*/
 #endif
 
     // ContInputConnectors write data to application here

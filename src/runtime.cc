@@ -298,6 +298,9 @@ namespace MUSIC {
   void
   Runtime::finalize ()
   {
+#if 1
+    scheduler->finalize (localTime, connectors);
+#else
     /* remedius
      * set of receiver port codes that still has to be finalized
      */
@@ -415,6 +418,7 @@ namespace MUSIC {
 	    (*c)->postCommunication ();
 	}
       while (!cnn_ports.empty ());
+#endif
 
 #if defined (OPEN_MPI) && MPI_VERSION <= 2
     // This is needed in OpenMPI version <= 1.2 for the freeing of the

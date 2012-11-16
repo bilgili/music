@@ -144,6 +144,7 @@ namespace MUSIC {
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
     void tick (Clock& localTime);
+    void finalize (Clock& localTime, std::vector<Connector*>& connectors);
   private:
     SConnection nextSConnection();
     friend class MulticommAgent;

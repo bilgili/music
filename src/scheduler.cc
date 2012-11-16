@@ -26,6 +26,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <set>
 
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
@@ -535,14 +536,45 @@ namespace MUSIC {
   void
   Scheduler::tick (Clock& localTime)
   {
-    bool done = false;
-
-    for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
-	 it != agents_.end () && !done;
-	 it++)
+    while (nextCommTime () <= localTime.time ())
       {
-	if ((*it)->tick (localTime))
-	  done = true;
+	bool done = false;
+
+	for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
+	     it != agents_.end () && !done;
+	     it++)
+	  {
+	    if ((*it)->tick (localTime, last_sconn_))
+	      done = true;
+	  }
+      }
+  }
+
+
+  void
+  Scheduler::finalize (Clock& localTime,
+		       std::vector<Connector*>& connectors)
+  {
+    /* remedius
+     * set of receiver port codes that still has to be finalized
+     */
+    std::set<int> cnn_ports;
+    for (std::vector<Connector*>::iterator c = connectors.begin ();
+	 c != connectors.end ();
+	 ++c)
+      cnn_ports.insert ((*c)->receiverPortCode ());
+
+    while (!cnn_ports.empty ())
+      {
+	bool done = false;
+
+	for (std::vector<SchedulerAgent*>::iterator it = agents_.begin ();
+	     it != agents_.end () && !done;
+	     it++)
+	  {
+	    if ((*it)->finalize (localTime, last_sconn_, connectors))
+	      done = true;
+	  }
       }
   }
 

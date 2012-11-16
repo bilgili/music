@@ -184,9 +184,17 @@ namespace MUSIC {
   }
 
   bool
-  MulticommAgent::tick (Clock& localTime)
+  MulticommAgent::tick (Clock& localTime, Scheduler::SConnection& last_sconn)
   {
-    return true;
+    return false;
+  }
+
+  bool
+  MulticommAgent::finalize (Clock& localTime,
+			    Scheduler::SConnection &last_sconn,
+			    std::vector<Connector*>& connectors)
+  {
+    return false;
   }
 
   UnicommAgent::UnicommAgent(Scheduler *scheduler):SchedulerAgent(scheduler)
@@ -221,11 +229,18 @@ namespace MUSIC {
   }
 
   bool
-  UnicommAgent::tick (Clock& localTime)
+  UnicommAgent::tick (Clock& localTime, Scheduler::SConnection& last_sconn)
   {
     return true;
   }
 
+  bool
+  UnicommAgent::finalize (Clock& localTime,
+			  Scheduler::SConnection &last_sconn,
+			  std::vector<Connector*>& connectors)
+  {
+    return true;
+  }
 
 }
 #endif

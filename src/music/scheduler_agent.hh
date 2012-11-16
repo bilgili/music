@@ -17,7 +17,11 @@ namespace MUSIC {
     virtual ~SchedulerAgent(){};
     virtual void initialize()=0;
     virtual bool fillSchedule( std::vector<std::pair<double, Connector *> > &schedule,Scheduler::SConnection &last_sconn) = 0;
-    virtual bool tick (Clock& localTime) = 0;
+    virtual bool tick (Clock& localTime,
+		       Scheduler::SConnection &last_sconn) = 0;
+    virtual bool finalize (Clock& localTime,
+			   Scheduler::SConnection &last_sconn,
+			   std::vector<Connector*>& connectors) = 0;
   };
 
   class MulticommAgent: public virtual SchedulerAgent
@@ -48,7 +52,10 @@ namespace MUSIC {
     ~MulticommAgent();
     void initialize();
     bool fillSchedule(std::vector<std::pair<double, Connector *> > &schedule, Scheduler::SConnection &last_sconn);
-    bool tick (Clock& localTime);
+    bool tick (Clock& localTime, Scheduler::SConnection &last_sconn);
+    bool finalize (Clock& localTime,
+		   Scheduler::SConnection &last_sconn,
+		   std::vector<Connector*>& connectors);
   private:
     void fillSchedule( std::vector<std::pair<double, Connector *> > &schedule,SConnectionV &candidates);
     SConnectionV::iterator  NextMultiConnection(SConnectionV::iterator &last_bound,
@@ -68,7 +75,10 @@ namespace MUSIC {
     ~UnicommAgent(){};
     void initialize(){};
     bool fillSchedule(std::vector<std::pair<double, Connector *> > &schedule, Scheduler::SConnection &last_sconn);
-    bool tick (Clock& localTime);
+    bool tick (Clock& localTime, Scheduler::SConnection &last_sconn);
+    bool finalize (Clock& localTime,
+		   Scheduler::SConnection &last_sconn,
+		   std::vector<Connector*>& connectors);
   };
 }
 #endif

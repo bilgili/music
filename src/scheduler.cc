@@ -572,7 +572,7 @@ namespace MUSIC {
 	     it != agents_.end () && !done;
 	     it++)
 	  {
-	    if ((*it)->finalize (localTime, last_sconn_, connectors))
+	    if ((*it)->finalize (localTime, last_sconn_, cnn_ports))
 	      done = true;
 	  }
       }

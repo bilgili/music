@@ -192,7 +192,7 @@ namespace MUSIC {
   bool
   MulticommAgent::finalize (Clock& localTime,
 			    Scheduler::SConnection &last_sconn,
-			    std::vector<Connector*>& connectors)
+			    std::set<int> cnn_ports)
   {
     return false;
   }
@@ -237,7 +237,7 @@ namespace MUSIC {
   bool
   UnicommAgent::finalize (Clock& localTime,
 			  Scheduler::SConnection &last_sconn,
-			  std::vector<Connector*>& connectors)
+			  std::set<int> cnn_ports)
   {
     return true;
   }

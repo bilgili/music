@@ -21,7 +21,7 @@ namespace MUSIC {
 		       Scheduler::SConnection &last_sconn) = 0;
     virtual bool finalize (Clock& localTime,
 			   Scheduler::SConnection &last_sconn,
-			   std::vector<Connector*>& connectors) = 0;
+			   std::set<int> cnn_ports) = 0;
   };
 
   class MulticommAgent: public virtual SchedulerAgent
@@ -55,7 +55,7 @@ namespace MUSIC {
     bool tick (Clock& localTime, Scheduler::SConnection &last_sconn);
     bool finalize (Clock& localTime,
 		   Scheduler::SConnection &last_sconn,
-		   std::vector<Connector*>& connectors);
+		   std::set<int> cnn_ports);
   private:
     void fillSchedule( std::vector<std::pair<double, Connector *> > &schedule,SConnectionV &candidates);
     SConnectionV::iterator  NextMultiConnection(SConnectionV::iterator &last_bound,
@@ -78,7 +78,7 @@ namespace MUSIC {
     bool tick (Clock& localTime, Scheduler::SConnection &last_sconn);
     bool finalize (Clock& localTime,
 		   Scheduler::SConnection &last_sconn,
-		   std::vector<Connector*>& connectors);
+		   std::set<int> cnn_ports);
   };
 }
 #endif

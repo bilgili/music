@@ -109,7 +109,7 @@ namespace MUSIC {
     double compTime;
     std::vector<SchedulerAgent *> agents_;
     SConnection last_sconn_;
-    std::vector<std::pair<double, Connector *> > schedule;
+    //std::vector<std::pair<double, Connector *> > schedule;
   public:
     Scheduler(int node_id);
     ~Scheduler();

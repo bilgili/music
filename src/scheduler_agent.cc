@@ -73,8 +73,24 @@ namespace MUSIC {
     filter2 = new Filter2(*this);
   }
   bool
+  MulticommAgent::tick(MUSIC::Clock &localTime)
+  {
+    std::vector< NextCommObject>::iterator comm;
+    bool done;
+    do
+      {
+        done = fillSchedule();
+        for(comm = schedule.begin(); comm != schedule.end() && (*comm).time <= localTime.time(); comm++)
+          (*comm).connector->tick();
+        schedule.erase(schedule.begin(),comm);
+      }while (done && schedule.empty());
+    return done;
+  }
+  bool
   MulticommAgent::fillSchedule()
   {
+    if(!schedule.empty())
+      return true;
     Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
     if(last_sconn.getConnector()->idFlag()){
         Clock time = last_sconn.nextReceive(); //last connection
@@ -86,7 +102,7 @@ namespace MUSIC {
           }while(last_sconn.getConnector()->idFlag() && last_sconn.nextReceive() == time);
         fillSchedule( nextSConnections);
         scheduler_->last_sconn_ = last_sconn;
-        return true;
+        return last_sconn.getConnector()->idFlag();
     }
     return false;
   }
@@ -104,10 +120,8 @@ namespace MUSIC {
             = (scheduler_->self_node == (*it).postNode ()->getId ()
                 ? (*it).nextReceive ().time ()
                     : (*it).nextSend ().time ());
-            scheduler_->schedule.push_back
-            (std::pair<double, Connector*>(nextComm,
-                (*it).getConnector ()));
-            MUSIC_LOGN (2,"Scheduled communication:"<< (*it).preNode ()->getId () <<"->"<< (*it).postNode ()->getId () << "at(" << (*it).nextSend ().time () << ", "<< (*it).nextReceive ().time () <<")");
+            schedule.push_back(NextCommObject(nextComm,(*it).getConnector ()));
+          //  MUSIC_LOGN (2,"Scheduled communication:"<< (*it).preNode ()->getId () <<"->"<< (*it).postNode ()->getId () << "at(" << (*it).nextSend ().time () << ", "<< (*it).nextReceive ().time () <<")");
           }
       }
     /* end of the block */
@@ -182,8 +196,35 @@ namespace MUSIC {
         MUSIC_LOG0 ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
   }
-
-
+  void
+  MulticommAgent::finalize(std::set<int> &cnn_ports)
+  {
+    std::vector< NextCommObject>::iterator comm;
+    bool done;
+     do
+       {
+         done = fillSchedule();
+         for(comm = schedule.begin(); comm != schedule.end(); comm++)
+           {
+             Connector* connector = (*comm).connector;
+             if (connector == NULL
+                 || (cnn_ports.find (connector->receiverPortCode ())
+                     == cnn_ports.end ()))
+               continue;
+             if (connector->isFinalized ())
+               // an output port was finalized in tick ()
+             {
+                 cnn_ports.erase (connector->receiverPortCode ());
+                 continue;
+             }
+             // finalize () needs to come after isFinalized check
+             // since it can itself set finalized state
+             connector->finalize ();
+           }
+         schedule.clear();
+         std::cerr << "hangs here" << std::endl;
+       }while (done && !cnn_ports.empty());
+  }
   UnicommAgent::UnicommAgent(Scheduler *scheduler):SchedulerAgent(scheduler)
   {
 
@@ -191,6 +232,8 @@ namespace MUSIC {
   bool
   UnicommAgent::fillSchedule()
   {
+    if(!schedule.empty())
+      return true;
     Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
     if(!last_sconn.getConnector()->idFlag())
       {
@@ -201,9 +244,8 @@ namespace MUSIC {
             = (scheduler_->self_node == last_sconn.postNode ()->getId ()
                 ? last_sconn.nextReceive ().time()
                     : last_sconn.nextSend ().time ());
-            scheduler_->schedule.push_back
-            (std::pair<double, Connector*>(nextComm,
-                last_sconn.getConnector ()));
+            schedule.time = nextComm;
+            schedule.connector =  last_sconn.getConnector ();
             MUSIC_LOG0 ("Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"<< last_sconn.postNode ()->getId () << "at(" << last_sconn.nextSend ().time () << ", "<< last_sconn.nextReceive ().time () <<")");
           }
         scheduler_->last_sconn_ = scheduler_->nextSConnection();
@@ -212,6 +254,41 @@ namespace MUSIC {
     else
       return false;
 
+  }
+  bool
+  UnicommAgent::tick(Clock& localTime)
+  {
+    bool done;
+    while( (done = fillSchedule()) && schedule.time <= localTime.time())
+      {
+      schedule.connector->tick();
+      schedule.reset();
+      }
+      return done;
+
+  }
+  void
+  UnicommAgent::finalize(std::set<int> &cnn_ports)
+  {
+
+    while(fillSchedule() && !cnn_ports.empty())
+      {
+        Connector* connector = schedule.connector;
+        schedule.reset();
+        if (connector == NULL
+            || (cnn_ports.find (connector->receiverPortCode ())
+                == cnn_ports.end ()))
+          continue;
+        if (connector->isFinalized ())
+          // an output port was finalized in tick ()
+        {
+            cnn_ports.erase (connector->receiverPortCode ());
+            continue;
+        }
+        // finalize () needs to come after isFinalized check
+        // since it can itself set finalized state
+        connector->finalize ();
+      }
   }
 
 }

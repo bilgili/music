@@ -12,12 +12,22 @@ namespace MUSIC {
   protected:
     Scheduler *scheduler_;
     SchedulerAgent(Scheduler *scheduler);
-
+    class NextCommObject
+    {
+    public:
+      NextCommObject():time(-1.0){};
+      NextCommObject(double time_, Connector *connector_):time(time_), connector(connector_){};
+      double time;
+      Connector *connector;
+      void reset(){time = -1.0;}
+      bool empty(){return time < 0;}
+    };
+    virtual bool fillSchedule() = 0;
   public:
     virtual ~SchedulerAgent(){};
     virtual void initialize()=0;
-    virtual bool fillSchedule() = 0;
-    virtual bool finalize () = 0;
+    virtual bool tick(Clock& localTime)=0;
+    virtual void finalize (std::set<int> &cnn_ports) = 0;
   };
 
   class MulticommAgent: public virtual SchedulerAgent
@@ -26,7 +36,7 @@ namespace MUSIC {
     int rNodes;
     Clock time_;
 
-
+    std::vector<NextCommObject> schedule;
     class Filter1
     {
       MulticommAgent &multCommObj_;
@@ -47,9 +57,11 @@ namespace MUSIC {
     MulticommAgent(Scheduler *scheduler);
     ~MulticommAgent();
     void initialize();
-    bool fillSchedule();
-    bool finalize (){return false;};
+    bool tick(Clock& localTime);
+    void finalize (std::set<int> &cnn_ports);
+
   private:
+    bool fillSchedule();
     void fillSchedule( SConnectionV &candidates);
     SConnectionV::iterator  NextMultiConnection(SConnectionV::iterator &last_bound,
         SConnectionV::iterator last,
@@ -63,12 +75,14 @@ namespace MUSIC {
   };
   class UnicommAgent: public virtual SchedulerAgent
   {
+    NextCommObject schedule;
+    bool fillSchedule();
   public:
     UnicommAgent(Scheduler *scheduler);
     ~UnicommAgent(){};
     void initialize(){};
-    bool fillSchedule();
-    bool finalize (){return true;};
+    bool tick(Clock& localTime);
+    void finalize (std::set<int> &cnn_ports);
   };
 }
 #endif

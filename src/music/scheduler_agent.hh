@@ -2,6 +2,8 @@
 
 #include "music/music-config.hh"
 #include "music/scheduler.hh"
+#include "music/multibuffer.hh"
+
 #if MUSIC_USE_MPI
 
 namespace MUSIC {
@@ -36,6 +38,9 @@ namespace MUSIC {
     int rNodes;
     Clock time_;
 
+    MultiBuffer* multiBuffer_;
+    std::vector<MultiConnector*> multiConnectors;    
+
     std::vector<NextCommObject> schedule;
     class Filter1
     {
@@ -57,6 +62,10 @@ namespace MUSIC {
     MulticommAgent(Scheduler *scheduler);
     ~MulticommAgent();
     void initialize();
+    void createMultiConnectors (Clock& localTime,
+				MPI::Intracomm comm,
+				int leader,
+				std::vector<Connector*>& connectors);
     bool tick(Clock& localTime);
     void finalize (std::set<int> &cnn_ports);
 

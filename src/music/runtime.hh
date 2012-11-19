@@ -28,7 +28,6 @@
 #include "music/clock.hh"
 #include "music/connector.hh"
 #include "music/scheduler.hh"
-#include "music/multibuffer.hh"
 #include "music/scheduler_agent.hh"
 namespace MUSIC {
 
@@ -61,14 +60,13 @@ namespace MUSIC {
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
-    MultiBuffer* multiBuffer_;
     //std::vector<Connector*> cCache;
-    std::vector<MultiConnector*> multiConnectors;
    // std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;
     Scheduler *scheduler;
     std::vector<SchedulerAgent*> sAgents;
+    MulticommAgent* mAgent;
     static bool isInstantiated_;
 
     typedef std::vector<Connection*> Connections;

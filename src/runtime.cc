@@ -39,12 +39,11 @@ namespace MUSIC {
   bool Runtime::isInstantiated_ = false;
 
   Runtime::Runtime (Setup* s, double h)
-    : multiBuffer_ (NULL)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
 
     scheduler = new Scheduler(s->applicationColor());
-    sAgents.push_back(new MulticommAgent(scheduler));
+    sAgents.push_back(mAgent = new MulticommAgent(scheduler));
     sAgents.push_back(new UnicommAgent(scheduler));
     scheduler->setAgent(sAgents[0]);
     scheduler->setAgent(sAgents[1]);
@@ -112,13 +111,6 @@ namespace MUSIC {
   Runtime::~Runtime ()
   {
     // delete connectors
-    for (std::vector<MultiConnector*>::iterator connector
-	   = multiConnectors.begin ();
-	 connector != multiConnectors.end ();
-	 ++connector)
-      if (*connector != NULL)
-	delete *connector;
-    delete multiBuffer_;
     for (std::vector<Connector*>::iterator connector = connectors.begin ();
 	 connector != connectors.end ();
 	 ++connector)
@@ -243,7 +235,6 @@ namespace MUSIC {
 	(*c)->spatialNegotiation ();
 	multiId |= (*c)->idFlag ();
       }
-    multiBuffer_ = new MultiBuffer (comm, leader_, connectors);
   }
 
   void
@@ -280,12 +271,7 @@ namespace MUSIC {
      */
     scheduler->initialize (connectors);
 
-    multiConnectors.resize (Connector::idRange ());
-
-    scheduler->createMultiConnectors (localTime,
-				      connectors,
-				      multiBuffer_,
-				      multiConnectors);
+    mAgent->createMultiConnectors (localTime, comm, leader_, connectors);
 
    // scheduler->nextCommunication (localTime, schedule);
     scheduler->tick (localTime);

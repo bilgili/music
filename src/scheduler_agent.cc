@@ -63,6 +63,13 @@ namespace MUSIC {
 
   MulticommAgent::~MulticommAgent()
   {
+    for (std::vector<MultiConnector*>::iterator connector
+	   = multiConnectors.begin ();
+	 connector != multiConnectors.end ();
+	 ++connector)
+      if (*connector != NULL)
+	delete *connector;
+    delete multiBuffer_;
     delete filter1;
     delete filter2;
   }
@@ -72,6 +79,21 @@ namespace MUSIC {
     filter1 = new Filter1(*this);
     filter2 = new Filter2(*this);
   }
+
+  void 
+  MulticommAgent::createMultiConnectors (Clock& localTime,
+					 MPI::Intracomm comm,
+					 int leader,
+					 std::vector<Connector*>& connectors)
+  {
+    multiBuffer_ = new MultiBuffer (comm, leader, connectors);
+    multiConnectors.resize (Connector::idRange ());
+    scheduler_->createMultiConnectors (localTime,
+				       connectors,
+				       multiBuffer_,
+				       multiConnectors);
+  }
+
   bool
   MulticommAgent::tick(MUSIC::Clock &localTime)
   {

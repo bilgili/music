@@ -556,8 +556,6 @@ namespace MUSIC {
    void
    Scheduler::tick (Clock& localTime)
    {
-     if(MPI::COMM_WORLD.Get_rank() == 2)
-       std::cerr << localTime.time() << std::endl;
      bool done = false;
      do
        {
@@ -584,6 +582,7 @@ namespace MUSIC {
          c != connectors.end ();
          ++c)
        cnn_ports.insert ((*c)->receiverPortCode ());
+
      do
        {
          for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();

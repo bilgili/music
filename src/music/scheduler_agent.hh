@@ -3,7 +3,6 @@
 #include "music/music-config.hh"
 #include "music/scheduler.hh"
 #include "music/multibuffer.hh"
-
 #if MUSIC_USE_MPI
 
 namespace MUSIC {
@@ -14,13 +13,13 @@ namespace MUSIC {
   protected:
     Scheduler *scheduler_;
     SchedulerAgent(Scheduler *scheduler);
-    class NextCommObject
+    class CommObject
     {
     public:
-      NextCommObject():time(-1.0){};
-      NextCommObject(double time_, Connector *connector_):time(time_), connector(connector_){};
+      CommObject():time(-1.0){};
+      CommObject(double time_):time(time_){};
+      virtual ~CommObject(){}
       double time;
-      Connector *connector;
       void reset(){time = -1.0;}
       bool empty(){return time < 0;}
     };
@@ -37,11 +36,9 @@ namespace MUSIC {
     std::map<int, Clock> commTimes;
     int rNodes;
     Clock time_;
-
     MultiBuffer* multiBuffer_;
-    std::vector<MultiConnector*> multiConnectors;    
+    std::vector<MultiConnector*> multiConnectors;
 
-    std::vector<NextCommObject> schedule;
     class Filter1
     {
       MulticommAgent &multCommObj_;
@@ -58,14 +55,22 @@ namespace MUSIC {
       bool operator()(const Scheduler::SConnection &conn);
     };
 
+    class MultiCommObject: public CommObject
+    {
+    public:
+      MultiConnector *connector;
+      MultiCommObject(double time_, MultiConnector *connector_):CommObject(time_),connector(connector_){};
+    };
+
+    std::vector<MultiCommObject> schedule;
   public:
     MulticommAgent(Scheduler *scheduler);
     ~MulticommAgent();
     void initialize();
     void createMultiConnectors (Clock& localTime,
-				MPI::Intracomm comm,
-				int leader,
-				std::vector<Connector*>& connectors);
+                                  MPI::Intracomm comm,
+                                  int leader,
+                                  std::vector<Connector*>& connectors);
     bool tick(Clock& localTime);
     void finalize (std::set<int> &cnn_ports);
 
@@ -85,7 +90,14 @@ namespace MUSIC {
   };
   class UnicommAgent: public virtual SchedulerAgent
   {
-    NextCommObject schedule;
+    class UniCommObject: public CommObject
+    {
+    public:
+      Connector *connector;
+      UniCommObject():CommObject(){};
+      UniCommObject(double time_, Connector *connector_):CommObject(time_),connector(connector_){};
+    };
+    UniCommObject schedule;
     bool fillSchedule();
   public:
     UnicommAgent(Scheduler *scheduler);

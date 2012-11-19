@@ -110,7 +110,7 @@ namespace MUSIC {
   bool
   MulticommAgent::tick(MUSIC::Clock &localTime)
   {
-    std::vector< NextCommObject>::iterator comm;
+    std::vector< MultiCommObject>::iterator comm;
     bool done;
     do
       {
@@ -144,23 +144,6 @@ namespace MUSIC {
   void
   MulticommAgent::fillSchedule(SConnectionV &candidates)
   {
-
-    /* remove the following block when multiconnector will be introduced */
-    for ( SConnectionV::iterator it=candidates.begin() ; it < candidates.end(); it++ )
-      {
-        if ( scheduler_->self_node == (*it).postNode ()->getId () //input
-            || scheduler_->self_node == (*it).preNode ()->getId ()) //output
-          {
-            double nextComm
-            = (scheduler_->self_node == (*it).postNode ()->getId ()
-                ? (*it).nextReceive ().time ()
-                    : (*it).nextSend ().time ());
-            schedule.push_back(NextCommObject(nextComm,(*it).getConnector ()));
-          //  MUSIC_LOGN (2,"Scheduled communication:"<< (*it).preNode ()->getId () <<"->"<< (*it).postNode ()->getId () << "at(" << (*it).nextSend ().time () << ", "<< (*it).nextReceive ().time () <<")");
-          }
-      }
-    /* end of the block */
-
     time_ = candidates[0].nextReceive();
 
     SConnectionV::iterator cur_bound = candidates.begin();
@@ -171,7 +154,7 @@ namespace MUSIC {
       {
         start_bound = cur_bound;
         end_bound = NextMultiConnection(cur_bound, candidates.end(), prevCommTime);
-        printMulticonn(time_, start_bound, end_bound);
+       //printMulticonn(time_, start_bound, end_bound);
       }
     while(end_bound != candidates.end());
   }
@@ -182,7 +165,9 @@ namespace MUSIC {
   {
     SConnectionV::iterator iter_bound = cur_bound;
     SConnectionV::iterator res_bound;
+    SConnectionV::iterator start_bound = cur_bound;
     bool merge = true;
+
     while(merge && iter_bound !=last)
       {
 
@@ -214,6 +199,18 @@ namespace MUSIC {
             prevCommTime.insert(commTimes.begin(), commTimes.end());
           }
       }
+    unsigned int multiId = 0;
+    Clock nextcomm;
+    std::map<int, Clock>::iterator id_iter;
+    if( (id_iter = prevCommTime.find(scheduler_->self_node)) != prevCommTime.end() || (rNodes & (1 << scheduler_->self_node)))
+      {
+    for( std::vector<Scheduler::SConnection>::iterator it = start_bound;
+            it != cur_bound;
+            it++)
+      multiId |= (*it).getConnector()->idFlag();
+      double comm_time = id_iter == prevCommTime.end()? time_.time() :  id_iter->second.time();
+      schedule.push_back(MultiCommObject(comm_time,multiConnectors[multiId]));
+      }
     res_bound = cur_bound;
     cur_bound = iter_bound;
     prevCommTime = commTimes;
@@ -223,6 +220,7 @@ namespace MUSIC {
   MulticommAgent::printMulticonn(Clock time, std::vector<Scheduler::SConnection>::iterator first,
       std::vector<Scheduler::SConnection>::iterator last)
   {
+
     MUSIC_LOG0 ("Time: "<< time.time() << std::endl << "MultiConnector:");
     for( std::vector<Scheduler::SConnection>::iterator it = first;
         it != last;
@@ -234,30 +232,39 @@ namespace MUSIC {
   void
   MulticommAgent::finalize(std::set<int> &cnn_ports)
   {
-    std::vector< NextCommObject>::iterator comm;
+    std::vector< MultiCommObject>::iterator comm;
     bool done;
      do
        {
          done = fillSchedule();
-         for(comm = schedule.begin(); comm != schedule.end(); comm++)
+         for(comm = schedule.begin(); comm != schedule.end() && !cnn_ports.empty(); comm++)
            {
-             Connector* connector = (*comm).connector;
-             if (connector == NULL
-                 || (cnn_ports.find (connector->receiverPortCode ())
-                     == cnn_ports.end ()))
-               continue;
-             if (connector->isFinalized ())
-               // an output port was finalized in tick ()
-             {
-                 cnn_ports.erase (connector->receiverPortCode ());
-                 continue;
-             }
-             // finalize () needs to come after isFinalized check
-             // since it can itself set finalized state
-             connector->finalize ();
+             MultiConnector* multi_connector = (*comm).connector;
+             unsigned int multid = 0;
+             for(; multid < multiConnectors.size() && multiConnectors[multid]!= multi_connector; multid++);
+             std::vector<Connector*> conns = connectorsFromMultiId(multid);
+             for (std::vector<Connector*>::iterator c = conns.begin(); c != conns.end(); c++)
+               {
+                 if ((*c) == NULL
+                     || (cnn_ports.find ((*c)->receiverPortCode ())
+                         == cnn_ports.end ()))
+                   continue;
+                 if ((*c)->isFinalized ())
+                   // an output port was finalized in tick ()
+                   {
+                     cnn_ports.erase ((*c)->receiverPortCode ());
+                     continue;
+                   }
+                 // finalize () needs to come after isFinalized check
+                 // since it can itself set finalized state
+                 (*c)->finalize ();
+
+               }
+             multi_connector->tick();
            }
          schedule.clear();
-         std::cerr << "hangs here" << std::endl;
+        // if (MPI::COMM_WORLD.Get_rank() == 0)
+        // std::cerr << MPI::COMM_WORLD.Get_rank() <<":" <<*cnn_ports.begin()<< std::endl;
        }while (done && !cnn_ports.empty());
   }
   UnicommAgent::UnicommAgent(Scheduler *scheduler):SchedulerAgent(scheduler)

@@ -94,6 +94,19 @@ namespace MUSIC {
 				       multiConnectors);
   }
 
+  std::vector<Connector*>
+  MulticommAgent::connectorsFromMultiId (unsigned int multiId)
+  {
+    std::vector<Connector*> connectors;
+    for (unsigned int flag = 1; multiId != 0; flag <<= 1)
+      if (multiId & flag)
+	{
+	  connectors.push_back (Connector::connectorFromIdFlag (flag));
+	  multiId &= ~flag;
+	}
+    return connectors;
+  }
+
   bool
   MulticommAgent::tick(MUSIC::Clock &localTime)
   {

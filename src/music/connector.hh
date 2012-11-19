@@ -57,6 +57,7 @@ namespace MUSIC {
   class Connector
   {
   private:
+    static std::map<unsigned int, Connector*> flagMap_;
     static unsigned int nextFlag_;
     static unsigned int nextProxyFlag_;
   protected:
@@ -85,10 +86,13 @@ namespace MUSIC {
 	       MPI::Intracomm c,
 	       MPI::Intercomm ic);
 
-    static unsigned int makeFlag ()
+    static unsigned int makeFlag (Connector* connector)
     {
       unsigned int flag = nextFlag_;
       nextFlag_ <<= 1;
+
+      flagMap_[flag] = connector;
+
       return flag;
     }
 
@@ -100,6 +104,11 @@ namespace MUSIC {
     }
 
   public:
+
+    static Connector* connectorFromIdFlag (unsigned int flag)
+    {
+      return flagMap_[flag];
+    }
 
     static unsigned int idRange () { return nextFlag_; }
 

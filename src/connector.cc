@@ -31,6 +31,7 @@
 #include <map>
 
 namespace MUSIC {
+  std::map<unsigned int, Connector*> Connector::flagMap_;
 
   unsigned int Connector::nextFlag_ = 1;
 
@@ -887,7 +888,7 @@ namespace MUSIC {
   EventCollectiveConnector::EventCollectiveConnector (bool high)
     : CollectiveConnector (high), router_ (NULL)
   {
-    idFlag_ = makeFlag ();
+    idFlag_ = makeFlag (this);
   }
 
 

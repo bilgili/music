@@ -55,6 +55,7 @@ namespace MUSIC {
     if(it == multCommObj_.commTimes.end() || !(multCommObj_.rNodes & (1 << sId)))
       {
         multCommObj_.commTimes[sId]=conn.scheduledSend();
+        multCommObj_.commTimes[rId]=multCommObj_.time_;
         multCommObj_.rNodes |= 1 << rId;
         return true;
       }
@@ -202,14 +203,13 @@ namespace MUSIC {
     unsigned int multiId = 0;
     Clock nextcomm;
     std::map<int, Clock>::iterator id_iter;
-    if( (id_iter = prevCommTime.find(scheduler_->self_node)) != prevCommTime.end() || (rNodes & (1 << scheduler_->self_node)))
+    if( (id_iter = prevCommTime.find(scheduler_->self_node)) != prevCommTime.end() )
       {
     for( std::vector<Scheduler::SConnection>::iterator it = start_bound;
             it != cur_bound;
             it++)
       multiId |= (*it).getConnector()->idFlag();
-      double comm_time = id_iter == prevCommTime.end()? time_.time() :  id_iter->second.time();
-      schedule.push_back(MultiCommObject(comm_time,multiConnectors[multiId]));
+      schedule.push_back(MultiCommObject(id_iter->second.time(),multiConnectors[multiId]));
       }
     res_bound = cur_bound;
     cur_bound = iter_bound;

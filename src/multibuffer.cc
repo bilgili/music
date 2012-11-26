@@ -20,6 +20,8 @@
 
 #include "music/debug.hh"
 
+#include <sstream>
+
 extern "C" {
 #include <assert.h>
 }
@@ -397,7 +399,8 @@ namespace MUSIC {
       }
     else
       // for now:
-      assert ((*blankMap_)[leader] == isInput);
+      //assert ((*blankMap_)[leader] == isInput);
+      (*blankMap_)[leader] &= isInput;
   }
 
   void
@@ -428,6 +431,8 @@ namespace MUSIC {
   void
   MultiConnector::initialize ()
   {
+    std::ostringstream ostr;
+    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": ";
     {
       int nRanges = groupMap_->size ();
       int (*range)[3] = new int[nRanges][3];
@@ -438,6 +443,7 @@ namespace MUSIC {
 	{
 	  int leader = g->first;
 	  int size = g->second;
+	  ostr << leader << ", ";
 	  range[i][0] = leader;
 	  range[i][1] = leader + size - 1;
 	  range[i][2] = 1;
@@ -446,6 +452,8 @@ namespace MUSIC {
       group_ = MPI::COMM_WORLD.Get_group ().Range_incl (nRanges, range);
       delete[] range;
     }
+    ostr << std::endl;
+    std::cout << ostr.str () << std::flush;
 
     if (group_.Get_size () < MPI::COMM_WORLD.Get_size ())
       comm_ = MPI::COMM_WORLD.Create (group_);

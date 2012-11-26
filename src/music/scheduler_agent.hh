@@ -76,6 +76,7 @@ namespace MUSIC {
     void finalize (std::set<int> &cnn_ports);
 
   private:
+    std::vector<bool>* multiProxies;    
     std::vector<Connector*> connectorsFromMultiId (unsigned int multiId);
     bool fillSchedule();
     void fillSchedule( SConnectionV &candidates);

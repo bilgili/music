@@ -57,9 +57,16 @@ namespace MUSIC {
 
     class MultiCommObject: public CommObject
     {
+    private:
+      unsigned int multiId_;
+      unsigned int proxyId_;
     public:
-      unsigned int connector;
-      MultiCommObject(double time_, unsigned int connector_):CommObject(time_),connector(connector_){};
+      MultiCommObject (double time_,
+		       unsigned int multiId,
+		       unsigned int proxyId)
+	: CommObject (time_), multiId_ (multiId), proxyId_ (proxyId) {};
+      unsigned int multiId () const { return multiId_; }
+      unsigned int proxyId () const { return proxyId_; }
     };
 
     std::vector<MultiCommObject> schedule;

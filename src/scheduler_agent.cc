@@ -149,10 +149,16 @@ namespace MUSIC {
     do
       {
         done = fillSchedule();
-        for(comm = schedule.begin(); comm != schedule.end() && (*comm).time <= localTime.time(); comm++)
-          multiConnectors[(*comm).connector]->tick();
+        for (comm = schedule.begin();
+	     comm != schedule.end() && (*comm).time <= localTime.time();
+	     comm++)
+	  {
+	    unsigned int multiId = (*comm).multiId ();
+	    if (multiId != 0)
+	      multiConnectors[multiId]->tick ();
+	  }
         schedule.erase(schedule.begin(),comm);
-      }while (done && schedule.empty());
+      } while (done && schedule.empty());
     return done;
   }
 
@@ -168,9 +174,8 @@ namespace MUSIC {
 	     comm != schedule.end () && (*comm).time <= localTime.time();
 	     comm++)
 	  {
-	    unsigned int multiId = (*comm).connector;
-	    if (multiId != 0
-		&& !false) // multiConnector
+	    unsigned int multiId = (*comm).multiId ();
+	    if (multiId != 0)
 	      {
 		if (multiConnectors[multiId] == NULL)
 		  {
@@ -180,11 +185,15 @@ namespace MUSIC {
 		      = new MultiConnector (multiBuffer_, connectors);
 		  }
 	      }
-	    else if (!(*multiProxies)[multiId])
+	    else
 	      {
-		MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-		MPI::COMM_WORLD.Barrier ();		
-		(*multiProxies)[multiId] = true;
+		unsigned int proxyId = (*comm).proxyId ();
+		if (proxyId != 0 && !(*multiProxies)[proxyId])
+		  {
+		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+		    MPI::COMM_WORLD.Barrier ();		
+		    (*multiProxies)[proxyId] = true;
+		  }
 	      }
 	  }
         schedule.erase(schedule.begin(),comm);
@@ -271,19 +280,24 @@ namespace MUSIC {
           }
       }
     unsigned int multiId = 0;
+    unsigned int proxyId = 0;
     Clock nextcomm;
     std::map<int, Clock>::iterator id_iter;
-    if( (id_iter = prevCommTime.find(scheduler_->self_node)) != prevCommTime.end() )
+    if ((id_iter = prevCommTime.find (scheduler_->self_node))
+	!= prevCommTime.end ())
       {
 	for (std::vector<Scheduler::SConnection>::iterator it = start_bound;
 	     it != cur_bound;
 	     it++)
 	  {
-	    if ((*it).getConnector()->isProxy ())
-	      std::cout << "Proxy!" << std::endl;
-	    multiId |= (*it).getConnector()->idFlag();
+	    if ((*it).getConnector ()->isProxy ())
+	      proxyId |= (*it).getConnector ()->idFlag ();
+	    else
+	      multiId |= (*it).getConnector ()->idFlag ();
 	  }
-	schedule.push_back (MultiCommObject (id_iter->second.time (), multiId));
+	schedule.push_back (MultiCommObject (id_iter->second.time (),
+					     multiId,
+					     proxyId));
       }
     res_bound = cur_bound;
     cur_bound = iter_bound;
@@ -313,7 +327,7 @@ namespace MUSIC {
          done = fillSchedule();
          for(comm = schedule.begin(); comm != schedule.end() && !cnn_ports.empty(); comm++)
            {
-             unsigned int multid = (*comm).connector;
+             unsigned int multid = (*comm).multiId ();
              std::vector<Connector*> conns = connectorsFromMultiId (multid);
              for (std::vector<Connector*>::iterator c = conns.begin(); c != conns.end(); c++)
                {

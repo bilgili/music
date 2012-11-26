@@ -113,12 +113,16 @@ namespace MUSIC {
   public:
     Scheduler(int node_id);
     ~Scheduler();
+    unsigned int selfNode () { return self_node; }
+    void setSelfNode (unsigned int selfNode) { self_node = selfNode; }
+    unsigned int nNodes () { return nodes.size (); }
     // addNode is called from TemporalNegotiator::fillScheduler
     void addNode(int id, const Clock &localTime, int leader, int nProcs);
     void addConnection (int pre_id, int post_id, const ClockState &latency,
 			int maxBuffered, bool interpolate,
 			bool multiComm, int port_code);
     void initialize(std::vector<Connector*> &connectors);
+#if 0
     void createMultiConnectors (Clock localTime,
 				std::vector<Connector*>& connectors,
 				MultiBuffer* multiBuffer,
@@ -137,9 +141,11 @@ namespace MUSIC {
 			      std::vector<Connector*>& cCache,
 			      std::vector<std::pair<double, Connector *> > &schedule,
 			      bool finalize);
+#endif
     void setAgent(SchedulerAgent* agent);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
+    void resetClocks ();
     void tick (Clock& localTime);
     void finalize (Clock& localTime, std::vector<Connector*>& connectors);
   private:

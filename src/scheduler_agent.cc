@@ -89,10 +89,42 @@ namespace MUSIC {
   {
     multiBuffer_ = new MultiBuffer (comm, leader, connectors);
     multiConnectors.resize (Connector::idRange ());
+#if 0
     scheduler_->createMultiConnectors (localTime,
 				       connectors,
 				       multiBuffer_,
 				       multiConnectors);
+#else
+    std::vector<bool> multiProxies;
+    multiProxies.resize (Connector::proxyIdRange ());
+    
+    unsigned int savedSelfNode = scheduler_->selfNode ();
+    for (unsigned int self_node = 0;
+	 self_node < scheduler_->nNodes ();
+	 ++self_node)
+      {
+	scheduler_->setSelfNode (self_node);
+
+	localTime.reset ();
+
+	create (localTime);
+    
+	localTime.ticks (-1);
+
+	std::vector<Connector*> cCache;
+	for (int i = 0; i < 100; ++i)
+	  {
+	    localTime.tick ();
+	    create (localTime);
+	  }
+	//finalize
+	schedule.clear ();
+
+	// Now reset node and connection clocks to starting values
+	scheduler_->resetClocks ();
+      }
+    scheduler_->setSelfNode (savedSelfNode);
+#endif
   }
 
   std::vector<Connector*>
@@ -117,11 +149,41 @@ namespace MUSIC {
       {
         done = fillSchedule();
         for(comm = schedule.begin(); comm != schedule.end() && (*comm).time <= localTime.time(); comm++)
-          (*comm).connector->tick();
+          multiConnectors[(*comm).connector]->tick();
         schedule.erase(schedule.begin(),comm);
       }while (done && schedule.empty());
     return done;
   }
+
+  bool
+  MulticommAgent::create (MUSIC::Clock &localTime)
+  {
+    std::vector< MultiCommObject>::iterator comm;
+    bool done;
+    do
+      {
+        done = fillSchedule();
+        for (comm = schedule.begin();
+	     comm != schedule.end () && (*comm).time <= localTime.time();
+	     comm++)
+	  {
+	    unsigned int multiId = (*comm).connector;
+	    if (multiId != 0)
+	      {
+		if (multiConnectors[multiId] == NULL)
+		  {
+		    std::vector<Connector*> connectors
+		      = connectorsFromMultiId (multiId);
+		    multiConnectors[multiId]
+		      = new MultiConnector (multiBuffer_, connectors);
+		  }
+	      }
+	  }
+        schedule.erase(schedule.begin(),comm);
+      } while (done && schedule.empty());
+    return done;
+  }
+
   bool
   MulticommAgent::fillSchedule()
   {
@@ -205,11 +267,11 @@ namespace MUSIC {
     std::map<int, Clock>::iterator id_iter;
     if( (id_iter = prevCommTime.find(scheduler_->self_node)) != prevCommTime.end() )
       {
-    for( std::vector<Scheduler::SConnection>::iterator it = start_bound;
-            it != cur_bound;
-            it++)
-      multiId |= (*it).getConnector()->idFlag();
-      schedule.push_back(MultiCommObject(id_iter->second.time(),multiConnectors[multiId]));
+	for (std::vector<Scheduler::SConnection>::iterator it = start_bound;
+	     it != cur_bound;
+	     it++)
+	  multiId |= (*it).getConnector()->idFlag();
+	schedule.push_back (MultiCommObject (id_iter->second.time (), multiId));
       }
     res_bound = cur_bound;
     cur_bound = iter_bound;
@@ -239,10 +301,8 @@ namespace MUSIC {
          done = fillSchedule();
          for(comm = schedule.begin(); comm != schedule.end() && !cnn_ports.empty(); comm++)
            {
-             MultiConnector* multi_connector = (*comm).connector;
-             unsigned int multid = 0;
-             for(; multid < multiConnectors.size() && multiConnectors[multid]!= multi_connector; multid++);
-             std::vector<Connector*> conns = connectorsFromMultiId(multid);
+             unsigned int multid = (*comm).connector;
+             std::vector<Connector*> conns = connectorsFromMultiId (multid);
              for (std::vector<Connector*>::iterator c = conns.begin(); c != conns.end(); c++)
                {
                  if ((*c) == NULL
@@ -260,7 +320,7 @@ namespace MUSIC {
                  (*c)->finalize ();
 
                }
-             multi_connector->tick();
+             multiConnectors[multid]->tick();
            }
          schedule.clear();
         // if (MPI::COMM_WORLD.Get_rank() == 0)

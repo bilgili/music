@@ -58,8 +58,8 @@ namespace MUSIC {
     class MultiCommObject: public CommObject
     {
     public:
-      MultiConnector *connector;
-      MultiCommObject(double time_, MultiConnector *connector_):CommObject(time_),connector(connector_){};
+      unsigned int connector;
+      MultiCommObject(double time_, unsigned int connector_):CommObject(time_),connector(connector_){};
     };
 
     std::vector<MultiCommObject> schedule;
@@ -71,6 +71,7 @@ namespace MUSIC {
                                   MPI::Intracomm comm,
                                   int leader,
                                   std::vector<Connector*>& connectors);
+    bool create (Clock& localTime);
     bool tick(Clock& localTime);
     void finalize (std::set<int> &cnn_ports);
 

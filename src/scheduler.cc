@@ -264,6 +264,8 @@ namespace MUSIC {
 	iter_node = 0;
       }
 }
+
+#if 0
   void
   Scheduler::createMultiConnectors (Clock localTime,
 				    std::vector<Connector*>& connectors,
@@ -474,6 +476,8 @@ namespace MUSIC {
 	      {
 		if (!multiProxies[multiProxyId])
 		  {
+		    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+			      << ": *" << std::endl << std::flush;
 		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
 		    MPI::COMM_WORLD.Barrier ();
 		    //*fixme* Impossible to delete the following object
@@ -499,6 +503,7 @@ namespace MUSIC {
       delete connsToFinalize;
     
   }
+#endif
 
 
 /*
@@ -553,23 +558,41 @@ namespace MUSIC {
 //           done = (*it)->fillSchedule();
 //       }while( schedule[0].first <= localTime.time());
 //   }
-   void
-   Scheduler::tick (Clock& localTime)
-   {
-     bool done = false;
-     do
-       {
-         for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
+  void
+  Scheduler::resetClocks ()
+  {
+    for (std::vector<Node*>::iterator node = nodes.begin ();
+	 node != nodes.end ();
+	 ++node)
+      (*node)->resetClock ();
+
+    for (std::vector<SConnection*>::iterator conn = connections.begin ();
+	 conn != connections.end ();
+	 ++conn)
+      {
+	(*conn)->resetClocks ();
+	(*conn)->advance ();
+      }
+  }
+
+  void
+  Scheduler::tick (Clock& localTime)
+  {
+    bool done = false;
+    do
+      {
+	for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
              it != agents_.end() && !done;
              it++)
-           {
-             if ( (*it)->tick(localTime))
-               done = true;
-           }
-       }
-     while(!done);
+	  {
+	    if ( (*it)->tick(localTime))
+	      done = true;
+	  }
+      }
+    while(!done);
 
-   }
+  }
+
    void
    Scheduler::finalize (Clock& localTime,
        std::vector<Connector*>& connectors)

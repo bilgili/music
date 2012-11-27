@@ -275,7 +275,7 @@ namespace MUSIC {
   {
     unsigned int multiId = 0;
     unsigned int proxyId = 0;
-    MUSIC_LOG0 ("Time: "<< time.time() << std::endl << "MultiConnector:");
+    MUSIC_LOG0 ("SelfNode: " << scheduler_->self_node << " Time: "<< time.time() << std::endl << "MultiConnector:");
     for (std::vector<Scheduler::SConnection>::iterator it = first;
         it != last;
         it++)
@@ -295,6 +295,7 @@ namespace MUSIC {
   void
   MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
+    std::cerr <<"fin:"<< MPI::COMM_WORLD.Get_rank() << std::endl;
     std::vector< MultiCommObject>::iterator comm;
     bool done;
     do

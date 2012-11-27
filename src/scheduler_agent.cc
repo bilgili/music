@@ -89,12 +89,6 @@ namespace MUSIC {
   {
     multiBuffer_ = new MultiBuffer (comm, leader, connectors);
     multiConnectors.resize (Connector::idRange ());
-#if 0
-    scheduler_->createMultiConnectors (localTime,
-        connectors,
-        multiBuffer_,
-        multiConnectors);
-#else
     multiProxies = new std::vector<bool>;
     multiProxies->resize (Connector::proxyIdRange ());
 
@@ -104,8 +98,6 @@ namespace MUSIC {
         ++self_node)
       {
         scheduler_->setSelfNode (self_node);
-
-        localTime.reset ();
 
         create (localTime);
 
@@ -120,12 +112,13 @@ namespace MUSIC {
         //finalize
         schedule.clear ();
 
+        localTime.reset ();
         // Now reset node and connection clocks to starting values
         scheduler_->resetClocks ();
       }
+
     scheduler_->setSelfNode (savedSelfNode);
     delete multiProxies;
-#endif
   }
 
   std::vector<Connector*>

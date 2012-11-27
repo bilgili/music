@@ -86,11 +86,8 @@ namespace MUSIC {
     std::vector<bool>* multiProxies;    
     std::vector<Connector*> connectorsFromMultiId (unsigned int multiId);
     bool fillSchedule();
-    void fillSchedule( SConnectionV &candidates);
-    SConnectionV::iterator  NextMultiConnection(SConnectionV::iterator &last_bound,
-        SConnectionV::iterator last,
-        std::map<int, Clock> &prevCommTime);
-    void printMulticonn(Clock time,SConnectionV::iterator first, SConnectionV::iterator last);
+    void NextMultiConnection(SConnectionV &candidates);
+    void scheduleMulticonn(Clock &time,SConnectionV::iterator first, SConnectionV::iterator last);
 
     friend class Filter1;
     friend class Filter2;

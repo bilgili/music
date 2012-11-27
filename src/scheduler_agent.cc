@@ -208,109 +208,87 @@ namespace MUSIC {
             nextSConnections.push_back(last_sconn);
             last_sconn = scheduler_->nextSConnection();
           }while(last_sconn.getConnector()->idFlag() && last_sconn.nextReceive() == time);
-        fillSchedule( nextSConnections);
+        NextMultiConnection( nextSConnections);
         scheduler_->last_sconn_ = last_sconn;
         return last_sconn.getConnector()->idFlag();
     }
     return false;
   }
   void
-  MulticommAgent::fillSchedule(SConnectionV &candidates)
+  MulticommAgent::NextMultiConnection(SConnectionV &candidates)
   {
-    time_ = candidates[0].nextReceive();
 
-    SConnectionV::iterator cur_bound = candidates.begin();
-    SConnectionV::iterator start_bound;
-    SConnectionV::iterator end_bound;
+    time_ = candidates[0].nextReceive();
     std::map<int, Clock> prevCommTime;
+    SConnectionV::iterator iter_bound = candidates.begin();
+    SConnectionV::iterator cur_bound = candidates.begin();
     do
       {
-        start_bound = cur_bound;
-        end_bound = NextMultiConnection(cur_bound, candidates.end(), prevCommTime);
-        printMulticonn(time_, start_bound, end_bound);
-      }
-    while(end_bound != candidates.end());
-  }
-  SConnectionV::iterator
-  MulticommAgent::NextMultiConnection(std::vector<Scheduler::SConnection>::iterator &cur_bound,
-      SConnectionV::iterator last,
-      std::map<int, Clock> &prevCommTime)
-  {
-    SConnectionV::iterator iter_bound = cur_bound;
-    SConnectionV::iterator res_bound;
-    SConnectionV::iterator start_bound = cur_bound;
-    bool merge = true;
+        SConnectionV::iterator start_bound = cur_bound;
+        cur_bound = iter_bound;
+        bool merge = true;
 
-    while(merge && iter_bound !=last)
-      {
-
-        commTimes.clear();
-        rNodes=0;
-
-        iter_bound = std::stable_partition (std::stable_partition (cur_bound, last, *filter1),
-            last,
-            *filter2);
-
-        //postpone sends in the multiconn for consistency
-        for(SConnectionV::iterator it = cur_bound;
-            it != iter_bound;
-            it++)
+        while(merge && iter_bound !=candidates.end())
           {
 
-          (*it).postponeNextSend(commTimes[(*it).preNode()->getId()]);
-          }
+            commTimes.clear();
+            rNodes=0;
 
-        //merge multiconn with the previous multiconn:
-        // (to lump together connections called sequentially)
-        for(std::map<int,Clock>::iterator it = prevCommTime.begin();
-            merge && it != prevCommTime.end();
-            it++)
-          if(commTimes.count((*it).first)>0
-              && (*it).second != commTimes[(*it).first])
-            merge = false;
+            iter_bound = std::stable_partition (std::stable_partition (cur_bound, candidates.end(), *filter1),
+                candidates.end(),
+                *filter2);
 
-        if(merge)
-          {
-            cur_bound = iter_bound;
-            prevCommTime.insert(commTimes.begin(), commTimes.end());
+            //postpone sends in the multiconn for consistency
+            for(SConnectionV::iterator it = cur_bound;
+                it != iter_bound;
+                it++)
+              {
+
+                (*it).postponeNextSend(commTimes[(*it).preNode()->getId()]);
+              }
+
+            //merge multiconn with the previous multiconn:
+            // (to lump together connections called sequentially)
+            for(std::map<int,Clock>::iterator it = prevCommTime.begin();
+                merge && it != prevCommTime.end();
+                it++)
+              if(commTimes.count((*it).first)>0
+                  && (*it).second != commTimes[(*it).first])
+                merge = false;
+
+            if(merge)
+              {
+                cur_bound = iter_bound;
+                prevCommTime.insert(commTimes.begin(), commTimes.end());
+              }
           }
+        std::map<int, Clock>::iterator id_iter;
+        if ((id_iter = prevCommTime.find (scheduler_->self_node))
+            != prevCommTime.end ())
+          scheduleMulticonn((*id_iter).second, start_bound,cur_bound);
+        prevCommTime = commTimes;
       }
-    unsigned int multiId = 0;
-    unsigned int proxyId = 0;
-    Clock nextcomm;
-    std::map<int, Clock>::iterator id_iter;
-    if ((id_iter = prevCommTime.find (scheduler_->self_node))
-	!= prevCommTime.end ())
-      {
-	for (std::vector<Scheduler::SConnection>::iterator it = start_bound;
-	     it != cur_bound;
-	     it++)
-	  {
-	    if ((*it).getConnector ()->isProxy ())
-	      proxyId |= (*it).getConnector ()->idFlag ();
-	    else
-	      multiId |= (*it).getConnector ()->idFlag ();
-	  }
-	schedule.push_back (MultiCommObject (id_iter->second.time (),
-					     multiId,
-					     proxyId));
-      }
-    res_bound = cur_bound;
-    cur_bound = iter_bound;
-    prevCommTime = commTimes;
-    return  res_bound;
+    while(cur_bound != candidates.end());
   }
   void
-  MulticommAgent::printMulticonn(Clock time, std::vector<Scheduler::SConnection>::iterator first,
-      std::vector<Scheduler::SConnection>::iterator last)
+  MulticommAgent::scheduleMulticonn(Clock &time,SConnectionV::iterator first, SConnectionV::iterator last)
   {
+    unsigned int multiId = 0;
+    unsigned int proxyId = 0;
     MUSIC_LOG0 ("Time: "<< time.time() << std::endl << "MultiConnector:");
-    for( std::vector<Scheduler::SConnection>::iterator it = first;
+    for (std::vector<Scheduler::SConnection>::iterator it = first;
         it != last;
         it++)
       {
+        if ((*it).getConnector ()->isProxy ())
+          proxyId |= (*it).getConnector ()->idFlag ();
+        else
+          multiId |= (*it).getConnector ()->idFlag ();
         MUSIC_LOG0 ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
+    schedule.push_back (MultiCommObject (time.time (),
+        multiId,
+        proxyId));
   }
 
 

@@ -312,42 +312,53 @@ namespace MUSIC {
         MUSIC_LOG0 ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
   }
+
+
   void
-  MulticommAgent::finalize(std::set<int> &cnn_ports)
+  MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
     std::vector< MultiCommObject>::iterator comm;
     bool done;
-     do
-       {
-         done = fillSchedule();
-         for(comm = schedule.begin(); comm != schedule.end() && !cnn_ports.empty(); comm++)
-           {
-             unsigned int multid = (*comm).multiId ();
-             std::vector<Connector*> conns = connectorsFromMultiId (multid);
-             for (std::vector<Connector*>::iterator c = conns.begin(); c != conns.end(); c++)
-               {
-                 if ((*c) == NULL
-                     || (cnn_ports.find ((*c)->receiverPortCode ())
-                         == cnn_ports.end ()))
-                   continue;
-                 if ((*c)->isFinalized ())
-                   // an output port was finalized in tick ()
-                   {
-                     cnn_ports.erase ((*c)->receiverPortCode ());
-                     continue;
-                   }
-                 // finalize () needs to come after isFinalized check
-                 // since it can itself set finalized state
-                 (*c)->finalize ();
+    do
+      {
+	done = fillSchedule ();
+	for (comm = schedule.begin ();
+	     comm != schedule.end () && !cnn_ports.empty ();
+	     ++comm)
+	  {
+	    unsigned int multiId = (*comm).multiId ();
+	    if (multiId != 0)
+	      {
+		std::vector<Connector*> conns = connectorsFromMultiId (multiId);
+		for (std::vector<Connector*>::iterator c = conns.begin ();
+		     c != conns.end ();
+		     ++c)
+		  {
+		    if ((*c) == NULL
+			|| (cnn_ports.find ((*c)->receiverPortCode ())
+			    == cnn_ports.end ()))
+		      continue;
+		    if ((*c)->isFinalized ())
+		      // an output port was finalized in tick ()
+		      {
+			cnn_ports.erase ((*c)->receiverPortCode ());
+			continue;
+		      }
+		    // finalize () needs to come after isFinalized check
+		    // since it can itself set finalized state
+		    (*c)->finalize ();
 
-              }
-            multiConnectors[multid]->tick();
+		  }
+		multiConnectors[multiId]->tick ();
+	      }
           }
-        schedule.clear();
+        schedule.clear ();
         // if (MPI::COMM_WORLD.Get_rank() == 0)
         // std::cerr << MPI::COMM_WORLD.Get_rank() <<":" <<*cnn_ports.begin()<< std::endl;
-      }while (done && !cnn_ports.empty());
+      } while (done && !cnn_ports.empty ());
   }
+
+
   UnicommAgent::UnicommAgent(Scheduler *scheduler):SchedulerAgent(scheduler)
   {
 

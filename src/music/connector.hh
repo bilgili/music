@@ -203,6 +203,7 @@ namespace MUSIC {
       : senderLeader_ (senderLeader), senderNProcs_ (senderNProcs),
 	receiverLeader_ (receiverLeader), receiverNProcs_ (receiverNProcs)
     { idFlag_ = makeProxyFlag (); }
+    ProxyConnector (){idFlag_ =0;}
     bool isProxy () const { return true; }
     void tick () { }
     void setNode (int nodeId)

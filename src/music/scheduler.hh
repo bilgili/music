@@ -82,7 +82,7 @@ namespace MUSIC {
 		   int maxBuffered, bool interpolate,
 		   bool multiComm, int port_code);
       void initialize(std::vector<Node*> &nodes);
-      void resetClocks () { nextSend_.reset (); nextReceive_.reset (); }
+      void resetClocks () { nextSend_.reset (); nextReceive_.reset (); sSend_.reset();}
       void advance();
       Clock nextSend() const { return nextSend_; }
       Clock nextReceive() const { return nextReceive_; }

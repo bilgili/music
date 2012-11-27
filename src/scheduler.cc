@@ -216,8 +216,9 @@ namespace MUSIC {
 	      }
 	  }
 #if 1
-	if (!foundLocalConnector && (*conn)->needsMultiCommunication ())
+	if (!foundLocalConnector )
 	  {
+	    if((*conn)->needsMultiCommunication ())
 	    (*conn)->setConnector
 	      (new ProxyConnector ((*conn)->preNode ()->getId (),
 				   (*conn)->preNode ()->leader (),
@@ -225,6 +226,8 @@ namespace MUSIC {
 				   (*conn)->postNode ()->getId (),
 				   (*conn)->postNode ()->leader (),
 				   (*conn)->postNode ()->nProcs ()));
+	    else
+	      (*conn)->setConnector(new ProxyConnector ());
 	  }
 #endif
       }

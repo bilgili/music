@@ -35,7 +35,7 @@ namespace MUSIC {
         multCommObj_.rNodes |= 1 << rId;
         //take most later scheduled send time for each node
         multCommObj_.commTimes[rId] = multCommObj_.time_;
-        if(multCommObj_.commTimes.count(sId)==0 || conn.scheduledSend() > multCommObj_.commTimes[sId])
+        if(conn.scheduledSend() >= multCommObj_.commTimes[sId])
           multCommObj_.commTimes[sId] = conn.scheduledSend();
         return true;
       }

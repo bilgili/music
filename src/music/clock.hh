@@ -60,7 +60,7 @@ namespace MUSIC {
     ClockState tickInterval_;
     double timebase_;
   public:
-    Clock () { };
+    Clock () { state_ = 0; };
     Clock (double tb, double h);
     void configure (double tb, ClockState ti);
     void reset ();
@@ -72,7 +72,7 @@ namespace MUSIC {
     double time () const;
     ClockState integerTime () { return state_; }
     void set (ClockState state) { state_ = state; }
-    bool operator> (const Clock& ref) const { return state_ > ref.state_; }
+    bool operator>= (const Clock& ref) const { return state_ >= ref.state_; }
     bool operator<= (const Clock& ref) const { return state_ <= ref.state_; }
     bool operator!= (const Clock& ref) const {return state_ != ref.state_;}
     bool operator== (const Clock& ref) const { return state_ == ref.state_; }

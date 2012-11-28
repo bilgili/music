@@ -108,6 +108,7 @@ namespace MUSIC {
     int iter_conn;
     double compTime;
     std::vector<SchedulerAgent *> agents_;
+    std::vector<SchedulerAgent *>::iterator cur_agent_;
     SConnection last_sconn_;
     //std::vector<std::pair<double, Connector *> > schedule;
   public:

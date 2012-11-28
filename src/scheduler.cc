@@ -231,6 +231,7 @@ namespace MUSIC {
 	  }
 #endif
       }
+        cur_agent_ = agents_.begin();
         last_sconn_ = nextSConnection();
   }
 
@@ -582,19 +583,16 @@ namespace MUSIC {
   void
   Scheduler::tick (Clock& localTime)
   {
+    // tick is done when at least one of the agent will schedule the future communication
+    //this algorithm is based on the fact that nextSConnection return strictly time ordered SConnections
     bool done = false;
-    do
+    for (;!done; cur_agent_++)
       {
-	for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
-             it != agents_.end() && !done;
-             it++)
-	  {
-	    if ( (*it)->tick(localTime))
-	      done = true;
-	  }
+        if( cur_agent_ == agents_.end())
+          cur_agent_ = agents_.begin();
+        if ( (*cur_agent_)->tick(localTime))
+          done = true;
       }
-    while(!done);
-
   }
 
    void
@@ -610,17 +608,13 @@ namespace MUSIC {
          ++c)
        cnn_ports.insert ((*c)->receiverPortCode ());
 
-     do
+     for (;!cnn_ports.empty (); cur_agent_++)
        {
-         for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
-             it != agents_.end() && !cnn_ports.empty ();
-             it++)
-            (*it)->finalize(cnn_ports);
-
-       } while (!cnn_ports.empty ());
-
+         if( cur_agent_ == agents_.end())
+           cur_agent_ = agents_.begin();
+         (*cur_agent_)->finalize(cnn_ports);
+       }
    }
-
 
 }
 

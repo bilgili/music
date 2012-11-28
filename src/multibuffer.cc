@@ -432,7 +432,8 @@ namespace MUSIC {
   MultiConnector::initialize ()
   {
     std::ostringstream ostr;
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": ";
+    std::ostringstream idstr;
+    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
     {
       int nRanges = groupMap_->size ();
       int (*range)[3] = new int[nRanges][3];
@@ -444,6 +445,7 @@ namespace MUSIC {
 	  int leader = g->first;
 	  int size = g->second;
 	  ostr << leader << ", ";
+	  idstr << leader;
 	  range[i][0] = leader;
 	  range[i][1] = leader + size - 1;
 	  range[i][2] = 1;
@@ -454,6 +456,7 @@ namespace MUSIC {
     }
     ostr << std::endl;
     std::cout << ostr.str () << std::flush;
+    id_ = "mc" + idstr.str ();
 
     if (group_.Get_size () < MPI::COMM_WORLD.Get_size ())
       comm_ = MPI::COMM_WORLD.Create (group_);
@@ -525,6 +528,7 @@ namespace MUSIC {
       {
 	Block* block = block_[r];
 	int newRecvcount = blank_[r] ? 0 : block->size ();
+	//int newRecvcount = block->size ();
 	if (!restructuring_ && r == rank () && newRecvcount > recvcounts_[r])
 	  // Another MultiConnector has caused MultiBuffer
 	  // restructuring.  We need to postpone modifying recvcount
@@ -604,11 +608,26 @@ namespace MUSIC {
 
 
   void
+  dumprecvc (std::string id, int* recvc, int n)
+  {
+    std::ostringstream ostr;
+    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+	 << id << ": Allgather "
+	 << *recvc;
+    for (int i = 1; i < n; ++i)
+      ostr << ", " << recvc[i];
+    ostr << std::endl;
+    std::cout << ostr.str () << std::flush;
+  }
+
+
+  void
   MultiConnector::tick ()
   {
     if (writeSizes ())
       // Data will fit
       fillBuffers ();
+    dumprecvc (id_, recvcounts_, comm_.Get_size ());
     comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 		      buffer_, recvcounts_, displs_, MPI::BYTE);
     for (BlockPtrs::iterator b = block_.begin ();
@@ -621,6 +640,7 @@ namespace MUSIC {
 	  restructuring_ = false;
 	  recvcountInvalid_ = false;
 	  fillBuffers ();
+	  dumprecvc (id_, recvcounts_, comm_.Get_size ());
 	  comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			    buffer_, recvcounts_, displs_, MPI::BYTE);
 	  break;

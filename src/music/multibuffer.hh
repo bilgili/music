@@ -256,6 +256,7 @@ namespace MUSIC {
     typedef std::map<int, bool> BlankMap;
     BlankMap* blankMap_;
     bool* blank_;
+    std::string id_; // used for debugging
     int* recvcounts_;
     int* displs_;
     bool recvcountInvalid_;

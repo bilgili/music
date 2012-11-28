@@ -576,7 +576,7 @@ namespace MUSIC {
 	(*conn)->resetClocks ();
 	(*conn)->advance ();
       }
-    last_sconn_ = nextSConnection();
+
   }
 
   void

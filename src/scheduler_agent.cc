@@ -115,6 +115,7 @@ namespace MUSIC {
         localTime.reset ();
         // Now reset node and connection clocks to starting values
         scheduler_->resetClocks ();
+        scheduler_->last_sconn_ = scheduler_->nextSConnection();
       }
 
     scheduler_->setSelfNode (savedSelfNode);
@@ -366,7 +367,7 @@ namespace MUSIC {
         last_sconn = scheduler_->nextSConnection();
       }
     scheduler_->last_sconn_ = last_sconn;
-    return true;
+    return !schedule.empty();
 
   }
   bool

@@ -527,8 +527,8 @@ namespace MUSIC {
     for (int r = 0; r < size (); ++r)
       {
 	Block* block = block_[r];
-	int newRecvcount = blank_[r] ? 0 : block->size ();
-	//int newRecvcount = block->size ();
+	//int newRecvcount = blank_[r] ? 0 : block->size ();
+	int newRecvcount = block->size ();
 	if (!restructuring_ && r == rank () && newRecvcount > recvcounts_[r])
 	  // Another MultiConnector has caused MultiBuffer
 	  // restructuring.  We need to postpone modifying recvcount

@@ -311,6 +311,7 @@ namespace MUSIC {
 	    if (multiId != 0)
 	      {
 		std::vector<Connector*> conns = connectorsFromMultiId (multiId);
+		multiId = 0;
 		for (std::vector<Connector*>::iterator c = conns.begin ();
 		     c != conns.end ();
 		     ++c)
@@ -325,12 +326,14 @@ namespace MUSIC {
 			cnn_ports.erase ((*c)->receiverPortCode ());
 			continue;
 		      }
+		    multiId |= (*c)->idFlag ();
 		    // finalize () needs to come after isFinalized check
 		    // since it can itself set finalized state
 		    (*c)->finalize ();
 
 		  }
-		multiConnectors[multiId]->tick ();
+		if (multiId != 0)
+		  multiConnectors[multiId]->tick ();
 	      }
           }
         schedule.clear ();

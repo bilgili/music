@@ -49,19 +49,21 @@ namespace MUSIC {
   void
   DirectRouter::setOutputBuffer (void* buffer, unsigned int size)
   {
-    if (size - size_ != extra_.size ())
+    if (size == size_)
       {
-#if 0
-	std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-		  << ": DirectRouter: Had " << extra_.size ()
-		  << " extra spike space, size changed from "
-		  << size_ << " to " << size << " = " << size - size_
-		  << std::endl;
-#endif
-	assert (size == size_);
+	// Buffer relocated
 	buffer_ = static_cast<char*> (buffer);
 	return;
       }
+#if 0
+    if (size - size_ != extra_.size ())
+      std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+		<< ": DirectRouter: Had " << extra_.size ()
+		<< " extra spike space, size changed from "
+		<< size_ << " to " << size << " = " << size - size_
+		<< std::endl;
+#endif
+    assert (size - size_ == extra_.size ());
     buffer_ = static_cast<char*> (buffer);
     memcpy (buffer_ + size_, &extra_[0], extra_.size ());
     extra_.clear ();

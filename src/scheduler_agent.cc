@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <cassert>
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
 #endif
@@ -333,7 +334,12 @@ namespace MUSIC {
 
 		  }
 		if (multiId != 0)
-		  multiConnectors[multiId]->tick ();
+		  {
+		    // If the following assert fails, the
+		    // multiConnector has not been created in create
+		    assert (multiConnectors[multiId] != NULL);
+		    multiConnectors[multiId]->tick ();
+		  }
 	      }
           }
         schedule.clear ();

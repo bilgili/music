@@ -179,7 +179,7 @@ namespace MUSIC {
 		for (int i = 1; i <= multiId; ++i)
 		  {
 		    unsigned int id = multiId & i;
-		    if (multiConnectors[id] == NULL)
+		    if (id != 0 && multiConnectors[id] == NULL)
 		      {
 			std::vector<Connector*> connectors
 			  = connectorsFromMultiId (id);

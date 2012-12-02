@@ -811,15 +811,9 @@ EventOutputCollectiveSubconnector::flush (bool& dataStillFlowing)
 {
   if (!flushed)
     {
-      if (router_->dataSize () > 0)
-	{
-	  MUSIC_LOGR ("sending data remaining in buffers");
-	  dataStillFlowing = true;
-	}
-      else
-	{
-	  router_->processEvent (0.0, FLUSH_MARK);
-	}
+      router_->processEvent (0.0, FLUSH_MARK);
+      // put FLUSH_MARK first in buffer and save first event last
+      router_->swapFirstLast ();
     }
 }
 
@@ -831,14 +825,18 @@ EventInputCollectiveSubconnector::processData (void* data, unsigned int size)
     return;
   Event* e = static_cast<Event*> (data);
   if (e->id == FLUSH_MARK)
-    flushed = true; // we expect every sender process to flush simultaneously
-  else
-    while (size > 0)
-      {
-	router_->processEvent (e->t, e->id);
-	++e;
-	size -= sizeof (Event);
-      }
+    {
+      // restore first event which was saved last in the buffer
+      size -= sizeof (Event);
+      *e = *static_cast<Event*> (data + size);
+      flushed = true; // we expect every sender process to flush simultaneously
+    }
+  while (size > 0)
+    {
+      router_->processEvent (e->t, e->id);
+      ++e;
+      size -= sizeof (Event);
+    }
 }
 
 

@@ -211,6 +211,7 @@ namespace MUSIC {
 	processExtra (t, id);
     }
     void processExtra (double t, int id);
+    void swapFirstLast ();
     void setOutputBuffer (void* buffer, unsigned int size);
     void fillOutputBuffer () { pos_ = 0; }
   };

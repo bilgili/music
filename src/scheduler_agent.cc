@@ -176,22 +176,30 @@ namespace MUSIC {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
 	      {
-		if (multiConnectors[multiId] == NULL)
+		for (int i = 1; i <= multiId; ++i)
 		  {
-		    std::vector<Connector*> connectors
-		      = connectorsFromMultiId (multiId);
-		    multiConnectors[multiId]
-		      = new MultiConnector (multiBuffer_, connectors);
+		    unsigned int id = multiId & i;
+		    if (multiConnectors[id] == NULL)
+		      {
+			std::vector<Connector*> connectors
+			  = connectorsFromMultiId (id);
+			multiConnectors[id]
+			  = new MultiConnector (multiBuffer_, connectors);
+		      }
 		  }
 	      }
 	    else
 	      {
 		unsigned int proxyId = (*comm).proxyId ();
-		if (proxyId != 0 && !(*multiProxies)[proxyId])
+		for (int i = 1; i <= proxyId; ++i)
 		  {
-		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-		    MPI::COMM_WORLD.Barrier ();		
-		    (*multiProxies)[proxyId] = true;
+		    unsigned int id = proxyId & i;
+		    if (id != 0 && !(*multiProxies)[id])
+		      {
+			MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+			MPI::COMM_WORLD.Barrier ();		
+			(*multiProxies)[id] = true;
+		      }
 		  }
 	      }
 	  }

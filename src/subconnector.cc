@@ -827,6 +827,8 @@ EventOutputCollectiveSubconnector::flush (bool& dataStillFlowing)
 void
 EventInputCollectiveSubconnector::processData (void* data, unsigned int size)
 {
+  if (size == 0)
+    return;
   Event* e = static_cast<Event*> (data);
   if (e->id == FLUSH_MARK)
     flushed = true; // we expect every sender process to flush simultaneously

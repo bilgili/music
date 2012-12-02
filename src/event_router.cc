@@ -19,6 +19,7 @@
 #include "music/event.hh"
 #include "music/event_router.hh"
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 
@@ -44,6 +45,15 @@ namespace MUSIC {
     Event* e = static_cast<Event*> (static_cast<void*> (&extra_[pos]));
     e->t = t;
     e->id = id;
+  }
+
+  void
+  DirectRouter::swapFirstLast ()
+  {
+    Event* first = static_cast<Event*> (static_cast<void*> (buffer_));
+    char* p = pos_ < size_ ? buffer_ + pos_ : &extra_[0] + extra_.size ();
+    Event* last = static_cast<Event*> (static_cast<void*> (p - sizeof (Event)));
+    std::swap (*first, *last);
   }
 
   void

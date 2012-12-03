@@ -122,11 +122,6 @@ namespace MUSIC {
 	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
 	return *headerPtr (buffer + offset);
       }
-      void clearErrorFlag (BufferType buffer)
-      {
-	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
-	*headerPtr (buffer + offset) = false;
-      }
       void clearBufferErrorFlag (BufferType buffer)
       {
 	*headerPtr (buffer + start_) = false;

@@ -274,7 +274,6 @@ namespace MUSIC {
 	  }
 	else
 	  {
-	    b->clearErrorFlag (buffer_);
 	    unsigned int lastStart = newStart;
 	    // at least one of the buffers requires more storage
 	    int i = b->nBuffers () - 1;
@@ -305,9 +304,10 @@ namespace MUSIC {
 	      }
 	    b->setStart (newStart);
 	    b->setSize (blockSize);
-	    b->clearBufferErrorFlag (buffer_);
 	  }
+	b->clearBufferErrorFlag (buffer_);
       }
+    clearErrorFlag ();
 
     // update all existing multiConnectors
     for (std::vector<Updateable*>::iterator c = multiConnectors.begin ();

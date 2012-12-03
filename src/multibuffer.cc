@@ -111,6 +111,9 @@ namespace MUSIC {
 	Blocks::iterator pos = getBlock (outputLeader);
 	if (pos == block_.end () || pos->rank () != outputLeader)
 	  {
+	    // outputLeader not found in block_
+	    // fill it in, creating one new Block for each rank
+	    // with one BufferInfo per Block
 	    int i = pos - block_.begin ();
 	    block_.insert (pos, outputSize, Block ());
 	    pos = block_.begin () + i;
@@ -125,6 +128,8 @@ namespace MUSIC {
 	  }
 	else
 	  {
+	    // outputLeader's group of ranks already had Blocks in block_
+	    // Insert one BufferInfo per Block
 	    for (BufferInfos::iterator bi = isi.begin ();
 		 bi != isi.end ();
 		 ++bi, ++pos)
@@ -136,6 +141,8 @@ namespace MUSIC {
 	pos = getBlock (inputLeader);
 	if (pos == block_.end () || pos->rank () != inputLeader)
 	  {
+	    // inputLeader's group of ranks were not represented in block_
+	    // Create empty Block:s for them
 	    int i = pos - block_.begin ();
 	    block_.insert (pos, inputSize, Block ());
 	    pos = block_.begin () + i;
@@ -197,11 +204,14 @@ namespace MUSIC {
   MultiBuffer::computeSize ()
   {
     // compute required total size
-    unsigned int size = 0;
+    unsigned int summedSize = 0;
+    unsigned int thisRankSize = 0;
+    int thisRank = MPI::COMM_WORLD.Get_rank ();
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
+	unsigned int size;
 	if (!b->errorFlag (buffer_))
-	  size += b->size ();
+	  size = b->size ();
 	else
 	  {
 	    // this block requires more space
@@ -220,10 +230,13 @@ namespace MUSIC {
 		else
 		  blockSize += (*bi)->size ();
 	      }
-	    size += std::max (errorBlockSize_, blockSize);
+	    size = std::max (errorBlockSize_, blockSize);
 	  }
+	summedSize += size;
+	if (b->rank () == thisRank)
+	  thisRankSize = size;
       }
-    return errorBlockSize_ + size;
+    return thisRankSize + summedSize;
   }
 
 

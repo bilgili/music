@@ -52,6 +52,15 @@ namespace MUSIC {
      *
      * A block with a set ERRORFLAG is prepared at and sent from
      * displacement 0.
+     *
+     * inputConnectorMap associates each Connector with an
+     * InputSubconnectorInfo.  This data structure contains a vector
+     * of BufferInfo, one for each rank in the corresponding
+     * OutputConnector.
+     *
+     * outputConnectorMap associates each OutputConnector with an
+     * OutputSubconnectorInfo containing a pointer to the BufferInfo
+     * corresponding to this rank.
      */
   public:
     typedef char* BufferType;

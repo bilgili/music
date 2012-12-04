@@ -291,7 +291,9 @@ namespace MUSIC {
 		(*bi)->setStart (newStart);
 		newStart -= sizeof (HeaderType);
 		// only touch buffer contents if the block belongs to
-		// current rank => error staging area is used
+		// current rank => error staging area is used for
+		// requested buffer sizes and buffer contains output
+		// data
 		if (b->rank () == MPI::COMM_WORLD.Get_rank ()
 		    && newStart > oldPos)
 		  memmove (buffer_ + newStart,

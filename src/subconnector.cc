@@ -828,7 +828,8 @@ EventInputCollectiveSubconnector::processData (void* data, unsigned int size)
     {
       // restore first event which was saved last in the buffer
       size -= sizeof (Event);
-      *e = *static_cast<Event*> (data + size);
+      char* d = static_cast<char*> (data);
+      *e = *static_cast<Event*> (static_cast<void*> (d + size));
       flushed = true; // we expect every sender process to flush simultaneously
     }
   while (size > 0)

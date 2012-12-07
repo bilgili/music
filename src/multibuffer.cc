@@ -432,6 +432,8 @@ namespace MUSIC {
 	// BUT: Do we need to sort the connectors? We do if the
 	// scheduler can deliver connectors in different order in
 	// different applications.
+	connectorIds_.push_back (std::make_pair (connector->remoteLeader (),
+						 multiBuffer_->localLeader ()));
 	mergeGroup (multiBuffer_->localLeader (), true);
 	mergeGroup ((connector)->remoteLeader (), false);
 	inputSubconnectorInfo_.push_back (multiBuffer_
@@ -439,6 +441,8 @@ namespace MUSIC {
       }
     else
       {
+	connectorIds_.push_back (std::make_pair (multiBuffer_->localLeader (),
+						 connector->remoteLeader ()));
 	mergeGroup ((connector)->remoteLeader (), true);
 	mergeGroup (multiBuffer_->localLeader (), false);
 	outputSubconnectorInfo_.push_back (multiBuffer_
@@ -450,7 +454,6 @@ namespace MUSIC {
   MultiConnector::initialize ()
   {
     std::ostringstream ostr;
-    std::ostringstream idstr;
     ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
     {
       int nRanges = groupMap_->size ();
@@ -463,7 +466,6 @@ namespace MUSIC {
 	  int leader = g->first;
 	  int size = g->second;
 	  ostr << leader << ", ";
-	  idstr << leader;
 	  range[i][0] = leader;
 	  range[i][1] = leader + size - 1;
 	  range[i][2] = 1;
@@ -474,7 +476,15 @@ namespace MUSIC {
     }
     ostr << std::endl;
     std::cout << ostr.str () << std::flush;
-    id_ = "mc" + idstr.str ();
+
+    sort (connectorIds_.begin (), connectorIds_.end ());
+    std::ostringstream idstr_;
+    std::vector<std::pair<int, int> >::iterator cid = connectorIds_.begin ();
+    idstr_ << cid->first << cid->second;
+    ++cid;
+    for (; cid != connectorIds_.end (); ++cid)
+      idstr_ << ':' << cid->first << cid->second;
+    id_ = "mc" + idstr_.str ();
 
     if (group_.Get_size () < MPI::COMM_WORLD.Get_size ())
       comm_ = MPI::COMM_WORLD.Create (group_);

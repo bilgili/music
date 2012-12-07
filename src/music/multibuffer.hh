@@ -25,6 +25,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <string>
 
 #if MUSIC_USE_MPI
 
@@ -242,6 +243,7 @@ namespace MUSIC {
   private:
     MultiBuffer* multiBuffer_;
     MultiBuffer::BufferType buffer_;
+    std::vector<std::pair<int, int> > connectorIds_;
 
     typedef MultiBuffer::Block Block;
     typedef MultiBuffer::Blocks Blocks;

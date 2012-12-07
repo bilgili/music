@@ -265,10 +265,6 @@ namespace MUSIC {
   void
   Runtime::initialize ()
   {
-
-    /* renedius
-     * connector's initialization was moved to scheduler->initialize()
-     */
     scheduler->initialize (connectors);
 
     mAgent->createMultiConnectors (localTime, comm, leader_, connectors);

@@ -92,6 +92,7 @@ namespace MUSIC {
   }
 
 
+  //*fixme* use ApplicationMap::applicationFromRank
   void
   ApplicationMapper::selectApplication (int rank)
   {

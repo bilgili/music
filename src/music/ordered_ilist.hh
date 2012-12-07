@@ -222,8 +222,6 @@ namespace MUSIC {
       }
     else
       {
-	if (i == end_ ()) // same index being repeatedly inserted
-	  return hint;
 	if (i < hint.begin_ () || !hint.next_ ().isEmpty ())
 	  return insert (i, NIL);
 	assert (i > end_ ());

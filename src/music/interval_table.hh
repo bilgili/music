@@ -72,7 +72,7 @@ namespace MUSIC {
     };
 
     // was hash_map
-    typedef std::map<DataIndex, PreEntry> PreEntryMap;
+    typedef std::map<PointType, PreEntry> PreEntryMap;
     PreEntryMap* preEntryMap_;
 
     class Entry {

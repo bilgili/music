@@ -1,3 +1,6 @@
+* OrderedIList should be made more generic and handle insertion of
+  indices which already exist in the ilist
+
 * remove ProxyConnector?
 
 * remove multiComm member?

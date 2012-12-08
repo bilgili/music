@@ -358,7 +358,6 @@ namespace MUSIC {
 	int loop;
 	for (loop = 0; &path[loop].pre () != &x; ++loop)
 	  ;
-
 	// Compute how much headroom we have for buffering
 	ClockState totalDelay = 0;
 	for (unsigned int c = loop; c < path.size (); ++c)
@@ -384,12 +383,11 @@ namespace MUSIC {
         // (we could do better by considering constraints form other loops)
 	int loopLength = path.size () - loop;
         ClockState bufDelay = totalDelay / loopLength;
-        for (unsigned int c = 0; c < path.size (); ++c)
+        for (unsigned int c = loop; c < path.size (); ++c)
 	  {
 	    int allowedTicks =  bufDelay / path[c].pre ().tickInterval ();
 	    path[c].setAllowedBuffer (std::min (path[c].allowedBuffer (),
 						allowedTicks));
-
 	  }
 
         return;
@@ -559,7 +557,7 @@ namespace MUSIC {
 				  edge.interpolate,
 				  edge.multiComm,
 				  edge.receiverPort);
-      MUSIC_LOG0 ("Connection added to the schedule:" << edge.remoteNode
+      MUSIC_LOGN (8,"Connection added to the schedule:" << edge.remoteNode
 		  << "->" << node_id
 		  << ";latency =" << edge.accLatency
 		  << ";buffered=" <<edge.maxBuffered

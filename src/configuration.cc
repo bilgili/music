@@ -133,8 +133,9 @@ Configuration::getEnv(char *app_name,  std::string* result)
 {
 #if !defined(__bgp__)
   char* res = getenv (configEnvVarName);
-  if (res != NULL)
-    result->assign (res);
+  if (res == NULL)
+    return;
+  result->assign (res);
   if (result->find (':') != std::string::npos)
     return;
 #endif

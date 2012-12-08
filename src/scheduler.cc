@@ -141,6 +141,8 @@ namespace MUSIC {
       if (bCount < maxBuffered_)
       nextSend_.ticks (maxBuffered_ - bCount);
     */
+  //  if(MPI::COMM_WORLD.Get_rank() == 0)
+  //    std::cerr << maxBuffered_ << std::endl;
     nextSend_.ticks (maxBuffered_+1);
   }
   
@@ -562,6 +564,15 @@ namespace MUSIC {
 //           done = (*it)->fillSchedule();
 //       }while( schedule[0].first <= localTime.time());
 //   }
+  void
+  Scheduler::reset()
+  {
+    resetClocks ();
+    last_sconn_ = nextSConnection();
+    cur_agent_ = agents_.begin();
+    iter_node = 0;
+    iter_conn = -1;
+  }
   void
   Scheduler::resetClocks ()
   {

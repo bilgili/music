@@ -1,6 +1,6 @@
 #include <music/scheduler_agent.hh>
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 
@@ -115,9 +115,7 @@ namespace MUSIC {
 
         localTime.reset ();
         // Now reset node and connection clocks to starting values
-        scheduler_->resetClocks ();
-        scheduler_->last_sconn_ = scheduler_->nextSConnection();
-        scheduler_->cur_agent_ = scheduler_->agents_.begin();
+        scheduler_->reset();
       }
 
     scheduler_->setSelfNode (savedSelfNode);

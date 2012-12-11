@@ -139,6 +139,14 @@ namespace MUSIC {
       {
 	*headerPtr (buffer + start_) &= ~MultiBuffer::ERROR_FLAG;
       }
+      bool finalizeFlag (BufferType buffer) const
+      {
+	return *headerPtr (buffer + start_) & MultiBuffer::FINALIZE_FLAG;
+      }
+      void setFinalizeFlag (BufferType buffer)
+      {
+	*headerPtr (buffer + start_) |= MultiBuffer::FINALIZE_FLAG;
+      }
       unsigned int requestedDataSize (BufferType buffer, int i) const
       {
 	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;

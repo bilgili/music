@@ -146,14 +146,11 @@ namespace MUSIC {
 	  }
 
 	pos = getBlock (inputLeader);
-	ranks = (*rankMap) [inputLeader];
 	if (pos == block_.end () || pos->rank () != inputLeader)
 	  {
 	    // inputLeader's group of ranks were not represented in block_
 	    // Create empty Block:s for them
-	    int i = pos - block_.begin ();
-	    block_.insert (pos, inputSize, Block ());
-	    pos = block_.begin () + i;
+	    ranks = (*rankMap) [inputLeader];
 	    for (int i = 0; i < inputSize; ++i)
 	      {
 		int rank = ranks[i];
@@ -717,13 +714,19 @@ namespace MUSIC {
   bool
   MultiConnector::isFinalized ()
   {
-    return true;
+    bool finalized = true;
+    for (int i = 0; i < size (); ++i)
+      if (!blank_[i] && !block_[i]->finalizeFlag (buffer_))
+	finalized = false;
+    return finalized;
   }
 
 
   void
   MultiConnector::finalize ()
   {
+    if (!blank_[rank ()])
+      block_[rank ()]->setFinalizeFlag (buffer_);
   }
 
 }

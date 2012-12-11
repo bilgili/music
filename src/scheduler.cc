@@ -608,7 +608,7 @@ namespace MUSIC {
 
    void
    Scheduler::finalize (Clock& localTime,
-       std::vector<Connector*>& connectors)
+			std::vector<Connector*>& connectors)
    {
      /* remedius
       * set of receiver port codes that still has to be finalized
@@ -617,13 +617,19 @@ namespace MUSIC {
      for (std::vector<Connector*>::iterator c = connectors.begin ();
          c != connectors.end ();
          ++c)
-       cnn_ports.insert ((*c)->receiverPortCode ());
+       if (!(*c)->needsMultiCommunication ())
+	 cnn_ports.insert ((*c)->receiverPortCode ());
 
-     for (;!cnn_ports.empty (); cur_agent_++)
+     for (std::vector<SchedulerAgent*>::iterator a = agents_.begin ();
+	  a != agents_.end ();
+	  ++a)
+       (*a)->preFinalize (cnn_ports);
+
+     for (; !cnn_ports.empty (); cur_agent_++)
        {
-         if( cur_agent_ == agents_.end())
-           cur_agent_ = agents_.begin();
-         (*cur_agent_)->finalize(cnn_ports);
+         if (cur_agent_ == agents_.end ())
+           cur_agent_ = agents_.begin ();
+         (*cur_agent_)->finalize (cnn_ports);
        }
    }
 

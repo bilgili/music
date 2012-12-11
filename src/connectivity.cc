@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+
 #include "music/music-config.hh"
 
 #include "music/debug.hh"
@@ -25,6 +27,15 @@
 #include "music/error.hh"
 
 namespace MUSIC {
+
+  int ConnectorInfo::maxPortCode_;
+
+  void
+  ConnectorInfo::registerPortCode (int portCode)
+  {
+    ConnectorInfo::maxPortCode_ = std::max (portCode,
+					    ConnectorInfo::maxPortCode_);
+  }
 
   void
   ConnectivityInfo::addConnection (std::string recApp,
@@ -41,9 +52,8 @@ namespace MUSIC {
 					       recCode,
 					       rLeader,
 					       nProc,
-						   commType,
-						   procMethod
-							));
+					       commType,
+					       procMethod));
   }
 
 
@@ -196,6 +206,7 @@ namespace MUSIC {
 	    in.ignore ();
 	    int recPortCode;
 	    in >> recPortCode;
+	    ConnectorInfo::registerPortCode (recPortCode);
 	    in.ignore ();
 	    int rLeader;
 	    in >> rLeader;

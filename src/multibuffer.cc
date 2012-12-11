@@ -384,6 +384,7 @@ namespace MUSIC {
     : multiBuffer_ (multiBuffer),
       recvcountInvalid_ (false)
   {
+    connectorCode_ = ConnectorInfo::allocPortCode ();
     buffer_ = multiBuffer_->buffer ();
     groupMap_ = new GroupMap;
     blankMap_ = new BlankMap;
@@ -673,6 +674,19 @@ namespace MUSIC {
 	  break;
 	}
     processInput ();
+  }
+
+
+  bool
+  MultiConnector::isFinalized ()
+  {
+    return true;
+  }
+
+
+  void
+  MultiConnector::finalize ()
+  {
   }
 
 }

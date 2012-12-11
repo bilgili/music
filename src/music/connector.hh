@@ -131,6 +131,7 @@ namespace MUSIC {
     virtual void specialize (Clock& localTime) { }
 
     unsigned int idFlag () const { return idFlag_; }
+    bool needsMultiCommunication () const { return idFlag (); }
     virtual bool isProxy () const { return false; }
     virtual bool isInput () const { return false; }
     std::string receiverAppName () const { return info.receiverAppName (); }

@@ -67,6 +67,8 @@ namespace MUSIC {
     typedef char* BufferType;
     typedef std::map<unsigned int, unsigned int> GroupMap;
   private:
+    static const unsigned int ERROR_FLAG = 1;
+    static const unsigned int FINALIZE_FLAG = 2;
     typedef unsigned int HeaderType;
 
     static HeaderType* headerPtr (void* ptr)
@@ -121,11 +123,11 @@ namespace MUSIC {
       {
 	//*fixme* Can set start_ to proper offset
 	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
-	return *headerPtr (buffer + offset);
+	return *headerPtr (buffer + offset) & MultiBuffer::ERROR_FLAG;
       }
       void clearBufferErrorFlag (BufferType buffer)
       {
-	*headerPtr (buffer + start_) = false;
+	*headerPtr (buffer + start_) &= ~MultiBuffer::ERROR_FLAG;
       }
       unsigned int requestedDataSize (BufferType buffer, int i) const
       {
@@ -222,12 +224,12 @@ namespace MUSIC {
 
     void clearErrorFlag ()
     {
-      headerPtr (buffer_)[0] = false;
+      headerPtr (buffer_)[0] = 0;
     }
 
     void setErrorFlag ()
     {
-      headerPtr (buffer_)[0] = true;
+      headerPtr (buffer_)[0] |= MultiBuffer::ERROR_FLAG;
     }
 
     void writeRequestedDataSize (int i, unsigned int size)
@@ -243,6 +245,7 @@ namespace MUSIC {
   private:
     MultiBuffer* multiBuffer_;
     MultiBuffer::BufferType buffer_;
+    int connectorCode_;
     std::vector<std::pair<int, int> > connectorIds_;
 
     typedef MultiBuffer::Block Block;
@@ -281,16 +284,19 @@ namespace MUSIC {
 
     int rank () const { return comm_.Get_rank (); }
     int size () const { return comm_.Get_size (); }
-    void setErrorFlag (MultiBuffer::BufferType buffer);
+    //void setErrorFlag (MultiBuffer::BufferType buffer);
 
   public:
     //MultiConnector () { }
     MultiConnector (MultiBuffer* multiBuffer);
     MultiConnector (MultiBuffer* multiBuffer,
 		    std::vector<Connector*>& connectors);
+    int connectorCode () const { return connectorCode_; }
     void add (Connector* connector);
     void initialize ();
     void tick ();
+    bool isFinalized ();
+    void finalize ();
     void update ();
   };
 

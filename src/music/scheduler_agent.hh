@@ -28,6 +28,7 @@ namespace MUSIC {
     virtual ~SchedulerAgent(){};
     virtual void initialize()=0;
     virtual bool tick(Clock& localTime)=0;
+    virtual void preFinalize (std::set<int> &cnn_ports) { };
     virtual void finalize (std::set<int> &cnn_ports) = 0;
   };
 
@@ -79,7 +80,8 @@ namespace MUSIC {
                                   int leader,
                                   std::vector<Connector*>& connectors);
     bool create (Clock& localTime);
-    bool tick(Clock& localTime);
+    bool tick (Clock& localTime);
+    void preFinalize (std::set<int> &cnn_ports);
     void finalize (std::set<int> &cnn_ports);
 
   private:

@@ -1,6 +1,6 @@
 /*
  *  This file is part of MUSIC.
- *  Copyright (C) 2008, 2009 INCF
+ *  Copyright (C) 2008, 2009, 2012 INCF
  *
  *  MUSIC is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,8 +30,9 @@ namespace MUSIC {
  */
   class ConnectorInfo {
   public:
-	enum CommunicationType { COLLECTIVE, POINTTOPOINT };
-	enum ProcessingMethod { TREE, TABLE };
+    enum CommunicationType { COLLECTIVE, POINTTOPOINT };
+    enum ProcessingMethod { TREE, TABLE };
+    static int maxPortCode_;
     std::string recApp_;
     std::string recPort_;
     int recCode_;
@@ -57,6 +58,8 @@ namespace MUSIC {
 	commType_(commType),
 	procMethod_(procMethod)
     { }
+    static void registerPortCode (int portCode);
+    static int allocPortCode () { return ++maxPortCode_; }
     std::string receiverAppName () const { return recApp_; }
     std::string receiverPortName () const { return recPort_; }
     int receiverPortCode () const { return recCode_; }

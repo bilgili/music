@@ -174,30 +174,22 @@ namespace MUSIC {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
 	      {
-		for (int i = 1; i <= multiId; ++i)
+		if (multiConnectors[multiId] == NULL)
 		  {
-		    unsigned int id = multiId & i;
-		    if (id != 0 && multiConnectors[id] == NULL)
-		      {
-			std::vector<Connector*> connectors
-			  = connectorsFromMultiId (id);
-			multiConnectors[id]
-			  = new MultiConnector (multiBuffer_, connectors);
-		      }
+		    std::vector<Connector*> connectors
+		      = connectorsFromMultiId (multiId);
+		    multiConnectors[multiId]
+		      = new MultiConnector (multiBuffer_, connectors);
 		  }
 	      }
 	    else
 	      {
 		unsigned int proxyId = (*comm).proxyId ();
-		for (int i = 1; i <= proxyId; ++i)
+		if (proxyId != 0 && !(*multiProxies)[proxyId])
 		  {
-		    unsigned int id = proxyId & i;
-		    if (id != 0 && !(*multiProxies)[id])
-		      {
-			MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
-			MPI::COMM_WORLD.Barrier ();		
-			(*multiProxies)[id] = true;
-		      }
+		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+		    MPI::COMM_WORLD.Barrier ();		
+		    (*multiProxies)[proxyId] = true;
 		  }
 	      }
 	  }
@@ -303,6 +295,17 @@ namespace MUSIC {
 
 
   void
+  MulticommAgent::preFinalize (std::set<int> &cnn_ports)
+  {
+    for (std::vector<MultiConnector*>::iterator m = multiConnectors.begin ();
+	 m != multiConnectors.end ();
+	 ++m)
+      if (*m != NULL)
+	cnn_ports.insert ((*m)->connectorCode ());
+  }
+
+
+  void
   MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
     std::vector< MultiCommObject>::iterator comm;
@@ -317,35 +320,20 @@ namespace MUSIC {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
 	      {
-		std::vector<Connector*> conns = connectorsFromMultiId (multiId);
-		multiId = 0;
-		for (std::vector<Connector*>::iterator c = conns.begin ();
-		     c != conns.end ();
-		     ++c)
+		MultiConnector* m = multiConnectors[multiId];
+		if (cnn_ports.find (m->connectorCode ())
+		    == cnn_ports.end ())
+		  continue;
+		if (m->isFinalized ())
+		  // an output port was finalized in tick ()
 		  {
-		    if ((*c) == NULL
-			|| (cnn_ports.find ((*c)->receiverPortCode ())
-			    == cnn_ports.end ()))
-		      continue;
-		    if ((*c)->isFinalized ())
-		      // an output port was finalized in tick ()
-		      {
-			cnn_ports.erase ((*c)->receiverPortCode ());
-			continue;
-		      }
-		    multiId |= (*c)->idFlag ();
-		    // finalize () needs to come after isFinalized check
-		    // since it can itself set finalized state
-		    (*c)->finalize ();
-
+		    cnn_ports.erase (m->connectorCode ());
+		    continue;
 		  }
-		if (multiId != 0)
-		  {
-		    // If the following assert fails, the
-		    // multiConnector has not been created in create
-		    assert (multiConnectors[multiId] != NULL);
-		    multiConnectors[multiId]->tick ();
-		  }
+		// finalize () needs to come after isFinalized check
+		// since it can itself set finalized state
+		m->finalize ();
+		m->tick ();
 	      }
           }
         schedule.clear ();

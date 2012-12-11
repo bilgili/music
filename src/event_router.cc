@@ -48,15 +48,6 @@ namespace MUSIC {
   }
 
   void
-  DirectRouter::swapFirstLast ()
-  {
-    Event* first = static_cast<Event*> (static_cast<void*> (buffer_));
-    char* p = pos_ <= size_ ? buffer_ + pos_ : &extra_[0] + extra_.size ();
-    Event* last = static_cast<Event*> (static_cast<void*> (p - sizeof (Event)));
-    std::swap (*first, *last);
-  }
-
-  void
   DirectRouter::setOutputBuffer (void* buffer, unsigned int size)
   {
     if (size == size_)

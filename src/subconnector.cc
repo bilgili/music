@@ -807,31 +807,9 @@ EventOutputCollectiveSubconnector::fillOutputBuffer ()
 
 
 void
-EventOutputCollectiveSubconnector::flush (bool& dataStillFlowing)
-{
-  if (!flushed)
-    {
-      router_->processEvent (0.0, FLUSH_MARK);
-      // put FLUSH_MARK first in buffer and save first event last
-      router_->swapFirstLast ();
-    }
-}
-
-
-void
 EventInputCollectiveSubconnector::processData (void* data, unsigned int size)
 {
-  if (size == 0)
-    return;
   Event* e = static_cast<Event*> (data);
-  if (e->id == FLUSH_MARK)
-    {
-      // restore first event which was saved last in the buffer
-      size -= sizeof (Event);
-      char* d = static_cast<char*> (data);
-      *e = *static_cast<Event*> (static_cast<void*> (d + size));
-      flushed = true; // we expect every sender process to flush simultaneously
-    }
   while (size > 0)
     {
       router_->processEvent (e->t, e->id);

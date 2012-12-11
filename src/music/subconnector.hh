@@ -306,7 +306,7 @@ namespace MUSIC {
     void setOutputBuffer (void* buffer, unsigned int size);
     void fillOutputBuffer ();
 
-    void flush (bool& dataStillFlowing);
+    void flush (bool& dataStillFlowing) { }
     void maybeCommunicate () { }
   };
 

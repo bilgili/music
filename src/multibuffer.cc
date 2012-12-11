@@ -104,8 +104,7 @@ namespace MUSIC {
 	    // create OutputSubconnectorInfo
 	    OutputSubconnector* s
 	      = dynamic_cast<OutputSubconnector*> (connector->subconnector ());
-	    BufferInfo* bi = &*(isi.begin ()
-				+ (MPI::COMM_WORLD.Get_rank () - outputLeader));
+	    BufferInfo* bi = &*(isi.begin () + comm.Get_rank ());
 	    outputConnectorMap_.insert
 	      (OutputConnectorMap::value_type (connector,
 					       OutputSubconnectorInfo (s, bi)));

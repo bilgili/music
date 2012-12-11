@@ -68,11 +68,10 @@ namespace MUSIC {
 
     struct RankInfo {
       RankInfo () { }
-      RankInfo (int l, int lr, int wr)
-	: leader (l), localRank (lr), worldRank (wr) { }
+      RankInfo (int l, int lr)
+	: leader (l), localRank (lr) { }
       int leader;
       int localRank;
-      int worldRank;
     };
 
     typedef std::map<int, std::vector<int> > RankMap;

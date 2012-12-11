@@ -222,19 +222,18 @@ namespace MUSIC {
     int worldRank = MPI::COMM_WORLD.Get_rank ();
     int worldSize = MPI::COMM_WORLD.Get_size ();
     std::vector<RankInfo> rankInfos (worldSize);
-    rankInfos[worldRank] = RankInfo (localLeader_, localRank, worldRank);
+    rankInfos[worldRank] = RankInfo (localLeader_, localRank);
     MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			       &rankInfos.front (),
 			       sizeof (RankInfo) / sizeof (int),
 			       MPI::INT);
-    for (std::vector<RankInfo>::iterator ri = rankInfos.begin ();
-	 ri != rankInfos.end ();
-	 ++ri)
+    for (int wr = 0; wr < worldSize; ++wr)
       {
-	std::vector<int>& ranks = (*rankMap)[ri->leader];
-	if (ranks.size () <= static_cast<unsigned int> (ri->localRank))
-	  ranks.resize (ri->localRank + 1);
-	ranks[ri->localRank] = ri->worldRank;
+	RankInfo& ri = rankInfos[wr];
+	std::vector<int>& ranks = (*rankMap)[ri.leader];
+	if (ranks.size () <= static_cast<unsigned int> (ri.localRank))
+	  ranks.resize (ri.localRank + 1);
+	ranks[ri.localRank] = wr;
       }
   }
 

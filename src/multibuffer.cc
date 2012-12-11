@@ -47,6 +47,10 @@ namespace MUSIC {
     MPI::Group localGroup = comm.Get_group ();
     int localSize = localGroup.Get_size ();
 
+    // maps leaders to vectors mapping local ranks to COMM_WORLD ranks
+    RankMap* rankMap = new RankMap ();
+    setupRankMap (comm.Get_rank (), rankMap);
+
     for (std::vector<Connector*>::iterator c = connectors.begin ();
 	 c != connectors.end ();
 	 ++c)
@@ -109,19 +113,22 @@ namespace MUSIC {
 
 	// setup Block array
 	Blocks::iterator pos = getBlock (outputLeader);
+	std::vector<int>& ranks = (*rankMap) [outputLeader];
 	if (pos == block_.end () || pos->rank () != outputLeader)
 	  {
 	    // outputLeader not found in block_
 	    // fill it in, creating one new Block for each rank
 	    // with one BufferInfo per Block
-	    int i = pos - block_.begin ();
-	    block_.insert (pos, outputSize, Block ());
-	    pos = block_.begin () + i;
-	    int rank = outputLeader;
+	    int i = 0;
 	    for (BufferInfos::iterator bi = isi.begin ();
 		 bi != isi.end ();
-		 ++bi, ++pos, ++rank)
+		 ++bi, ++i)
 	      {
+		int rank = ranks[i];
+		pos = getBlock (rank);
+		int offset = pos - block_.begin ();
+		block_.insert (pos, Block ());
+		pos = block_.begin () + offset;
 		pos->setRank (rank);
 		pos->push_back (&*bi);
 	      }
@@ -130,15 +137,17 @@ namespace MUSIC {
 	  {
 	    // outputLeader's group of ranks already had Blocks in block_
 	    // Insert one BufferInfo per Block
+	    int i = 0;
 	    for (BufferInfos::iterator bi = isi.begin ();
 		 bi != isi.end ();
-		 ++bi, ++pos)
+		 ++bi, ++i)
 	      {
-		pos->push_back (&*bi);
+		getBlock (ranks[i])->push_back (&*bi);
 	      }
 	  }
 
 	pos = getBlock (inputLeader);
+	ranks = (*rankMap) [inputLeader];
 	if (pos == block_.end () || pos->rank () != inputLeader)
 	  {
 	    // inputLeader's group of ranks were not represented in block_
@@ -146,13 +155,20 @@ namespace MUSIC {
 	    int i = pos - block_.begin ();
 	    block_.insert (pos, inputSize, Block ());
 	    pos = block_.begin () + i;
-	    for (int rank = inputLeader;
-		 rank < inputLeader + inputSize;
-		 ++rank, ++pos)
-	      pos->setRank (rank);
+	    for (int i = 0; i < inputSize; ++i)
+	      {
+		int rank = ranks[i];
+		pos = getBlock (rank);
+		int offset = pos - block_.begin ();
+		block_.insert (pos, Block ());
+		pos = block_.begin () + offset;
+		pos->setRank (rank);
+	      }
 	  }
 
       }
+
+    delete rankMap;
 
     // setup Block and BufferInfo fields
 
@@ -196,6 +212,29 @@ namespace MUSIC {
 	b->clearBufferErrorFlag (buffer_);
 	for (BufferInfoPtrs::iterator bi = b->begin (); bi != b->end (); ++bi)
 	  (*bi)->writeDataSize (buffer_, 0);
+      }
+  }
+
+
+  void
+  MultiBuffer::setupRankMap (int localRank, RankMap* rankMap)
+  {
+    int worldRank = MPI::COMM_WORLD.Get_rank ();
+    int worldSize = MPI::COMM_WORLD.Get_size ();
+    std::vector<RankInfo> rankInfos (worldSize);
+    rankInfos[worldRank] = RankInfo (localLeader_, localRank, worldRank);
+    MPI::COMM_WORLD.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+			       &rankInfos.front (),
+			       sizeof (RankInfo) / sizeof (int),
+			       MPI::INT);
+    for (std::vector<RankInfo>::iterator ri = rankInfos.begin ();
+	 ri != rankInfos.end ();
+	 ++ri)
+      {
+	std::vector<int>& ranks = (*rankMap)[ri->leader];
+	if (ranks.size () <= static_cast<unsigned int> (ri->localRank))
+	  ranks.resize (ri->localRank + 1);
+	ranks[ri->localRank] = ri->worldRank;
       }
   }
 

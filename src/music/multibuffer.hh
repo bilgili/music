@@ -65,6 +65,17 @@ namespace MUSIC {
      */
   public:
     typedef char* BufferType;
+
+    struct RankInfo {
+      RankInfo () { }
+      RankInfo (int l, int lr, int wr)
+	: leader (l), localRank (lr), worldRank (wr) { }
+      int leader;
+      int localRank;
+      int worldRank;
+    };
+
+    typedef std::map<int, std::vector<int> > RankMap;
     typedef std::map<unsigned int, unsigned int> GroupMap;
   private:
     static const unsigned int ERROR_FLAG = 1;
@@ -198,6 +209,7 @@ namespace MUSIC {
     BufferType buffer () const { return buffer_; }
 
   private:
+    void setupRankMap (int, RankMap* rankMap);
     unsigned int computeSize ();
 
   public:

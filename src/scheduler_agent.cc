@@ -99,6 +99,7 @@ namespace MUSIC {
         ++self_node)
       {
         scheduler_->setSelfNode (self_node);
+        scheduler_->reset();
 
         create (localTime);
 
@@ -114,11 +115,10 @@ namespace MUSIC {
         schedule.clear ();
 
         localTime.reset ();
-        // Now reset node and connection clocks to starting values
-        scheduler_->reset();
       }
 
     scheduler_->setSelfNode (savedSelfNode);
+    scheduler_->reset();
     delete multiProxies;
   }
 
@@ -187,6 +187,8 @@ namespace MUSIC {
 		unsigned int proxyId = (*comm).proxyId ();
 		if (proxyId != 0 && !(*multiProxies)[proxyId])
 		  {
+		    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+			      << ": Proxy " << proxyId << std::endl;
 		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
 		    MPI::COMM_WORLD.Barrier ();		
 		    (*multiProxies)[proxyId] = true;

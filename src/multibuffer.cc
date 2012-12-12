@@ -747,11 +747,18 @@ namespace MUSIC {
   dumprecvc (std::string id, int* recvc, int* displs, int n)
   {
     std::ostringstream ostr;
+#if 1
+    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
+	 << id << ": Allgather " << *recvc;
+    for (int i = 1; i < n; ++i)
+      ostr << ", " << recvc[i];
+#else
     ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
 	 << id << ": Allgather "
 	 << *displs << ':' << *recvc;
     for (int i = 1; i < n; ++i)
       ostr << ", " << displs[i] << ':' << recvc[i];
+#endif
     ostr << std::endl;
     std::cout << ostr.str () << std::flush;
   }

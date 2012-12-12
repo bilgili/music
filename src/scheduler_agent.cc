@@ -311,6 +311,7 @@ namespace MUSIC {
   MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
     std::vector< MultiCommObject>::iterator comm;
+    int turns = 0;
     bool continue_;
     do
       {
@@ -339,6 +340,19 @@ namespace MUSIC {
 	      }
           }
         schedule.clear ();
+	++turns;
+	if (turns >= N_PLANNING_CYCLES / 2)
+	  {
+	    // Use heuristics if the scheduler fails to come up with all
+	    // multiconnectors
+	    for (std::vector<MultiConnector*>::iterator m = multiConnectors.begin ();
+		 m != multiConnectors.end ();
+		 ++m)
+	      if (*m != NULL
+		  && cnn_ports.find ((*m)->connectorCode ()) != cnn_ports.end ()
+		  && (*m)->isFinalized ())
+		cnn_ports.erase ((*m)->connectorCode ());
+	  }
       } while (continue_ && !cnn_ports.empty ());
   }
 

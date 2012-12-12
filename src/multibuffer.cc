@@ -112,7 +112,7 @@ namespace MUSIC {
 
 	// setup Block array
 	Blocks::iterator pos = getBlock (outputLeader);
-	std::vector<int>& ranks = (*rankMap) [outputLeader];
+	std::vector<int>& worldRanks = (*rankMap) [outputLeader];
 	if (pos == block_.end () || pos->rank () != outputLeader)
 	  {
 	    // outputLeader not found in block_
@@ -123,12 +123,12 @@ namespace MUSIC {
 		 bi != isi.end ();
 		 ++bi, ++i)
 	      {
-		int rank = ranks[i];
-		pos = getBlock (rank);
+		int worldRank = worldRanks[i];
+		pos = getBlock (worldRank);
 		int offset = pos - block_.begin ();
 		block_.insert (pos, Block ());
 		pos = block_.begin () + offset;
-		pos->setRank (rank);
+		pos->setRank (worldRank);
 		pos->push_back (&*bi);
 	      }
 	  }
@@ -141,7 +141,7 @@ namespace MUSIC {
 		 bi != isi.end ();
 		 ++bi, ++i)
 	      {
-		getBlock (ranks[i])->push_back (&*bi);
+		getBlock (worldRanks[i])->push_back (&*bi);
 	      }
 	  }
 
@@ -150,15 +150,15 @@ namespace MUSIC {
 	  {
 	    // inputLeader's group of ranks were not represented in block_
 	    // Create empty Block:s for them
-	    ranks = (*rankMap) [inputLeader];
+	    worldRanks = (*rankMap) [inputLeader];
 	    for (int i = 0; i < inputSize; ++i)
 	      {
-		int rank = ranks[i];
-		pos = getBlock (rank);
+		int worldRank = worldRanks[i];
+		pos = getBlock (worldRank);
 		int offset = pos - block_.begin ();
 		block_.insert (pos, Block ());
 		pos = block_.begin () + offset;
-		pos->setRank (rank);
+		pos->setRank (worldRank);
 	      }
 	  }
 
@@ -229,10 +229,10 @@ namespace MUSIC {
     for (int wr = 0; wr < worldSize; ++wr)
       {
 	RankInfo& ri = rankInfos[wr];
-	std::vector<int>& ranks = (*rankMap)[ri.leader];
-	if (ranks.size () <= static_cast<unsigned int> (ri.localRank))
-	  ranks.resize (ri.localRank + 1);
-	ranks[ri.localRank] = wr;
+	std::vector<int>& worldRanks = (*rankMap)[ri.leader];
+	if (worldRanks.size () <= static_cast<unsigned int> (ri.localRank))
+	  worldRanks.resize (ri.localRank + 1);
+	worldRanks[ri.localRank] = wr;
       }
   }
 

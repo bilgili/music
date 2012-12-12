@@ -34,6 +34,8 @@ namespace MUSIC {
 
   class MulticommAgent: public virtual SchedulerAgent
   {
+    static const int N_PLANNING_CYCLES = 100;
+
     std::map<int, Clock> commTimes;
     int rNodes;
     Clock time_;

@@ -104,7 +104,7 @@ namespace MUSIC {
     std::vector<Node*> nodes;
     std::vector<SConnection*> connections;
     int self_node;
-    int iter_node;
+    unsigned int iter_node;
     int iter_conn;
     double compTime;
     std::vector<SchedulerAgent *> agents_;

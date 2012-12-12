@@ -65,7 +65,7 @@ namespace MUSIC {
     double nextTime = std::numeric_limits<double>::infinity ();
     for (conn = inputConnections_.begin ();
 	 conn < inputConnections_.end ();
-	 conn++)
+	 ++conn)
       {
 	if ((*conn)->nextReceive ().time () < nextTime)
 	  nextTime = (*conn)->nextReceive ().time ();
@@ -155,11 +155,11 @@ namespace MUSIC {
   {
     for (std::vector<SConnection*>::iterator conn=connections.begin ();
 	 conn < connections.end ();
-	 conn++)
+	 ++conn)
       delete (*conn);
     for (std::vector<Node*>::iterator node=nodes.begin ();
 	 node < nodes.end ();
-	 node++)
+	 ++node)
       delete *node;
   }
 
@@ -199,7 +199,7 @@ namespace MUSIC {
     std::vector<SConnection*>::iterator conn;
 
     //MUSIC_LOGR ("#of nodes:" << nodes.size () << ":#of connections:" <<  connections.size ());
-    for (conn = connections.begin (); conn < connections.end (); conn++)
+    for (conn = connections.begin (); conn < connections.end (); ++conn)
       {
 	(*conn)->initialize (nodes);
 	bool foundLocalConnector = false;
@@ -243,7 +243,7 @@ namespace MUSIC {
     while (true)  
       {
 	//	std::vector<Node*>::iterator node;
-	for (; iter_node < nodes.size (); iter_node++ )
+	for (; iter_node < nodes.size (); ++iter_node )
 	  {
 	    Node *node = nodes.at(iter_node);
 	    if (iter_conn < 0 && node->nextReceive () > node->localTime ().time ())
@@ -252,7 +252,9 @@ namespace MUSIC {
 	    std::vector<SConnection*>* conns = node->outputConnections ();
 	    // std::vector<SConnection*>::iterator conn;
 	    
-	    for (++iter_conn; iter_conn < conns->size(); iter_conn++)
+	    for (++iter_conn;
+		 iter_conn < static_cast<int> (conns->size ());
+		 ++iter_conn)
 	      {
 		SConnection *conn = conns->at(iter_conn);
 		//do we have data ready to be sent?
@@ -356,14 +358,14 @@ namespace MUSIC {
 	   || schedule.front ().first == schedule.back ().first)
       {
 	std::vector<Node*>::iterator node;
-	for ( node=nodes.begin (); node < nodes.end (); node++ )
+	for ( node=nodes.begin (); node < nodes.end (); ++node )
 	  {
 	    if ((*node)->nextReceive () > (*node)->localTime ().time ())
 	      (*node)->advance ();
 
 	    std::vector<SConnection*>* conns = (*node)->outputConnections ();
 	    std::vector<SConnection*>::iterator conn;
-	    for (conn = conns->begin (); conn < conns->end (); conn++)
+	    for (conn = conns->begin (); conn < conns->end (); ++conn)
 	      //do we have data ready to be sent?
 	      if ((*conn)->nextSend () <= (*conn)->preNode ()->localTime ()
 		  && (*conn)->nextReceive () == (*conn)->postNode ()->localTime ())

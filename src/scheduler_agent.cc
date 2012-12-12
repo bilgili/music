@@ -106,7 +106,7 @@ namespace MUSIC {
         localTime.ticks (-1);
 
         std::vector<Connector*> cCache;
-        for (int i = 0; i < 100; ++i)
+        for (int i = 0; i < N_PLANNING_CYCLES; ++i)
           {
             localTime.tick ();
             create (localTime);
@@ -145,7 +145,7 @@ namespace MUSIC {
         continue_ = fillSchedule();
         for (comm = schedule.begin();
 	     comm != schedule.end() && (*comm).time <= localTime.time();
-	     comm++)
+	     ++comm)
 	  {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
@@ -169,7 +169,7 @@ namespace MUSIC {
         continue_ = fillSchedule();
         for (comm = schedule.begin();
 	     comm != schedule.end () && (*comm).time <= localTime.time();
-	     comm++)
+	     ++comm)
 	  {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
@@ -248,14 +248,14 @@ namespace MUSIC {
             //postpone sends in the multiconn for consistency
             for(SConnectionV::iterator it = cur_bound;
                 it != iter_bound;
-                it++)
+                ++it)
                 (*it).postponeNextSend(commTimes[(*it).preNode()->getId()]);
 
             //merge multiconn with the previous multiconn:
             // (to lump together connections called sequentially)
             for(std::map<int,Clock>::iterator it = prevCommTime.begin();
                 merge && it != prevCommTime.end();
-                it++)
+                ++it)
               if(commTimes.count((*it).first)>0
                   && (*it).second != commTimes[(*it).first])
                 merge = false;
@@ -282,7 +282,7 @@ namespace MUSIC {
     MUSIC_LOG0 ("SelfNode: " << scheduler_->self_node << " Time: "<< time.time() << std::endl << "MultiConnector:");
     for (std::vector<Scheduler::SConnection>::iterator it = first;
         it != last;
-        it++)
+        ++it)
       {
         if ((*it).getConnector ()->isProxy ())
           proxyId |= (*it).getConnector ()->idFlag ();

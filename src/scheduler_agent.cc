@@ -135,30 +135,6 @@ namespace MUSIC {
   }
 
   bool
-  MulticommAgent::tick(MUSIC::Clock &localTime)
-  {
-    std::vector< MultiCommObject>::iterator comm;
-    bool continue_;
-    do
-      {
-        continue_ = fillSchedule();
-        for (comm = schedule.begin();
-	     comm != schedule.end() && (*comm).time <= localTime.time();
-	     ++comm)
-	  {
-	    unsigned int multiId = (*comm).multiId ();
-	    if (multiId != 0)
-	      multiConnectors[multiId]->tick ();
-	  }
-        schedule.erase(schedule.begin(),comm);
-    // we continue looping while:
-    // 1. we haven't found the communication from the future:   !schedule.empty()
-    // 2. or the next SConnection can't be processed by the current agent: continue_= false
-      } while (continue_ && schedule.empty());
-    return !schedule.empty();
-  }
-
-  bool
   MulticommAgent::create (MUSIC::Clock &localTime)
   {
     std::vector< MultiCommObject>::iterator comm;
@@ -195,6 +171,30 @@ namespace MUSIC {
 	      }
 	  }
         schedule.erase(schedule.begin(),comm);
+      } while (continue_ && schedule.empty());
+    return !schedule.empty();
+  }
+
+  bool
+  MulticommAgent::tick(MUSIC::Clock &localTime)
+  {
+    std::vector< MultiCommObject>::iterator comm;
+    bool continue_;
+    do
+      {
+        continue_ = fillSchedule();
+        for (comm = schedule.begin();
+	     comm != schedule.end() && (*comm).time <= localTime.time();
+	     ++comm)
+	  {
+	    unsigned int multiId = (*comm).multiId ();
+	    if (multiId != 0)
+	      multiConnectors[multiId]->tick ();
+	  }
+        schedule.erase(schedule.begin(),comm);
+    // we continue looping while:
+    // 1. we haven't found the communication from the future:   !schedule.empty()
+    // 2. or the next SConnection can't be processed by the current agent: continue_= false
       } while (continue_ && schedule.empty());
     return !schedule.empty();
   }

@@ -115,7 +115,7 @@ namespace MUSIC {
     Scheduler(int node_id);
     ~Scheduler();
     unsigned int selfNode () { return self_node; }
-    void setSelfNode (unsigned int selfNode) { self_node = selfNode; }
+
     unsigned int nNodes () { return nodes.size (); }
     // addNode is called from TemporalNegotiator::fillScheduler
     void addNode(int id, const Clock &localTime, int leader, int nProcs);
@@ -146,11 +146,12 @@ namespace MUSIC {
     void setAgent(SchedulerAgent* agent);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
-    void reset();
+    void reset(int self_node);
     void tick (Clock& localTime);
     void finalize (Clock& localTime, std::vector<Connector*>& connectors);
   private:
     void resetClocks ();
+    void setSelfNode (unsigned int selfNode) { self_node = selfNode; }
     SConnection nextSConnection();
     friend class MulticommAgent;
     friend class UnicommAgent;

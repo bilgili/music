@@ -1,6 +1,6 @@
 #include <music/scheduler_agent.hh>
 
-//#define MUSIC_DEBUG
+#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 
@@ -98,8 +98,7 @@ namespace MUSIC {
         self_node < scheduler_->nNodes ();
         ++self_node)
       {
-        scheduler_->setSelfNode (self_node);
-        scheduler_->reset();
+        scheduler_->reset(self_node);
 
         create (localTime);
 
@@ -116,8 +115,7 @@ namespace MUSIC {
         localTime.reset ();
       }
 
-    scheduler_->setSelfNode (savedSelfNode);
-    scheduler_->reset();
+    scheduler_->reset(savedSelfNode);
     delete multiProxies;
   }
 

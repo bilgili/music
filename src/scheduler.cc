@@ -567,13 +567,14 @@ namespace MUSIC {
 //       }while( schedule[0].first <= localTime.time());
 //   }
   void
-  Scheduler::reset()
+  Scheduler::reset(int self_node)
   {
+    setSelfNode(self_node);
     resetClocks ();
-    last_sconn_ = nextSConnection();
     cur_agent_ = agents_.begin();
     iter_node = 0;
     iter_conn = -1;
+    last_sconn_ = nextSConnection();
   }
   void
   Scheduler::resetClocks ()

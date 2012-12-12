@@ -187,7 +187,10 @@ namespace MUSIC {
 	  {
 	    unsigned int multiId = (*comm).multiId ();
 	    if (multiId != 0)
-	      multiConnectors[multiId]->tick ();
+	      {
+		assert (multiConnectors[multiId] != NULL);
+		multiConnectors[multiId]->tick ();
+	      }
 	  }
         schedule.erase(schedule.begin(),comm);
     // we continue looping while:

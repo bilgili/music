@@ -75,7 +75,16 @@ namespace MUSIC {
     };
 
     typedef std::map<int, std::vector<int> > RankMap;
-    typedef std::map<unsigned int, unsigned int> GroupMap;
+
+    struct Interval {
+      Interval () { }
+      Interval (int f, int l) : first (f), last (l) { }
+      int first;
+      int last;
+    };
+
+    typedef std::vector<Interval> Intervals;
+    typedef std::map<unsigned int, Intervals> GroupMap;
   private:
     static const unsigned int ERROR_FLAG = 1;
     static const unsigned int FINALIZE_FLAG = 2;
@@ -217,6 +226,7 @@ namespace MUSIC {
 
   private:
     void setupRankMap (int, RankMap* rankMap);
+    void registerGroup (unsigned int leader, std::vector<int>& worldRanks);
     unsigned int computeSize ();
 
   public:
@@ -224,7 +234,7 @@ namespace MUSIC {
 		 int leader,
 		 std::vector<Connector*>& connectors);
 
-    unsigned int getGroupSize (int leader) { return groupMap_[leader]; }
+    Intervals& getWorldRankIntervals (int leader) { return groupMap_[leader]; }
 
     void addMultiConnector (Updateable* multiConnector)
     {
@@ -267,6 +277,14 @@ namespace MUSIC {
     int connectorCode_;
     std::vector<std::pair<int, int> > connectorIds_;
 
+    typedef MultiBuffer::Intervals Intervals;
+
+    struct MCGroupInfo {
+      Intervals* worldRankIntervals;
+      unsigned int size;
+      bool blank;
+    };
+
     typedef MultiBuffer::Block Block;
     typedef MultiBuffer::Blocks Blocks;
     typedef std::vector<Block*> BlockPtrs;
@@ -281,8 +299,6 @@ namespace MUSIC {
     typedef std::vector<MultiBuffer::InputSubconnectorInfo*> InputSubconnectorInfoPtrs;
     InputSubconnectorInfoPtrs inputSubconnectorInfo_;
 
-    typedef std::map<int, bool> BlankMap;
-    BlankMap* blankMap_;
     bool* blank_;
     std::string id_; // used for debugging
     int* recvcounts_;
@@ -291,7 +307,7 @@ namespace MUSIC {
     bool restructuring_;
     //int rank_;
     //int nRanks_;
-    typedef MultiBuffer::GroupMap GroupMap;
+    typedef std::map<unsigned int, MCGroupInfo> GroupMap;
     GroupMap* groupMap_;
     MPI::Group group_;
     MPI::Intracomm comm_;

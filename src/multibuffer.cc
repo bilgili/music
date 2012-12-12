@@ -50,6 +50,23 @@ namespace MUSIC {
     // maps leaders to vectors mapping local ranks to COMM_WORLD ranks
     RankMap* rankMap = new RankMap ();
     setupRankMap (comm.Get_rank (), rankMap);
+#if 0
+    std::ostringstream ostr;
+    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": rankMap ";
+    for (RankMap::iterator i = rankMap->begin ();
+	 i != rankMap->end ();
+	 ++i)
+      {
+	ostr << i->first << ": ";
+	std::vector<int>& ranks = i->second;
+	for (std::vector<int>::iterator j = ranks.begin ();
+	     j != ranks.end ();
+	     ++j)
+	  ostr << *j << " ";
+	ostr << " ";
+      }
+    std::cout << ostr.str () << std::endl;
+#endif
 
     for (std::vector<Connector*>::iterator c = connectors.begin ();
 	 c != connectors.end ();
@@ -92,10 +109,6 @@ namespace MUSIC {
 	    inputSize = connector->remoteNProcs ();
 	  }
 	
-	// remember group sizes
-	groupMap_[inputLeader] = inputSize;
-	groupMap_[outputLeader] = outputSize;
-
 	// setup BufferInfo array
 	isi.setSize (outputSize);
 
@@ -110,9 +123,12 @@ namespace MUSIC {
 					       OutputSubconnectorInfo (s, bi)));
 	  }
 
+	// register output group
+	std::vector<int>& worldRanks = (*rankMap) [outputLeader];
+	registerGroup (outputLeader, worldRanks);
+
 	// setup Block array
 	Blocks::iterator pos = getBlock (outputLeader);
-	std::vector<int>& worldRanks = (*rankMap) [outputLeader];
 	if (pos == block_.end () || pos->rank () != outputLeader)
 	  {
 	    // outputLeader not found in block_
@@ -145,12 +161,15 @@ namespace MUSIC {
 	      }
 	  }
 
+	// register input group
+	worldRanks = (*rankMap) [inputLeader];
+	registerGroup (inputLeader, worldRanks);
+
 	pos = getBlock (inputLeader);
 	if (pos == block_.end () || pos->rank () != inputLeader)
 	  {
 	    // inputLeader's group of ranks were not represented in block_
 	    // Create empty Block:s for them
-	    worldRanks = (*rankMap) [inputLeader];
 	    for (int i = 0; i < inputSize; ++i)
 	      {
 		int worldRank = worldRanks[i];
@@ -163,6 +182,16 @@ namespace MUSIC {
 	  }
 
       }
+
+#if 0
+    {
+      std::ostringstream ostr;
+      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": block_ ranks ";
+      for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
+	ostr << b->rank () << ' ';
+      std::cout << ostr.str () << std::endl;
+    }
+#endif
 
     delete rankMap;
 
@@ -233,6 +262,30 @@ namespace MUSIC {
 	if (worldRanks.size () <= static_cast<unsigned int> (ri.localRank))
 	  worldRanks.resize (ri.localRank + 1);
 	worldRanks[ri.localRank] = wr;
+      }
+  }
+
+
+  void
+  MultiBuffer::registerGroup (unsigned int leader,
+			      std::vector<int>& worldRanks)
+  {
+    if (groupMap_.find (leader) == groupMap_.end ())
+      {
+	Intervals& ivals = groupMap_[leader];
+	assert (!worldRanks.empty ());
+	std::vector<int>::iterator wr = worldRanks.begin ();
+	int first = *wr;
+	int last = first;
+	for (++wr; wr != worldRanks.end (); ++wr)
+	  if (*wr == last + 1)
+	    last = *wr;
+	  else
+	    {
+	      ivals.push_back (Interval (first, last));
+	      first = last = *wr;
+	    }
+	ivals.push_back (Interval (first, last));
       }
   }
 
@@ -424,7 +477,6 @@ namespace MUSIC {
     connectorCode_ = ConnectorInfo::allocPortCode ();
     buffer_ = multiBuffer_->buffer ();
     groupMap_ = new GroupMap;
-    blankMap_ = new BlankMap;
     multiBuffer_->addMultiConnector (this);
   }
 
@@ -436,7 +488,6 @@ namespace MUSIC {
   {
     buffer_ = multiBuffer_->buffer ();
     groupMap_ = new GroupMap;
-    blankMap_ = new BlankMap;
     multiBuffer_->addMultiConnector (this);
     for (std::vector<Connector*>::iterator c = connectors.begin ();
 	 c != connectors.end ();
@@ -450,13 +501,15 @@ namespace MUSIC {
   {
     if (groupMap_->find (leader) == groupMap_->end ())
       {
-	(*groupMap_)[leader] = multiBuffer_->getGroupSize (leader);
-	(*blankMap_)[leader] = isInput;
+	MCGroupInfo& g = (*groupMap_)[leader];
+	g.worldRankIntervals = &multiBuffer_->getWorldRankIntervals (leader);
+	g.blank = isInput;
       }
     else
-      // for now:
-      //assert ((*blankMap_)[leader] == isInput);
-      (*blankMap_)[leader] &= isInput;
+      // Only groups which provide output communicate.  Groups which
+      // only have inputs are blanked.  "Blanked" means that the
+      // corresponding recvcount in Allgather is 0.
+      (*groupMap_)[leader].blank &= isInput;
   }
 
   void
@@ -491,10 +544,16 @@ namespace MUSIC {
   void
   MultiConnector::initialize ()
   {
-    std::ostringstream ostr;
-    ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
+    bool isContiguous = true;
     {
-      int nRanges = groupMap_->size ();
+      std::ostringstream ostr;
+      ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
+      int nRanges = 0;
+      for (GroupMap::iterator g = groupMap_->begin ();
+	   g != groupMap_->end ();
+	   ++g)
+	nRanges += g->second.worldRankIntervals->size ();
+
       int (*range)[3] = new int[nRanges][3];
       int i = 0;
       for (GroupMap::iterator g = groupMap_->begin ();
@@ -502,18 +561,30 @@ namespace MUSIC {
 	   ++g)
 	{
 	  int leader = g->first;
-	  int size = g->second;
+	  Intervals& ivals = *g->second.worldRankIntervals;
 	  ostr << leader << ", ";
-	  range[i][0] = leader;
-	  range[i][1] = leader + size - 1;
-	  range[i][2] = 1;
-	  ++i;
+	  int size = 0;
+	  int next = ivals[0].first;
+	  for (Intervals::iterator ival = ivals.begin ();
+	       ival != ivals.end ();
+	       ++ival)
+	    {
+	      range[i][0] = ival->first;
+	      range[i][1] = ival->last;
+	      range[i][2] = 1;
+	      ++i;
+	      if (ival->first != next)
+		isContiguous = false;
+	      next = ival->last + 1;
+	      size += ival->last - ival->first + 1;
+	    }
+	  g->second.size = size;
 	}
+      ostr << std::endl;
+      std::cout << ostr.str () << std::flush;
       group_ = MPI::COMM_WORLD.Get_group ().Range_incl (nRanges, range);
       delete[] range;
     }
-    ostr << std::endl;
-    std::cout << ostr.str () << std::flush;
 
     sort (connectorIds_.begin (), connectorIds_.end ());
     std::ostringstream idstr_;
@@ -524,7 +595,7 @@ namespace MUSIC {
       idstr_ << ':' << cid->first << cid->second;
     id_ = "mc" + idstr_.str ();
 
-    if (group_.Get_size () < MPI::COMM_WORLD.Get_size ())
+    if (!isContiguous || group_.Get_size () < MPI::COMM_WORLD.Get_size ())
       comm_ = MPI::COMM_WORLD.Create (group_);
     else
       comm_ = MPI::COMM_WORLD;
@@ -555,17 +626,17 @@ namespace MUSIC {
 
     blank_ = new bool[size ()];
     int i = 0;
-    for (BlankMap::iterator b = blankMap_->begin ();
-	 b != blankMap_->end ();
-	 ++b)
+    for (GroupMap::iterator g = groupMap_->begin ();
+	 g != groupMap_->end ();
+	 ++g)
       {
-	int leader = b->first;
-	int size = (*groupMap_)[leader];
+	int leader = g->first;
+	int size = (*groupMap_)[leader].size;
 	int limit = i + size;
 	for (; i < limit; ++i)
-	  blank_[i] = b->second;
+	  blank_[i] = g->second.blank;
       }
-    delete blankMap_;
+    assert (i == size ());
     delete groupMap_;
 
     restructuring_ = true;
@@ -672,15 +743,15 @@ namespace MUSIC {
   }
 
 
-  void
-  dumprecvc (std::string id, int* recvc, int n)
+  static void
+  dumprecvc (std::string id, int* recvc, int* displs, int n)
   {
     std::ostringstream ostr;
     ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": "
 	 << id << ": Allgather "
-	 << *recvc;
+	 << *displs << ':' << *recvc;
     for (int i = 1; i < n; ++i)
-      ostr << ", " << recvc[i];
+      ostr << ", " << displs[i] << ':' << recvc[i];
     ostr << std::endl;
     std::cout << ostr.str () << std::flush;
   }
@@ -692,7 +763,7 @@ namespace MUSIC {
     if (writeSizes ())
       // Data will fit
       fillBuffers ();
-    dumprecvc (id_, recvcounts_, comm_.Get_size ());
+    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
     comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 		      buffer_, recvcounts_, displs_, MPI::BYTE);
     for (BlockPtrs::iterator b = block_.begin ();
@@ -705,7 +776,7 @@ namespace MUSIC {
 	  restructuring_ = false;
 	  recvcountInvalid_ = false;
 	  fillBuffers ();
-	  dumprecvc (id_, recvcounts_, comm_.Get_size ());
+	  dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 	  comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			    buffer_, recvcounts_, displs_, MPI::BYTE);
 	  break;

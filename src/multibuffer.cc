@@ -168,12 +168,15 @@ namespace MUSIC {
 
     // setup Block and BufferInfo fields
 
-    //unsigned int start = 0;
-    unsigned int start = 20; //*fixme*
+    unsigned int start = 0;
 
     // reserve space for error block staging area
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       start = std::max (start, b->headerSize ());
+
+    MPI::COMM_WORLD.Allreduce (MPI::IN_PLACE, &start, 1, MPI::UNSIGNED,
+			       MPI::MAX);
+
     errorBlockSize_ = start;
 
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)

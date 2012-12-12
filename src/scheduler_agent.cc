@@ -105,7 +105,6 @@ namespace MUSIC {
 
         localTime.ticks (-1);
 
-        std::vector<Connector*> cCache;
         for (int i = 0; i < N_PLANNING_CYCLES; ++i)
           {
             localTime.tick ();

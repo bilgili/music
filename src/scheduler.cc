@@ -35,7 +35,8 @@
 namespace MUSIC {
 
   Scheduler::Node::Node (int id, const Clock &localTime, int leader, int nProcs)
-    : id_ (id), localTime_ (localTime), leader_ (leader), nProcs_ (nProcs)
+    : id_ (id), localTime_ (localTime), leader_ (leader), nProcs_ (nProcs),
+      inPath (false)
   {
   }
 

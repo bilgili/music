@@ -154,11 +154,11 @@ namespace MUSIC {
   Scheduler::~Scheduler ()
   {
     for (std::vector<SConnection*>::iterator conn=connections.begin ();
-	 conn < connections.end ();
+	 conn != connections.end ();
 	 ++conn)
       delete (*conn);
     for (std::vector<Node*>::iterator node=nodes.begin ();
-	 node < nodes.end ();
+	 node != nodes.end ();
 	 ++node)
       delete *node;
   }
@@ -271,7 +271,52 @@ namespace MUSIC {
 	  }
 	iter_node = 0;
       }
-}
+  }
+
+
+  void
+  Scheduler::depthFirst (Node& x, std::vector<SConnection*>& path)
+  {
+    if (x.inPath)
+      {
+	if (x.getId () == self_node)
+	  {
+	    // Mark connections on path as loop connected to self_node
+	    for (std::vector<SConnection*>::iterator c = path.begin ();
+		 c != path.end ();
+		 ++c)
+	      (*c)->setLoopConnected ();
+	  }
+	return;
+      }
+
+    x.inPath = true;
+
+    // Recurse in depth-first order
+    for (std::vector<SConnection*>::iterator c = x.outputConnections ()->begin ();
+	 c != x.outputConnections ()->end ();
+	 ++c)
+      {
+	path.push_back (*c);
+	depthFirst (*(*c)->postNode (), path);
+	path.pop_back ();
+      }
+
+    x.inPath = false;    
+  }
+
+
+  void
+  Scheduler::analyzeLoops ()
+  {
+    for (std::vector<SConnection*>::iterator c = connections.begin ();
+	 c != connections.end ();
+	 ++c)
+      (*c)->clearLoopConnected ();
+    
+    std::vector<SConnection*> path;
+    depthFirst (*nodes[self_node], path);
+  }
 
 #if 0
   void
@@ -569,7 +614,8 @@ namespace MUSIC {
   void
   Scheduler::reset(int self_node)
   {
-    setSelfNode(self_node);
+    setSelfNode (self_node);
+    analyzeLoops ();
     resetClocks ();
     cur_agent_ = agents_.begin();
     iter_node = 0;

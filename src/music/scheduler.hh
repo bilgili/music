@@ -60,6 +60,7 @@ namespace MUSIC {
       int getId() const {return id_;}
       int leader () const { return leader_; }
       int nProcs () const { return nProcs_; }
+      bool inPath;
     };
 
     class SConnection {
@@ -75,6 +76,7 @@ namespace MUSIC {
       bool multiComm_;
       int port_code_;
       Connector *connector_;
+      bool isLoopConnected_;
 	  
     public:
       SConnection(){};
@@ -93,7 +95,9 @@ namespace MUSIC {
       int portCode() const { return port_code_; }
       Node *preNode() const { return pre_; }
       Node *postNode() const { return post_; }
-      bool isLoopConnected () const { return true; }
+      bool isLoopConnected () const { return isLoopConnected_; }
+      void setLoopConnected () { isLoopConnected_ = true; }
+      void clearLoopConnected () { isLoopConnected_ = false; }
       ClockState getLatency() const { return latency_; }
       bool getInterpolate() const { return interpolate_; }
       bool needsMultiCommunication () const { return multiComm_; }
@@ -144,6 +148,8 @@ namespace MUSIC {
 			      std::vector<std::pair<double, Connector *> > &schedule,
 			      bool finalize);
 #endif
+    void depthFirst (Node& x, std::vector<SConnection*>& path);
+    void analyzeLoops ();
     void setAgent(SchedulerAgent* agent);
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);

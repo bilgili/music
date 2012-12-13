@@ -93,6 +93,7 @@ namespace MUSIC {
       int portCode() const { return port_code_; }
       Node *preNode() const { return pre_; }
       Node *postNode() const { return post_; }
+      bool isConnected () const { return true; }
       ClockState getLatency() const { return latency_; }
       bool getInterpolate() const { return interpolate_; }
       bool needsMultiCommunication () const { return multiComm_; }

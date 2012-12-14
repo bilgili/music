@@ -58,7 +58,7 @@ namespace MUSIC {
   class IntervalTable {
   private:
     typedef unsigned short DataIndex;
-    static const unsigned int MAXDATA = 65536;
+    static const DataIndex MAXDATA = 65535;
 
     typedef OrderedIList<DataIndex> IList;
 

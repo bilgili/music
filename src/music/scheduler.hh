@@ -96,6 +96,7 @@ namespace MUSIC {
       Node *preNode() const { return pre_; }
       Node *postNode() const { return post_; }
       bool isLoopConnected () const { return isLoopConnected_; }
+      bool isLocalConnection(int self_node) const {return pre_id == self_node || post_id == self_node;}
       void setLoopConnected () { isLoopConnected_ = true; }
       void clearLoopConnected () { isLoopConnected_ = false; }
       ClockState getLatency() const { return latency_; }

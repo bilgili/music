@@ -273,7 +273,7 @@ namespace MUSIC {
 #elif MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
     IList::reset ();
 #endif
-    rangeSize_ = rangeSize_ - lowerBound_ + 1;
+    rangeSize_ = rangeSize_ - lowerBound_;
 
 #ifdef MUSIC_DEBUG
     std::cout << "data: " << data_.size () << std::endl
@@ -291,7 +291,8 @@ namespace MUSIC {
     // obtain approximate position
     PointType i = ((p - lowerBound_) * tableSize_) / rangeSize_ + 1;
 
-    if (i < 0 || i >= PointType (tableSize_))
+    // sentinels are at 0 and tableSize_ + 1
+    if (i < 1 || i > PointType (tableSize_))
       return;
 
     if (p != entryTable_[i].key ())
@@ -301,8 +302,9 @@ namespace MUSIC {
 	  {
 	    do
 	      ++i;
-	    while (i < PointType (tableSize_) && p > entryTable_[i].key ());
-	    if (p >= PointType (tableSize_) || p != entryTable_[i].key ())
+	    // end of table guarded by sentinel
+	    while (p > entryTable_[i].key ());
+	    if (p != entryTable_[i].key ())
 	      return;
 	  }
 	else
@@ -310,8 +312,9 @@ namespace MUSIC {
 	  {
 	    do
 	      --i;
-	    while (i >= 0 && p < entryTable_[i].key ());
-	    if (i < 0 || p != entryTable_[i].key ())
+	    // beginning of table guarded by sentinel
+	    while (p < entryTable_[i].key ());
+	    if (p != entryTable_[i].key ())
 	      return;
 	  }
       }

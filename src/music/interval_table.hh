@@ -291,7 +291,7 @@ namespace MUSIC {
     // obtain approximate position
     PointType i = ((p - lowerBound_) * tableSize_) / rangeSize_ + 1;
 
-    if (i < 0 || i > int (tableSize_))
+    if (i < 0 || i >= PointType (tableSize_))
       return;
 
     if (p != entryTable_[i].key ())
@@ -301,8 +301,8 @@ namespace MUSIC {
 	  {
 	    do
 	      ++i;
-	    while (p > entryTable_[i].key ());
-	    if (p != entryTable_[i].key ())
+	    while (i < PointType (tableSize_) && p > entryTable_[i].key ());
+	    if (p >= PointType (tableSize_) || p != entryTable_[i].key ())
 	      return;
 	  }
 	else
@@ -310,8 +310,8 @@ namespace MUSIC {
 	  {
 	    do
 	      --i;
-	    while (p < entryTable_[i].key ());
-	    if (p != entryTable_[i].key ())
+	    while (i >= 0 && p < entryTable_[i].key ());
+	    if (i < 0 || p != entryTable_[i].key ())
 	      return;
 	  }
       }

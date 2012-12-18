@@ -273,7 +273,10 @@ namespace MUSIC {
 #elif MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
     IList::reset ();
 #endif
-    rangeSize_ = rangeSize_ - lowerBound_;
+    if (rangeSize_ > 0)
+      rangeSize_ = rangeSize_ - lowerBound_;
+    else
+      rangeSize_ = 1; // no intervals
 
 #ifdef MUSIC_DEBUG
     std::cout << "data: " << data_.size () << std::endl

@@ -28,6 +28,7 @@
 #include <music/interval_tree.hh>
 
 #define MUSIC_ITABLE_FLAVOR MUSIC_SCATTERED
+//#define MUSIC_ITABLE_COMPRESSED
 #include <music/interval_table.hh>
 
 namespace MUSIC {

@@ -40,6 +40,8 @@
 #define MUSIC_ITABLE_FLAVOR MUSIC_VANILLA
 #endif
 
+//#define MUSIC_ITABLE_COMPRESSED
+
 #include <vector>
 #include <map>
 #include <limits>
@@ -76,25 +78,41 @@ namespace MUSIC {
     PreEntryMap* preEntryMap_;
 
     class Entry {
+#ifdef MUSIC_ITABLE_COMPRESSED
       PointType key_;
+#endif
 #if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
       IList ls_;
     public:
+#ifdef MUSIC_ITABLE_COMPRESSED
       Entry (PointType key) : key_ (key), ls_ (IList::NIL) { }
       Entry (PointType key, IList ls) : key_ (key), ls_ (ls) { }
+#else
+      Entry () : ls_ (IList::NIL) { }
+      Entry (IList ls) : ls_ (ls) { }
+#endif
       IList list () { return ls_; }
 #else
       DataIndex n_;
       IList::Interval* ivals_;
     public:
+#ifdef MUSIC_ITABLE_COMPRESSED
       Entry (PointType key)
 	: key_ (key), n_ (0), ivals_ (NULL) { }
       Entry (PointType key, IList::Interval* ivals, int n)
 	: key_ (key), n_ (n), ivals_ (ivals) { }
+#else
+      Entry ()
+	: n_ (0), ivals_ (NULL) { }
+      Entry (IList::Interval* ivals, int n)
+	: n_ (n), ivals_ (ivals) { }
+#endif
       IList::Interval* intervals () const { return ivals_; }
       int nIntervals () const { return n_; }
 #endif
+#ifdef MUSIC_ITABLE_COMPRESSED
       PointType key () { return key_; }
+#endif
     };
 
     std::vector<Entry> entryTable_;
@@ -237,7 +255,17 @@ namespace MUSIC {
     // trim data_;
     std::vector<DataType> (data_).swap (data_);
     tableSize_ = preEntryMap_->size ();
+    if (rangeSize_ > 0)
+      rangeSize_ = rangeSize_ - lowerBound_;
+    else
+      rangeSize_ = 0; // no intervals
+#ifdef MUSIC_ITABLE_COMPRESSED
+    if (rangeSize_ == 0)
+      rangeSize_ = 1;
     entryTable_.reserve (tableSize_ + 2);
+#else
+    entryTable_.resize (rangeSize_);
+#endif
 #if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
     IList::Interval* iPtr;
 #if MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT
@@ -245,8 +273,10 @@ namespace MUSIC {
     iPtr = iArray;
 #endif
 #endif
+#ifdef MUSIC_ITABLE_COMPRESSED
     // backward sentinel
     entryTable_.push_back (Entry (std::numeric_limits<PointType>::min ()));
+#endif
     for (typename PreEntryMap::iterator p = preEntryMap_->begin ();
 	 p != preEntryMap_->end ();
 	 ++p)
@@ -254,29 +284,35 @@ namespace MUSIC {
 	PointType key = p->first;
 	IList list = p->second.list ();
 #if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
+#ifdef MUSIC_ITABLE_COMPRESSED
 	entryTable_.push_back (Entry (key, list));
+#else
+	entryTable_[key - lowerBound_] = Entry (list);
+#endif
 #else // MUSIC_COMPACT or MUSIC_SCATTERED
 	int n = list.size ();
 #if MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
 	iPtr = new IList::Interval[n];
 #endif
+#ifdef MUSIC_ITABLE_COMPRESSED
 	entryTable_.push_back (Entry (key, iPtr, n));
+#else
+	entryTable_[key - lowerBound_] = Entry (iPtr, n);
+#endif
 	for (IList::iterator j = list.begin (); j != list.end (); ++j)
 	  *iPtr++ = *j;
 #endif
       }
+#ifdef MUSIC_ITABLE_COMPRESSED
     // forward sentinel
     entryTable_.push_back (Entry (std::numeric_limits<PointType>::max ()));
+#endif
     delete preEntryMap_;
 #if MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
     IList::trimNodes ();
 #elif MUSIC_ITABLE_FLAVOR == MUSIC_COMPACT || MUSIC_ITABLE_FLAVOR == MUSIC_SCATTERED
     IList::reset ();
 #endif
-    if (rangeSize_ > 0)
-      rangeSize_ = rangeSize_ - lowerBound_;
-    else
-      rangeSize_ = 1; // no intervals
 
 #ifdef MUSIC_DEBUG
     std::cout << "data: " << data_.size () << std::endl
@@ -291,6 +327,11 @@ namespace MUSIC {
   void
   IntervalTable<PointType, IntervalType, DataType>::search (PointType p, Action* a)
   {
+#ifndef MUSIC_ITABLE_COMPRESSED
+    PointType i = p - lowerBound_;
+    if (i < 0 || i >= rangeSize_)
+      return;
+#else
     // obtain approximate position
     PointType i = ((p - lowerBound_) * tableSize_) / rangeSize_ + 1;
 
@@ -321,6 +362,7 @@ namespace MUSIC {
 	      return;
 	  }
       }
+#endif
 
 #if MUSIC_ITABLE_FLAVOR == MUSIC_VANILLA || MUSIC_ITABLE_FLAVOR == MUSIC_TRIMMED
     IList ls = entryTable_[i].list ();

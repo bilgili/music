@@ -1,6 +1,6 @@
 #include <music/scheduler_agent.hh>
 
-#define MUSIC_DEBUG
+//#define MUSIC_DEBUG
 #include "music/debug.hh"
 
 
@@ -20,6 +20,7 @@ namespace MUSIC {
   }
   MulticommAgent::MulticommAgent(Scheduler *scheduler) : SchedulerAgent(scheduler)
   {
+
 
   }
   MulticommAgent::Filter1::Filter1(MulticommAgent &multCommObj):multCommObj_(multCommObj)
@@ -189,7 +190,9 @@ namespace MUSIC {
 	    if (multiId != 0)
 	      {
 		assert (multiConnectors[multiId] != NULL);
+
 		multiConnectors[multiId]->tick ();
+
 	      }
 	  }
         schedule.erase(schedule.begin(),comm);
@@ -221,7 +224,8 @@ namespace MUSIC {
         last_sconn = scheduler_->nextSConnection();
       }while(last_sconn.getConnector()->idFlag() &&
           (last_sconn.nextReceive() == time || ( !last_sconn.isLoopConnected() && !last_sconn.isLocalConnection(self_node))));
-    NextMultiConnection(nextSConnections);
+    if(nextSConnections.size() > 0)
+      NextMultiConnection(nextSConnections);
     scheduler_->last_sconn_ = last_sconn;
     return last_sconn.getConnector()->idFlag();
   }
@@ -314,6 +318,7 @@ namespace MUSIC {
   void
   MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
+
     std::vector< MultiCommObject>::iterator comm;
     bool continue_;
     do

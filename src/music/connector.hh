@@ -372,7 +372,7 @@ namespace MUSIC {
     ~EventInputConnector(){}
     //probably should be moved to InputConnector later
 #if MUSIC_ANYSOURCE
-  virtual void tick ();
+  void tick ();
 #endif // MUSIC_ANYSOURCE
   protected:
     EventInputConnector(){};
@@ -481,11 +481,9 @@ namespace MUSIC {
 				  MPI::Intracomm comm,
 				  EventHandlerPtr handleEvent);
     ~EventInputCollectiveConnector();
-/*
-#ifdef MUSIC_ANYSOURCE
-  virtual void tick {Connector::tick();};
+#if MUSIC_ANYSOURCE
+  void tick() { Connector::tick();};
 #endif // MUSIC_ANYSOURCE
-*/
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
     void addRoutingInterval(IndexInterval i, Subconnector* subconn);
@@ -523,11 +521,9 @@ namespace MUSIC {
 				 Sampler& sampler,
 				 MPI::Datatype data_type,
 				 double delay);
-/*
-#ifdef MUSIC_ANYSOURCE
-  virtual void tick {Connector::tick();};
+#if MUSIC_ANYSOURCE
+  virtual void tick() {Connector::tick();};
 #endif // MUSIC_ANYSOURCE
-*/
   protected:
     void spatialNegotiation ( SpatialNegotiator* spatialNegotiator_);
   private:

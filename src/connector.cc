@@ -714,6 +714,11 @@ namespace MUSIC {
     	return subcc;
     }
     else
+      {
+#if MUSIC_ANYSOURCE
+error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
+#endif
+
       return new EventInputSubconnectorLocal (//&synch,
 					      intercomm,
 					      remoteLeader (),
@@ -721,6 +726,7 @@ namespace MUSIC {
 					      receiverRank,
 					      receiverPortCode (),
 					      handleEvent_);
+      }
   }
 
 

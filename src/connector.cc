@@ -127,6 +127,7 @@ namespace MUSIC {
 	      error ("Subconnector was not initialized");
   	    subconnectors.insert (std::make_pair (i->rank (), subconn));
   	    rsubconn.push_back (subconn);
+
   	  }
   	MUSIC_LOG (MPI::COMM_WORLD.Get_rank ()
   		   << ": ("
@@ -135,6 +136,8 @@ namespace MUSIC {
   		   << i->local () << ", "
   		   << i->displ() << ") -> " << i->rank ());
   	addRoutingInterval (i->interval (), subconn);
+
+
       }
 
   }
@@ -204,7 +207,7 @@ namespace MUSIC {
     return new SpatialOutputNegotiator(indices_, type_, comm, intercomm );
   }
 
-#ifdef MUSIC_ISENDWAITALL
+#if MUSIC_ISENDWAITALL
   void
   OutputConnector::tick ()
   {
@@ -673,6 +676,10 @@ namespace MUSIC {
   Subconnector*
   EventOutputConnector::makeSubconnector (int remoteRank)
   {
+    //////
+/*                int world_size = MPI::COMM_WORLD.Get_size();
+                if (MPI::COMM_WORLD.Get_rank() < world_size/2)
+                  std::cout << remoteRank << std::flush << std::endl;*/
     return new EventOutputSubconnector (//&synch,
 					intercomm,
 					remoteLeader (),
@@ -723,7 +730,7 @@ namespace MUSIC {
   {
     //routingMap_-> insert (i, handleEvent_.global());
   }
-#ifdef MUSIC_ANYSOURCE
+#if MUSIC_ANYSOURCE
  void
  EventInputConnector::tick ()
    {

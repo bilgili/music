@@ -613,6 +613,11 @@ namespace MUSIC {
 //       }while( schedule[0].first <= localTime.time());
 //   }
   void
+  Scheduler::pushForward()
+  {
+    last_sconn_ = nextSConnection();
+  }
+  void
   Scheduler::reset(int self_node)
   {
     setSelfNode (self_node);

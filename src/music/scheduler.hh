@@ -155,6 +155,7 @@ namespace MUSIC {
     void nextCommunication (Clock& localTime,
 			    std::vector<std::pair<double, Connector *> > &schedule);
     void reset(int self_node);
+    void pushForward();
     void tick (Clock& localTime);
     void finalize (Clock& localTime, std::vector<Connector*>& connectors);
   private:

@@ -99,16 +99,18 @@ namespace MUSIC {
         self_node < scheduler_->nNodes ();
         ++self_node)
       {
+
         scheduler_->reset(self_node);
 
-        create (localTime);
-
+        if(!create (localTime))
+          scheduler_->pushForward();
         localTime.ticks (-1);
 
         for (int i = 0; i < N_PLANNING_CYCLES; ++i)
           {
             localTime.tick ();
-            create (localTime);
+            if(!create (localTime))
+               scheduler_->pushForward();
           }
         //finalize
         schedule.clear ();
@@ -161,8 +163,8 @@ namespace MUSIC {
 		unsigned int proxyId = (*comm).proxyId ();
 		if (proxyId != 0 && !(*multiProxies)[proxyId])
 		  {
-		    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
-			      << ": Proxy " << proxyId << std::endl;
+		  //  std::cout << "Rank " << MPI::COMM_WORLD.Get_rank ()
+			//      << ": Proxy " << proxyId << std::endl;
 		    MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
 		    MPI::COMM_WORLD.Barrier ();		
 		    (*multiProxies)[proxyId] = true;
@@ -386,6 +388,8 @@ namespace MUSIC {
         schedule.time = nextComm;
         schedule.connector =  last_sconn.getConnector ();
         MUSIC_LOGN (0,"Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"<< last_sconn.postNode ()->getId () << "at(" << last_sconn.nextSend ().time () << ", "<< last_sconn.nextReceive ().time () <<")");
+       // std::cerr<< "Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"<< last_sconn.postNode ()->getId () << "at(" << last_sconn.nextSend ().time () << ", "<< last_sconn.nextReceive ().time () <<")" <<std::endl;
+
       }
     scheduler_->last_sconn_ = scheduler_->nextSConnection();
     return !last_sconn.getConnector()->idFlag();

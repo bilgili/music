@@ -495,7 +495,7 @@ namespace MUSIC {
   class DirectRouter;
 
   class EventOutputCollectiveConnector:  public EventOutputConnector,public EventCollectiveConnector{
-    DirectRouter* router_;
+    DirectRouter* directRouter_;
   public:
     EventOutputCollectiveConnector(ConnectorInfo connInfo,
 				   IndexMap* indices,

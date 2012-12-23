@@ -91,7 +91,7 @@ namespace MUSIC {
     std::string portName () { return portName_; }
     PortDirection direction () { return dir_; }
     int width () { return width_; } // NO_WIDTH if no width specified
-    PortConnectorInfo connections () { return portConnections_; }
+    PortConnectorInfo& connections () { return portConnections_; }
     void addConnection (std::string recApp,
 			std::string recName,
 			int recCode,

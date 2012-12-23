@@ -376,14 +376,33 @@ namespace MUSIC {
      */
     if (isConnected ())
       {
-	int commType = ConnectivityInfo_->connections ()[0].communicationType ();
-	int procMethod = ConnectivityInfo_->connections ()[0].processingMethod ();
-	if (commType == ConnectorInfo::COLLECTIVE)
-	  router = new DirectRouter ();
-	else if (procMethod == ConnectorInfo::TREE)
-	  router = new TreeProcessingOutputRouter ();
+	bool mixed = false;
+	PortConnectorInfo::iterator c = ConnectivityInfo_->connections ().begin ();
+	int commType = c->communicationType ();
+	int procMethod = c->processingMethod ();
+	for (++c; c != ConnectivityInfo_->connections ().end (); ++c)
+	  {
+	    if (c->processingMethod () != procMethod)
+	      error ("MUSIC: can't use both tree and table for same port");
+	    if (c->communicationType () != commType)
+	      mixed = true;
+	  }
+	if (!mixed)
+	  {
+	    if (commType == ConnectorInfo::COLLECTIVE)
+	      router = new DirectRouter ();
+	    else if (procMethod == ConnectorInfo::TREE)
+	      router = new TreeProcessingOutputRouter ();
+	    else
+	      router = new TableProcessingOutputRouter ();
+	  }
 	else
-	  router = new TableProcessingOutputRouter ();
+	  {
+	    if (procMethod == ConnectorInfo::TREE)
+	      router = new HybridTreeProcessingOutputRouter ();
+	    else
+	      router = new HybridTableProcessingOutputRouter ();
+	  }
       }
   }
 
@@ -433,7 +452,7 @@ namespace MUSIC {
 	 indices_,
 	 index_type_,
 	 setup_->communicator (),
-	 static_cast<DirectRouter*> (router));
+	 router->directRouter ());
 
     return conn;
   }

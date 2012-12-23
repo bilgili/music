@@ -977,7 +977,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
     : Connector (connInfo, indices, type, comm),
       EventOutputConnector (NULL),
       EventCollectiveConnector (false),
-      router_ (router)
+      directRouter_ (router)
   {
   }
 
@@ -1004,7 +1004,7 @@ error( "LOCAL Indices are not supported with MUSIC_ANYSOURCE");
       = dynamic_cast<EventOutputCollectiveSubconnector*>
       (EventOutputCollectiveConnector::makeSubconnector (NULL));
     rsubconn.push_back (subconn);
-    subconn->setRouter (router_);
+    subconn->setRouter (directRouter_);
     //spatialNegotiator_->negotiateSimple ();
   }
 

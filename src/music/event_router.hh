@@ -70,6 +70,8 @@ namespace MUSIC {
     void process (double t, int id);
   };
 
+  class DirectRouter; //Remove this later
+
   /* remedius
    * We've decided to try different methods for pre-/post-processing the data:
    * using tree algorithm and using table.
@@ -90,6 +92,7 @@ namespace MUSIC {
     virtual void insertRoutingData (Interval& i, InputRoutingData<EventHandlerLocalIndex>& data) {}
     virtual void processEvent (double t, int id) {};
     virtual bool needFewPoints () const { return false; }
+    virtual DirectRouter* directRouter () { return 0; }; //Remove this later
   };
 
   template<class RoutingData, class IntervalLookup>
@@ -214,6 +217,34 @@ namespace MUSIC {
     void processExtra (double t, int id);
     void setOutputBuffer (void* buffer, unsigned int size);
     void fillOutputBuffer () { pos_ = 0; }
+  };
+
+  class HybridTreeProcessingOutputRouter
+    : public TreeProcessingOutputRouter
+  {
+  private:
+    DirectRouter directRouter_;
+  public:
+    DirectRouter* directRouter () { return &directRouter_; }
+    inline void processEvent (double t, int id)
+    {
+      TreeProcessingOutputRouter::processEvent (t, id);
+      directRouter_.processEvent (t, id);
+    }
+  };
+
+  class HybridTableProcessingOutputRouter
+    : public TableProcessingOutputRouter
+  {
+  private:
+    DirectRouter directRouter_;
+  public:
+    DirectRouter* directRouter () { return &directRouter_; }
+    inline void processEvent (double t, int id)
+    {
+      TableProcessingOutputRouter::processEvent (t, id);
+      directRouter_.processEvent (t, id);
+    }
   };
 
 }

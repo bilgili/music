@@ -201,6 +201,7 @@ namespace MUSIC {
     std::vector<char> extra_;
   public:
     DirectRouter () : size_ (0), pos_ (0) { }
+    DirectRouter* directRouter () { return this; }; //Remove this later
     unsigned int dataSize () { return pos_ + extra_.size (); }
     inline void processEvent (double t, int id)
     {

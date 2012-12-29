@@ -18,6 +18,8 @@
 
 #ifndef MUSIC_MULTIBUFFER_HH
 
+//#define MUSIC_TWOSTAGE_ALLGATHER
+
 #include "music/music-config.hh"
 
 #include "music/connector.hh"
@@ -96,9 +98,15 @@ namespace MUSIC {
     }
 
   public:
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+    static const int TWOSTAGE_FINALIZE_FLAG = 1 << 30;
+#endif
     class BufferInfo {
       unsigned int start_; // points to beginning of DATA
       unsigned int size_;  // current size of BUFFER (max data size)
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+      int rank_;
+#endif
     public:
       unsigned int readDataSize (BufferType buffer) const
       {
@@ -113,11 +121,15 @@ namespace MUSIC {
       void setStart (unsigned int start) { start_ = start; }
       unsigned int size () const { return size_; }
       void setSize (unsigned int size) { size_ = size; }
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+      int rank () const { return rank_; }
+      void setRank (int rank) { rank_ = rank; }
+#endif
     };
 
     typedef std::vector<BufferInfo> BufferInfos;
-  private:
     typedef std::vector<BufferInfo*> BufferInfoPtrs;
+  private:
 
   public:
     class Block {
@@ -143,6 +155,10 @@ namespace MUSIC {
 	//*fixme* Can set start_ to proper offset
 	unsigned int offset = rank_ == MPI::COMM_WORLD.Get_rank () ? 0 : start_;
 	return *headerPtr (buffer + offset) & MultiBuffer::ERROR_FLAG;
+      }
+      void clearBufferFlags (BufferType buffer)
+      {
+	*headerPtr (buffer + start_) = 0;
       }
       void clearBufferErrorFlag (BufferType buffer)
       {
@@ -227,7 +243,7 @@ namespace MUSIC {
   private:
     void setupRankMap (int, RankMap* rankMap);
     void registerGroup (unsigned int leader, std::vector<int>& worldRanks);
-    unsigned int computeSize ();
+    unsigned int computeSize (bool twostage);
 
   public:
     MultiBuffer (MPI::Intracomm comm,
@@ -251,9 +267,14 @@ namespace MUSIC {
 
     OutputSubconnectorInfo* getOutputSubconnectorInfo (Connector* connector);
 
-    void clearErrorFlag ()
+    void clearFlags ()
     {
       headerPtr (buffer_)[0] = 0;
+    }
+
+    void clearErrorFlag ()
+    {
+      headerPtr (buffer_)[0] &= ~MultiBuffer::ERROR_FLAG;
     }
 
     void setErrorFlag ()
@@ -266,7 +287,7 @@ namespace MUSIC {
       headerPtr (buffer_)[1 + i] = size;
     }
 
-    void restructure ();
+    void restructure (bool twostage);
   };
 
 
@@ -292,6 +313,7 @@ namespace MUSIC {
 
     typedef MultiBuffer::BufferInfo BufferInfo;
     typedef MultiBuffer::BufferInfos BufferInfos;
+    typedef MultiBuffer::BufferInfoPtrs BufferInfoPtrs;
 
     typedef std::vector<MultiBuffer::OutputSubconnectorInfo*> OutputSubconnectorInfos;
     OutputSubconnectorInfos outputSubconnectorInfo_;
@@ -311,6 +333,10 @@ namespace MUSIC {
     GroupMap* groupMap_;
     MPI::Group group_;
     MPI::Intracomm comm_;
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+    static const int TWOSTAGE_FINALIZE_FLAG = MultiBuffer::TWOSTAGE_FINALIZE_FLAG;
+    bool twostage_;
+#endif
 
     bool writeSizes ();
     void fillBuffers ();
@@ -320,6 +346,10 @@ namespace MUSIC {
     int rank () const { return comm_.Get_rank (); }
     int size () const { return comm_.Get_size (); }
     //void setErrorFlag (MultiBuffer::BufferType buffer);
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+    void processReceived ();
+    void checkRestructure ();
+#endif
 
   public:
     //MultiConnector () { }

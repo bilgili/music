@@ -231,13 +231,13 @@ namespace MUSIC {
     size_ = start;
     buffer_ = BufferType (malloc (size_));
     
-    // clear error flag in staging area
-    clearErrorFlag ();
+    // clear flags in staging area
+    clearFlags ();
 
     // write header fields into buffer
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
-	b->clearBufferErrorFlag (buffer_);
+	b->clearBufferFlags (buffer_);
 	for (BufferInfoPtrs::iterator bi = b->begin (); bi != b->end (); ++bi)
 	  (*bi)->writeDataSize (buffer_, 0);
       }
@@ -291,7 +291,7 @@ namespace MUSIC {
 
 
   unsigned int
-  MultiBuffer::computeSize ()
+  MultiBuffer::computeSize (bool twostage)
   {
     // compute required total size
     unsigned int summedSize = 0;
@@ -300,7 +300,7 @@ namespace MUSIC {
     for (Blocks::iterator b = block_.begin (); b != block_.end (); ++b)
       {
 	unsigned int size;
-	if (!b->errorFlag (buffer_))
+	if (!twostage && !b->errorFlag (buffer_))
 	  size = b->size ();
 	else
 	  {
@@ -331,9 +331,9 @@ namespace MUSIC {
 
 
   void
-  MultiBuffer::restructure ()
+  MultiBuffer::restructure (bool twostage)
   {
-    unsigned int size = computeSize ();
+    unsigned int size = computeSize (twostage);
     // resize multi-buffer
     if (size > size_)
       {
@@ -347,7 +347,7 @@ namespace MUSIC {
 	 b != block_.rend ();
 	 ++b)
       {
-	if (!b->errorFlag (buffer_))
+	if (!twostage && !b->errorFlag (buffer_))
 	  {
 	    // move entire block with one memmove
 	    newStart -= b->size ();
@@ -391,6 +391,8 @@ namespace MUSIC {
 			   oldSize + sizeof (HeaderType));
 	      }
 	    newStart -= sizeof (HeaderType); // error flag
+	    *headerPtr (buffer_ + newStart)
+	      = *headerPtr (buffer_ + b->start ());
 	    unsigned int blockSize = lastStart - newStart;
 	    if (blockSize < errorBlockSize_)
 	      {
@@ -607,6 +609,9 @@ namespace MUSIC {
       ranks[rank] = rank;
     MPI::Group::Translate_ranks (group_, size (), &ranks[0],
 				 MPI::COMM_WORLD.Get_group (), &indices[0]);
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+    twostage_ = true;
+#endif
     for (int rank = 0; rank < size (); ++rank)
       {
 	Blocks::iterator b = multiBuffer_->getBlock (indices[rank]);
@@ -619,6 +624,19 @@ namespace MUSIC {
 #endif
 	assert (b != multiBuffer_->blockEnd ());
 	block_.push_back (&*b);
+	
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+	// *fixme* need better criterion in the case of MC:s with
+	// proxy connectors
+	if (b->nBuffers () > 1)
+	  twostage_ = false;
+	else if (twostage_ && b->nBuffers () > 0)
+	  {
+	    BufferInfo* bi = *b->begin ();
+	    // Should store this information in separate data structure
+	    bi->setRank (rank);
+	  }
+#endif
       }
 
     recvcounts_ = new int[size ()];
@@ -664,15 +682,27 @@ namespace MUSIC {
     for (int r = 0; r < size (); ++r)
       {
 	Block* block = block_[r];
-	int newRecvcount = blank_[r] ? 0 : block->size ();
-	if (!restructuring_ && r == rank () && newRecvcount > recvcounts_[r])
-	  // Another MultiConnector has caused MultiBuffer
-	  // restructuring.  We need to postpone modifying recvcount
-	  // until our partner knows the new size.
-	  recvcountInvalid_ = true;
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+	if (twostage_)
+	  {
+	    if (block->begin () != block->end ())
+	      displs_[r] = (*block->begin ())->start ();
+	    else
+	      displs_[r] = 0;
+	  }
 	else
-	  recvcounts_[r] = newRecvcount;
-	displs_[r] = block->start ();
+#endif
+	  {
+	    int newRecvcount = blank_[r] ? 0 : block->size ();
+	    if (!restructuring_ && r == rank () && newRecvcount > recvcounts_[r])
+	      // Another MultiConnector has caused MultiBuffer
+	      // restructuring.  We need to postpone modifying recvcount
+	      // until our partner knows the new size.
+	      recvcountInvalid_ = true;
+	    else
+	      recvcounts_[r] = newRecvcount;
+	    displs_[r] = block->start ();
+	  }
       }
   }
 
@@ -743,6 +773,78 @@ namespace MUSIC {
   }
 
 
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+  void
+  MultiConnector::processReceived ()
+  {
+    for (InputSubconnectorInfoPtrs::iterator isi
+	   = inputSubconnectorInfo_.begin ();
+	 isi != inputSubconnectorInfo_.end ();
+	 ++isi)
+      {
+	InputSubconnector* subconnector = (*isi)->subconnector ();
+	for (BufferInfos::iterator bi = (*isi)->begin ();
+	     bi != (*isi)->end ();
+	     ++bi)
+	  subconnector->processData (buffer_ + bi->start (),
+				     recvcounts_[bi->rank ()]);
+      }
+  }
+
+
+  void
+  MultiConnector::checkRestructure ()
+  {
+    bool dataFits = true;
+    int r = 0;
+    for (BlockPtrs::iterator b = block_.begin ();
+	 b != block_.end ();
+	 ++r, ++b)
+      {
+	int size = recvcounts_[r];
+	if (size & TWOSTAGE_FINALIZE_FLAG)
+	  {
+	    block_[r]->setFinalizeFlag (buffer_);
+	    recvcounts_[r] &= ~TWOSTAGE_FINALIZE_FLAG;
+	  }
+	BufferInfoPtrs::iterator bipi = (*b)->begin ();
+	if (bipi != (*b)->end ())
+	  {
+	    BufferInfo* bi = *bipi;
+	    if (size > bi->size ())
+	      dataFits = false;
+	  }
+      }
+    if (!dataFits)
+      {
+	int r = 0;
+	for (BlockPtrs::iterator b = block_.begin ();
+	     b != block_.end ();
+	     ++r, ++b)
+	  {
+	    BufferInfoPtrs::iterator bipi = (*b)->begin ();
+	    if (bipi != (*b)->end ())
+	      {
+		int size = recvcounts_[r];
+		BufferInfo* bi = *bipi;
+		if (size < bi->size ())
+		  size = bi->size ();
+		bi->writeDataSize (buffer_, size);
+	      }
+	  }
+	BufferInfoPtrs::iterator bipi = block_[rank()]->begin ();
+	int bsize = 0;
+	if (bipi != block_[rank ()]->end ())
+	  bsize = (*bipi)->size ();
+	multiBuffer_->writeRequestedDataSize (0,
+					      std::max (recvcounts_[rank ()],
+							bsize));
+	multiBuffer_->restructure (true);
+      }
+  }  
+#endif
+
+
   static void
   dumprecvc (std::string id, int* recvc, int* displs, int n)
   {
@@ -767,28 +869,54 @@ namespace MUSIC {
   void
   MultiConnector::tick ()
   {
-    if (writeSizes ())
-      // Data will fit
-      fillBuffers ();
-    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
-    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-		      buffer_, recvcounts_, displs_, MPI::BYTE);
-    for (BlockPtrs::iterator b = block_.begin ();
-	 b != block_.end ();
-	 ++b)
-      if ((*b)->errorFlag (buffer_))
-	{
-	  restructuring_ = true;
-	  multiBuffer_->restructure ();
-	  restructuring_ = false;
-	  recvcountInvalid_ = false;
+#ifdef MUSIC_TWOSTAGE_ALLGATHER
+    if (twostage_)
+      {
+	// *fixme* nextBlock ()
+	OutputSubconnectorInfos::iterator osi = outputSubconnectorInfo_.begin ();
+	int recvc;
+	if (osi != outputSubconnectorInfo_.end ())
+	  recvc = (*osi)->subconnector ()->dataSize ();
+	else
+	  recvc = 0;
+	if (block_[rank ()]->finalizeFlag (buffer_))
+	  recvc |= TWOSTAGE_FINALIZE_FLAG;
+	recvcounts_[rank ()] = recvc;
+	comm_.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+			 recvcounts_, 1, MPI::INT);
+	checkRestructure ();
+	fillBuffers ();
+	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+			  buffer_, recvcounts_, displs_, MPI::BYTE);
+	processReceived ();
+      }
+    else
+#endif
+      {
+	if (writeSizes ())
+	  // Data will fit
 	  fillBuffers ();
-	  dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
-	  comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			    buffer_, recvcounts_, displs_, MPI::BYTE);
-	  break;
-	}
-    processInput ();
+	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+			  buffer_, recvcounts_, displs_, MPI::BYTE);
+	for (BlockPtrs::iterator b = block_.begin ();
+	     b != block_.end ();
+	     ++b)
+	  if ((*b)->errorFlag (buffer_))
+	    {
+	      restructuring_ = true;
+	      multiBuffer_->restructure (false);
+	      restructuring_ = false;
+	      recvcountInvalid_ = false;
+	      fillBuffers ();
+	      dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+	      comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+				buffer_, recvcounts_, displs_, MPI::BYTE);
+	      break;
+	    }
+	processInput ();
+      }
   }
 
 

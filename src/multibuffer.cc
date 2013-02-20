@@ -22,6 +22,8 @@
 
 #include <sstream>
 
+#include <cstring>
+
 extern "C" {
 #include <assert.h>
 }

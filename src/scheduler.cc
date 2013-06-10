@@ -317,6 +317,17 @@ namespace MUSIC {
     
     std::vector<SConnection*> path;
     depthFirst (*nodes[self_node], path);
+
+#ifdef MUSIC_DEBUG
+    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Loops: ";
+    for (std::vector<SConnection*>::iterator c = connections.begin ();
+	 c != connections.end ();
+	 ++c)
+      if ((*c)->isLoopConnected ())
+	std::cout << '(' << (*c)->preNode ()->getId () << ", "
+		  << (*c)->postNode ()->getId () << ") ";
+    std::cout << std::endl;
+#endif
   }
 
 #if 0

@@ -550,8 +550,10 @@ namespace MUSIC {
   {
     bool isContiguous = true;
     {
+#ifdef MUSIC_DEBUG
       std::ostringstream ostr;
       ostr << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Create ";
+#endif
       int nRanges = 0;
       for (GroupMap::iterator g = groupMap_->begin ();
 	   g != groupMap_->end ();
@@ -566,7 +568,9 @@ namespace MUSIC {
 	{
 	  int leader = g->first;
 	  Intervals& ivals = *g->second.worldRankIntervals;
+#ifdef MUSIC_DEBUG
 	  ostr << leader << ", ";
+#endif
 	  int size = 0;
 	  int next = ivals[0].first;
 	  for (Intervals::iterator ival = ivals.begin ();
@@ -584,8 +588,10 @@ namespace MUSIC {
 	    }
 	  g->second.size = size;
 	}
+#ifdef MUSIC_DEBUG
       ostr << std::endl;
       std::cout << ostr.str () << std::flush;
+#endif
       group_ = MPI::COMM_WORLD.Get_group ().Range_incl (nRanges, range);
       delete[] range;
     }
@@ -888,7 +894,9 @@ namespace MUSIC {
 			 recvcounts_, 1, MPI::INT);
 	checkRestructure ();
 	fillBuffers ();
+#ifdef MUSIC_DEBUG
 	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+#endif
 	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			  buffer_, recvcounts_, displs_, MPI::BYTE);
 	processReceived ();
@@ -899,7 +907,9 @@ namespace MUSIC {
 	if (writeSizes ())
 	  // Data will fit
 	  fillBuffers ();
+#ifdef MUSIC_DEBUG
 	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+#endif
 	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			  buffer_, recvcounts_, displs_, MPI::BYTE);
 	for (BlockPtrs::iterator b = block_.begin ();
@@ -912,7 +922,9 @@ namespace MUSIC {
 	      restructuring_ = false;
 	      recvcountInvalid_ = false;
 	      fillBuffers ();
+#ifdef MUSIC_DEBUG
 	      dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+#endif
 	      comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 				buffer_, recvcounts_, displs_, MPI::BYTE);
 	      break;

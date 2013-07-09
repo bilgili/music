@@ -1,3 +1,8 @@
+2013-07-09  Mikael Djurfeldt  <mdj@wand.pdc.kth.se>
+
+	* runtime.cc (Runtime::Runtime): Only create scheduling agents if
+	launched by MUSIC.
+
 2012-09-26  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* Makefile.am, connector.cc, event_router.cc, multibuffer.cc,

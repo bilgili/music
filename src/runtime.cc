@@ -42,11 +42,14 @@ namespace MUSIC {
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
 
-    scheduler = new Scheduler(s->applicationColor());
-    sAgents.push_back(mAgent = new MulticommAgent(scheduler));
-    sAgents.push_back(new UnicommAgent(scheduler));
-    scheduler->setAgent(sAgents[0]);
-    scheduler->setAgent(sAgents[1]);
+    scheduler = new Scheduler (s->applicationColor());
+    if (s->launchedByMusic ())
+      {
+	sAgents.push_back (mAgent = new MulticommAgent (scheduler));
+	sAgents.push_back (new UnicommAgent (scheduler));
+	scheduler->setAgent (sAgents[0]);
+	scheduler->setAgent (sAgents[1]);
+      }
     app_name = s->applicationName();
     leader_ = s->leader ();
 

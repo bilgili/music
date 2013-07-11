@@ -2,8 +2,6 @@ Checklist for a release:
 
 * AC_INIT in configure.ac
 
-* src/version.cc
-
 * (optional) debian/changelog
 
 * update NEWS

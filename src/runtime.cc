@@ -50,6 +50,12 @@ namespace MUSIC {
 	scheduler->setAgent (sAgents[0]);
 	scheduler->setAgent (sAgents[1]);
       }
+    else
+      {
+	sAgents.push_back (new DummyAgent (scheduler));
+	scheduler->setAgent (sAgents[0]);
+	scheduler->initializeAgentState ();
+      }
     app_name = s->applicationName();
     leader_ = s->leader ();
 

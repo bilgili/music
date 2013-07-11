@@ -128,6 +128,7 @@ namespace MUSIC {
     void addConnection (int pre_id, int post_id, const ClockState &latency,
 			int maxBuffered, bool interpolate,
 			bool multiComm, int port_code);
+    void initializeAgentState ();
     void initialize(std::vector<Connector*> &connectors);
 #if 0
     void createMultiConnectors (Clock localTime,

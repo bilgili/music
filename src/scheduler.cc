@@ -194,6 +194,13 @@ namespace MUSIC {
     agent->initialize();
     agents_.push_back(agent);
   }
+
+  void
+  Scheduler::initializeAgentState ()
+  {
+    cur_agent_ = agents_.begin ();
+  }
+
   void
   Scheduler::initialize (std::vector<Connector*>& connectors)
   {
@@ -234,8 +241,8 @@ namespace MUSIC {
 	  }
 #endif
       }
-        cur_agent_ = agents_.begin();
-        last_sconn_ = nextSConnection();
+    initializeAgentState ();
+    last_sconn_ = nextSConnection();
   }
 
   Scheduler::SConnection

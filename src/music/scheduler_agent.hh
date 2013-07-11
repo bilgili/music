@@ -98,6 +98,7 @@ namespace MUSIC {
     Filter1 *filter1;
     Filter2 *filter2;
   };
+
   class UnicommAgent: public virtual SchedulerAgent
   {
     class UniCommObject: public CommObject
@@ -115,6 +116,17 @@ namespace MUSIC {
     void initialize(){};
     bool tick(Clock& localTime);
     void finalize (std::set<int> &cnn_ports);
+  };
+
+  class DummyAgent : public SchedulerAgent
+  {
+  protected:
+    bool fillSchedule () { return true; }
+  public:
+    DummyAgent (Scheduler* scheduler) : SchedulerAgent (scheduler) { }
+    void initialize () { }
+    bool tick (Clock& localTime) { return true; }
+    void finalize (std::set<int> &cnn_ports) { }
   };
 }
 #endif

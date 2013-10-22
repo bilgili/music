@@ -28,6 +28,8 @@
 #include "music/parse.hh"
 #include "music/error.hh"
 
+#include <strings.h>
+
 namespace MUSIC {
 
   bool Setup::isInstantiated_ = false;

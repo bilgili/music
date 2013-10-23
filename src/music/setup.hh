@@ -83,6 +83,8 @@ namespace MUSIC {
     TemporalNegotiator* temporalNegotiator_;
     double timebase_;
     static bool isInstantiated_;
+    int& argc_;
+    char**& argv_;
 
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
@@ -102,6 +104,12 @@ namespace MUSIC {
     bool launchedByMusic ();
 
     void init (int& argc, char**& argv);
+
+    void maybeProcessMusicArgv (int& argc, char**& argv);
+
+    void maybePostponedSetup ();
+
+    void fullInit ();
 
     ConnectivityInfo* portConnectivity (const std::string localName);
 

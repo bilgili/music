@@ -37,6 +37,7 @@ namespace MUSIC {
      */
     static const char* const mapFileName;
     bool launchedByMusic_;
+    bool postponeSetup_;
     std::string applicationName_;
     int color_;
     int leader_;
@@ -62,6 +63,7 @@ namespace MUSIC {
     Configuration (std::string name, int color, Configuration* def);
     ~Configuration ();
     bool launchedByMusic () { return launchedByMusic_; }
+    bool postponeSetup () { return postponeSetup_; }
     void writeEnv ();
     int color () { return color_; }
     int leader () { return leader_; }

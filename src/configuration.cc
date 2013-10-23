@@ -31,308 +31,369 @@ extern "C" {
 
 namespace MUSIC {
 
-const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";
-const char* const Configuration::mapFileName = "music.map";
+  const char* const Configuration::configEnvVarName = "_MUSIC_CONFIG_";
+  const char* const Configuration::mapFileName = "music.map";
 
-Configuration::Configuration (std::string name, int color, Configuration* def)
-: applicationName_ (name), color_ (color), defaultConfig (def)
-{
+  /*
+   * This is the syntax of the _MUSIC_CONFIG_ variable:
+   *
+   * POSTPONE:COLOR means that configuration is postponed until the
+   * first port is created.  At this time, the variable is expected to
+   * contain the full configuration information:
+   *
+   *
+   * APPLICATIONNAME:COLOR:APPLICATIONMAP:CONNECTIVITYMAP:CONFIGDICT
+   *
+   * APPLICATIONNAME = name of this application (string)
+   *
+   * COLOR = index of section in music configuration file
+   *
+   * APPLICATIONMAP = SIZE:...:NAMEk:NPROCk:...
+   *
+   * SIZE = number of applications (integer)
+   *
+   * NAMEk = name of application k
+   *
+   * NPROCk = number of processes in application k
+   *
+   * CONNECTIVITYMAP = SIZE:...:PORTNAMEk:DIRECTIONk:WIDTHk:CONNECTIONSk:...
+   *
+   * SIZE = number of ports of this application
+   *
+   * PORTNAMEk = port name
+   *
+   * DIRECTIONk = port direction, 0 = OUTPUT, 1 = INPUT
+   *
+   * WIDTHk = port width
+   *
+   * CONNECTIONSk = SIZE:...:
+   *                RECAPPNAME:RECPORTNAME:RECPORTCODE:REMOTELEADER:NREMOTEPROCS
+   *                :COMMTYPE:PROCMETHOD:...
+   *
+   * RECAPPNAME = name of receiving application
+   *
+   * RECPORTNAME = name of receiver port
+   *
+   * RECPORTCODE = code unique for every receiver port
+   *
+   * REMOTELEADER = lowest rank of the remote application
+   *
+   * NREMOTEPROCS = number of processes in the remote application
+   *
+   * COMMTYPE = communication algorithm, 0 = collective, 1 = point-to-point
+   *
+   * PROCMETHOD = processing method, 0 = tree, 1 = table
+   *
+   * CONFIGDICT = ...:VARNAMEk=VALUEk:...
+   */
+  
+  Configuration::Configuration (std::string name, int color, Configuration* def)
+    : applicationName_ (name), color_ (color), defaultConfig (def)
+  {
 
-}
+  }
 #if MUSIC_USE_MPI
-Configuration::Configuration (char *app_name)
-: defaultConfig (0)
-{
-	std::string configStr;
-	/* remedius
-	 * getenv system call was replaced with local method getEnv call
-	 * in order to support reading configStr from the file (BG/P).
-	 */
-	getEnv (app_name, &configStr);
-	MUSIC_LOG0 ("config: " << configStr);
-	if (configStr.length() == 0)
-	{
-		launchedByMusic_ = false;
-		applications_ = new ApplicationMap ();
-		connectivityMap_ = new Connectivity ();
-	}
-	else
-	{
-		launchedByMusic_ = true;
-		std::istringstream env (configStr);
+  Configuration::Configuration (char *app_name)
+    : postponeSetup_ (false), defaultConfig (0)
+  {
+    std::string configStr;
+    /* remedius
+     * getenv system call was replaced with local method getEnv call
+     * in order to support reading configStr from the file (BG/P).
+     */
+    getEnv (app_name, &configStr);
+    MUSIC_LOG0 ("config: " << configStr);
+    if (configStr.length() == 0)
+      {
+	launchedByMusic_ = false;
+	applications_ = new ApplicationMap ();
+	connectivityMap_ = new Connectivity ();
+      }
+    else if (strncmp (configStr.c_str (), "POSTPONE", 8) == 0)
+      {
+	launchedByMusic_ = true;
+	postponeSetup_ = true;
+	color_ = atoi (&configStr[9]); // after "POSTPONE:"
+	applications_ = new ApplicationMap ();
+	connectivityMap_ = new Connectivity ();
+      }
+    else
+      {
+	launchedByMusic_ = true;
+	std::istringstream env (configStr);
 
-		applicationName_ = IOUtils::read (env);
-		env.ignore ();
-		env >> color_;
-		env.ignore ();
-		applications_ = new ApplicationMap (env, color_);
-		env.ignore ();
-		connectivityMap_ = new Connectivity (env, applications_->LeaderIdHook());
-		// parse config string
-		while (!env.eof ())
-		{
-			env.ignore ();
-			std::string name = IOUtils::read (env, '=');
-			env.ignore ();
-
-			insert (name, IOUtils::read (env));
-		}
-		
-		ApplicationInfo* ai = applications_->lookup (applicationName_);
-		leader_ = ai->leader ();
-	}
-}
-#endif
-
-Configuration::~Configuration ()
-{
-	delete connectivityMap_;
-	delete applications_;
-}
-
-#if MUSIC_USE_MPI
-void
-Configuration::getEnvFromFile (char *app_name,  std::string* result)
-{
-	int rank = MPI::COMM_WORLD.Get_rank ();
-	std::ifstream mapFile;
-	char* buffer;
-	int size = 0;
-	// Rank #0 is reading a file and broadcast it to each rank in the launch
-	if(rank == 0){
-	  mapFile.open (result->empty () ? mapFileName : result->c_str ());
-		if (!mapFile.is_open())
-		{
-			std::ostringstream oss;
-			oss << "File <music.map> is not found. To generate the file run MUSIC with -f option.";
-			error (oss.str ());
-		}
-
-		size = mapFile.tellg();
-		mapFile.seekg( 0, std::ios_base::end );
-		long cur_pos = mapFile.tellg();
-		size = cur_pos - size;
-		mapFile.seekg( 0, std::ios_base::beg );
-	}
-	// first broadcast the size of the file
-	MPI::COMM_WORLD.Bcast(&size, 1,  MPI::INT, 0);
-	buffer = new char[size];
-
-	if(rank == 0)
-		mapFile.read ( buffer, size );
-	// then broadcast the file but itself
-	MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
-	parseMapFile(app_name, std::string(buffer, size), result);
-	if(rank == 0)
-		mapFile.close();
-	delete[] buffer;
-}
-
-void
-Configuration::getEnv(char *app_name,  std::string* result)
-{
-#if !defined(__bgp__)
-  char* res = getenv (configEnvVarName);
-  if (res == NULL)
-    return;
-  result->assign (res);
-  if (result->find (':') != std::string::npos)
-    return;
-#endif
-  getEnvFromFile (app_name, result);
-}
-
-/* remedius
- * Each rank is responsible for parsing <map_file> and
- * retrieving according environment variable value (<result>)
- */
-
-
-void
-Configuration::parseMapFile(char *app_name, std::string map_file, std::string *result)
-{
-	int pos, sLen, color;
-	std::string thisApplicationName;
-	std::string applicationName;
-
-	if (app_name == NULL)
+	applicationName_ = IOUtils::read (env);
+	env.ignore ();
+	env >> color_;
+	env.ignore ();
+	applications_ = new ApplicationMap (env, color_);
+	env.ignore ();
+	connectivityMap_ = new Connectivity (env, applications_->LeaderIdHook());
+	// parse config string
+	while (!env.eof ())
 	  {
-	    std::istringstream env (map_file);
-	    IOUtils::read (env);
 	    env.ignore ();
-	    env >> color;
+	    std::string name = IOUtils::read (env, '=');
 	    env.ignore ();
-	    applications_ = new ApplicationMap (env, -1);
-	    int rank = MPI::COMM_WORLD.Get_rank ();
-	    ApplicationInfo* ai = applications_->applicationFromRank (rank);
-	    thisApplicationName = ai->name ();
-	    delete applications_;
+
+	    insert (name, IOUtils::read (env));
 	  }
-	else
-	  thisApplicationName = app_name;
+		
+	ApplicationInfo* ai = applications_->lookup (applicationName_);
+	leader_ = ai->leader ();
+      }
+  }
+#endif
 
-	result->clear ();
-	pos = 0;
-	sLen = map_file.length();
-	do
+  Configuration::~Configuration ()
+  {
+    delete connectivityMap_;
+    delete applications_;
+  }
+
+#if MUSIC_USE_MPI
+  void
+  Configuration::getEnvFromFile (char *app_name,  std::string* result)
+  {
+    int rank = MPI::COMM_WORLD.Get_rank ();
+    std::ifstream mapFile;
+    char* buffer;
+    int size = 0;
+    // Rank #0 is reading a file and broadcast it to each rank in the launch
+    if(rank == 0){
+      mapFile.open (result->empty () ? mapFileName : result->c_str ());
+      if (!mapFile.is_open())
+	{
+	  std::ostringstream oss;
+	  oss << "File <music.map> is not found. To generate the file run MUSIC with -f option.";
+	  error (oss.str ());
+	}
+
+      size = mapFile.tellg();
+      mapFile.seekg( 0, std::ios_base::end );
+      long cur_pos = mapFile.tellg();
+      size = cur_pos - size;
+      mapFile.seekg( 0, std::ios_base::beg );
+    }
+    // first broadcast the size of the file
+    MPI::COMM_WORLD.Bcast(&size, 1,  MPI::INT, 0);
+    buffer = new char[size];
+
+    if(rank == 0)
+      mapFile.read ( buffer, size );
+    // then broadcast the file but itself
+    MPI::COMM_WORLD.Bcast(buffer, size,  MPI::BYTE, 0);
+    parseMapFile(app_name, std::string(buffer, size), result);
+    if(rank == 0)
+      mapFile.close();
+    delete[] buffer;
+  }
+
+  void
+  Configuration::getEnv(char *app_name,  std::string* result)
+  {
+#if !defined(__bgp__)
+    char* res = getenv (configEnvVarName);
+    if (res == NULL)
+      return;
+    result->assign (res);
+    if (result->find (':') != std::string::npos)
+      return;
+#endif
+    getEnvFromFile (app_name, result);
+  }
+
+  /* remedius
+   * Each rank is responsible for parsing <map_file> and
+   * retrieving according environment variable value (<result>)
+   */
+
+
+  void
+  Configuration::parseMapFile(char *app_name, std::string map_file, std::string *result)
+  {
+    int pos, sLen, color;
+    std::string thisApplicationName;
+    std::string applicationName;
+
+    if (app_name == NULL)
+      {
+	std::istringstream env (map_file);
+	IOUtils::read (env);
+	env.ignore ();
+	env >> color;
+	env.ignore ();
+	applications_ = new ApplicationMap (env, -1);
+	int rank = MPI::COMM_WORLD.Get_rank ();
+	ApplicationInfo* ai = applications_->applicationFromRank (rank);
+	thisApplicationName = ai->name ();
+	delete applications_;
+      }
+    else
+      thisApplicationName = app_name;
+
+    result->clear ();
+    pos = 0;
+    sLen = map_file.length();
+    do
+      {
+	size_t occ_e = map_file.find_first_of ("\n", pos);
+	std::istringstream env (map_file.substr(pos,occ_e));
+	applicationName = IOUtils::read (env);
+	env.ignore ();
+	env >> color;
+	if (!applicationName.compare(thisApplicationName))
 	  {
-	    size_t occ_e = map_file.find_first_of ("\n", pos);
-	    std::istringstream env (map_file.substr(pos,occ_e));
-	    applicationName = IOUtils::read (env);
-	    env.ignore ();
-	    env >> color;
-	    if (!applicationName.compare(thisApplicationName))
-	      {
-		if(result->length() > 0){
-		  std::ostringstream oss;
-		  oss << "Multiple applications with the same name are listed in <music.map> file." << std::endl;
-		  error (oss.str ());
-		}
-		*result = map_file.substr (pos,occ_e);
-		//return;
-	      }
-	    pos = occ_e+1;
-	  } while (pos < sLen);
-	if (result->length() == 0)
+	    if(result->length() > 0){
+	      std::ostringstream oss;
+	      oss << "Multiple applications with the same name are listed in <music.map> file." << std::endl;
+	      error (oss.str ());
+	    }
+	    *result = map_file.substr (pos,occ_e);
+	    //return;
+	  }
+	pos = occ_e+1;
+      } while (pos < sLen);
+    if (result->length() == 0)
+      {
+	std::ostringstream oss;
+	oss << "There is a mismatch between the information in the file <music.map> and the given application color." << std::endl
+	    << "Try to generate the file (run MUSIC with -f option) again.";
+	error (oss.str ());
+      }
+  }
+#endif
+
+  void
+  Configuration::write (std::ostringstream& env, Configuration* mask)
+  {
+    std::map<std::string, std::string>::iterator pos;
+    for (pos = dict.begin (); pos != dict.end (); ++pos)
+      {
+	std::string name = pos->first;
+	if (!(mask && mask->lookup (name)))
+	  {
+	    env << ':' << name << '=';
+	    IOUtils::write (env, pos->second);
+	  }
+      }
+  }
+
+
+  void
+  Configuration::writeEnv ()
+  {
+    std::ostringstream env;
+    env << applicationName_ << ':' << color_ << ':';
+    applications_->write (env);
+    env << ':';
+    connectivityMap_->write (env);
+    write (env, 0);
+    defaultConfig->write (env, this);
+    setenv (configEnvVarName, env.str ().c_str (), 1);
+  }
+
+
+  bool
+  Configuration::lookup (std::string name)
+  {
+    return dict.find (name) != dict.end ();
+  }
+
+
+  bool
+  Configuration::lookup (std::string name, std::string* result)
+  {
+    std::map<std::string, std::string>::iterator pos = dict.find (name);
+    if (pos != dict.end ())
+      {
+	*result = pos->second;
+	return true;
+      }
+    else
+      return defaultConfig && defaultConfig->lookup (name, result);
+  }
+
+
+  bool
+  Configuration::lookup (std::string name, int* result)
+  {
+    std::map<std::string, std::string>::iterator pos = dict.find (name);
+    if (pos != dict.end ())
+      {
+	std::istringstream iss (pos->second);
+	if ((iss >> *result).fail ())
 	  {
 	    std::ostringstream oss;
-	    oss << "There is a mismatch between the information in the file <music.map> and the given application color." << std::endl
-		<< "Try to generate the file (run MUSIC with -f option) again.";
+	    oss << "var " << name << " given wrong type (" << pos->second
+		<< "; expected int) in config file";
 	    error (oss.str ());
 	  }
-}
-#endif
-
-void
-Configuration::write (std::ostringstream& env, Configuration* mask)
-{
-	std::map<std::string, std::string>::iterator pos;
-	for (pos = dict.begin (); pos != dict.end (); ++pos)
-	{
-		std::string name = pos->first;
-		if (!(mask && mask->lookup (name)))
-		{
-			env << ':' << name << '=';
-			IOUtils::write (env, pos->second);
-		}
-	}
-}
+	return true;
+      }
+    else
+      return defaultConfig && defaultConfig->lookup (name, result);
+  }
 
 
-void
-Configuration::writeEnv ()
-{
-	std::ostringstream env;
-	env << applicationName_ << ':' << color_ << ':';
-	applications_->write (env);
-	env << ':';
-	connectivityMap_->write (env);
-	write (env, 0);
-	defaultConfig->write (env, this);
-	setenv (configEnvVarName, env.str ().c_str (), 1);
-}
+  bool
+  Configuration::lookup (std::string name, double* result)
+  {
+    std::map<std::string, std::string>::iterator pos = dict.find (name);
+    if (pos != dict.end ())
+      {
+	std::istringstream iss (pos->second);
+	if ((iss >> *result).fail ())
+	  {
+	    std::ostringstream oss;
+	    oss << "var " << name << " given wrong type (" << pos->second
+		<< "; expected double) in config file";
+	    error (oss.str ());
+	  }
+	return true;
+      }
+    else
+      return defaultConfig && defaultConfig->lookup (name, result);
+  }
+
+  std::string Configuration::ApplicationName()
+  {
+    return applicationName_;
+  }
+
+  void
+  Configuration::insert (std::string name, std::string value)
+  {
+
+    dict.insert (std::make_pair (name, value));
+  }
 
 
-bool
-Configuration::lookup (std::string name)
-{
-	return dict.find (name) != dict.end ();
-}
+  ApplicationMap*
+  Configuration::applications ()
+  {
+    return applications_;
+  }
 
 
-bool
-Configuration::lookup (std::string name, std::string* result)
-{
-	std::map<std::string, std::string>::iterator pos = dict.find (name);
-	if (pos != dict.end ())
-	{
-		*result = pos->second;
-		return true;
-	}
-	else
-		return defaultConfig && defaultConfig->lookup (name, result);
-}
+  void
+  Configuration::setApplications (ApplicationMap* a)
+  {
+    applications_ = a;
+  }
 
 
-bool
-Configuration::lookup (std::string name, int* result)
-{
-	std::map<std::string, std::string>::iterator pos = dict.find (name);
-	if (pos != dict.end ())
-	{
-		std::istringstream iss (pos->second);
-		if ((iss >> *result).fail ())
-		{
-			std::ostringstream oss;
-			oss << "var " << name << " given wrong type (" << pos->second
-					<< "; expected int) in config file";
-			error (oss.str ());
-		}
-		return true;
-	}
-	else
-		return defaultConfig && defaultConfig->lookup (name, result);
-}
+  Connectivity*
+  Configuration::connectivityMap ()
+  {
+    return connectivityMap_;
+  }
 
 
-bool
-Configuration::lookup (std::string name, double* result)
-{
-	std::map<std::string, std::string>::iterator pos = dict.find (name);
-	if (pos != dict.end ())
-	{
-		std::istringstream iss (pos->second);
-		if ((iss >> *result).fail ())
-		{
-			std::ostringstream oss;
-			oss << "var " << name << " given wrong type (" << pos->second
-					<< "; expected double) in config file";
-			error (oss.str ());
-		}
-		return true;
-	}
-	else
-		return defaultConfig && defaultConfig->lookup (name, result);
-}
-
-std::string Configuration::ApplicationName()
-{
-	return applicationName_;
-}
-
-void
-Configuration::insert (std::string name, std::string value)
-{
-
-	dict.insert (std::make_pair (name, value));
-}
-
-
-ApplicationMap*
-Configuration::applications ()
-{
-	return applications_;
-}
-
-
-void
-Configuration::setApplications (ApplicationMap* a)
-{
-	applications_ = a;
-}
-
-
-Connectivity*
-Configuration::connectivityMap ()
-{
-	return connectivityMap_;
-}
-
-
-void
-Configuration::setConnectivityMap (Connectivity* c)
-{
-	connectivityMap_ = c;
-}
+  void
+  Configuration::setConnectivityMap (Connectivity* c)
+  {
+    connectivityMap_ = c;
+  }
 
 }

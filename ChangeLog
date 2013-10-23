@@ -43,6 +43,12 @@
 
 	* configure.ac: Generate music/version.hh.in.
 
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* configure.ac (AM_PATH_PYTHON): Added.
+
+	* music: New directory. Python interface for configuring MUSIC.
+
 2012-01-30  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Make sure that MPI libraries are listed at the end

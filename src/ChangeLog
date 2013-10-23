@@ -286,6 +286,35 @@
 
 	* music/version.hh.in: New file.
 
+2012-03-20  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* setup.cc, music/setup.hh (Setup::maybeProcessMusicArgv): New
+	method.  Get argc and argv from MUSIC_ARGV, if available.
+
+2012-03-18  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* runtime.cc (Runtime::Runtime): Call maybepostponedSetup ().
+
+	* configuration.cc (MUSIC): Added comment with syntax of
+	_MUSIC_CONFIG_.
+
+2012-03-15  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* music/setup.hh, setup.cc (maybePostponedSetup, fullInit): New
+	functions.
+
+	* music/configuration.hh, configuration.cc
+	(Configuration::postponeSetup): New function.
+
+	* port.cc (Port::Port): Call maybepostponedSetup ().
+
+2011-11-24  Mikael Djurfeldt  <mikael@djurfeldt.com>
+
+	* Makefile.am (libmusic_la_LDFLAGS): Added libmpidep.la in order
+	to support predictRank.
+
+	* music/predict_rank.hh, predict_rank.cc: New files.
+
 2011-01-31  Mikael Djurfeldt  <mdj@djurfeldt.com>
 
 	* Makefile.am (libmusic_c_la_DEPENDENCIES): Added in order to

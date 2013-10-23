@@ -41,7 +41,8 @@ namespace MUSIC {
   Runtime::Runtime (Setup* s, double h)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
-
+    s->maybePostponedSetup ();
+    
     scheduler = new Scheduler (s->applicationColor());
     if (s->launchedByMusic ())
       {

@@ -39,18 +39,20 @@ libmusic_la_SOURCES = \
 	interval.cc music/interval.hh music/interval_tree.hh \
 	music/interval_table.hh music/ordered_ilist.hh \
 	music/communication.hh music/memory.hh memory.cc \
+	music/predict_rank.hh predict_rank.cc \
 	music/version.hh version.cc
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
-libmusic_la_LDFLAGS = \
+libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la \
 	-version-info 1:0:0 -export-dynamic -Wl,-z,defs @MPI_LDFLAGS@
 libmusic_ladir = $(includedir)
 
 libmusic_c_la_SOURCES = \
-	music-c.cc music-c-c.c music-c.h
+	music-c.cc music-c-c.c music-c.h \
+	predict_rank-c.cc
 
-libmusic_c_la_HEADERS = music-c.h
+libmusic_c_la_HEADERS = music-c.h  music/predict_rank-c.h
 libmusic_c_la_CXXFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CXXFLAGS@
 libmusic_c_la_CFLAGS = -DBUILDING_MUSIC_LIBRARY @MPI_CFLAGS@
 libmusic_c_la_LDFLAGS = \
@@ -80,6 +82,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/collector.hh music/distributor.hh \
 		       music/cont_data.hh music/event.hh \
 		       music/message.hh music/music-config.hh \
+		       music/predict_rank.hh  music/predict_rank-c.h \
 		       music/communication.hh music/version.hh \
 		       music/memory.hh
 

@@ -26,16 +26,20 @@
 #include "music/parse.hh"
 #include "music/error.hh"
 
+#include <strings.h>
+
 namespace MUSIC {
 
   bool Setup::isInstantiated_ = false;
   static std::string err_MPI_Init = "MPI_Init was called before the Setup constructor";
 
   Setup::Setup (int& argc, char**& argv)
+    : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
+    maybeProcessMusicArgv (argc, argv);
     MPI::Init (argc, argv);
 
     init (argc, argv);
@@ -44,10 +48,12 @@ namespace MUSIC {
 
   
   Setup::Setup (int& argc, char**& argv, int required, int* provided)
+    : argc_ (argc), argv_ (argv)
   {
     checkInstantiatedOnce (isInstantiated_, "Setup");
     if (MPI::Is_initialized ())
       errorRank (err_MPI_Init);
+    maybeProcessMusicArgv (argc, argv);
 #ifdef HAVE_CXX_MPI_INIT_THREAD
     *provided = MPI::Init_thread (argc, argv, required);
 #else
@@ -78,8 +84,8 @@ namespace MUSIC {
     if (launchedByMusic ())
       {
 	// launched by the music utility
-	errorChecks ();
-
+	if (!config_->postponeSetup ())
+	  fullInit ();
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
 	if (!config ("timebase", &timebase_))
 	  timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
@@ -98,6 +104,46 @@ namespace MUSIC {
       }
   }
 
+
+  void
+  Setup::maybeProcessMusicArgv (int& argc, char**& argv)
+  {
+    char* MUSIC_ARGV = getenv ("MUSIC_ARGV");
+    if (MUSIC_ARGV != NULL)
+      {
+	std::string cmd;
+	std::string argstring;
+	char* s = index (MUSIC_ARGV, ' ');
+	if (s == NULL)
+	  {
+	    cmd = std::string (MUSIC_ARGV);
+	    argstring = "";
+	  }
+	else
+	  {
+	    cmd = std::string (MUSIC_ARGV, s - MUSIC_ARGV);
+	    argstring = std::string (s + 1);
+	  }
+	char** newArgv = parseArgs (cmd, argstring, &argc);
+	for (int i = 0; i < argc; ++i)
+	  argv[i] = newArgv[i];
+	delete[] newArgv;
+      }
+  }
+
+
+  void
+  Setup::maybePostponedSetup ()
+  {
+    if (config_->postponeSetup ())
+      {
+	delete config_;
+	config_ = new Configuration (0 /*fixme*/);
+	fullInit ();
+      }
+  }
+
+
   void
   Setup::errorChecks ()
   {
@@ -112,6 +158,20 @@ namespace MUSIC {
 	    << std::endl;
 	error0 (msg.str ());
       }
+  }
+
+  void
+  Setup::fullInit ()
+  {
+    errorChecks ();
+    if (!config ("timebase", &timebase_))
+      timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
+    string binary;
+    config_->lookup ("binary", &binary);
+    string args;
+    config_->lookup ("args", &args);
+    argv_ = parseArgs (binary, args, &argc_);
+    temporalNegotiator_ = new TemporalNegotiator (this);
   }
 
 

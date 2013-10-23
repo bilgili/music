@@ -1,3 +1,6 @@
+* API call to flush all communication before finalize (user may need
+  to take some action between last communication and MPI_Finalize)
+
 * checkpointing
 
 * use duplicate of MPI::COMM_WORLD for setting up inter-communicators

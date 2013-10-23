@@ -4,7 +4,7 @@ ACLOCAL = $(top_srcdir)/aclocal.sh
 
 bin_PROGRAMS = eventlogger
 noinst_PROGRAMS = clocksource contsink constsource eventdelay contdelay \
-		  messagesource waveproducer waveconsumer
+		  messagesource waveproducer waveconsumer testallgather
 
 EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
 	     events.music messages.music fork.music loop.music		\
@@ -48,5 +48,8 @@ messagesource_SOURCES = messagesource.cc
 messagesource_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
 messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
+testallgather_SOURCES = testallgather.cc
+testallgather_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir) @MPI_CXXFLAGS@
+testallgather_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

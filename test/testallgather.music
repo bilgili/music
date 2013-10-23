@@ -1,0 +1,3 @@
+[A]
+  binary=./testallgather
+  np=6

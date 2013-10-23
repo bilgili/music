@@ -2,12 +2,11 @@ import os
 
 from music import *
 
-define ('np', 2)
 define ('stoptime', 1.0)
 
-application ('from', 'eventsource', '-b 1 10 spikes')
-application ('to', 'eventlogger', '-b 2')
+app1 = Application (2, 'eventsource', '-b 1 10 spikes')
+app2 = Application (2, 'eventlogger', '-b 2')
 
-connect ('from.out', 'to.in', 10)
+connect (app1, 'out', app2, 'in', 10)
 
 launch ()

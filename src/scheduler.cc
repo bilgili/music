@@ -47,7 +47,7 @@ namespace MUSIC {
     double time = localTime_.time ();
 #endif
     localTime_.tick ();
-    MUSIC_LOG0 ("advanced " << id_ <<" from "<<time << " to " <<  localTime_.time ()) ;
+   // MUSIC_LOG0 ("advanced " << id_ <<" from "<<time << " to " <<  localTime_.time ()) ;
   }
 
   void
@@ -250,6 +250,7 @@ namespace MUSIC {
   {
     while (true)  
       {
+#if 0
 	//	std::vector<Node*>::iterator node;
 	for (; iter_node < nodes.size (); ++iter_node )
 	  {
@@ -277,7 +278,38 @@ namespace MUSIC {
 	      }
 	    iter_conn = -1;
 	  }
+#endif
+	for (; iter_node < nodes.size (); ++iter_node )
+	  {
+	    Node *node = nodes.at(iter_node);
+	    std::vector<SConnection*>* conns = node->outputConnections ();
+
+	    for (++iter_conn;
+	        iter_conn < static_cast<int> (conns->size ());
+	        ++iter_conn)
+	      {
+	        SConnection *conn = conns->at(iter_conn);
+	        //do we have data ready to be sent?
+	            if (conn->nextSend () <= conn->preNode ()->localTime ()
+	                && conn->nextReceive () == conn->postNode ()->localTime ())
+	              {
+	                SConnection sconn = *conn;
+	                sconn.postponeNextSend( conn->preNode()->localTime());
+	                conn->advance();
+	                return sconn;
+	              }
+	      }
+	    iter_conn = -1;
+	  }
+
+	for ( iter_node = 0; iter_node < nodes.size (); ++iter_node )
+	  {
+	    Node *node = nodes.at(iter_node);
+	    if (node->nextReceive () > node->localTime ().time ())
+	      node->advance ();
+	  }
 	iter_node = 0;
+
       }
   }
 
@@ -324,8 +356,8 @@ namespace MUSIC {
     
     std::vector<SConnection*> path;
     depthFirst (*nodes[self_node], path);
-
-#ifdef MUSIC_DEBUG
+#if 0
+//#ifdef MUSIC_DEBUG
     std::cout << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Loops: ";
     for (std::vector<SConnection*>::iterator c = connections.begin ();
 	 c != connections.end ();

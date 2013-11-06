@@ -110,7 +110,7 @@ namespace MUSIC {
 	applications_ = new ApplicationMap ();
 	connectivityMap_ = new Connectivity ();
       }
-    else if (strncmp (configStr.c_str (), "POSTPONE", 8) == 0)
+    else if (!configStr.compare (0, 8, "POSTPONE"))
       {
 	launchedByMusic_ = true;
 	postponeSetup_ = true;

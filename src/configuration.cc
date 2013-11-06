@@ -28,7 +28,6 @@ extern "C" {
 #include "music/error.hh"
 #include <iostream>
 #include <fstream>
-#include <string.h>
 
 namespace MUSIC {
 

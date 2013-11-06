@@ -10,7 +10,7 @@ MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
 music_SOURCES = music.cc application_mapper.cc application_mapper.hh
 music_CXXFLAGS = $(MUSIC_INCLUDE) -I$(top_srcdir) @MPI_CXXFLAGS@
-music_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/mpidep/libmpidep.a $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
+music_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
 
 eventsource_SOURCES = eventsource.cc datafile.h datafile.cc
 eventsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@

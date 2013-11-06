@@ -209,7 +209,7 @@ namespace MUSIC
               {
                 assert(multiConnectors[multiId] != NULL);
 
-                multiConnectors[multiId]->tick(localTime);
+                multiConnectors[multiId]->tick();
 
               }
           }
@@ -369,8 +369,7 @@ namespace MUSIC
                 // finalize () needs to come after isFinalized check
                 // since it can itself set finalized state
                 m->finalize();
-                Clock cl;
-                m->tick(cl);
+                m->tick();
               }
           }
         schedule.clear();

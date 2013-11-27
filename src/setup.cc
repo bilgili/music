@@ -86,8 +86,6 @@ namespace MUSIC {
 	// launched by the music utility
 	if (!config_->postponeSetup ())
 	  fullInit ();
-	else
-	  std::cout << "POSTPONED" << std::endl;
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
       }
     else

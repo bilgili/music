@@ -86,15 +86,9 @@ namespace MUSIC {
 	// launched by the music utility
 	if (!config_->postponeSetup ())
 	  fullInit ();
+	else
+	  std::cout << "POSTPONED" << std::endl;
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
-	if (!config ("timebase", &timebase_))
-	  timebase_ = MUSIC_DEFAULT_TIMEBASE;	       // default timebase
-	string binary;
-	config_->lookup ("binary", &binary);
-	string args;
-	config_->lookup ("args", &args);
-	argv = parseArgs (binary, args, &argc);
-	temporalNegotiator_ = new TemporalNegotiator (this);
       }
     else
       {

@@ -9,6 +9,7 @@ noinst_PROGRAMS = clocksource contsink constsource contdelay \
 EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
 	     events.music messages.music fork.music loop.music		\
 	     wavetest.music viewevents.music demo.music demolarge.music	\
+	     events.py \
              neuronGrid.data neuronGridLARGE.data			\
 	     spikes0.dat spikes1.dat README
 

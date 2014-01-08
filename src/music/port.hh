@@ -159,8 +159,8 @@ namespace MUSIC {
     void map (IndexMap* indices, Index::Type type, int maxBuffered);
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
-  private:
     EventOutputPort (Setup* s, std::string id);
+  private:
     void setupCleanup () { };
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
     ~EventOutputPort();
@@ -197,8 +197,8 @@ namespace MUSIC {
 	      EventHandlerLocalIndex* handleEvent,
 	      double accLatency,
 	      int maxBuffered);
-  protected:
     EventInputPort (Setup* s, std::string id);
+  protected:
     void mapImpl (IndexMap* indices,
 		  Index::Type type,
 		  EventHandlerPtr handleEvent,

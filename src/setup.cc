@@ -85,7 +85,11 @@ namespace MUSIC {
       {
 	// launched by the music utility
 	if (!config_->postponeSetup ())
-	  fullInit ();
+	  {
+	    fullInit ();
+	    argc = argc_;
+	    argv = argv_;
+	  }
 	comm = MPI::COMM_WORLD.Split (config_->color (), myRank);
       }
     else

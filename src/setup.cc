@@ -73,7 +73,7 @@ namespace MUSIC {
  * first argument of each application should contain the name of the application node
  *  described in the configuration file *.music that was used for generating music.map file on BG/P
  */
-#if defined(__bgp__)
+#if defined(__bgp__) || defined(__bgq__)
     app_node = argv[1];
 #else
     app_node = NULL;

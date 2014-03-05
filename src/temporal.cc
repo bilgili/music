@@ -278,7 +278,7 @@ namespace MUSIC {
   void
   TemporalNegotiator::combineParameters ()
   {
-    double timebase = nodes[0].data->timebase;
+    timebase = nodes[0].data->timebase;
 
     for (int o = 0; o < nApplications; ++o)
       {

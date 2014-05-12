@@ -8,7 +8,7 @@ if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
 fi
 
-AC_PROG_CXX([mpiCC mpixlcxx_r mpixlcxx mpicxx CC])
+AC_PROG_CXX([mpiCC mpixlcxx mpixlcxx_r mpicxx CC])
 MPI_CXX="$CXX"
 
 AC_MSG_CHECKING([which MPI system we think we are using])
@@ -43,7 +43,7 @@ Please set them manually.])
     ;;
   mpixlcxx)
     MPI_C=mpixlc
-    SYSGUESS=bgl
+    SYSGUESS=bgq
     CXX="$MPI_CXX"
     #CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
     CC="$MPI_C"
@@ -70,6 +70,13 @@ Please set them manually.])
       SYSGUESS=unknown
     fi
     ;;
+  xlC)
+    MPI_C=xlc
+    SYSGUESS=bgq_seq
+    CXX="$MPI_CXX"
+    CC="$MPI_C"
+    ;;
+
   *)
     SYSGUESS=unknown
     ;;
@@ -93,12 +100,16 @@ else
       MPI_CXXFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
       enable_shared=no
       ;;
-    bgl)
-      MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+    bgq)
+      MPI_CXXFLAGS="-qarch=qp -qtune=qp -qhot -qnostrict"
       enable_shared=no
       ;;
     cray_xe6)
       MPI_CXXFLAGS=""
+      ;;
+    bgq_seq)
+      MPI_CXXFLAGS=""
+      enable_shared=no
       ;;
     *)
       AC_MSG_ERROR([
@@ -125,12 +136,16 @@ else
       MPI_CFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
       enable_shared=no
       ;;
-    bgl)
-      MPI_CFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+    bgq)
+      MPI_CFLAGS="-qarch=qp -qtune=qp -qhot -qnostrict"
       enable_shared=no
       ;;
     cray_xe6)
       MPI_CFLAGS=""
+      ;;
+    bgq_seq)
+      MPI_CFLAGS=""
+      enable_shared=no
       ;;
     *)
       AC_MSG_ERROR([
@@ -153,7 +168,7 @@ else
     openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
-    bgp|bgl|cray_xe6)
+    bgp|bgq|cray_xe6|bgq_seq)
       MPI_LDFLAGS=""
       ;;
     *)

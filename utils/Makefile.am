@@ -2,7 +2,7 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = music
+bin_PROGRAMS = music eventsource
 # eventsource eventsink eventselect eventgenerator \
 #	       eventcounter @OPTIONAL_UTILS@
 #EXTRA_PROGRAMS = viewevents
@@ -13,9 +13,9 @@ music_SOURCES = music.cc application_mapper.cc application_mapper.hh
 music_CXXFLAGS = $(MUSIC_INCLUDE) -I$(top_srcdir) @MPI_CXXFLAGS@
 music_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
 
-# eventsource_SOURCES = eventsource.cc datafile.h datafile.cc
-# eventsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# eventsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ eventsource_SOURCES = eventsource.cc datafile.h datafile.cc
+ eventsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ eventsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 # eventsink_SOURCES = eventsink.cc
 # eventsink_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@

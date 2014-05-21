@@ -26,143 +26,172 @@
 #include <music/clock.hh>
 #include <music/connector.hh>
 #include <music/multibuffer.hh>
-
-namespace MUSIC {
+#include <music/application_map.hh>
+#include <music/temporal.hh>
+namespace MUSIC
+{
 
 // The Scheduler is responsible for the timing involved in
 // communication, sampling, interpolation and buffering.
   class SchedulerAgent;
   class SchedulerAgent;
+  class SApplData;
+  class SConnData;
+
   class Scheduler
   {
 
   public:
 
-    class SConnection;
-    class Node {
-      int id_;
-      Clock localTime_;
-      int leader_;
-      int nProcs_;
-      std::vector<SConnection*> outputConnections_;
-      std::vector<SConnection*> inputConnections_;
+    class SConnData;
+    class SApplData
+    {
     public:
-      Node(int id, const Clock &localTime, int leader, int nProcs);
-      void resetClock () { localTime_.reset (); }
-      void advance();
-      void addConnection(SConnection *conn, bool input = false);
-      std::vector<SConnection*>* outputConnections ()
+      Clock localTime;
+      int leader;
+      int nProcs;
+      int color;
+    };
+
+    class SConnData
+    {
+    public:
+      Clock nextSend;
+      Clock nextReceive;
+      Clock sSend;
+      ConnectionDescriptor descr;
+      Connector *connector;
+      bool isLoopConnected;
+      void
+      reset()
       {
-	return &outputConnections_;
-      };
-      Clock localTime () const {return localTime_;};
-      double nextReceive() const;
-      int getId() const {return id_;}
-      int leader () const { return leader_; }
-      int nProcs () const { return nProcs_; }
-      bool inPath;
+        nextSend.reset();
+        nextReceive.reset();
+        sSend.reset();
+        isLoopConnected = false;
+      }
+      void
+      postponeNextSend(Clock newTime)
+      {
+        sSend = nextSend;
+        nextSend = newTime;
+      }
     };
 
-    class SConnection {
-      Clock nextSend_;
-      Clock nextReceive_;
-      Clock sSend_;
-      int pre_id,post_id;
-      Node *pre_;
-      Node *post_;
-      ClockState latency_;
-      int maxBuffered_;
-      bool interpolate_;
-      bool multiComm_;
-      int port_code_;
-      Connector *connector_;
-      bool isLoopConnected_;
-	  
+    typedef ANode<SApplData, SConnData> SNode;
+    typedef AEdge<SApplData, SConnData> SConnection;
+
+    class SGraph : public AGraph<SApplData, SConnData>
+    {
+      int tmp_color_;
     public:
-      SConnection(){};
-      SConnection (int pre, int post, const ClockState &latency,
-		   int maxBuffered, bool interpolate,
-		   bool multiComm, int port_code);
-      void initialize(std::vector<Node*> &nodes);
-      void resetClocks () { nextSend_.reset (); nextReceive_.reset (); sSend_.reset();}
-      void advance();
-      Clock nextSend() const { return nextSend_; }
-      Clock nextReceive() const { return nextReceive_; }
-      Clock scheduledSend() const {return sSend_; }
-      void postponeNextSend(Clock newTime) {sSend_ = nextSend_; nextSend_ = newTime;}
-      Connector *getConnector() const { return connector_; }
-      void setConnector (Connector *conn) { connector_ = conn; }
-      int portCode() const { return port_code_; }
-      Node *preNode() const { return pre_; }
-      Node *postNode() const { return post_; }
-      bool isLoopConnected () const { return isLoopConnected_; }
-      bool isLocalConnection(int self_node) const {return pre_id == self_node || post_id == self_node;}
-      void setLoopConnected () { isLoopConnected_ = true; }
-      void clearLoopConnected () { isLoopConnected_ = false; }
-      ClockState getLatency() const { return latency_; }
-      bool getInterpolate() const { return interpolate_; }
-      bool needsMultiCommunication () const { return multiComm_; }
-    private:
-      void _advance();
-
+      SGraph(int color, int nApps, int nEdges) :
+          AGraph<SApplData, SConnData>(color, nApps, nEdges), tmp_color_(color)
+      {
+      }
+      ;
+      void
+      setTempColor(int tmp_color)
+      {
+        tmp_color_ = tmp_color;
+      }
+      void
+      handleLoop(SNode &x, std::vector<SConnection> & path);
     };
+
   private:
-    std::vector<Node*> nodes;
-    std::vector<SConnection*> connections;
-    int self_node;
-    unsigned int iter_node;
-    int iter_conn;
-    double compTime;
+    SGraph *nodes;
+    SGraph::iterator iter_node;
+    SNode::edge_iterator iter_conn;
+
     std::vector<SchedulerAgent *> agents_;
     std::vector<SchedulerAgent *>::iterator cur_agent_;
-    SConnection last_sconn_;
-    //std::vector<std::pair<double, Connector *> > schedule;
-  public:
-    Scheduler(int node_id);
-    ~Scheduler();
-    unsigned int selfNode () { return self_node; }
 
-    unsigned int nNodes () { return nodes.size (); }
-    // addNode is called from TemporalNegotiator::fillScheduler
-    void addNode(int id, const Clock &localTime, int leader, int nProcs);
-    void addConnection (int pre_id, int post_id, const ClockState &latency,
-			int maxBuffered, bool interpolate,
-			bool multiComm, int port_code);
-    void initializeAgentState ();
-    void initialize(std::vector<Connector*> &connectors);
+    SConnection last_sconn_;
+
+    SApplData *appl_data_;
+    SConnData *conn_data_;
+
+    int color_;
+  public:
+
+    Scheduler();
+    ~Scheduler();
+    bool
+    isLocalConnection(SConnection &edge)
+    {
+
+      return &edge.pre() == &nodes->at(color_)
+          || &edge.post() == &nodes->at(color_);
+
+    }
+
+    unsigned int
+    nApplications()
+    {
+      return nodes->nNodes();
+    }
+
+    int
+    self_node()
+    {
+      return color_;
+    }
+
+    void
+    initialize(ApplicationMap &map, TemporalNegotiator *tn,
+        std::vector<Connector*>& connectors);
 #if 0
     void createMultiConnectors (Clock localTime,
-				std::vector<Connector*>& connectors,
-				MultiBuffer* multiBuffer,
-				std::vector<MultiConnector*>& multiConnectors);
+        std::vector<Connector*>& connectors,
+        MultiBuffer* multiBuffer,
+        std::vector<MultiConnector*>& multiConnectors);
     void createMultiConnNext (int self_node,
-			      Clock& localTime,
-			      std::vector<Connector*>& connectors,
-			      MultiBuffer* multiBuffer,
-			      std::vector<std::pair<double, Connector *> > &schedule);
+        Clock& localTime,
+        std::vector<Connector*>& connectors,
+        MultiBuffer* multiBuffer,
+        std::vector<std::pair<double, Connector *> > &schedule);
     void createMultiConnStep (int self_node,
-			      Clock& localTime,
-			      std::vector<Connector*>& connectors,
-			      MultiBuffer* multiBuffer,
-			      std::vector<MultiConnector*>& multiConnectors,
-			      std::vector<bool>& multiProxies,
-			      std::vector<Connector*>& cCache,
-			      std::vector<std::pair<double, Connector *> > &schedule,
-			      bool finalize);
-#endif
-    void depthFirst (Node& x, std::vector<SConnection*>& path);
-    void analyzeLoops ();
-    void setAgent(SchedulerAgent* agent);
+        Clock& localTime,
+        std::vector<Connector*>& connectors,
+        MultiBuffer* multiBuffer,
+        std::vector<MultiConnector*>& multiConnectors,
+        std::vector<bool>& multiProxies,
+        std::vector<Connector*>& cCache,
+        std::vector<std::pair<double, Connector *> > &schedule,
+        bool finalize);
     void nextCommunication (Clock& localTime,
-			    std::vector<std::pair<double, Connector *> > &schedule);
-    void reset(int self_node);
-    void pushForward();
-    void tick (Clock& localTime);
-    void finalize (Clock& localTime, std::vector<Connector*>& connectors);
+        std::vector<std::pair<double, Connector *> > &schedule);
+
+#endif
+    void
+    setAgent(SchedulerAgent* agent);
+    void
+    reset(int self_node);
+    void
+    pushForward();
+    void
+    tick(Clock& localTime);
+    void
+    finalize(Clock& localTime, std::vector<Connector*>& connectors);
+    void
+    initializeAgentState();
+    AEdge<Scheduler::SApplData, Scheduler::SConnData>
+    nextSConnection();
   private:
-    void resetClocks ();
-    void setSelfNode (unsigned int selfNode) { self_node = selfNode; }
-    SConnection nextSConnection();
+    void
+    resetApplications();
+    void
+    setApplications(ApplicationMap &map, TemporalNegotiationData *data);
+    void
+    setConnections(int nConns, TemporalNegotiationData *data,
+        std::vector<Connector*>& connectors);
+    double
+    nextApplicationReceive(SNode &node);
+    void
+    advanceConnection(SConnData &data);
+    void
+    advanceConnectionClocks(SConnData &data);
     friend class MulticommAgent;
     friend class UnicommAgent;
   };

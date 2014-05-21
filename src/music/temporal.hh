@@ -23,15 +23,18 @@
 #define DEFAULT_PACKET_SIZE 64000
 #define EVENT_FREQUENCY_ESTIMATE 10.0
 #define DEFAULT_MESSAGE_MAX_BUFFERED 10
-
+#include <music/debug.hh>
 #include <music/clock.hh>
 #include <music/connection.hh>
-#include <music/scheduler.hh>
-namespace MUSIC {
+#include <music/application_graph.hh>
+#include "music/error.hh"
+namespace MUSIC
+{
 
   class Setup;
 
-  class ConnectionDescriptor {
+  class ConnectionDescriptor
+  {
   public:
     int remoteNode;
     int receiverPort;
@@ -42,118 +45,113 @@ namespace MUSIC {
     ClockState accLatency;
     ClockState remoteTickInterval;
   };
-  
-  class TemporalNegotiationData {
+
+  class TemporalNegotiationData
+  {
   public:
     double timebase;
     ClockState tickInterval;
-    int color;
-    int leader;
-    int nProcs;
     int nOutConnections;
     int nInConnections;
     ConnectionDescriptor connection[1];
   };
 
-  class ApplicationNode;
+  class TemporalNegotiatorGraph : public AGraph<TemporalNegotiationData,
+      ConnectionDescriptor>
+  {
+    double timebase_;
+  public:
+    TemporalNegotiatorGraph(double timebase, int nApps, int color) :
+        AGraph<TemporalNegotiationData, ConnectionDescriptor>(color, nApps), timebase_(
+            timebase)
+    {
+    }
+    ;
+    void
+    handleLoop(ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
+        std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > & path);
 
-  class ConnectionEdge;
+    AEdge<TemporalNegotiationData, ConnectionDescriptor>
+    edge(ANode<TemporalNegotiationData, ConnectionDescriptor> &x, int c)
+    {
+      ConnectionDescriptor& descr = x.data().connection[c];
+
+      return AEdge<TemporalNegotiationData, ConnectionDescriptor>(x,
+          nodes_[descr.remoteNode], descr);
+    }
+    ;
+  };
 
   // The TemporalNegotiator negotiates communication timing parameters
   // with all other applications.
-  
-  class TemporalNegotiator {
+  class TemporalNegotiator
+  {
     Setup* setup_;
     MPI::Group groupWorld;
     MPI::Group applicationLeaders;
     MPI::Intracomm negotiationComm;
-    std::map<int, int> leaderToNode;
+
     int nApplications; // initialized by createNegotiationCommunicator
     int nLocalConnections;
-    int localNode;
-    double timebase;
+    int nAllConnections;
+
     std::vector<OutputConnection> outputConnections;
     std::vector<InputConnection> inputConnections;
-    std::vector<ApplicationNode> nodes;
+
+    TemporalNegotiatorGraph *nodes;
+
     TemporalNegotiationData* negotiationBuffer;
     TemporalNegotiationData* negotiationData;
-    int negotiationDataSize (int nConnections);
-    int negotiationDataSize (int nBlock, int nConnections);
-    int computeDefaultMaxBuffered (int maxLocalWidth,
-				   int eventSize,
-				   ClockState tickInterval,
-				   double timebase);
-    TemporalNegotiationData* allocNegotiationData (int nBlocks,
-						   int nConnections);
-    void freeNegotiationData (TemporalNegotiationData*);
-    ConnectionDescriptor* findInputConnection (int node, int port);
-    bool isLeader ();
-    bool hasPeers ();
-    void depthFirst (ApplicationNode& x,
-		     std::vector<ConnectionEdge>& path);
-    void fillScheduler(Scheduler *scheduler, TemporalNegotiationData* negotiationData);
-  public:
-    TemporalNegotiator (Setup* setup);
-    ~TemporalNegotiator ();
-    Setup* setup () { return setup_; }
-    ApplicationNode& applicationNode (int i) { return nodes[i]; }
-    void separateConnections (std::vector<Connection*>* connections);
-    void createNegotiationCommunicator ();
-    void collectNegotiationData (ClockState ti);
-    void communicateNegotiationData ();
-    void combineParameters ();
-    void loopAlgorithm ();
-    void distributeParameters ();
-    void broadcastNegotiationData ( Scheduler *scheduler, Clock& localTime);
-    void receiveNegotiationData ( Scheduler *scheduler, Clock& localTime);
-  //  void distributeNegotiationData (Clock& localTime);
-    void negotiate (Clock& localTime, std::vector<Connection*>* connections, Scheduler *scheduler);
-  };
 
-  class ConnectionEdge {
-    ApplicationNode* pre_;
-    ApplicationNode* post_;
-    ConnectionDescriptor* connection_;
   public:
-    ConnectionEdge (ApplicationNode& pre,
-		    ApplicationNode& post,
-		    ConnectionDescriptor& descr)
-      : pre_ (&pre), post_ (&post), connection_ (&descr) { }
-    ApplicationNode& pre () { return *pre_; }
-    ApplicationNode& post () { return *post_; }
-    ClockState latency () { return connection_->accLatency;}
-    int allowedBuffer () { return connection_->maxBuffered; }
-    void setAllowedBuffer (int a) { connection_->maxBuffered = a; }
-  };
+    TemporalNegotiator(Setup* setup);
+    ~TemporalNegotiator();
+    void
+    negotiate(Clock& localTime, std::vector<Connection*>* connections);
+    TemporalNegotiationData *
+    negotiatedData(int &nConns);
+    int
+    applicationColor();
 
-  class ApplicationNode {
-    TemporalNegotiator* negotiator_;
-    int index;
-  public:
-    ApplicationNode (TemporalNegotiator* negotiator,
-		     int i,
-		     TemporalNegotiationData* data_)
-      : negotiator_ (negotiator), index (i), data (data_)
-    {
-      visited = false;
-      inPath = false;
-    }
-    TemporalNegotiationData* data;
-    bool visited;
-    bool inPath;
-    std::string name ();
-    ClockState tickInterval () { return data->tickInterval; }
-    int nConnections () { return data->nOutConnections+data->nInConnections; }
-    int nOutConnections() {return data->nOutConnections;}
-    ConnectionEdge connection (int c)
-    {
-      ConnectionDescriptor& descr = data->connection[c];
-      return ConnectionEdge (*this,
-			     negotiator_->applicationNode (descr.remoteNode),
-			     descr);
-    };
+  private:
+    void
+    separateConnections(std::vector<Connection*>* connections);
+    void
+    createNegotiationCommunicator();
+    void
+    collectNegotiationData(ClockState ti);
+    void
+    communicateNegotiationData();
+    void
+    combineParameters();
+    void
+    loopAlgorithm();
+    void
+    distributeParameters();
+    void
+    broadcastNegotiationData();
+    void
+    receiveNegotiationData();
+    int
+    negotiationDataSize(int nConnections);
+    int
+    negotiationDataSize(int nBlock, int nConnections);
+    int
+    computeDefaultMaxBuffered(int maxLocalWidth, int eventSize,
+        ClockState tickInterval, double timebase);
+    TemporalNegotiationData*
+    allocNegotiationData(int nBlocks, int nConnections);
+    void
+    freeNegotiationData(TemporalNegotiationData*);
+    int
+    findNodeColor(int leader);
+    ConnectionDescriptor*
+    findInputConnection(int node, int port);
+    bool
+    isLeader();
+    bool
+    hasPeers();
   };
-
 }
 #endif
 #define MUSIC_TEMPORAL_HH

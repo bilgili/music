@@ -42,12 +42,13 @@ namespace MUSIC {
     MultiBuffer* multiBuffer_;
     std::vector<MultiConnector*> multiConnectors;
 
+
     class Filter1
     {
       MulticommAgent &multCommObj_;
     public:
       Filter1(MulticommAgent &multCommObj);
-      bool operator()(const Scheduler::SConnection &conn);
+      bool operator()( Scheduler::SConnection &conn);
     };
 
     class Filter2
@@ -55,7 +56,7 @@ namespace MUSIC {
       MulticommAgent &multCommObj_;
     public:
       Filter2(MulticommAgent &multCommObj);
-      bool operator()(const Scheduler::SConnection &conn);
+      bool operator()( Scheduler::SConnection &conn);
     };
 
     class MultiCommObject: public CommObject

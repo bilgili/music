@@ -93,8 +93,8 @@ namespace MUSIC {
     void takePreCommunicators ();
     void takePostCommunicators ();
     void buildTables (Setup* s);
-    void temporalNegotiation (Setup* s, Scheduler *scheduler, Connections* connections);
-    void initialize ();
+    void temporalNegotiation (Setup* s, Connections* connections);
+    void initialize (Setup* s);
     /* remedius
      * cast Subconnector* returned by spatialNegotiation() to an appropriate type of Subconnector:
      * OutputSubconnectors, InputSubconnectors or CollectiveSubconnectors.

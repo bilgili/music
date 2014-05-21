@@ -38,20 +38,20 @@ namespace MUSIC
    *  returns False: connectors that go to the Filter2 (connectors that possibly can be added to the current group)
    */
   bool
-  MulticommAgent::Filter1::operator()(const Scheduler::SConnection &conn)
+  MulticommAgent::Filter1::operator()( Scheduler::SConnection &conn)
   {
-    if (conn.scheduledSend() <= multCommObj_.time_)
+    if (conn.data().sSend <= multCommObj_.time_)
       {
-        int sId = conn.preNode()->getId();
-        int rId = conn.postNode()->getId();
+        int sId = conn.pre().data().color;
+        int rId = conn.post().data().color;
         //keeps track of all receive nodes
         multCommObj_.rNodes |= 1 << rId;
         //guarantees that if there are both send and receive are scheduled to the same node,
         // the receive time will be chosen.
         multCommObj_.commTimes[rId] = multCommObj_.time_;
         // take the most later time
-        if (conn.scheduledSend() >= multCommObj_.commTimes[sId])
-          multCommObj_.commTimes[sId] = conn.scheduledSend();
+        if (conn.data().sSend >= multCommObj_.commTimes[sId])
+          multCommObj_.commTimes[sId] = conn.data().sSend;
         return true;
       }
     return false;
@@ -63,21 +63,21 @@ namespace MUSIC
   }
   /*    remedius
    * This filter is applied to the rest of the selected connectors, that were classified as False by the Filter1.
-   * It adds those of the rest connectors(which scheduled send times < multCommObj_.time_.) that either don't have a conflict
+   * It adds those of the rest connectors(which scheduled send times > multCommObj_.time_.) that either don't have a conflict
    * with the already selected connectors by Filter1 or if the conflict is solvable.
    * The conflict is not solvable if both send and receive are scheduled for the same node.
    */
   bool
-  MulticommAgent::Filter2::operator()(const Scheduler::SConnection &conn)
+  MulticommAgent::Filter2::operator()( Scheduler::SConnection &conn)
   {
-    int sId = conn.preNode()->getId();
-    int rId = conn.postNode()->getId();
+    int sId = conn.pre().data().color;
+    int rId = conn.post().data().color;
     std::map<int, Clock>::iterator it;
     it = multCommObj_.commTimes.find(sId);
     if (it == multCommObj_.commTimes.end()
         || !(multCommObj_.rNodes & (1 << sId)))
       {
-        multCommObj_.commTimes[sId] = conn.scheduledSend();
+        multCommObj_.commTimes[sId] = conn.data().sSend;
         multCommObj_.commTimes[rId] = multCommObj_.time_;
         multCommObj_.rNodes |= 1 << rId;
         return true;
@@ -112,8 +112,7 @@ namespace MUSIC
     multiProxies = new std::vector<bool>;
     multiProxies->resize(Connector::proxyIdRange());
 
-    unsigned int savedSelfNode = scheduler_->selfNode();
-    for (unsigned int self_node = 0; self_node < scheduler_->nNodes();
+    for (unsigned int self_node = 0; self_node < scheduler_->nApplications();
         ++self_node)
       {
 
@@ -121,6 +120,7 @@ namespace MUSIC
 
         if (!create(localTime))
           scheduler_->pushForward();
+
         localTime.ticks(-1);
 
         for (int i = 0; i < N_PLANNING_CYCLES; ++i)
@@ -128,14 +128,16 @@ namespace MUSIC
             localTime.tick();
             if (!create(localTime))
               scheduler_->pushForward();
+
           }
+
         //finalize
         schedule.clear();
 
         localTime.reset();
       }
 
-    scheduler_->reset(savedSelfNode);
+    scheduler_->reset(-1);
     delete multiProxies;
   }
 
@@ -196,14 +198,17 @@ namespace MUSIC
   bool
   MulticommAgent::tick(MUSIC::Clock &localTime)
   {
+
     std::vector<MultiCommObject>::iterator comm;
     bool continue_;
     do
       {
         continue_ = fillSchedule();
+      //  std::cout << "MulticommAgent::tick"<< schedule[0].time <<" "<<localTime.time() << std::endl;
         for (comm = schedule.begin();
             comm != schedule.end() && (*comm).time <= localTime.time(); ++comm)
           {
+
             unsigned int multiId = (*comm).multiId();
             if (multiId != 0)
               {
@@ -228,34 +233,34 @@ namespace MUSIC
     if (!schedule.empty())
       return true;
     Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
-    if (!last_sconn.getConnector()->idFlag())
+    if (!last_sconn.data().connector->idFlag())
       return false;
-    Clock time = last_sconn.nextReceive(); //last connection
+    Clock time = last_sconn.data().nextReceive; //last connection
     std::vector<Scheduler::SConnection> nextSConnections;
-    int self_node = scheduler_->self_node;
+    //int self_node = scheduler_->self_node;
     //the condition for choosing candidates for lumping:
     //all connections should have the same scheduled receiving time.
     do
       {
-        if (last_sconn.isLoopConnected()
-            || last_sconn.isLocalConnection(self_node))
+        if (last_sconn.data().isLoopConnected
+            || scheduler_->isLocalConnection(last_sconn))
           nextSConnections.push_back(last_sconn);
         last_sconn = scheduler_->nextSConnection();
       }
-    while (last_sconn.getConnector()->idFlag()
-        && (last_sconn.nextReceive() == time
-            || (!last_sconn.isLoopConnected()
-                && !last_sconn.isLocalConnection(self_node))));
+    while (last_sconn.data().connector->idFlag()
+        && (last_sconn.data().nextReceive == time
+            || (!last_sconn.data().isLoopConnected
+                && !scheduler_->isLocalConnection(last_sconn))));
     if (nextSConnections.size() > 0)
       NextMultiConnection(nextSConnections);
     scheduler_->last_sconn_ = last_sconn;
-    return last_sconn.getConnector()->idFlag();
+    return last_sconn.data().connector->idFlag();
   }
   void
   MulticommAgent::NextMultiConnection(SConnectionV &candidates)
   {
 
-    time_ = candidates[0].nextReceive();
+    time_ = candidates[0].data().nextReceive;
     // std::map<int, Clock> prevCommTime;
     SConnectionV::iterator iter_bound = candidates.begin();
     SConnectionV::iterator cur_bound = candidates.begin();
@@ -278,7 +283,7 @@ namespace MUSIC
 
         //postpone sends in the multiconn for consistency
         for (SConnectionV::iterator it = cur_bound; it != iter_bound; ++it)
-          (*it).postponeNextSend(commTimes[(*it).preNode()->getId()]);
+          (*it).data().postponeNextSend(commTimes[(*it).pre().data().color]);
 
         /*            //merge multiconn with the previous multiconn:
          // (to lump together connections called sequentially)
@@ -296,7 +301,7 @@ namespace MUSIC
          }*/
         //}
         std::map<int, Clock>::iterator id_iter;
-        if ((id_iter = commTimes.find(scheduler_->self_node))
+        if ((id_iter = commTimes.find(scheduler_->self_node()))
             != commTimes.end())
           scheduleMulticonn((*id_iter).second, cur_bound, iter_bound);
         //prevCommTime = commTimes;
@@ -309,14 +314,14 @@ namespace MUSIC
   {
     unsigned int multiId = 0;
     unsigned int proxyId = 0;
-    MUSIC_LOGR ("SelfNode: " << scheduler_->self_node << " Time: "<< time.time() << std::endl << "MultiConnector:");
+    MUSIC_LOGR ("SelfNode: " << scheduler_->self_node() << " Time: "<< time.time() << std::endl << "MultiConnector:");
     for (std::vector<Scheduler::SConnection>::iterator it = first; it != last;
         ++it)
       {
-        if ((*it).getConnector()->isProxy())
-          proxyId |= (*it).getConnector()->idFlag();
+        if ((*it).data().connector->isProxy())
+          proxyId |= (*it).data().connector->idFlag();
         else
-          multiId |= (*it).getConnector()->idFlag();
+          multiId |= (*it).data().connector->idFlag();
         MUSIC_LOGR ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
     schedule.push_back(MultiCommObject(time.time(), multiId, proxyId));
@@ -387,16 +392,16 @@ namespace MUSIC
     if (!schedule.empty())
       return true;
     Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
-    if (last_sconn.getConnector()->idFlag())
+    if (last_sconn.data().connector->idFlag())
       return false;
-    if (scheduler_->self_node == last_sconn.postNode()->getId() //input
-    || scheduler_->self_node == last_sconn.preNode()->getId()) //output
+    if (scheduler_->self_node() == last_sconn.post().data().color //input
+    || scheduler_->self_node() == last_sconn.pre().data().color) //output
       {
         double nextComm =
-            (scheduler_->self_node == last_sconn.postNode()->getId() ? last_sconn.nextReceive().time() :
-                last_sconn.nextSend().time());
+            (scheduler_->self_node() == last_sconn.post().data().color ? last_sconn.data().nextReceive.time() :
+                last_sconn.data().nextSend.time());
         schedule.time = nextComm;
-        schedule.connector = last_sconn.getConnector();
+        schedule.connector = last_sconn.data().connector;
         MUSIC_LOGR (" :Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"
             << last_sconn.postNode ()->getId ()<< "at("
             << last_sconn.nextSend ().time () << ", "
@@ -404,7 +409,7 @@ namespace MUSIC
 
       }
     scheduler_->last_sconn_ = scheduler_->nextSConnection();
-    return !last_sconn.getConnector()->idFlag();
+    return !last_sconn.data().connector->idFlag();
   }
   bool
   UnicommAgent::tick(Clock& localTime)

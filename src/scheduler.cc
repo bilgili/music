@@ -211,7 +211,13 @@ namespace MUSIC
 #endif
         for (; iter_node < nodes->end(); iter_node++)
           {
-            iter_conn = iter_conn == 0 ? (*iter_node).begin_o() : ++iter_conn;
+        	if (iter_conn == 0)
+        		iter_conn = (*iter_node).begin_o();
+        	else
+        	{
+        		 advanceConnection((**iter_conn).data());
+        		++iter_conn;
+        	}
             for (; iter_conn < (*iter_node).end_o(); iter_conn++)
               {
 
@@ -226,7 +232,6 @@ namespace MUSIC
                     sconn.data().postponeNextSend(
                         (*iter_conn)->pre().data().localTime);
 
-                    advanceConnection((**iter_conn).data());
                     return sconn;
                   }
               }

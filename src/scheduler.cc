@@ -34,101 +34,20 @@
 
 namespace MUSIC
 {
-  void
-  Scheduler::SGraph::handleLoop(SNode &x, std::vector<SConnection> & path)
-  {
-    if (&x == &nodes_[tmp_color_])
-      {
-        // Mark connections on path as loop connected to self_node
-        for (std::vector<SConnection>::iterator c = path.begin();
-            c != path.end(); ++c)
-          (*c).data().isLoopConnected = true;
-      }
-  }
 
-  void
-  Scheduler::setApplications(ApplicationMap &map, TemporalNegotiationData *data)
-  {
-    int nAppls = map.size();
-    appl_data_ = new SApplData[nAppls];
-
-    for (int i = 0; i < nAppls; i++)
-      {
-        appl_data_[i].color = map[i].color();
-        appl_data_[i].leader = map[i].leader();
-        appl_data_[i].nProcs = map[i].nProc();
-        appl_data_[i].localTime.configure(data[i].timebase,
-            data[i].tickInterval);
-        nodes->addNode(
-            SNode(data[i].nOutConnections, data[i].nInConnections,
-                appl_data_[i]), map[i].color());
-      }
-  }
-
-  void
-  Scheduler::setConnections(int nConns, TemporalNegotiationData *data,
-      std::vector<Connector*>& connectors)
-  {
-    conn_data_ = new SConnData[nConns];
-    int j = 0;
-    int k = 0;
-    SGraph::iterator inode;
-    for (inode = nodes->begin(); inode < nodes->end(); inode++, ++j)
-      {
-        for (int i = 0; i < data[j].nOutConnections; ++i)
-          {
-            Connector *connector;
-            bool foundLocalConnector = false;
-            ConnectionDescriptor &descr = data[j].connection[i];
-            SNode &pre = *inode;
-            SNode &post = nodes->at(descr.remoteNode);
-
-            for (std::vector<Connector*>::iterator c = connectors.begin();
-                c != connectors.end(); ++c)
-              {
-                if (descr.receiverPort == (*c)->receiverPortCode())
-                  {
-                    foundLocalConnector = true;
-                    connector = *c;
-                    (*c)->setInterpolate(descr.interpolate);
-                    (*c)->setLatency(descr.accLatency);
-                    (*c)->initialize();
-                    break;
-                  }
-              }
-#if 1
-            if (!foundLocalConnector)
-              {
-                if (descr.multiComm)
-                  connector = new ProxyConnector(pre.data().color,
-                      pre.data().leader, pre.data().nProcs, post.data().color,
-                      post.data().leader, post.data().nProcs);
-                else
-                  connector = new ProxyConnector();
-              }
-
-#endif
-            assert(k < nConns);
-            conn_data_[k].descr = descr;
-            conn_data_[k].connector = connector;
-            conn_data_[k].nextSend.configure(pre.data().localTime.timebase(),
-                pre.data().localTime.tickInterval());
-            conn_data_[k].nextReceive.configure(
-                post.data().localTime.timebase(),
-                post.data().localTime.tickInterval());
-            SConnection &edge = nodes->addEdge(
-                SConnection(pre, post, conn_data_[k++]));
-
-            advanceConnection(edge.data());
-
-          }
-      }
-
-  }
   Scheduler::Scheduler() :
       nodes(NULL), appl_data_(NULL), conn_data_(NULL)
   {
 
+  }
+  Scheduler::~Scheduler()
+  {
+    if (nodes != NULL)
+      delete nodes;
+    if (appl_data_ != NULL)
+      delete[] appl_data_;
+    if (conn_data_ != NULL)
+      delete[] conn_data_;
   }
 
   void
@@ -148,19 +67,11 @@ namespace MUSIC
     iter_node = nodes->begin();
     iter_conn = 0;
 
-    last_sconn_ = nextSConnection();
+    pushForward();
 
     initializeAgentState();
   }
-  Scheduler::~Scheduler()
-  {
-    if (nodes != NULL)
-      delete nodes;
-    if (appl_data_ != NULL)
-      delete[] appl_data_;
-    if (conn_data_ != NULL)
-      delete[] conn_data_;
-  }
+
 
   void
   Scheduler::setAgent(SchedulerAgent* agent)
@@ -176,7 +87,7 @@ namespace MUSIC
   }
 
   AEdge<Scheduler::SApplData, Scheduler::SConnData>
-  Scheduler::nextSConnection()
+  Scheduler::pushForward()
   {
     while (true)
       {
@@ -211,13 +122,13 @@ namespace MUSIC
 #endif
         for (; iter_node < nodes->end(); iter_node++)
           {
-        	if (iter_conn == 0)
-        		iter_conn = (*iter_node).begin_o();
-        	else
-        	{
-        		 advanceConnection((**iter_conn).data());
-        		++iter_conn;
-        	}
+            if (iter_conn == 0)
+              iter_conn = (*iter_node).begin_o();
+            else
+              {
+                advanceConnection((**iter_conn).data());
+                ++iter_conn;
+              }
             for (; iter_conn < (*iter_node).end_o(); iter_conn++)
               {
 
@@ -227,12 +138,12 @@ namespace MUSIC
                     && (*iter_conn)->data().nextReceive
                         == (*iter_conn)->post().data().localTime)
                   {
-                    SConnection sconn = *(*iter_conn);
+                    last_sconn_ = *(*iter_conn);
 
-                    sconn.data().postponeNextSend(
+                    last_sconn_.data().postponeNextSend(
                         (*iter_conn)->pre().data().localTime);
 
-                    return sconn;
+                    return last_sconn_;
                   }
               }
 
@@ -249,23 +160,6 @@ namespace MUSIC
 
       }
   }
-
-/*  void
-  Scheduler::analyzeLoops()
-  {
-
-#if 0
-    //#ifdef MUSIC_DEBUG
-    std::cout << "Rank " << MPI::COMM_WORLD.Get_rank () << ": Loops: ";
-    for (std::vector<SConnection*>::iterator c = connections.begin ();
-        c != connections.end ();
-        ++c)
-    if ((*c)->isLoopConnected ())
-    std::cout << '(' << (*c)->preNode ()->getId () << ", "
-    << (*c)->postNode ()->getId () << ") ";
-    std::cout << std::endl;
-#endif
-  }*/
 
 #if 0
   void
@@ -505,51 +399,13 @@ namespace MUSIC
     }
 #endif
 
-  /*
-   void
-   Scheduler::nextCommunication  (Clock& localTime,
-   std::vector<std::pair<double, Connector *> > &schedule)
-   {
-
-   struct timeval tv;
-   gettimeofday (&tv, NULL);
-   time_t start = tv.tv_usec;
-
-   while(schedule.empty ()
-   // always plan forward past the first time point to make
-   // sure that all events at that time are scheduled
-   || schedule.front ().first == schedule.back ().first)
-   {
-
-
-   bool done = false;
-   for (std::vector<SchedulerAgent *>::iterator it = agents_.begin();
-   it != agents_.end() && !done;
-   it++)
-   {
-   if ( (*it)->fillSchedule())
-   done = true;
-   }
-
-   //MUSIC_LOG0 ("Scheduled communication:"<< conn.preNode ()->getId () <<"->"<< conn.postNode ()->getId () << "at(" << conn.preNode ()->localTime ().time () << ", "<< conn.postNode ()->localTime ().time () <<")");
-   }
-   gettimeofday (&tv, NULL);
-   compTime += (tv.tv_usec - start)/1000.0;
-   }
-   */
-
-  void
-  Scheduler::pushForward()
-  {
-    last_sconn_ = nextSConnection();
-  }
   void
   Scheduler::reset(int color)
   {
     if (color < 0)
       color = nodes->local_node_color();
     color_ = color;
-    resetApplications();
+    reset();
     nodes->setTempColor(color);
     std::vector<SConnection> path;
     nodes->depthFirst(nodes->at(color), path);
@@ -557,10 +413,10 @@ namespace MUSIC
     cur_agent_ = agents_.begin();
     iter_node = nodes->begin();
     iter_conn = 0;
-    last_sconn_ = nextSConnection();
+    pushForward();
   }
   void
-  Scheduler::resetApplications()
+  Scheduler::reset()
   {
     nodes->reset();
     for (SGraph::iterator n = nodes->begin(); n < nodes->end(); n++)
@@ -654,6 +510,97 @@ namespace MUSIC
     while (data.nextReceive.integerTime() <= limit)
       data.nextReceive.tick();
     data.nextSend.ticks(data.descr.maxBuffered + 1);
+  }
+
+  void
+  Scheduler::setApplications(ApplicationMap &map, TemporalNegotiationData *data)
+  {
+    int nAppls = map.size();
+    appl_data_ = new SApplData[nAppls];
+
+    for (int i = 0; i < nAppls; i++)
+      {
+        appl_data_[i].color = map[i].color();
+        appl_data_[i].leader = map[i].leader();
+        appl_data_[i].nProcs = map[i].nProc();
+        appl_data_[i].localTime.configure(data[i].timebase,
+            data[i].tickInterval);
+        nodes->addNode(
+            SNode(data[i].nOutConnections, data[i].nInConnections,
+                appl_data_[i]), map[i].color());
+      }
+  }
+
+  void
+  Scheduler::setConnections(int nConns, TemporalNegotiationData *data,
+      std::vector<Connector*>& connectors)
+  {
+    conn_data_ = new SConnData[nConns];
+    int j = 0;
+    int k = 0;
+    SGraph::iterator inode;
+    for (inode = nodes->begin(); inode < nodes->end(); inode++, ++j)
+      {
+        for (int i = 0; i < data[j].nOutConnections; ++i)
+          {
+            Connector *connector;
+            bool foundLocalConnector = false;
+            ConnectionDescriptor &descr = data[j].connection[i];
+            SNode &pre = *inode;
+            SNode &post = nodes->at(descr.remoteNode);
+
+            for (std::vector<Connector*>::iterator c = connectors.begin();
+                c != connectors.end(); ++c)
+              {
+                if (descr.receiverPort == (*c)->receiverPortCode())
+                  {
+                    foundLocalConnector = true;
+                    connector = *c;
+                    (*c)->setInterpolate(descr.interpolate);
+                    (*c)->setLatency(descr.accLatency);
+                    (*c)->initialize();
+                    break;
+                  }
+              }
+#if 1
+            if (!foundLocalConnector)
+              {
+                if (descr.multiComm)
+                  connector = new ProxyConnector(pre.data().color,
+                      pre.data().leader, pre.data().nProcs, post.data().color,
+                      post.data().leader, post.data().nProcs);
+                else
+                  connector = new ProxyConnector();
+              }
+
+#endif
+            assert(k < nConns);
+            conn_data_[k].descr = descr;
+            conn_data_[k].connector = connector;
+            conn_data_[k].nextSend.configure(pre.data().localTime.timebase(),
+                pre.data().localTime.tickInterval());
+            conn_data_[k].nextReceive.configure(
+                post.data().localTime.timebase(),
+                post.data().localTime.tickInterval());
+            SConnection &edge = nodes->addEdge(
+                SConnection(pre, post, conn_data_[k++]));
+
+            advanceConnection(edge.data());
+
+          }
+      }
+
+  }
+  void
+  Scheduler::SGraph::handleLoop(SNode &x, std::vector<SConnection> & path)
+  {
+    if (&x == &nodes_[tmp_color_])
+      {
+        // Mark connections on path as loop connected to self_node
+        for (std::vector<SConnection>::iterator c = path.begin();
+            c != path.end(); ++c)
+          (*c).data().isLoopConnected = true;
+      }
   }
 
 }

@@ -117,30 +117,16 @@ namespace MUSIC
 
     Scheduler();
     ~Scheduler();
-    bool
-    isLocalConnection(SConnection &edge)
-    {
-
-      return &edge.pre() == &nodes->at(color_)
-          || &edge.post() == &nodes->at(color_);
-
-    }
-
-    unsigned int
-    nApplications()
-    {
-      return nodes->nNodes();
-    }
-
-    int
-    self_node()
-    {
-      return color_;
-    }
 
     void
     initialize(ApplicationMap &map, TemporalNegotiator *tn,
         std::vector<Connector*>& connectors);
+    void
+    finalize(Clock& localTime, std::vector<Connector*>& connectors);
+
+    void
+    reset(int self_node);
+
 #if 0
     void createMultiConnectors (Clock localTime,
         std::vector<Connector*>& connectors,
@@ -167,33 +153,54 @@ namespace MUSIC
     void
     setAgent(SchedulerAgent* agent);
     void
-    reset(int self_node);
-    void
+    initializeAgentState();
+
+    AEdge<Scheduler::SApplData, Scheduler::SConnData>
     pushForward();
+
     void
     tick(Clock& localTime);
-    void
-    finalize(Clock& localTime, std::vector<Connector*>& connectors);
-    void
-    initializeAgentState();
-    AEdge<Scheduler::SApplData, Scheduler::SConnData>
-    nextSConnection();
+
+    bool
+    isLocalConnection(SConnection &edge)
+    {
+
+      return &edge.pre() == &nodes->at(color_)
+          || &edge.post() == &nodes->at(color_);
+
+    }
+    unsigned int
+    nApplications()
+    {
+      return nodes->nNodes();
+    }
+    int
+    self_node()
+    {
+      return color_;
+    }
+    SConnection &
+    getLastSConnection()
+    {
+      return last_sconn_;
+    }
+
   private:
+
     void
-    resetApplications();
+    reset();
     void
     setApplications(ApplicationMap &map, TemporalNegotiationData *data);
     void
     setConnections(int nConns, TemporalNegotiationData *data,
         std::vector<Connector*>& connectors);
+
     double
     nextApplicationReceive(SNode &node);
     void
     advanceConnection(SConnData &data);
     void
     advanceConnectionClocks(SConnData &data);
-    friend class MulticommAgent;
-    friend class UnicommAgent;
   };
 
 }

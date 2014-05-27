@@ -19,6 +19,8 @@
 #ifndef MUSIC_APPLICATION_GRAPH_HH
 #define MUSIC_APPLICATION_GRAPH_HH
 #include <assert.h>
+#include <vector>
+#include <cstddef>
 namespace MUSIC
 {
   template<typename NodeData, typename EdgeData>
@@ -235,6 +237,7 @@ namespace MUSIC
         nodes_ = new ANode<NodeData, EdgeData> [nApps + 1];
         edges_ = new AEdge<NodeData, EdgeData> [nEdges];
       }
+      //AGraph can be a simple array of nodes
       AGraph(int color, int nApps) :
           c_apps_(0), c_edges_(0), color_(color), n_apps_(nApps), n_edges_(0)
       {
@@ -249,12 +252,12 @@ namespace MUSIC
         delete[] nodes_;
 
       }
-      void
+/*      void
       init(int nEdges)
       {
         edges_ = new AEdge<NodeData, EdgeData> [nEdges];
         n_edges_ = nEdges;
-      }
+      }*/
       int
       nNodes()
       {
@@ -299,10 +302,10 @@ namespace MUSIC
         return &nodes_[c_apps_];
       }
       ANode<NodeData, EdgeData> &
-      at(int i)
+      at(int color)
       {
-        assert(i < c_apps_);
-        return nodes_[i];
+        assert(color < c_apps_);
+        return nodes_[color];
       }
       ANode<NodeData, EdgeData> &
       local_node()
@@ -310,28 +313,17 @@ namespace MUSIC
         assert(color_ < c_apps_);
         return nodes_[color_];
       }
-
-      int local_node_color()
+      int
+      local_node_color()
       {
         return color_;
       }
-      virtual AEdge<NodeData, EdgeData>
-      edge(ANode<NodeData, EdgeData> &x, int c)
-      {
-        return x.outEdge(c);
-      }
-      void
+      virtual void
       reset()
       {
         for (int i = 0; i < c_apps_; ++i)
           nodes_[i].reset();
       }
-      virtual void
-      handleLoop(ANode<NodeData, EdgeData> &x,
-          std::vector<AEdge<NodeData, EdgeData> > & path)
-      {
-      }
-      ;
       void
       depthFirst(ANode<NodeData, EdgeData> &x,
           std::vector<AEdge<NodeData, EdgeData> > & path)
@@ -355,7 +347,18 @@ namespace MUSIC
 
         x.in_path = false;
       }
-
+    protected:
+      virtual AEdge<NodeData, EdgeData>
+      edge(ANode<NodeData, EdgeData> &x, int c)
+      {
+        return x.outEdge(c);
+      }
+      virtual void
+      handleLoop(ANode<NodeData, EdgeData> &x,
+          std::vector<AEdge<NodeData, EdgeData> > & path)
+      {
+      }
+      ;
     };
 }
 #endif /* MUSIC_APPLICATION_GRAPH_HH */

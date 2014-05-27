@@ -232,28 +232,25 @@ namespace MUSIC
   {
     if (!schedule.empty())
       return true;
-    Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
+    Scheduler::SConnection last_sconn = scheduler_->getLastSConnection();
     if (!last_sconn.data().connector->idFlag())
       return false;
-    Clock time = last_sconn.data().nextReceive; //last connection
+    Clock nextReceive = last_sconn.data().nextReceive; //last connection
     std::vector<Scheduler::SConnection> nextSConnections;
-    //int self_node = scheduler_->self_node;
-    //the condition for choosing candidates for lumping:
-    //all connections should have the same scheduled receiving time.
     do
       {
         if (last_sconn.data().isLoopConnected
             || scheduler_->isLocalConnection(last_sconn))
           nextSConnections.push_back(last_sconn);
-        last_sconn = scheduler_->nextSConnection();
+        last_sconn = scheduler_->pushForward();
       }
-    while (last_sconn.data().connector->idFlag()
-        && (last_sconn.data().nextReceive == time
-            || (!last_sconn.data().isLoopConnected
-                && !scheduler_->isLocalConnection(last_sconn))));
+    while (last_sconn.data().connector->idFlag() //those that request multicommunication
+        && (last_sconn.data().nextReceive == nextReceive)); //those that have scheduled receive at current time
+            //|| (!last_sconn.data().isLoopConnected //
+            //    && !scheduler_->isLocalConnection(last_sconn))));
     if (nextSConnections.size() > 0)
       NextMultiConnection(nextSConnections);
-    scheduler_->last_sconn_ = last_sconn;
+
     return last_sconn.data().connector->idFlag();
   }
   void
@@ -266,12 +263,7 @@ namespace MUSIC
     SConnectionV::iterator cur_bound = candidates.begin();
     do
       {
-        //  SConnectionV::iterator start_bound = cur_bound;
         cur_bound = iter_bound;
-        //   bool merge = true;
-
-        //while(merge && iter_bound !=candidates.end())
-        //  {
 
         commTimes.clear();
         rNodes = 0;
@@ -285,26 +277,11 @@ namespace MUSIC
         for (SConnectionV::iterator it = cur_bound; it != iter_bound; ++it)
           (*it).data().postponeNextSend(commTimes[(*it).pre().data().color]);
 
-        /*            //merge multiconn with the previous multiconn:
-         // (to lump together connections called sequentially)
-         for(std::map<int,Clock>::iterator it = prevCommTime.begin();
-         merge && it != prevCommTime.end();
-         ++it)
-         if(commTimes.count((*it).first)>0
-         && (*it).second != commTimes[(*it).first])
-         merge = false;
 
-         if(merge)
-         {
-         cur_bound = iter_bound;
-         prevCommTime.insert(commTimes.begin(), commTimes.end());
-         }*/
-        //}
         std::map<int, Clock>::iterator id_iter;
         if ((id_iter = commTimes.find(scheduler_->self_node()))
             != commTimes.end())
           scheduleMulticonn((*id_iter).second, cur_bound, iter_bound);
-        //prevCommTime = commTimes;
       }
     while (iter_bound != candidates.end());
   }
@@ -391,11 +368,10 @@ namespace MUSIC
   {
     if (!schedule.empty())
       return true;
-    Scheduler::SConnection last_sconn = scheduler_->last_sconn_;
+    Scheduler::SConnection last_sconn = scheduler_->getLastSConnection();
     if (last_sconn.data().connector->idFlag())
       return false;
-    if (scheduler_->self_node() == last_sconn.post().data().color //input
-    || scheduler_->self_node() == last_sconn.pre().data().color) //output
+    if (scheduler_->isLocalConnection(last_sconn))
       {
         double nextComm =
             (scheduler_->self_node() == last_sconn.post().data().color ? last_sconn.data().nextReceive.time() :
@@ -408,8 +384,8 @@ namespace MUSIC
             << last_sconn.nextReceive ().time () <<")");
 
       }
-    scheduler_->last_sconn_ = scheduler_->nextSConnection();
-    return !last_sconn.data().connector->idFlag();
+    scheduler_->pushForward();
+    return true;
   }
   bool
   UnicommAgent::tick(Clock& localTime)

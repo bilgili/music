@@ -67,10 +67,8 @@ namespace MUSIC
     {
     }
     ;
-    void
-    handleLoop(ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
-        std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > & path);
 
+  protected:
     AEdge<TemporalNegotiationData, ConnectionDescriptor>
     edge(ANode<TemporalNegotiationData, ConnectionDescriptor> &x, int c)
     {
@@ -80,6 +78,9 @@ namespace MUSIC
           nodes_[descr.remoteNode], descr);
     }
     ;
+    void
+    handleLoop(ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
+        std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > & path);
   };
 
   // The TemporalNegotiator negotiates communication timing parameters

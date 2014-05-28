@@ -6,4 +6,4 @@ stoptime=1.0
 [to]
   binary=eventlogger
   args=-b 2
-  from.out -> to.in [10]
+  from.out -> to.in [10, collective]

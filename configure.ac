@@ -287,9 +287,11 @@ AC_CONFIG_FILES([
   src/Makefile
   src/music/music-config.hh
   src/music/version.hh
-  test/Makefile
   rudeconfig/Makefile
   utils/Makefile
+  testsuite/Makefile
+  testsuite/unittests/catch/Makefile
+  testsuite/sanitytests/Makefile
   music/Makefile
   doc/Makefile
 ])

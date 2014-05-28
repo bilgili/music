@@ -223,7 +223,7 @@ target_alias =
 top_build_prefix = ../
 top_builddir = ..
 top_srcdir = ..
-SUBDIRS = unittests/catch
+SUBDIRS = unittests/catch sanitytests
 all: all-recursive
 
 .SUFFIXES:

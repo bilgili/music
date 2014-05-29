@@ -18,7 +18,7 @@
 
 #ifndef MUSIC_MULTIBUFFER_HH
 
-//#define MUSIC_TWOSTAGE_ALLGATHER
+#define MUSIC_TWOSTAGE_ALLGATHER
 
 #include "music/music-config.hh"
 

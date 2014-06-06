@@ -21,7 +21,7 @@
 
 #include "catch.hpp"
 /*#define CATCH_CONFIG_RUNNER
-  #include <mpi.h>
+ #include <mpi.h>
  int main( int argc, char* argv[] )
  {
  MPI_Init(&argc, &argv);

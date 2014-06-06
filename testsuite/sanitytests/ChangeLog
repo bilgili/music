@@ -1,3 +1,7 @@
+2014-05-28  Ekaterina Brocke  <brocke@kth.se>
+
+	* test folder is renamed to sanitytests and moved to testsuite/
+
 2012-09-03  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* eventdelay.cc: Don't log events if not given -L option.

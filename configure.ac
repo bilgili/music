@@ -32,6 +32,7 @@ Please set them manually.])
         changequote({, })
       fi
     fi
+    LAUNCHSTYLE=_openmpi
     changequote([, ])
     ;;
   mpixlcxx_r)
@@ -79,6 +80,7 @@ Please set them manually.])
 
   *)
     SYSGUESS=unknown
+    LAUNCHSTYLE=
     ;;
 esac
 echo "SYSGUESS=$SYSGUESS"
@@ -271,6 +273,8 @@ else
   MUSIC_HAVE_LONG_LONG=0
 fi
 
+TESTSUITE_BASEDIR=`eval eval echo $datadir/$PACKAGE\_$PACKAGE_VERSION` 
+
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)
 AC_SUBST(MPI_LDFLAGS)
@@ -280,6 +284,9 @@ AC_SUBST(MUSIC_USE_MPI)
 AC_SUBST(MUSIC_ISENDWAITALL)
 AC_SUBST(MUSIC_ANYSOURCE)
 AC_SUBST(OPTIONAL_UTILS)
+AC_SUBST(SYSGUESS)
+AC_SUBST(TESTSUITE_BASEDIR)
+AC_SUBST(LAUNCHSTYLE)
 
 AC_CONFIG_FILES([
   Makefile
@@ -290,6 +297,7 @@ AC_CONFIG_FILES([
   rudeconfig/Makefile
   utils/Makefile
   testsuite/Makefile
+  testsuite/music_tests.sh
   testsuite/unittests/catch/Makefile
   testsuite/sanitytests/Makefile
   music/Makefile

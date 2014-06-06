@@ -12,6 +12,9 @@ debian-source: dist
 	mkdir $(debdir)/doc/figures
 	cp -p doc/figures/*.asy $(debdir)/doc/figures
 
+install-data-hook:
+	@INSTALL_PROGRAM@ $(abs_srcdir)/extras/music@LAUNCHSTYLE@ $(DESTDIR)$(bindir)/MUSIC
+
 EXTRA_DIST = BUGS
 
 dist-hook:

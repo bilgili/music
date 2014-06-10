@@ -215,22 +215,25 @@ AC_LANG_PUSH(C++)
 save_CXX="$CXX"
 save_LIBS="$LIBS"
 dnl Must use $CXX, not $MPI_CXX, here
+
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
 
 AC_MSG_CHECKING([for MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=no
-AC_COMPILE_IFELSE([
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <mpi.h>
 int main (int argc, char **argv)
 {
   int res = MPI::Init_thread (argc, argv, 0);
 }
-],
+])],
 AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=yes
 )
+AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+
 AC_ARG_ENABLE(mpi,
               [  --disable-mpi           disable mpi support],
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
@@ -256,7 +259,6 @@ else
   MUSIC_ANYSOURCE=0
 fi
 
-AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 LIBS="$save_LIBS"
 CXX="$save_CXX"
 AC_LANG_POP(C++)
@@ -272,7 +274,13 @@ if test $ac_cv_type_long_long = yes; then
 else
   MUSIC_HAVE_LONG_LONG=0
 fi
-TESTSUITE_BASEDIR=`test "$prefix" = NONE; eval echo $ac_default_prefix/share/$PACKAGE\_$PACKAGE_VERSION`
+
+if test "$prefix" = NONE; then
+   TESTSUITE_BASEDIR=`eval echo $ac_default_prefix/share/$PACKAGE\_$PACKAGE_VERSION`
+else
+   TESTSUITE_BASEDIR=`eval echo $prefix/share/$PACKAGE\_$PACKAGE_VERSION`
+fi
+
 
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)

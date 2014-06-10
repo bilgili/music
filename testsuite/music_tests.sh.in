@@ -49,8 +49,9 @@ run_test()
 
     msg_error=
 
-    TEST_OUTFILE="${TEST_OUTDIR}/$( echo "${test_name##*/}" | sed 's/\.test/\.log/'  )"
-    echo "Running test '${test_name}' ($TEST_OUTFILE)..."
+    TEST_OUTFILE="${TEST_OUTDIR}/$( echo "${test_name##*/}" | sed 's/\.test//'  ).log"
+   
+    echo "Running test '${test_name}'..."
     echo  >> "${TEST_LOGFILE}" "Running test '${test_name}'..."
 
     # Generating script on fly due to possible command 
@@ -167,9 +168,9 @@ echo >> "${TEST_LOGFILE}" "system\t\t:\t${INFO_OS}"
 echo >> "${TEST_LOGFILE}" "user name\t:\t${INFO_USER}"
 echo >> "${TEST_LOGFILE}" "kernel version\t:\t${INFO_VER}"
 echo >> "${TEST_LOGFILE}" "======================="
-echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
 
 TEST_BASEDIR="@prefix@/@libdir@/@PACKAGE@_@PACKAGE_VERSION@"
+echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
 
 CODES_SUCCESS=' 0 Success'
 CODES_FAILURE=\
@@ -181,6 +182,8 @@ for test_prefix in test_ ; do
 done
 
 TEST_BASEDIR="@TESTSUITE_BASEDIR@"
+echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
+
 TEST_BINARY="@prefix@/@bindir@"
 export TEST_BINARY
 

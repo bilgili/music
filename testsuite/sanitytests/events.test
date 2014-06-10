@@ -32,21 +32,11 @@ cat <<\EOF > ${MUSIC_DATA_PATH}/spikes0.dat
 0.2	2
 0.3	3
 0.4	4
-0.5	5
-0.6	6
-0.7	7
-0.8	8
-0.9	9
 EOF
 
 cat <<\EOF > ${MUSIC_DATA_PATH}/spikes1.dat
 # spikes
 0.0	9
-0.1	0
-0.2	1
-0.3	2
-0.4	3
-0.5	4
 0.6	5
 0.7	6
 0.8	7
@@ -69,29 +59,37 @@ EOF
 # sort the file using locale specified by current environment
 sort ${MUSIC_DATA_PATH}/ok -o ${MUSIC_DATA_PATH}/ok
 
-cat <<\EOF >errok
+cat <<\EOF > ${MUSIC_DATA_PATH}/errok
 EOF
 
+
+   
 for method in point-to-point collective ; do
     write_configuration "${method}"
-    command="`${MUSIC_BINARY} ${NP} ${MUSIC_DATA_PATH}/events.music 2> ${MUSIC_DATA_PATH}/err | sort -o ${MUSIC_DATA_PATH}/out`"
-    echo "$command"
+    
+    $( ${MUSIC_BINARY} ${NP} ${MUSIC_DATA_PATH}/events.music 2> ${MUSIC_DATA_PATH}/err | sort -o ${MUSIC_DATA_PATH}/out )
+ 
     if ${CMP} -s ${MUSIC_DATA_PATH}/out ${MUSIC_DATA_PATH}/ok; then
 	echo "...OK"
     else
-	echo "...FAILED" >&2
-	#cat ${MUSIC_DATA_PATH}/ok >&2
+	echo "...FAILED"
+	echo "......given:" 
+	cat "${MUSIC_DATA_PATH}/out" 
+	echo "......expected:"
+	cat "${MUSIC_DATA_PATH}/ok"
+	echo "......error:"
+	cat "${MUSIC_DATA_PATH}/err"
 	exit 2
     fi
 done
 
-if "$CMP" -s err errok; then
+if "$CMP" -s ${MUSIC_DATA_PATH}/err ${MUSIC_DATA_PATH}/errok; then
     :
 else
     echo "err:" >&2
-    cat err >&2
+    cat "${MUSIC_DATA_PATH}/err" >&2
     echo "errok:" >&2
-    cat errok >&2
+    cat "${MUSIC_DATA_PATH}/errok" >&2
     exit 10
 fi
 

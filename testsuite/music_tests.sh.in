@@ -18,6 +18,7 @@ Options:
 
     --help              Print program options and exit
     --output-dir=/path  Output directory (default: ./reports)
+    --test-name=""      Names of the tests to run
 
 EOF
 
@@ -37,6 +38,19 @@ ask_results ()
     echo "*** to the mikael@djurfeldt.com."
     echo "***"
     echo
+}
+
+requestedTest() 
+{
+    tn=""
+    if test -n "${TEST_NAME}" ; then
+	tn="${TEST_NAME%%*${1}*}"
+    fi
+    if test -z "${tn}" ; then
+	return 0
+    else
+	return 1
+    fi
 }
 
 run_test()
@@ -119,6 +133,9 @@ while test $# -gt 0 ; do
 	--output-dir=*)
 	    TEST_OUTDIR="$( echo "$1" | sed 's/^--output-dir=//' )"
 	    ;;
+	--test-name=*)
+	    TEST_NAME="$( echo "$1" | sed 's/^--test-name=//' )"
+	    ;;
 	*)
 	    usage 1 "$1"
 	    ;;
@@ -139,6 +156,7 @@ TIME_PARAM="-p"
 /bin/sh -c "time ${TIMEPARAM} uname" >/dev/null 2>&1 || TIME_PARAM=""
 
 TEST_OUTDIR=${TEST_OUTDIR:-"$( pwd )/reports"}
+TEST_NAME=${TEST_NAME:-""}
 TEST_LOGFILE="${TEST_OUTDIR}/output.log"
 TEST_RETFILE="${TEST_OUTDIR}/output.ret"
 TEST_RUNFILE="${TEST_OUTDIR}/runtest.sh"
@@ -177,7 +195,9 @@ CODES_FAILURE=\
 ' 1 Failed: missed assertion,'
 for test_prefix in test_ ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}*") ; do
-	run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	if requestedTest "${test_name}" ; then
+	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	fi
     done
 done
 
@@ -200,7 +220,9 @@ CODES_FAILURE=\
 ' 10 Failed: unknown error,'
 for test_ext in test ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep ".*\.${test_ext}\$") ; do
-	run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	if requestedTest "${test_name}"  ; then
+	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	fi
     done
 done
 

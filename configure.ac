@@ -272,8 +272,7 @@ if test $ac_cv_type_long_long = yes; then
 else
   MUSIC_HAVE_LONG_LONG=0
 fi
-
-TESTSUITE_BASEDIR=`eval eval echo $datadir/$PACKAGE\_$PACKAGE_VERSION` 
+TESTSUITE_BASEDIR=`test "$prefix" = NONE; eval echo $ac_default_prefix/share/$PACKAGE\_$PACKAGE_VERSION`
 
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)

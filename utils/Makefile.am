@@ -2,11 +2,12 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-bin_PROGRAMS = music eventsource eventlogger
+bin_PROGRAMS = music eventsource eventlogger eventdelay \
+	multiport \
+	clocksource contsink constsource contdelay \
+	messagesource 
+#	waveproducer waveconsumer 
 #	eventsink eventselect eventgenerator eventcounter \
-#        eventlogger eventdelay multiport \
-#	clocksource contsink constsource contdelay \
-#	messagesource waveproducer waveconsumer \
 #	@OPTIONAL_UTILS@
 
 EXTRA_DIST = chain.music cloop.music const.music contclock.music	\
@@ -48,33 +49,33 @@ MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
  eventlogger_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
  eventlogger_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# eventdelay_SOURCES = eventdelay.cc
-# eventdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ eventdelay_SOURCES = eventdelay.cc
+ eventdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ eventdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# multiport_SOURCES = multiport.cc
-# multiport_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# multiport_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ multiport_SOURCES = multiport.cc
+ multiport_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ multiport_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# clocksource_SOURCES = clocksource.cc
-# clocksource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ clocksource_SOURCES = clocksource.cc
+ clocksource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ clocksource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# contsink_SOURCES = contsink.cc
-# contsink_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ contsink_SOURCES = contsink.cc
+ contsink_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# constsource_SOURCES = constsource.cc
-# constsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ constsource_SOURCES = constsource.cc
+ constsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ constsource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# contdelay_SOURCES = contdelay.cc
-# contdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# contdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ contdelay_SOURCES = contdelay.cc
+ contdelay_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ contdelay_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
-# messagesource_SOURCES = messagesource.cc
-# messagesource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
-# messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+ messagesource_SOURCES = messagesource.cc
+ messagesource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 # waveproducer_SOURCES = waveproducer.cc
 # waveproducer_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@

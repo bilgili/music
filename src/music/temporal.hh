@@ -63,6 +63,7 @@ namespace MUSIC
       ConnectionDescriptor>
   {
     double timebase_;
+    int nConnections_;
   public:
     TemporalNegotiatorGraph(double timebase, int nApps, int color) :
         AGraph<TemporalNegotiationData, ConnectionDescriptor>(color, nApps), timebase_(
@@ -70,7 +71,11 @@ namespace MUSIC
     {
     }
     ;
+    void
+    setNConnections(int nConns);
 
+    int
+    getNConnections();
   protected:
     AEdge<TemporalNegotiationData, ConnectionDescriptor>
     edge(ANode<TemporalNegotiationData, ConnectionDescriptor> &x, int c)
@@ -113,13 +118,8 @@ namespace MUSIC
     void
     negotiate(Clock& localTime, std::vector<Connection*>* connections);
 
-    TemporalNegotiationData*
-    negotiatedData(int &nConns);
-
-    int color();
-
-    int nApplications();
-
+    TemporalNegotiatorGraph*
+    applicationGraph();
 
   private:
     void
@@ -140,6 +140,8 @@ namespace MUSIC
     broadcastNegotiationData();
     void
     receiveNegotiationData();
+    void
+    fillTemporalNegotiatorGraph();
     int
     negotiationDataSize(int nConnections);
     int

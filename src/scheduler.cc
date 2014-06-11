@@ -51,21 +51,18 @@ namespace MUSIC
   }
 
   void
-  Scheduler::initialize(TemporalNegotiator *tn,
+  Scheduler::initialize(TemporalNegotiatorGraph *appl_graph,
       std::vector<Connector*>& connectors)
   {
-    int nConns;
-    TemporalNegotiationData *data;
-    data = tn->negotiatedData(nConns);
-    nConns /= 2;
 
-    nodes = new SGraph(tn->color(), tn->nApplications(),
-        nConns);
-    setApplications ( tn->nApplications(), data);
+    nodes = new SGraph(appl_graph->local_node_color(), appl_graph->nNodes(),
+        appl_graph->getNConnections());
 
-    setConnections(nConns, data, connectors);
+    setApplications(appl_graph);
 
-    color_ = tn->color();
+    setConnections(appl_graph, connectors);
+
+    color_ = appl_graph->local_node_color();
 
     iter_node = nodes->begin();
     iter_conn = 0;
@@ -515,42 +512,41 @@ namespace MUSIC
   }
 
   void
-  Scheduler::setApplications(int nAppls, TemporalNegotiationData *data)
+  Scheduler::setApplications(TemporalNegotiatorGraph *appl_graph)
   {
-    appl_data_ = new SApplData[nAppls];
-    char* memory = static_cast<char*>(static_cast<void*>(data));
-    for (int i = 0; i < nAppls; ++i)
+    appl_data_ = new SApplData[appl_graph->nNodes()];
+    int i = 0;
+    TemporalNegotiatorGraph::iterator it;
+    for (it = appl_graph->begin(); it < appl_graph->end(); ++it, ++i)
       {
-        TemporalNegotiationData *dataptr = static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
-        int nOut = (*dataptr).nOutConnections;
-        int nIn = (*dataptr).nInConnections;
-        appl_data_[i].color = (*dataptr).color;
-        appl_data_[i].leader = (*dataptr).leader;
-        appl_data_[i].nProcs = (*dataptr).nProcs;
-        appl_data_[i].localTime.configure((*dataptr).timebase, (*dataptr).tickInterval);
-        nodes->addNode(SNode(nOut, nIn, appl_data_[i]), (*dataptr).color);
-        memory += (sizeof(TemporalNegotiationData)
-            + (nOut + nIn - 1) * sizeof(ConnectionDescriptor));
+        appl_data_[i].color = (*it).data().color;
+        appl_data_[i].leader = (*it).data().leader;
+        appl_data_[i].nProcs = (*it).data().nProcs;
+        appl_data_[i].localTime.configure((*it).data().timebase,
+            (*it).data().tickInterval);
+        nodes->addNode(
+            SNode((*it).data().nOutConnections, (*it).data().nInConnections,
+                appl_data_[i]), (*it).data().color);
       }
 
   }
 
   void
-  Scheduler::setConnections(int nConns, TemporalNegotiationData *data,
+  Scheduler::setConnections(TemporalNegotiatorGraph *appl_graph,
       std::vector<Connector*>& connectors)
   {
-    conn_data_ = new SConnData[nConns];
-    char* memory = static_cast<char*>(static_cast<void*>(data));
+    conn_data_ = new SConnData[appl_graph->getNConnections()];
     int k = 0;
     SGraph::iterator inode;
     for (inode = nodes->begin(); inode < nodes->end(); inode++)
       {
-        TemporalNegotiationData *dataptr = static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
-        for (int i = 0; i < (*dataptr).nOutConnections; ++i)
+        TemporalNegotiationData &data =
+            appl_graph->at((*inode).data().color).data();
+        for (int i = 0; i < data.nOutConnections; ++i)
           {
             Connector *connector;
             bool foundLocalConnector = false;
-            ConnectionDescriptor &descr = (*dataptr).connection[i];
+            ConnectionDescriptor &descr = data.connection[i];
             SNode &pre = *inode;
             SNode &post = nodes->at(descr.remoteNode);
 
@@ -579,7 +575,6 @@ namespace MUSIC
               }
 
 #endif
-            assert(k < nConns);
             conn_data_[k].descr = descr;
             conn_data_[k].connector = connector;
             conn_data_[k].nextSend.configure(pre.data().localTime.timebase(),
@@ -593,8 +588,6 @@ namespace MUSIC
             advanceConnection(edge.data());
 
           }
-        memory += (sizeof(TemporalNegotiationData)
-            + ((*dataptr).nOutConnections + (*dataptr).nInConnections - 1) * sizeof(ConnectionDescriptor));
       }
 
   }

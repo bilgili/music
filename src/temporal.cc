@@ -31,10 +31,13 @@ namespace MUSIC
   {
     nApplications_ = setup_->applicationMap()->size();
     nAllConnections = 0;
+    nodes = new TemporalNegotiatorGraph(setup_->timebase(), nApplications_,
+        setup_->applicationColor());
   }
 
   TemporalNegotiator::~TemporalNegotiator()
   {
+    delete nodes;
     freeNegotiationData(negotiationBuffer);
 
     // Free negotiation communicator in application leaders
@@ -57,20 +60,10 @@ namespace MUSIC
           inputConnections.push_back(*dynamic_cast<InputConnection*>(*c));
       }
   }
-  TemporalNegotiationData*
-  TemporalNegotiator::negotiatedData(int &nConns)
+  TemporalNegotiatorGraph*
+  TemporalNegotiator::applicationGraph()
   {
-    nConns = nAllConnections;
-    return negotiationBuffer;
-  }
-  int
-  TemporalNegotiator::nApplications()
-  {
-    return nApplications_;
-  }
-  int TemporalNegotiator::color()
-  {
-   return setup_->applicationColor();
+    return nodes;
   }
   bool
   TemporalNegotiator::isLeader()
@@ -179,9 +172,9 @@ namespace MUSIC
     negotiationData = allocNegotiationData(1, nLocalConnections);
     negotiationData->timebase = setup_->timebase();
     negotiationData->tickInterval = ti;
-    negotiationData->color = setup_->applicationColor ();
-    negotiationData->leader = setup_->leader ();
-    negotiationData->nProcs = setup_->nProcs ();
+    negotiationData->color = setup_->applicationColor();
+    negotiationData->leader = setup_->leader();
+    negotiationData->nProcs = setup_->nProcs();
     negotiationData->nOutConnections = outputConnections.size();
     negotiationData->nInConnections = inputConnections.size();
 
@@ -223,6 +216,27 @@ namespace MUSIC
   }
 
   void
+  TemporalNegotiator::fillTemporalNegotiatorGraph()
+  {
+    nodes->setNConnections(nAllConnections / 2);
+    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
+    TemporalNegotiationData* data;
+    for (int i = 0; i < nApplications_; ++i)
+      {
+
+        data =
+            static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
+        int nOut = data->nOutConnections;
+        int nIn = data->nInConnections;
+        nodes->addNode(
+            ANode<TemporalNegotiationData, ConnectionDescriptor>(nOut, nIn,
+                *data), data->color);
+        memory += negotiationDataSize(nOut + nIn);
+      }
+
+  }
+
+  void
   TemporalNegotiator::communicateNegotiationData()
   {
     // First talk to others about how many connections each node has
@@ -247,22 +261,10 @@ namespace MUSIC
     int sendSize = negotiationDataSize(nLocalConnections);
     negotiationComm.Allgatherv(negotiationData, sendSize, MPI::BYTE,
         negotiationBuffer, receiveSizes, displacements, MPI::BYTE);
-    //fill application graph
-    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-    for (int i = 0; i < nApplications_; ++i)
-      {
-        TemporalNegotiationData* data =
-                           static_cast<TemporalNegotiationData*>(static_cast<void*>(memory
-                               + displacements[i]));
-        nodes->addNode(
-                   ANode<TemporalNegotiationData, ConnectionDescriptor>(
-                       data->nOutConnections, data->nInConnections, *data),
-                   data->color);
-      }
-
     delete[] displacements;
     delete[] receiveSizes;
     freeNegotiationData(negotiationData);
+    fillTemporalNegotiatorGraph();
   }
 
   ConnectionDescriptor*
@@ -383,6 +385,7 @@ namespace MUSIC
     char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
     comm.Bcast(memory, negotiationDataSize(nApplications_, nAllConnections),
         MPI::BYTE, 0);
+    fillTemporalNegotiatorGraph();
   }
 
   void
@@ -397,15 +400,12 @@ namespace MUSIC
 
     if (isLeader())
       {
-        nodes = new TemporalNegotiatorGraph(setup_->timebase(), nApplications_,
-            setup_->applicationColor());
         collectNegotiationData(localTime.tickInterval());
         communicateNegotiationData();
         combineParameters();
         loopAlgorithm();
         distributeParameters();
         broadcastNegotiationData();
-        delete nodes;
       }
     else
       receiveNegotiationData();
@@ -453,6 +453,18 @@ namespace MUSIC
         path[c].data().maxBuffered = std::min(path[c].data().maxBuffered,
             allowedTicks);
       }
+  }
+
+  void
+  TemporalNegotiatorGraph::setNConnections(int nConns)
+  {
+    nConnections_ = nConns;
+  }
+
+  int
+  TemporalNegotiatorGraph::getNConnections()
+  {
+    return nConnections_;
   }
 }
 #endif

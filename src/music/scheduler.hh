@@ -119,7 +119,7 @@ namespace MUSIC
     ~Scheduler();
 
     void
-    initialize(ApplicationMap &map, TemporalNegotiator *tn,
+    initialize(TemporalNegotiator *tn,
         std::vector<Connector*>& connectors);
     void
     finalize(Clock& localTime, std::vector<Connector*>& connectors);
@@ -190,7 +190,7 @@ namespace MUSIC
     void
     reset();
     void
-    setApplications(ApplicationMap &map, TemporalNegotiationData *data);
+    setApplications(int nAppls, TemporalNegotiationData *data);
     void
     setConnections(int nConns, TemporalNegotiationData *data,
         std::vector<Connector*>& connectors);

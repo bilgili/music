@@ -259,7 +259,7 @@ namespace MUSIC
   void
   Runtime::initialize(Setup* s)
   {
-    scheduler->initialize((*s->applicationMap()), s->temporalNegotiator(),
+    scheduler->initialize(s->temporalNegotiator(),
         connectors);
     mAgent->createMultiConnectors (localTime, comm, leader_, connectors);
     // scheduler->nextCommunication (localTime, schedule);

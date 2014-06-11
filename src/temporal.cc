@@ -29,7 +29,7 @@ namespace MUSIC
   TemporalNegotiator::TemporalNegotiator(Setup* setup) :
       setup_(setup), negotiationBuffer(NULL)
   {
-    nApplications = setup_->applicationMap()->size();
+    nApplications_ = setup_->applicationMap()->size();
     nAllConnections = 0;
   }
 
@@ -57,16 +57,20 @@ namespace MUSIC
           inputConnections.push_back(*dynamic_cast<InputConnection*>(*c));
       }
   }
-  int
-  TemporalNegotiator::applicationColor()
-  {
-    return setup_->applicationColor();
-  }
-  TemporalNegotiationData *
+  TemporalNegotiationData*
   TemporalNegotiator::negotiatedData(int &nConns)
   {
     nConns = nAllConnections;
     return negotiationBuffer;
+  }
+  int
+  TemporalNegotiator::nApplications()
+  {
+    return nApplications_;
+  }
+  int TemporalNegotiator::color()
+  {
+   return setup_->applicationColor();
   }
   bool
   TemporalNegotiator::isLeader()
@@ -84,13 +88,13 @@ namespace MUSIC
   TemporalNegotiator::createNegotiationCommunicator()
   {
     ApplicationMap* applicationMap = setup_->applicationMap();
-    int* ranks = new int[nApplications];
+    int* ranks = new int[nApplications_];
 
-    for (int i = 0; i < nApplications; ++i)
+    for (int i = 0; i < nApplications_; ++i)
       ranks[i] = (*applicationMap)[i].leader();
 
     groupWorld = MPI::COMM_WORLD.Get_group();
-    applicationLeaders = groupWorld.Incl(nApplications, ranks);
+    applicationLeaders = groupWorld.Incl(nApplications_, ranks);
     delete[] ranks;
     negotiationComm = MPI::COMM_WORLD.Create(applicationLeaders);
   }
@@ -157,7 +161,7 @@ namespace MUSIC
   {
     int color = -1;
     ApplicationMap* applicationMap = setup_->applicationMap();
-    for (int i = 0; i < nApplications; ++i)
+    for (int i = 0; i < nApplications_; ++i)
       if (leader == (*applicationMap)[i].leader())
         color = (*applicationMap)[i].color();
     assert(color != -1);
@@ -175,9 +179,9 @@ namespace MUSIC
     negotiationData = allocNegotiationData(1, nLocalConnections);
     negotiationData->timebase = setup_->timebase();
     negotiationData->tickInterval = ti;
-//    negotiationData->color = setup_->applicationColor ();
-//    negotiationData->leader = setup_->leader ();
-//    negotiationData->nProcs = setup_->nProcs ();
+    negotiationData->color = setup_->applicationColor ();
+    negotiationData->leader = setup_->leader ();
+    negotiationData->nProcs = setup_->nProcs ();
     negotiationData->nOutConnections = outputConnections.size();
     negotiationData->nInConnections = inputConnections.size();
 
@@ -222,35 +226,40 @@ namespace MUSIC
   TemporalNegotiator::communicateNegotiationData()
   {
     // First talk to others about how many connections each node has
-    int* nConnections = new int[nApplications];
+    int* nConnections = new int[nApplications_];
     negotiationComm.Allgather(&nLocalConnections, 1, MPI::INT, nConnections, 1,
         MPI::INT);
-    for (int i = 0; i < nApplications; ++i)
+    for (int i = 0; i < nApplications_; ++i)
       nAllConnections += nConnections[i];
-    negotiationBuffer = allocNegotiationData(nApplications, nAllConnections);
-
-    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-    int* receiveSizes = new int[nApplications];
-    int* displacements = new int[nApplications];
+    negotiationBuffer = allocNegotiationData(nApplications_, nAllConnections);
+    int* receiveSizes = new int[nApplications_];
+    int* displacements = new int[nApplications_];
     int displacement = 0;
-    for (int i = 0; i < nApplications; ++i)
+    for (int i = 0; i < nApplications_; ++i)
       {
         int receiveSize = negotiationDataSize(nConnections[i]);
         receiveSizes[i] = receiveSize;
         displacements[i] = displacement;
-        TemporalNegotiationData* data =
-            static_cast<TemporalNegotiationData*>(static_cast<void*>(memory
-                + displacement));
-        nodes->addNode(
-            ANode<TemporalNegotiationData, ConnectionDescriptor>(
-                data->nOutConnections, data->nInConnections, *data),
-            (*setup_->applicationMap())[i].color());
+
         displacement += receiveSize;
       }
     delete[] nConnections;
     int sendSize = negotiationDataSize(nLocalConnections);
     negotiationComm.Allgatherv(negotiationData, sendSize, MPI::BYTE,
         negotiationBuffer, receiveSizes, displacements, MPI::BYTE);
+    //fill application graph
+    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
+    for (int i = 0; i < nApplications_; ++i)
+      {
+        TemporalNegotiationData* data =
+                           static_cast<TemporalNegotiationData*>(static_cast<void*>(memory
+                               + displacements[i]));
+        nodes->addNode(
+                   ANode<TemporalNegotiationData, ConnectionDescriptor>(
+                       data->nOutConnections, data->nInConnections, *data),
+                   data->color);
+      }
+
     delete[] displacements;
     delete[] receiveSizes;
     freeNegotiationData(negotiationData);
@@ -275,7 +284,7 @@ namespace MUSIC
   {
     double timebase = nodes->at(0).data().timebase;
 
-    for (int o = 0; o < nApplications; ++o)
+    for (int o = 0; o < nApplications_; ++o)
       {
         // check timebase
         if (nodes->at(o).data().timebase != timebase)
@@ -326,7 +335,7 @@ namespace MUSIC
   void
   TemporalNegotiator::distributeParameters()
   {
-    for (int o = 0; o < nApplications; ++o)
+    for (int o = 0; o < nApplications_; ++o)
       {
         for (int c = 0; c < nodes->at(o).data().nOutConnections; ++c)
           {
@@ -360,7 +369,7 @@ namespace MUSIC
       {
         comm.Bcast(&nAllConnections, 1, MPI::INT, 0);
         char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-        comm.Bcast(memory, negotiationDataSize(nApplications, nAllConnections),
+        comm.Bcast(memory, negotiationDataSize(nApplications_, nAllConnections),
             MPI::BYTE, 0);
       }
   }
@@ -370,9 +379,9 @@ namespace MUSIC
   {
     MPI::Intracomm comm = setup_->communicator();
     comm.Bcast(&nAllConnections, 1, MPI::INT, 0);
-    negotiationBuffer = allocNegotiationData(nApplications, nAllConnections);
+    negotiationBuffer = allocNegotiationData(nApplications_, nAllConnections);
     char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-    comm.Bcast(memory, negotiationDataSize(nApplications, nAllConnections),
+    comm.Bcast(memory, negotiationDataSize(nApplications_, nAllConnections),
         MPI::BYTE, 0);
   }
 
@@ -388,7 +397,7 @@ namespace MUSIC
 
     if (isLeader())
       {
-        nodes = new TemporalNegotiatorGraph(setup_->timebase(), nApplications,
+        nodes = new TemporalNegotiatorGraph(setup_->timebase(), nApplications_,
             setup_->applicationColor());
         collectNegotiationData(localTime.tickInterval());
         communicateNegotiationData();

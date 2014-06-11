@@ -49,6 +49,9 @@ namespace MUSIC
   class TemporalNegotiationData
   {
   public:
+    int color;
+    int leader;
+    int nProcs;
     double timebase;
     ClockState tickInterval;
     int nOutConnections;
@@ -92,7 +95,7 @@ namespace MUSIC
     MPI::Group applicationLeaders;
     MPI::Intracomm negotiationComm;
 
-    int nApplications; // initialized by createNegotiationCommunicator
+    int nApplications_; // initialized by createNegotiationCommunicator
     int nLocalConnections;
     int nAllConnections;
 
@@ -109,10 +112,14 @@ namespace MUSIC
     ~TemporalNegotiator();
     void
     negotiate(Clock& localTime, std::vector<Connection*>* connections);
-    TemporalNegotiationData *
+
+    TemporalNegotiationData*
     negotiatedData(int &nConns);
-    int
-    applicationColor();
+
+    int color();
+
+    int nApplications();
+
 
   private:
     void

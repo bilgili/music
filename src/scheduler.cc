@@ -51,18 +51,21 @@ namespace MUSIC
   }
 
   void
-  Scheduler::initialize(ApplicationMap &map, TemporalNegotiator *tn,
+  Scheduler::initialize(TemporalNegotiator *tn,
       std::vector<Connector*>& connectors)
   {
     int nConns;
     TemporalNegotiationData *data;
     data = tn->negotiatedData(nConns);
     nConns /= 2;
-    nodes = new SGraph(tn->applicationColor(), map.size(), nConns);
-    setApplications(map, data);
+
+    nodes = new SGraph(tn->color(), tn->nApplications(),
+        nConns);
+    setApplications ( tn->nApplications(), data);
+
     setConnections(nConns, data, connectors);
 
-    color_ = nodes->local_node().data().color;
+    color_ = tn->color();
 
     iter_node = nodes->begin();
     iter_conn = 0;
@@ -71,7 +74,6 @@ namespace MUSIC
 
     initializeAgentState();
   }
-
 
   void
   Scheduler::setAgent(SchedulerAgent* agent)
@@ -513,22 +515,24 @@ namespace MUSIC
   }
 
   void
-  Scheduler::setApplications(ApplicationMap &map, TemporalNegotiationData *data)
+  Scheduler::setApplications(int nAppls, TemporalNegotiationData *data)
   {
-    int nAppls = map.size();
     appl_data_ = new SApplData[nAppls];
-
-    for (int i = 0; i < nAppls; i++)
+    char* memory = static_cast<char*>(static_cast<void*>(data));
+    for (int i = 0; i < nAppls; ++i)
       {
-        appl_data_[i].color = map[i].color();
-        appl_data_[i].leader = map[i].leader();
-        appl_data_[i].nProcs = map[i].nProc();
-        appl_data_[i].localTime.configure(data[i].timebase,
-            data[i].tickInterval);
-        nodes->addNode(
-            SNode(data[i].nOutConnections, data[i].nInConnections,
-                appl_data_[i]), map[i].color());
+        TemporalNegotiationData *dataptr = static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
+        int nOut = (*dataptr).nOutConnections;
+        int nIn = (*dataptr).nInConnections;
+        appl_data_[i].color = (*dataptr).color;
+        appl_data_[i].leader = (*dataptr).leader;
+        appl_data_[i].nProcs = (*dataptr).nProcs;
+        appl_data_[i].localTime.configure((*dataptr).timebase, (*dataptr).tickInterval);
+        nodes->addNode(SNode(nOut, nIn, appl_data_[i]), (*dataptr).color);
+        memory += (sizeof(TemporalNegotiationData)
+            + (nOut + nIn - 1) * sizeof(ConnectionDescriptor));
       }
+
   }
 
   void
@@ -536,16 +540,17 @@ namespace MUSIC
       std::vector<Connector*>& connectors)
   {
     conn_data_ = new SConnData[nConns];
-    int j = 0;
+    char* memory = static_cast<char*>(static_cast<void*>(data));
     int k = 0;
     SGraph::iterator inode;
-    for (inode = nodes->begin(); inode < nodes->end(); inode++, ++j)
+    for (inode = nodes->begin(); inode < nodes->end(); inode++)
       {
-        for (int i = 0; i < data[j].nOutConnections; ++i)
+        TemporalNegotiationData *dataptr = static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
+        for (int i = 0; i < (*dataptr).nOutConnections; ++i)
           {
             Connector *connector;
             bool foundLocalConnector = false;
-            ConnectionDescriptor &descr = data[j].connection[i];
+            ConnectionDescriptor &descr = (*dataptr).connection[i];
             SNode &pre = *inode;
             SNode &post = nodes->at(descr.remoteNode);
 
@@ -588,6 +593,8 @@ namespace MUSIC
             advanceConnection(edge.data());
 
           }
+        memory += (sizeof(TemporalNegotiationData)
+            + ((*dataptr).nOutConnections + (*dataptr).nInConnections - 1) * sizeof(ConnectionDescriptor));
       }
 
   }

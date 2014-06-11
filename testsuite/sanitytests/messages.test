@@ -19,48 +19,40 @@ cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 np=2
 stoptime=1.0
 [from]
-  binary=${TEST_BINARY}/eventsource
-  args=-b 1 10 ${MUSIC_DATA_PATH}/spikes
+  binary=${TEST_BINARY}/messagesource
+  args=-b 1 ${MUSIC_DATA_PATH}/messages
 [to]
   binary=${TEST_BINARY}/eventlogger
   args=-b 2
-  from.out -> to.in [10, ${method}]
+  from.out -> to.message [10, ${method}]
 EOF
-
 }
 
 
 # this is input data
-cat <<\EOF > "${MUSIC_DATA_PATH}/spikes0.dat"
-# spikes
-0.0	0
-0.1	1
-0.2	2
-0.3	3
-0.4	4
+cat <<\EOF > "${MUSIC_DATA_PATH}/messages0.dat"
+0.3	Hello
+0.7	!
 EOF
 
-cat <<\EOF > "${MUSIC_DATA_PATH}/spikes1.dat"
-# spikes
-0.0	9
-0.6	5
-0.7	6
-0.8	7
-0.9	8
+cat <<\EOF > "${MUSIC_DATA_PATH}/messages1.dat"
+0.5	World
+0.71	Hello World
+0.72	!
 EOF
 
 # this is the output we should expect to see
 cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
-Rank 0: Event (0, 0) detected at 0
-Rank 0: Event (1, 0.1) detected at 0.09
-Rank 0: Event (2, 0.2) detected at 0.19
-Rank 0: Event (3, 0.3) detected at 0.28
-Rank 0: Event (4, 0.4) detected at 0.39
-Rank 1: Event (5, 0.6) detected at 0.58
-Rank 1: Event (6, 0.7) detected at 0.68
-Rank 1: Event (7, 0.8) detected at 0.79
-Rank 1: Event (8, 0.9) detected at 0.89
-Rank 1: Event (9, 0) detected at 0
+Rank 0: Message (0.3, Hello) detected at 0.28
+Rank 1: Message (0.3, Hello) detected at 0.28
+Rank 0: Message (0.5, World) detected at 0.49
+Rank 1: Message (0.5, World) detected at 0.49
+Rank 0: Message (0.7, !) detected at 0.68
+Rank 1: Message (0.7, !) detected at 0.68
+Rank 0: Message (0.71, Hello World) detected at 0.69
+Rank 1: Message (0.71, Hello World) detected at 0.69
+Rank 0: Message (0.72, !) detected at 0.7
+Rank 1: Message (0.72, !) detected at 0.7
 EOF
 # sort the file using locale specified by current environment
 sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"

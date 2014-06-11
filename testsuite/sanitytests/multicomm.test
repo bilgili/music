@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NP=4
+NP=8
 music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
 
 abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
@@ -16,15 +16,22 @@ echo "Communication method: ${method}"
 
 # this is music configuration file
 cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
-np=2
 stoptime=1.0
-[from]
+np=2
+[S0]
   binary=${TEST_BINARY}/eventsource
-  args=-b 1 10 ${MUSIC_DATA_PATH}/spikes
-[to]
+  args=--out out0 10 ${MUSIC_DATA_PATH}/spikes
+[S1]
+  binary=${TEST_BINARY}/eventsource
+  args=--out out1 10 ${MUSIC_DATA_PATH}/spikes
+[R0]
   binary=${TEST_BINARY}/eventlogger
-  args=-b 2
-  from.out -> to.in [10, ${method}]
+  args=--in in0
+[R1]
+  binary=${TEST_BINARY}/eventlogger
+  args=--in in1
+S0.out0 -> R0.in0 [10, ${method}]
+S1.out1 -> R1.in1 [10, ${method}]
 EOF
 
 }
@@ -52,15 +59,25 @@ EOF
 # this is the output we should expect to see
 cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
 Rank 0: Event (0, 0) detected at 0
-Rank 0: Event (1, 0.1) detected at 0.09
-Rank 0: Event (2, 0.2) detected at 0.19
-Rank 0: Event (3, 0.3) detected at 0.28
-Rank 0: Event (4, 0.4) detected at 0.39
-Rank 1: Event (5, 0.6) detected at 0.58
-Rank 1: Event (6, 0.7) detected at 0.68
-Rank 1: Event (7, 0.8) detected at 0.79
-Rank 1: Event (8, 0.9) detected at 0.89
+Rank 0: Event (1, 0.1) detected at 0
+Rank 0: Event (2, 0.2) detected at 0
+Rank 0: Event (3, 0.3) detected at 0
+Rank 0: Event (4, 0.4) detected at 0
 Rank 1: Event (9, 0) detected at 0
+Rank 1: Event (5, 0.6) detected at 0
+Rank 1: Event (6, 0.7) detected at 0
+Rank 1: Event (7, 0.8) detected at 0
+Rank 1: Event (8, 0.9) detected at 0
+Rank 0: Event (0, 0) detected at 0
+Rank 0: Event (1, 0.1) detected at 0
+Rank 0: Event (2, 0.2) detected at 0
+Rank 0: Event (3, 0.3) detected at 0
+Rank 0: Event (4, 0.4) detected at 0
+Rank 1: Event (9, 0) detected at 0
+Rank 1: Event (5, 0.6) detected at 0
+Rank 1: Event (6, 0.7) detected at 0
+Rank 1: Event (7, 0.8) detected at 0
+Rank 1: Event (8, 0.9) detected at 0
 EOF
 # sort the file using locale specified by current environment
 sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"

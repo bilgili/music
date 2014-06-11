@@ -107,7 +107,7 @@ run_test()
         fi
     fi
     
-    echo "${explanation}"
+    echo "...${explanation}"
 
     echo >> "${TEST_LOGFILE}" "-> ${exit_code} (${explanation})"
     echo >> "${TEST_LOGFILE}" "----------------------------------------"

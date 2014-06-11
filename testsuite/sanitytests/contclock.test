@@ -1,13 +1,13 @@
 #!/bin/sh
 
-NP=4
+NP=2
 music_conf="$( echo "${0##*/}" | sed 's/\.test//'  ).music"
 
 abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
 path="`dirname $abspath`"
 
 . ${path}/run_test
- 
+
 write_configuration ()
 {
 
@@ -16,67 +16,57 @@ echo "Communication method: ${method}"
 
 # this is music configuration file
 cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
-np=2
-stoptime=1.0
+stoptime=0.5
 [from]
-  binary=${TEST_BINARY}/eventsource
-  args=-b 1 10 ${MUSIC_DATA_PATH}/spikes
+  np=1
+  binary=${TEST_BINARY}/clocksource
+  args=-t 0.02 -b 3
 [to]
-  binary=${TEST_BINARY}/eventlogger
-  args=-b 2
-  from.out -> to.in [10, ${method}]
+  np=1
+  binary=${TEST_BINARY}/contsink
+  args=-t 0.03
+  from.clock -> to.contdata [1, ${method}]
 EOF
 
 }
 
-
-# this is input data
-cat <<\EOF > "${MUSIC_DATA_PATH}/spikes0.dat"
-# spikes
-0.0	0
-0.1	1
-0.2	2
-0.3	3
-0.4	4
-EOF
-
-cat <<\EOF > "${MUSIC_DATA_PATH}/spikes1.dat"
-# spikes
-0.0	9
-0.6	5
-0.7	6
-0.8	7
-0.9	8
-EOF
-
 # this is the output we should expect to see
 cat <<\EOF > "${MUSIC_DATA_PATH}/ok"
-Rank 0: Event (0, 0) detected at 0
-Rank 0: Event (1, 0.1) detected at 0.09
-Rank 0: Event (2, 0.2) detected at 0.19
-Rank 0: Event (3, 0.3) detected at 0.28
-Rank 0: Event (4, 0.4) detected at 0.39
-Rank 1: Event (5, 0.6) detected at 0.58
-Rank 1: Event (6, 0.7) detected at 0.68
-Rank 1: Event (7, 0.8) detected at 0.79
-Rank 1: Event (8, 0.9) detected at 0.89
-Rank 1: Event (9, 0) detected at 0
+0 on 0 @0
+0.03 on 0 @0.03
+0.06 on 0 @0.06
+0.09 on 0 @0.09
+0.12 on 0 @0.12
+0.15 on 0 @0.15
+0.18 on 0 @0.18
+0.21 on 0 @0.21
+0.24 on 0 @0.24
+0.27 on 0 @0.27
+0.3 on 0 @0.3
+0.33 on 0 @0.33
+0.36 on 0 @0.36
+0.39 on 0 @0.39
+0.42 on 0 @0.42
+0.45 on 0 @0.45
+0.48 on 0 @0.48
 EOF
 # sort the file using locale specified by current environment
 sort "${MUSIC_DATA_PATH}/ok" -o "${MUSIC_DATA_PATH}/ok"
 
 cat <<\EOF > "${MUSIC_DATA_PATH}/errok"
 EOF
-   
+
 for method in point-to-point collective ; do
     write_configuration "${method}"
     
     run_test "${NP}" "${music_conf}"
     exit_code=$?
-    
+
     if test "${exit_code}" -gt 0 ; then
 	exit "${exit_code}"
     fi
 done
 
 exit 0
+
+

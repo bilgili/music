@@ -44,6 +44,8 @@ namespace MUSIC
   public:
 
     class SConnData;
+
+
     class SApplData
     {
     public:
@@ -52,6 +54,7 @@ namespace MUSIC
       int nProcs;
       int color;
     };
+
 
     class SConnData
     {
@@ -63,15 +66,15 @@ namespace MUSIC
       Connector *connector;
       bool isLoopConnected;
       void
-      reset()
+      reset ()
       {
-        nextSend.reset();
-        nextReceive.reset();
-        sSend.reset();
+        nextSend.reset ();
+        nextReceive.reset ();
+        sSend.reset ();
         isLoopConnected = false;
       }
       void
-      postponeNextSend(Clock newTime)
+      postponeNextSend (Clock newTime)
       {
         sSend = nextSend;
         nextSend = newTime;
@@ -85,18 +88,20 @@ namespace MUSIC
     {
       int tmp_color_;
     public:
-      SGraph(int color, int nApps, int nEdges) :
-          AGraph<SApplData, SConnData>(color, nApps, nEdges), tmp_color_(color)
+      SGraph (int color, int nApps, int nEdges) :
+          AGraph<SApplData, SConnData> (color, nApps, nEdges), tmp_color_ (
+              color)
       {
       }
       ;
+
       void
-      setTempColor(int tmp_color)
+      setTempColor (int tmp_color)
       {
         tmp_color_ = tmp_color;
       }
       void
-      handleLoop(SNode &x, std::vector<SConnection> & path);
+      handleLoop (SNode &x, std::vector<SConnection> & path);
     };
 
   private:
@@ -115,17 +120,16 @@ namespace MUSIC
     int color_;
   public:
 
-    Scheduler();
-    ~Scheduler();
+    Scheduler ();
+    ~Scheduler ();
 
     void
-    initialize(TemporalNegotiatorGraph *appl_graph,
+    initialize (TemporalNegotiatorGraph *appl_graph,
         std::vector<Connector*>& connectors);
     void
-    finalize(Clock& localTime, std::vector<Connector*>& connectors);
-
+    finalize (Clock& localTime, std::vector<Connector*>& connectors);
     void
-    reset(int self_node);
+    reset (int self_node);
 
 #if 0
     void createMultiConnectors (Clock localTime,
@@ -151,36 +155,37 @@ namespace MUSIC
 
 #endif
     void
-    setAgent(SchedulerAgent* agent);
+    setAgent (SchedulerAgent* agent);
     void
-    initializeAgentState();
-
+    initializeAgentState ();
     AEdge<Scheduler::SApplData, Scheduler::SConnData>
-    pushForward();
-
+    pushForward ();
     void
-    tick(Clock& localTime);
+    tick (Clock& localTime);
 
     bool
-    isLocalConnection(SConnection &edge)
+    isLocalConnection (SConnection &edge)
     {
 
-      return &edge.pre() == &nodes->at(color_)
-          || &edge.post() == &nodes->at(color_);
+      return &edge.pre () == &nodes->at (color_)
+          || &edge.post () == &nodes->at (color_);
 
     }
+
     unsigned int
-    nApplications()
+    nApplications ()
     {
-      return nodes->nNodes();
+      return nodes->nNodes ();
     }
+
     int
-    self_node()
+    self_node ()
     {
       return color_;
     }
+
     SConnection &
-    getLastSConnection()
+    getLastSConnection ()
     {
       return last_sconn_;
     }
@@ -188,19 +193,18 @@ namespace MUSIC
   private:
 
     void
-    reset();
+    reset ();
     void
-    setApplications(TemporalNegotiatorGraph *appl_graph);
+    setApplications (TemporalNegotiatorGraph *appl_graph);
     void
-    setConnections(TemporalNegotiatorGraph *appl_graph,
+    setConnections (TemporalNegotiatorGraph *appl_graph,
         std::vector<Connector*>& connectors);
-
     double
-    nextApplicationReceive(SNode &node);
+    nextApplicationReceive (SNode &node);
     void
-    advanceConnection(SConnData &data);
+    advanceConnection (SConnData &data);
     void
-    advanceConnectionClocks(SConnData &data);
+    advanceConnectionClocks (SConnData &data);
   };
 
 }

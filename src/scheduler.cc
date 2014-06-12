@@ -35,12 +35,14 @@
 namespace MUSIC
 {
 
-  Scheduler::Scheduler() :
-      nodes(NULL), appl_data_(NULL), conn_data_(NULL)
+  Scheduler::Scheduler () :
+      nodes (NULL), appl_data_ (NULL), conn_data_ (NULL)
   {
 
   }
-  Scheduler::~Scheduler()
+
+
+  Scheduler::~Scheduler ()
   {
     if (nodes != NULL)
       delete nodes;
@@ -50,43 +52,47 @@ namespace MUSIC
       delete[] conn_data_;
   }
 
+
   void
-  Scheduler::initialize(TemporalNegotiatorGraph *appl_graph,
+  Scheduler::initialize (TemporalNegotiatorGraph *appl_graph,
       std::vector<Connector*>& connectors)
   {
 
-    nodes = new SGraph(appl_graph->local_node_color(), appl_graph->nNodes(),
-        appl_graph->getNConnections());
+    nodes = new SGraph (appl_graph->local_node_color (), appl_graph->nNodes (),
+        appl_graph->getNConnections ());
 
-    setApplications(appl_graph);
+    setApplications (appl_graph);
 
-    setConnections(appl_graph, connectors);
+    setConnections (appl_graph, connectors);
 
-    color_ = appl_graph->local_node_color();
+    color_ = appl_graph->local_node_color ();
 
-    iter_node = nodes->begin();
+    iter_node = nodes->begin ();
     iter_conn = 0;
 
-    pushForward();
+    pushForward ();
 
-    initializeAgentState();
+    initializeAgentState ();
   }
 
-  void
-  Scheduler::setAgent(SchedulerAgent* agent)
-  {
-    agent->initialize();
-    agents_.push_back(agent);
-  }
 
   void
-  Scheduler::initializeAgentState()
+  Scheduler::setAgent (SchedulerAgent* agent)
   {
-    cur_agent_ = agents_.begin();
+    agent->initialize ();
+    agents_.push_back (agent);
   }
+
+
+  void
+  Scheduler::initializeAgentState ()
+  {
+    cur_agent_ = agents_.begin ();
+  }
+
 
   AEdge<Scheduler::SApplData, Scheduler::SConnData>
-  Scheduler::pushForward()
+  Scheduler::pushForward ()
   {
     while (true)
       {
@@ -119,28 +125,28 @@ namespace MUSIC
             iter_conn = -1;
           }
 #endif
-        for (; iter_node < nodes->end(); iter_node++)
+        for (; iter_node < nodes->end (); iter_node++)
           {
             if (iter_conn == 0)
-              iter_conn = (*iter_node).begin_o();
+              iter_conn = (*iter_node).begin_o ();
             else
               {
-                advanceConnection((**iter_conn).data());
+                advanceConnection ( (**iter_conn).data ());
                 ++iter_conn;
               }
-            for (; iter_conn < (*iter_node).end_o(); iter_conn++)
+            for (; iter_conn < (*iter_node).end_o (); iter_conn++)
               {
 
                 //do we have data ready to be sent?
-                if ((*iter_conn)->data().nextSend
-                    <= (*iter_conn)->pre().data().localTime
-                    && (*iter_conn)->data().nextReceive
-                        == (*iter_conn)->post().data().localTime)
+                if ( (*iter_conn)->data ().nextSend
+                    <= (*iter_conn)->pre ().data ().localTime
+                    && (*iter_conn)->data ().nextReceive
+                        == (*iter_conn)->post ().data ().localTime)
                   {
-                    last_sconn_ = *(*iter_conn);
+                    last_sconn_ = * (*iter_conn);
 
-                    last_sconn_.data().postponeNextSend(
-                        (*iter_conn)->pre().data().localTime);
+                    last_sconn_.data ().postponeNextSend (
+                        (*iter_conn)->pre ().data ().localTime);
 
                     return last_sconn_;
                   }
@@ -149,13 +155,14 @@ namespace MUSIC
             iter_conn = 0;
           }
 
-        for (iter_node = nodes->begin(); iter_node < nodes->end(); iter_node++)
+        for (iter_node = nodes->begin (); iter_node < nodes->end ();
+            iter_node++)
           {
-            if (nextApplicationReceive(*iter_node)
-                > (*iter_node).data().localTime.time())
-              (*iter_node).data().localTime.tick();
+            if (nextApplicationReceive (*iter_node)
+                > (*iter_node).data ().localTime.time ())
+              (*iter_node).data ().localTime.tick ();
           }
-        iter_node = nodes->begin();
+        iter_node = nodes->begin ();
 
       }
   }
@@ -398,39 +405,43 @@ namespace MUSIC
     }
 #endif
 
+
   void
-  Scheduler::reset(int color)
+  Scheduler::reset (int color)
   {
     if (color < 0)
-      color = nodes->local_node_color();
+      color = nodes->local_node_color ();
     color_ = color;
-    reset();
-    nodes->setTempColor(color);
+    reset ();
+    nodes->setTempColor (color);
     std::vector<SConnection> path;
-    nodes->depthFirst(nodes->at(color), path);
+    nodes->depthFirst (nodes->at (color), path);
 
-    cur_agent_ = agents_.begin();
-    iter_node = nodes->begin();
+    cur_agent_ = agents_.begin ();
+    iter_node = nodes->begin ();
     iter_conn = 0;
-    pushForward();
+    pushForward ();
   }
+
+
   void
-  Scheduler::reset()
+  Scheduler::reset ()
   {
-    nodes->reset();
-    for (SGraph::iterator n = nodes->begin(); n < nodes->end(); n++)
+    nodes->reset ();
+    for (SGraph::iterator n = nodes->begin (); n < nodes->end (); n++)
       {
-        (*n).data().localTime.reset();
-        for (SNode::edge_iterator e = (*n).begin_o(); e < (*n).end_o(); e++)
+        (*n).data ().localTime.reset ();
+        for (SNode::edge_iterator e = (*n).begin_o (); e < (*n).end_o (); e++)
           {
-            (*e)->data().reset();
-            advanceConnection((**e).data());
+            (*e)->data ().reset ();
+            advanceConnection ( (**e).data ());
           }
       }
   }
 
+
   void
-  Scheduler::tick(Clock& localTime)
+  Scheduler::tick (Clock& localTime)
   {
     // tick is done when at least one of the agent will schedule the future communication
     //this algorithm is based on the fact that nextSConnection return strictly time ordered SConnections
@@ -438,128 +449,134 @@ namespace MUSIC
 
     for (; !done; cur_agent_++)
       {
-        if (cur_agent_ == agents_.end())
-          cur_agent_ = agents_.begin();
+        if (cur_agent_ == agents_.end ())
+          cur_agent_ = agents_.begin ();
 
-        if ((*cur_agent_)->tick(localTime))
+        if ( (*cur_agent_)->tick (localTime))
           done = true;
       }
   }
 
+
   void
-  Scheduler::finalize(Clock& localTime, std::vector<Connector*>& connectors)
+  Scheduler::finalize (Clock& localTime, std::vector<Connector*>& connectors)
   {
     /* remedius
      * set of receiver port codes that still has to be finalized
      */
     std::set<int> cnn_ports;
-    for (std::vector<Connector*>::iterator c = connectors.begin();
-        c != connectors.end(); ++c)
-      if (!(*c)->needsMultiCommunication())
-        cnn_ports.insert((*c)->receiverPortCode());
+    for (std::vector<Connector*>::iterator c = connectors.begin ();
+        c != connectors.end (); ++c)
+      if (! (*c)->needsMultiCommunication ())
+        cnn_ports.insert ( (*c)->receiverPortCode ());
 
-    for (std::vector<SchedulerAgent*>::iterator a = agents_.begin();
-        a != agents_.end(); ++a)
-      (*a)->preFinalize(cnn_ports);
+    for (std::vector<SchedulerAgent*>::iterator a = agents_.begin ();
+        a != agents_.end (); ++a)
+      (*a)->preFinalize (cnn_ports);
 
-    for (; !cnn_ports.empty(); cur_agent_++)
+    for (; !cnn_ports.empty (); cur_agent_++)
       {
-        if (cur_agent_ == agents_.end())
-          cur_agent_ = agents_.begin();
-        (*cur_agent_)->finalize(cnn_ports);
+        if (cur_agent_ == agents_.end ())
+          cur_agent_ = agents_.begin ();
+        (*cur_agent_)->finalize (cnn_ports);
       }
   }
 
+
   double
-  Scheduler::nextApplicationReceive(SNode &node)
+  Scheduler::nextApplicationReceive (SNode &node)
   {
     SNode::edge_iterator in_conn;
-    double nextTime = std::numeric_limits<double>::infinity();
-    for (in_conn = node.begin_i(); in_conn < node.end_i(); ++in_conn)
+    double nextTime = std::numeric_limits<double>::infinity ();
+    for (in_conn = node.begin_i (); in_conn < node.end_i (); ++in_conn)
       {
-        SConnData &data = (*in_conn)->data();
-        if (data.nextReceive.time() < nextTime)
-          nextTime = data.nextReceive.time();
+        SConnData &data = (*in_conn)->data ();
+        if (data.nextReceive.time () < nextTime)
+          nextTime = data.nextReceive.time ();
       }
     return nextTime;
   }
 
+
   void
-  Scheduler::advanceConnection(SConnData &data)
+  Scheduler::advanceConnection (SConnData &data)
   {
-    advanceConnectionClocks(data);
+    advanceConnectionClocks (data);
     Clock r = data.nextReceive;
     Clock s = data.nextSend;
-    advanceConnectionClocks(data);
+    advanceConnectionClocks (data);
     while (data.nextReceive == r)
       {
         s = data.nextSend;
-        advanceConnectionClocks(data);
+        advanceConnectionClocks (data);
       }
     data.nextReceive = r;
     data.nextSend = s;
     MUSIC_LOG0 (pre_id << "->"<<post_id << "::"<<nextSend_.time () << "::" << nextReceive_.time ());
   }
 
-  void
-  Scheduler::advanceConnectionClocks(SConnData &data)
-  {
-    ClockState limit = (data.nextSend.integerTime() + data.descr.accLatency
-        - data.nextReceive.tickInterval());
-    while (data.nextReceive.integerTime() <= limit)
-      data.nextReceive.tick();
-    data.nextSend.ticks(data.descr.maxBuffered + 1);
-  }
 
   void
-  Scheduler::setApplications(TemporalNegotiatorGraph *appl_graph)
+  Scheduler::advanceConnectionClocks (SConnData &data)
   {
-    appl_data_ = new SApplData[appl_graph->nNodes()];
+    ClockState limit = (data.nextSend.integerTime () + data.descr.accLatency
+        - data.nextReceive.tickInterval ());
+    while (data.nextReceive.integerTime () <= limit)
+      data.nextReceive.tick ();
+    data.nextSend.ticks (data.descr.maxBuffered + 1);
+  }
+
+
+  void
+  Scheduler::setApplications (TemporalNegotiatorGraph *appl_graph)
+  {
+    appl_data_ = new SApplData[appl_graph->nNodes ()];
     int i = 0;
     TemporalNegotiatorGraph::iterator it;
-    for (it = appl_graph->begin(); it < appl_graph->end(); ++it, ++i)
+    for (it = appl_graph->begin (); it < appl_graph->end (); ++it, ++i)
       {
-        appl_data_[i].color = (*it).data().color;
-        appl_data_[i].leader = (*it).data().leader;
-        appl_data_[i].nProcs = (*it).data().nProcs;
-        appl_data_[i].localTime.configure((*it).data().timebase,
-            (*it).data().tickInterval);
-        nodes->addNode(
-            SNode((*it).data().nOutConnections, (*it).data().nInConnections,
-                appl_data_[i]), (*it).data().color);
+        appl_data_[i].color = (*it).data ().color;
+        appl_data_[i].leader = (*it).data ().leader;
+        appl_data_[i].nProcs = (*it).data ().nProcs;
+        appl_data_[i].localTime.configure ( (*it).data ().timebase,
+            (*it).data ().tickInterval);
+        nodes->addNode (
+            SNode ( (*it).data ().nOutConnections, (*it).data ().nInConnections,
+                appl_data_[i]), (*it).data ().color);
       }
 
   }
 
+
   void
-  Scheduler::setConnections(TemporalNegotiatorGraph *appl_graph,
+  Scheduler::setConnections (TemporalNegotiatorGraph *appl_graph,
       std::vector<Connector*>& connectors)
   {
-    conn_data_ = new SConnData[appl_graph->getNConnections()];
+    conn_data_ = new SConnData[appl_graph->getNConnections ()];
     int k = 0;
     SGraph::iterator inode;
-    for (inode = nodes->begin(); inode < nodes->end(); inode++)
+    for (inode = nodes->begin (); inode < nodes->end (); inode++)
       {
         TemporalNegotiationData &data =
-            appl_graph->at((*inode).data().color).data();
+            appl_graph->at ( (*inode).data ().color).data ();
         for (int i = 0; i < data.nOutConnections; ++i)
           {
             Connector *connector;
             bool foundLocalConnector = false;
             ConnectionDescriptor &descr = data.connection[i];
             SNode &pre = *inode;
-            SNode &post = nodes->at(descr.remoteNode);
+            SNode &post = nodes->at (descr.remoteNode);
 
-            for (std::vector<Connector*>::iterator c = connectors.begin();
-                c != connectors.end(); ++c)
+            for (std::vector<Connector*>::iterator c = connectors.begin ();
+                c != connectors.end (); ++c)
               {
-                if (descr.receiverPort == (*c)->receiverPortCode())
+                if (descr.receiverPort == (*c)->receiverPortCode ())
                   {
                     foundLocalConnector = true;
                     connector = *c;
-                    (*c)->setInterpolate(descr.interpolate);
-                    (*c)->setLatency(descr.accLatency);
-                    (*c)->initialize();
+                    (*c)->setInterpolate (descr.interpolate);
+                    (*c)->setLatency (descr.accLatency);
+                    (*c)->initialize ();
                     break;
                   }
               }
@@ -567,39 +584,42 @@ namespace MUSIC
             if (!foundLocalConnector)
               {
                 if (descr.multiComm)
-                  connector = new ProxyConnector(pre.data().color,
-                      pre.data().leader, pre.data().nProcs, post.data().color,
-                      post.data().leader, post.data().nProcs);
+                  connector = new ProxyConnector (pre.data ().color,
+                      pre.data ().leader, pre.data ().nProcs,
+                      post.data ().color, post.data ().leader,
+                      post.data ().nProcs);
                 else
-                  connector = new ProxyConnector();
+                  connector = new ProxyConnector ();
               }
 
 #endif
             conn_data_[k].descr = descr;
             conn_data_[k].connector = connector;
-            conn_data_[k].nextSend.configure(pre.data().localTime.timebase(),
-                pre.data().localTime.tickInterval());
-            conn_data_[k].nextReceive.configure(
-                post.data().localTime.timebase(),
-                post.data().localTime.tickInterval());
-            SConnection &edge = nodes->addEdge(
-                SConnection(pre, post, conn_data_[k++]));
+            conn_data_[k].nextSend.configure (pre.data ().localTime.timebase (),
+                pre.data ().localTime.tickInterval ());
+            conn_data_[k].nextReceive.configure (
+                post.data ().localTime.timebase (),
+                post.data ().localTime.tickInterval ());
+            SConnection &edge = nodes->addEdge (
+                SConnection (pre, post, conn_data_[k++]));
 
-            advanceConnection(edge.data());
+            advanceConnection (edge.data ());
 
           }
       }
 
   }
+
+
   void
-  Scheduler::SGraph::handleLoop(SNode &x, std::vector<SConnection> & path)
+  Scheduler::SGraph::handleLoop (SNode &x, std::vector<SConnection> & path)
   {
     if (&x == &nodes_[tmp_color_])
       {
         // Mark connections on path as loop connected to self_node
-        for (std::vector<SConnection>::iterator c = path.begin();
-            c != path.end(); ++c)
-          (*c).data().isLoopConnected = true;
+        for (std::vector<SConnection>::iterator c = path.begin ();
+            c != path.end (); ++c)
+          (*c).data ().isLoopConnected = true;
       }
   }
 

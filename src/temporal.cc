@@ -26,105 +26,119 @@
 namespace MUSIC
 {
 
-  TemporalNegotiator::TemporalNegotiator(Setup* setup) :
-      setup_(setup), negotiationBuffer(NULL)
+  TemporalNegotiator::TemporalNegotiator (Setup* setup) :
+      setup_ (setup), negotiationBuffer (NULL)
   {
-    nApplications_ = setup_->applicationMap()->size();
+    nApplications_ = setup_->applicationMap ()->size ();
     nAllConnections = 0;
-    nodes = new TemporalNegotiatorGraph(setup_->timebase(), nApplications_,
-        setup_->applicationColor());
+    nodes = new TemporalNegotiatorGraph (setup_->timebase (), nApplications_,
+        setup_->applicationColor ());
   }
 
-  TemporalNegotiator::~TemporalNegotiator()
+
+  TemporalNegotiator::~TemporalNegotiator ()
   {
     delete nodes;
-    freeNegotiationData(negotiationBuffer);
+    freeNegotiationData (negotiationBuffer);
 
     // Free negotiation communicator in application leaders
     if (negotiationComm != MPI::COMM_NULL)
-      negotiationComm.Free();
+      negotiationComm.Free ();
 
-    applicationLeaders.Free();
-    groupWorld.Free();
+    applicationLeaders.Free ();
+    groupWorld.Free ();
   }
+
 
   void
-  TemporalNegotiator::separateConnections(std::vector<Connection*>* connections)
+  TemporalNegotiator::separateConnections (
+      std::vector<Connection*>* connections)
   {
-    for (std::vector<Connection*>::iterator c = connections->begin();
-        c != connections->end(); ++c)
+    for (std::vector<Connection*>::iterator c = connections->begin ();
+        c != connections->end (); ++c)
       {
-        if (dynamic_cast<OutputConnection*>(*c) != NULL)
-          outputConnections.push_back(*dynamic_cast<OutputConnection*>(*c));
+        if (dynamic_cast<OutputConnection*> (*c) != NULL)
+          outputConnections.push_back (*dynamic_cast<OutputConnection*> (*c));
         else
-          inputConnections.push_back(*dynamic_cast<InputConnection*>(*c));
+          inputConnections.push_back (*dynamic_cast<InputConnection*> (*c));
       }
   }
+
+
   TemporalNegotiatorGraph*
-  TemporalNegotiator::applicationGraph()
+  TemporalNegotiator::applicationGraph ()
   {
     return nodes;
   }
-  bool
-  TemporalNegotiator::isLeader()
-  {
-    return setup_->communicator().Get_rank() == 0;
-  }
+
 
   bool
-  TemporalNegotiator::hasPeers()
+  TemporalNegotiator::isLeader ()
   {
-    return setup_->communicator().Get_size() > 1;
+    return setup_->communicator ().Get_rank () == 0;
   }
+
+
+  bool
+  TemporalNegotiator::hasPeers ()
+  {
+    return setup_->communicator ().Get_size () > 1;
+  }
+
 
   void
-  TemporalNegotiator::createNegotiationCommunicator()
+  TemporalNegotiator::createNegotiationCommunicator ()
   {
-    ApplicationMap* applicationMap = setup_->applicationMap();
+    ApplicationMap* applicationMap = setup_->applicationMap ();
     int* ranks = new int[nApplications_];
 
     for (int i = 0; i < nApplications_; ++i)
-      ranks[i] = (*applicationMap)[i].leader();
+      ranks[i] = (*applicationMap)[i].leader ();
 
-    groupWorld = MPI::COMM_WORLD.Get_group();
-    applicationLeaders = groupWorld.Incl(nApplications_, ranks);
+    groupWorld = MPI::COMM_WORLD.Get_group ();
+    applicationLeaders = groupWorld.Incl (nApplications_, ranks);
     delete[] ranks;
-    negotiationComm = MPI::COMM_WORLD.Create(applicationLeaders);
+    negotiationComm = MPI::COMM_WORLD.Create (applicationLeaders);
   }
 
+
   int
-  TemporalNegotiator::negotiationDataSize(int nConnections)
+  TemporalNegotiator::negotiationDataSize (int nConnections)
   {
-    return negotiationDataSize(1, nConnections);
+    return negotiationDataSize (1, nConnections);
   }
 
+
   int
-  TemporalNegotiator::negotiationDataSize(int nBlocks, int nConnections)
+  TemporalNegotiator::negotiationDataSize (int nBlocks, int nConnections)
   {
     // -1 due to definition of connection member
     return (nBlocks * sizeof(TemporalNegotiationData)
         + (nConnections - 1) * sizeof(ConnectionDescriptor));
   }
 
+
   TemporalNegotiationData*
-  TemporalNegotiator::allocNegotiationData(int nBlocks, int nConnections)
+  TemporalNegotiator::allocNegotiationData (int nBlocks, int nConnections)
   {
-    void* memory = new char[negotiationDataSize(nBlocks, nConnections)];
-    return static_cast<TemporalNegotiationData*>(memory);
+    void* memory = new char[negotiationDataSize (nBlocks, nConnections)];
+    return static_cast<TemporalNegotiationData*> (memory);
   }
 
+
   void
-  TemporalNegotiator::freeNegotiationData(TemporalNegotiationData* data)
+  TemporalNegotiator::freeNegotiationData (TemporalNegotiationData* data)
   {
     if (data != NULL)
       {
-        delete[] static_cast<char*>(static_cast<void*>(data));
+        delete[] static_cast<char*> (static_cast<void*> (data));
         data = NULL;
       }
   }
 
+
   int
-  TemporalNegotiator::computeDefaultMaxBuffered(int maxLocalWidth,
+  TemporalNegotiator::computeDefaultMaxBuffered (int maxLocalWidth,
       int eventSize, ClockState tickInterval, double timebase)
   {
     int res;
@@ -149,154 +163,162 @@ namespace MUSIC
       res = 1;
     return res;
   }
+
+
   int
-  TemporalNegotiator::findNodeColor(int leader)
+  TemporalNegotiator::findNodeColor (int leader)
   {
     int color = -1;
-    ApplicationMap* applicationMap = setup_->applicationMap();
+    ApplicationMap* applicationMap = setup_->applicationMap ();
     for (int i = 0; i < nApplications_; ++i)
-      if (leader == (*applicationMap)[i].leader())
-        color = (*applicationMap)[i].color();
-    assert(color != -1);
+      if (leader == (*applicationMap)[i].leader ())
+        color = (*applicationMap)[i].color ();
+    assert (color != -1);
     return color;
   }
+
+
   void
-  TemporalNegotiator::collectNegotiationData(ClockState ti)
+  TemporalNegotiator::collectNegotiationData (ClockState ti)
   {
-    int nOut = outputConnections.size();
-    int nIn = inputConnections.size();
+    int nOut = outputConnections.size ();
+    int nIn = inputConnections.size ();
     nLocalConnections = nOut + nIn;
     MUSIC_LOG ("nLocalConnections = " << nLocalConnections
         << ", nOut = " << nOut
         << ", nIn = " << nIn);
-    negotiationData = allocNegotiationData(1, nLocalConnections);
-    negotiationData->timebase = setup_->timebase();
+    negotiationData = allocNegotiationData (1, nLocalConnections);
+    negotiationData->timebase = setup_->timebase ();
     negotiationData->tickInterval = ti;
-    negotiationData->color = setup_->applicationColor();
-    negotiationData->leader = setup_->leader();
-    negotiationData->nProcs = setup_->nProcs();
-    negotiationData->nOutConnections = outputConnections.size();
-    negotiationData->nInConnections = inputConnections.size();
+    negotiationData->color = setup_->applicationColor ();
+    negotiationData->leader = setup_->leader ();
+    negotiationData->nProcs = setup_->nProcs ();
+    negotiationData->nOutConnections = outputConnections.size ();
+    negotiationData->nInConnections = inputConnections.size ();
 
     for (int i = 0; i < nOut; ++i)
       {
-        Connector* connector = outputConnections[i].connector();
-        int remote = connector->remoteLeader();
-        negotiationData->connection[i].remoteNode = findNodeColor(remote);
+        Connector* connector = outputConnections[i].connector ();
+        int remote = connector->remoteLeader ();
+        negotiationData->connection[i].remoteNode = findNodeColor (remote);
         negotiationData->connection[i].receiverPort =
-            connector->receiverPortCode();
-        negotiationData->connection[i].multiComm = connector->idFlag();
+            connector->receiverPortCode ();
+        negotiationData->connection[i].multiComm = connector->idFlag ();
         negotiationData->connection[i].maxBuffered =
-            outputConnections[i].maxBuffered();
+            outputConnections[i].maxBuffered ();
         negotiationData->connection[i].defaultMaxBuffered =
-            computeDefaultMaxBuffered(connector->maxLocalWidth(),
-                outputConnections[i].elementSize(), ti, setup_->timebase());
+            computeDefaultMaxBuffered (connector->maxLocalWidth (),
+                outputConnections[i].elementSize (), ti, setup_->timebase ());
 
         negotiationData->connection[i].accLatency = 0;
       }
     for (int i = 0; i < nIn; ++i)
       {
-        int remote = inputConnections[i].connector()->remoteLeader();
-        negotiationData->connection[nOut + i].remoteNode = findNodeColor(
+        int remote = inputConnections[i].connector ()->remoteLeader ();
+        negotiationData->connection[nOut + i].remoteNode = findNodeColor (
             remote);
         negotiationData->connection[nOut + i].receiverPort =
-            inputConnections[i].connector()->receiverPortCode();
+            inputConnections[i].connector ()->receiverPortCode ();
         negotiationData->connection[nOut + i].multiComm =
-            inputConnections[i].connector()->idFlag();
+            inputConnections[i].connector ()->idFlag ();
         negotiationData->connection[nOut + i].maxBuffered =
-            inputConnections[i].maxBuffered();
+            inputConnections[i].maxBuffered ();
         negotiationData->connection[nOut + i].defaultMaxBuffered = 0;
 
         negotiationData->connection[nOut + i].accLatency =
-            inputConnections[i].accLatency();
+            inputConnections[i].accLatency ();
         MUSIC_LOGR ("port " << inputConnections[i].connector ()->receiverPortName () << ": " << inputConnections[i].accLatency ());
         negotiationData->connection[nOut + i].interpolate =
-            inputConnections[i].interpolate();
+            inputConnections[i].interpolate ();
       }
   }
 
+
   void
-  TemporalNegotiator::fillTemporalNegotiatorGraph()
+  TemporalNegotiator::fillTemporalNegotiatorGraph ()
   {
-    nodes->setNConnections(nAllConnections / 2);
-    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
+    nodes->setNConnections (nAllConnections / 2);
+    char* memory = static_cast<char*> (static_cast<void*> (negotiationBuffer));
     TemporalNegotiationData* data;
     for (int i = 0; i < nApplications_; ++i)
       {
 
         data =
-            static_cast<TemporalNegotiationData*>(static_cast<void*>(memory));
+            static_cast<TemporalNegotiationData*> (static_cast<void*> (memory));
         int nOut = data->nOutConnections;
         int nIn = data->nInConnections;
-        nodes->addNode(
-            ANode<TemporalNegotiationData, ConnectionDescriptor>(nOut, nIn,
+        nodes->addNode (
+            ANode<TemporalNegotiationData, ConnectionDescriptor> (nOut, nIn,
                 *data), data->color);
-        memory += negotiationDataSize(nOut + nIn);
+        memory += negotiationDataSize (nOut + nIn);
       }
 
   }
 
+
   void
-  TemporalNegotiator::communicateNegotiationData()
+  TemporalNegotiator::communicateNegotiationData ()
   {
     // First talk to others about how many connections each node has
     int* nConnections = new int[nApplications_];
-    negotiationComm.Allgather(&nLocalConnections, 1, MPI::INT, nConnections, 1,
+    negotiationComm.Allgather (&nLocalConnections, 1, MPI::INT, nConnections, 1,
         MPI::INT);
     for (int i = 0; i < nApplications_; ++i)
       nAllConnections += nConnections[i];
-    negotiationBuffer = allocNegotiationData(nApplications_, nAllConnections);
+    negotiationBuffer = allocNegotiationData (nApplications_, nAllConnections);
     int* receiveSizes = new int[nApplications_];
     int* displacements = new int[nApplications_];
     int displacement = 0;
     for (int i = 0; i < nApplications_; ++i)
       {
-        int receiveSize = negotiationDataSize(nConnections[i]);
+        int receiveSize = negotiationDataSize (nConnections[i]);
         receiveSizes[i] = receiveSize;
         displacements[i] = displacement;
 
         displacement += receiveSize;
       }
     delete[] nConnections;
-    int sendSize = negotiationDataSize(nLocalConnections);
-    negotiationComm.Allgatherv(negotiationData, sendSize, MPI::BYTE,
+    int sendSize = negotiationDataSize (nLocalConnections);
+    negotiationComm.Allgatherv (negotiationData, sendSize, MPI::BYTE,
         negotiationBuffer, receiveSizes, displacements, MPI::BYTE);
     delete[] displacements;
     delete[] receiveSizes;
-    freeNegotiationData(negotiationData);
-    fillTemporalNegotiatorGraph();
+    freeNegotiationData (negotiationData);
+    fillTemporalNegotiatorGraph ();
   }
 
+
   ConnectionDescriptor*
-  TemporalNegotiator::findInputConnection(int node, int port)
+  TemporalNegotiator::findInputConnection (int node, int port)
   {
-    int nOut = nodes->at(node).data().nOutConnections;
+    int nOut = nodes->at (node).data ().nOutConnections;
     // Get address of first input ConnectionDescriptor
     ConnectionDescriptor* inputDescriptors =
-        &nodes->at(node).data().connection[nOut];
-    for (int i = 0; i < nodes->at(node).data().nInConnections; ++i)
+        &nodes->at (node).data ().connection[nOut];
+    for (int i = 0; i < nodes->at (node).data ().nInConnections; ++i)
       if (inputDescriptors[i].receiverPort == port)
         return &inputDescriptors[i];
-    error("internal error in TemporalNegotiator::findInputConnection");
+    error ("internal error in TemporalNegotiator::findInputConnection");
     return 0; // never reached
   }
 
+
   void
-  TemporalNegotiator::combineParameters()
+  TemporalNegotiator::combineParameters ()
   {
-    double timebase = nodes->at(0).data().timebase;
+    double timebase = nodes->at (0).data ().timebase;
 
     for (int o = 0; o < nApplications_; ++o)
       {
         // check timebase
-        if (nodes->at(o).data().timebase != timebase)
-          error0("applications don't use same timebase");
+        if (nodes->at (o).data ().timebase != timebase)
+          error0 ("applications don't use same timebase");
 
-        for (int c = 0; c < nodes->at(o).data().nOutConnections; ++c)
+        for (int c = 0; c < nodes->at (o).data ().nOutConnections; ++c)
           {
-            ConnectionDescriptor* out = &nodes->at(o).data().connection[c];
+            ConnectionDescriptor* out = &nodes->at (o).data ().connection[c];
             int i = out->remoteNode;
-            ConnectionDescriptor* in = findInputConnection(i,
+            ConnectionDescriptor* in = findInputConnection (i,
                 out->receiverPort);
 
             // maxBuffered
@@ -309,9 +331,9 @@ namespace MUSIC
               {
                 // convert to sender side ticks
                 ClockState inMaxBufferedTime = in->maxBuffered
-                    * nodes->at(i).data().tickInterval;
+                    * nodes->at (i).data ().tickInterval;
                 int inMaxBuffered = (inMaxBufferedTime
-                    / nodes->at(o).data().tickInterval);
+                    / nodes->at (o).data ().tickInterval);
                 // take min maxBuffered
                 if (out->maxBuffered == MAX_BUFFERED_NO_VALUE
                     || inMaxBuffered < out->maxBuffered)
@@ -328,22 +350,23 @@ namespace MUSIC
             out->interpolate = in->interpolate;
 
             // remoteTickInterval
-            out->remoteTickInterval = nodes->at(i).data().tickInterval;
-            in->remoteTickInterval = nodes->at(o).data().tickInterval;
+            out->remoteTickInterval = nodes->at (i).data ().tickInterval;
+            in->remoteTickInterval = nodes->at (o).data ().tickInterval;
           }
       }
   }
 
+
   void
-  TemporalNegotiator::distributeParameters()
+  TemporalNegotiator::distributeParameters ()
   {
     for (int o = 0; o < nApplications_; ++o)
       {
-        for (int c = 0; c < nodes->at(o).data().nOutConnections; ++c)
+        for (int c = 0; c < nodes->at (o).data ().nOutConnections; ++c)
           {
-            ConnectionDescriptor* out = &nodes->at(o).data().connection[c];
+            ConnectionDescriptor* out = &nodes->at (o).data ().connection[c];
             int i = out->remoteNode;
-            ConnectionDescriptor* in = findInputConnection(i,
+            ConnectionDescriptor* in = findInputConnection (i,
                 out->receiverPort);
 
             // store maxBuffered in sender units
@@ -352,83 +375,90 @@ namespace MUSIC
       }
   }
 
+
   void
-  TemporalNegotiator::loopAlgorithm()
+  TemporalNegotiator::loopAlgorithm ()
   {
     std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > path;
     TemporalNegotiatorGraph::iterator it;
-    for (it = nodes->begin(); it < nodes->end(); ++it)
+    for (it = nodes->begin (); it < nodes->end (); ++it)
       if (!it->visited)
-        nodes->depthFirst(*it, path);
+        nodes->depthFirst (*it, path);
   }
 
-  void
-  TemporalNegotiator::broadcastNegotiationData()
-  {
-    MPI::Intracomm comm = setup_->communicator();
 
-    if (hasPeers())
+  void
+  TemporalNegotiator::broadcastNegotiationData ()
+  {
+    MPI::Intracomm comm = setup_->communicator ();
+
+    if (hasPeers ())
       {
-        comm.Bcast(&nAllConnections, 1, MPI::INT, 0);
-        char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-        comm.Bcast(memory, negotiationDataSize(nApplications_, nAllConnections),
-            MPI::BYTE, 0);
+        comm.Bcast (&nAllConnections, 1, MPI::INT, 0);
+        char* memory =
+            static_cast<char*> (static_cast<void*> (negotiationBuffer));
+        comm.Bcast (memory,
+            negotiationDataSize (nApplications_, nAllConnections), MPI::BYTE,
+            0);
       }
   }
 
-  void
-  TemporalNegotiator::receiveNegotiationData()
-  {
-    MPI::Intracomm comm = setup_->communicator();
-    comm.Bcast(&nAllConnections, 1, MPI::INT, 0);
-    negotiationBuffer = allocNegotiationData(nApplications_, nAllConnections);
-    char* memory = static_cast<char*>(static_cast<void*>(negotiationBuffer));
-    comm.Bcast(memory, negotiationDataSize(nApplications_, nAllConnections),
-        MPI::BYTE, 0);
-    fillTemporalNegotiatorGraph();
-  }
 
   void
-  TemporalNegotiator::negotiate(Clock& localTime,
+  TemporalNegotiator::receiveNegotiationData ()
+  {
+    MPI::Intracomm comm = setup_->communicator ();
+    comm.Bcast (&nAllConnections, 1, MPI::INT, 0);
+    negotiationBuffer = allocNegotiationData (nApplications_, nAllConnections);
+    char* memory = static_cast<char*> (static_cast<void*> (negotiationBuffer));
+    comm.Bcast (memory, negotiationDataSize (nApplications_, nAllConnections),
+        MPI::BYTE, 0);
+    fillTemporalNegotiatorGraph ();
+  }
+
+
+  void
+  TemporalNegotiator::negotiate (Clock& localTime,
       std::vector<Connection*>* connections)
   {
-    separateConnections(connections);
+    separateConnections (connections);
 
     //MUSIC_LOGR (printconns ("NOut: ", outputConnections));
     //MUSIC_LOGR (printconns ("NIn: ", inputConnections));
-    createNegotiationCommunicator();
+    createNegotiationCommunicator ();
 
-    if (isLeader())
+    if (isLeader ())
       {
-        collectNegotiationData(localTime.tickInterval());
-        communicateNegotiationData();
-        combineParameters();
-        loopAlgorithm();
-        distributeParameters();
-        broadcastNegotiationData();
+        collectNegotiationData (localTime.tickInterval ());
+        communicateNegotiationData ();
+        combineParameters ();
+        loopAlgorithm ();
+        distributeParameters ();
+        broadcastNegotiationData ();
       }
     else
-      receiveNegotiationData();
+      receiveNegotiationData ();
   }
 
+
   void
-  TemporalNegotiatorGraph::handleLoop(
+  TemporalNegotiatorGraph::handleLoop (
       ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
       std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > & path)
   {
     // Search path to detect beginning of loop
     int loop;
-    for (loop = 0; &path[loop].pre() != &x; ++loop)
+    for (loop = 0; &path[loop].pre () != &x; ++loop)
       ;
     // Compute how much headroom we have for buffering
     ClockState totalDelay = 0;
-    for (unsigned int c = loop; c < path.size(); ++c)
+    for (unsigned int c = loop; c < path.size (); ++c)
       {
 
         MUSIC_LOGR ("latency = " << path[c].data().accLatency << ", ti = "
             << path[c].pre ().data().tickInterval);
-        totalDelay += path[c].data().accLatency
-            - path[c].pre().data().tickInterval;
+        totalDelay += path[c].data ().accLatency
+            - path[c].pre ().data ().tickInterval;
       }
 
     // If negative we will not be able to make it in time
@@ -438,31 +468,33 @@ namespace MUSIC
         std::ostringstream ostr;
         ostr << "too short latency (" << -timebase_ * totalDelay
             << " s) around loop: "; // << path[loop].pre().name();
-        for (unsigned int c = loop + 1; c < path.size(); ++c)
+        for (unsigned int c = loop + 1; c < path.size (); ++c)
           ostr << ", "; // << path[c].pre().name();
-        error0(ostr.str());
+        error0 (ostr.str ());
       }
 
     // Distribute totalDelay as allowed buffering uniformly over loop
     // (we could do better by considering constraints form other loops)
-    int loopLength = path.size() - loop;
+    int loopLength = path.size () - loop;
     ClockState bufDelay = totalDelay / loopLength;
-    for (unsigned int c = loop; c < path.size(); ++c)
+    for (unsigned int c = loop; c < path.size (); ++c)
       {
-        int allowedTicks = bufDelay / path[c].pre().data().tickInterval;
-        path[c].data().maxBuffered = std::min(path[c].data().maxBuffered,
+        int allowedTicks = bufDelay / path[c].pre ().data ().tickInterval;
+        path[c].data ().maxBuffered = std::min (path[c].data ().maxBuffered,
             allowedTicks);
       }
   }
 
+
   void
-  TemporalNegotiatorGraph::setNConnections(int nConns)
+  TemporalNegotiatorGraph::setNConnections (int nConns)
   {
     nConnections_ = nConns;
   }
 
+
   int
-  TemporalNegotiatorGraph::getNConnections()
+  TemporalNegotiatorGraph::getNConnections ()
   {
     return nConnections_;
   }

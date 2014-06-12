@@ -33,35 +33,41 @@ namespace MUSIC
       ANode<NodeData, EdgeData> *post_;
       EdgeData *data_;
     public:
-      AEdge() :
-          pre_(0), post_(0), data_(0)
+      AEdge () :
+          pre_ (0), post_ (0), data_ (0)
       {
       }
-      AEdge(ANode<NodeData, EdgeData> &pre, ANode<NodeData, EdgeData> &post,
+
+      AEdge (ANode<NodeData, EdgeData> &pre, ANode<NodeData, EdgeData> &post,
           EdgeData &data) :
-          pre_(&pre), post_(&post), data_(&data)
+          pre_ (&pre), post_ (&post), data_ (&data)
       {
       }
+
       virtual
-      ~AEdge()
+      ~AEdge ()
       {
       }
+
       ANode<NodeData, EdgeData> &
-      post()
+      post ()
       {
         return *post_;
       }
+
       ANode<NodeData, EdgeData> &
-      pre()
+      pre ()
       {
         return *pre_;
       }
+
       EdgeData &
-      data()
+      data ()
       {
         return *data_;
       }
     };
+
   template<typename NodeData, typename EdgeData>
     class ANode
     {
@@ -81,21 +87,21 @@ namespace MUSIC
       bool in_path;
       bool visited;
 
-      ANode() :
-          data_(0)
+      ANode () :
+          data_ (0)
       {
-        init(0, 0);
+        init (0, 0);
       }
 
-      ANode(int nOut, int nIn, NodeData &data) :
-          data_(&data)
+      ANode (int nOut, int nIn, NodeData &data) :
+          data_ (&data)
       {
-        init(nOut, nIn);
+        init (nOut, nIn);
       }
 
-      ANode(const ANode<NodeData, EdgeData>& other)
+      ANode (const ANode<NodeData, EdgeData>& other)
       {
-        init(other.n_out_edges_, other.n_in_edges_);
+        init (other.n_out_edges_, other.n_in_edges_);
 
         data_ = other.data_;
         in_path = other.in_path;
@@ -108,14 +114,22 @@ namespace MUSIC
         for (int i = 0; i < c_in_; ++i)
           in_edges_[i] = other.in_edges_[i];
       }
+
+      virtual
+      ~ANode ()
+      {
+        delete[] out_edges_;
+        delete[] in_edges_;
+      }
+
       ANode<NodeData, EdgeData>&
-      operator=(const ANode<NodeData, EdgeData>& that)
+      operator= (const ANode<NodeData, EdgeData>& that)
       {
         if (this != &that)
           {
             delete[] out_edges_;
             delete[] in_edges_;
-            init(that.n_out_edges_, that.n_in_edges_);
+            init (that.n_out_edges_, that.n_in_edges_);
 
             data_ = that.data_;
             in_path = that.in_path;
@@ -130,79 +144,84 @@ namespace MUSIC
           }
         return *this;
       }
+
       void
-      addEdge(AEdge<NodeData, EdgeData> &edge, bool input = false)
+      addEdge (AEdge<NodeData, EdgeData> &edge, bool input = false)
       {
         if (input)
           {
-            assert(c_in_ < n_in_edges_);
+            assert (c_in_ < n_in_edges_);
             in_edges_[c_in_++] = &edge;
           }
         else
           {
-            assert(c_out_ < n_out_edges_);
+            assert (c_out_ < n_out_edges_);
             out_edges_[c_out_++] = &edge;
           }
       }
-      virtual
-      ~ANode()
-      {
-        delete[] out_edges_;
-        delete[] in_edges_;
-      }
 
       void
-      reset()
+      reset ()
       {
         in_path = false;
         visited = false;
       }
+
       int
-      nOutEdges()
+      nOutEdges ()
       {
         return n_out_edges_;
       }
+
       int
-      nInEdges()
+      nInEdges ()
       {
         return n_in_edges_;
       }
+
       AEdge<NodeData, EdgeData> &
-      outEdge(int c)
+      outEdge (int c)
       {
-        assert(c < c_out_);
+        assert (c < c_out_);
         return *out_edges_[c];
       }
+
       typedef AEdgePtr* edge_iterator;
+
       edge_iterator
-      begin_o()
+      begin_o ()
       {
         return &out_edges_[0];
       }
+
       edge_iterator
-      end_o()
+      end_o ()
       {
         return &out_edges_[c_out_];
       }
+
       edge_iterator
-      begin_i()
+      begin_i ()
       {
         return &in_edges_[0];
       }
+
       edge_iterator
-      end_i()
+      end_i ()
       {
         return &in_edges_[c_in_];
       }
+
       NodeData &
-      data()
+      data ()
       {
-        assert(data_ != 0);
+        assert (data_ != 0);
         return *data_;
       }
+
     private:
       void
-      init(int nOut, int nIn)
+      init (int nOut, int nIn)
       {
         n_out_edges_ = nOut;
         n_in_edges_ = nIn;
@@ -210,7 +229,7 @@ namespace MUSIC
         in_edges_ = new AEdgePtr[nIn + 1];
         c_in_ = 0;
         c_out_ = 0;
-        reset();
+        reset ();
       }
     };
 
@@ -230,107 +249,115 @@ namespace MUSIC
       int n_edges_;
 
     public:
-      AGraph(int color, int nApps, int nEdges) :
-          c_apps_(0), c_edges_(0), color_(color), n_apps_(nApps), n_edges_(
+      AGraph (int color, int nApps, int nEdges) :
+          c_apps_ (0), c_edges_ (0), color_ (color), n_apps_ (nApps), n_edges_ (
               nEdges)
       {
         nodes_ = new ANode<NodeData, EdgeData> [nApps + 1];
         edges_ = new AEdge<NodeData, EdgeData> [nEdges];
       }
+
       //AGraph can be a simple array of nodes
-      AGraph(int color, int nApps) :
-          c_apps_(0), c_edges_(0), color_(color), n_apps_(nApps), n_edges_(0)
+      AGraph (int color, int nApps) :
+          c_apps_ (0), c_edges_ (0), color_ (color), n_apps_ (nApps), n_edges_ (
+              0)
       {
         nodes_ = new ANode<NodeData, EdgeData> [nApps + 1];
         edges_ = NULL;
       }
+
       virtual
-      ~AGraph()
+      ~AGraph ()
       {
         if (edges_ != NULL)
           delete[] edges_;
         delete[] nodes_;
 
       }
-/*      void
-      init(int nEdges)
-      {
-        edges_ = new AEdge<NodeData, EdgeData> [nEdges];
-        n_edges_ = nEdges;
-      }*/
+
       int
-      nNodes()
+      nNodes ()
       {
         return c_apps_;
       }
+
       int
-      nEdges()
+      nEdges ()
       {
         return c_edges_;
       }
 
       ANode<NodeData, EdgeData> &
-      addNode(ANode<NodeData, EdgeData> node, int color)
+      addNode (ANode<NodeData, EdgeData> node, int color)
       {
-        assert(color < n_apps_);
+        assert (color < n_apps_);
         nodes_[color] = node;
-        assert(c_apps_ < n_apps_);
+        assert (c_apps_ < n_apps_);
         c_apps_++;
         return nodes_[color];
       }
-      AEdge<NodeData, EdgeData> &
-      addEdge(AEdge<NodeData, EdgeData> edge)
-      {
-        assert(c_edges_ < n_edges_);
-        edges_[c_edges_] = edge;
-        edge.pre().addEdge(edges_[c_edges_]);
 
-        edge.post().addEdge(edges_[c_edges_], true);
+      AEdge<NodeData, EdgeData> &
+      addEdge (AEdge<NodeData, EdgeData> edge)
+      {
+        assert (c_edges_ < n_edges_);
+        edges_[c_edges_] = edge;
+        edge.pre ().addEdge (edges_[c_edges_]);
+
+        edge.post ().addEdge (edges_[c_edges_], true);
 
         c_edges_++;
         return edges_[c_edges_ - 1];
       }
+
       typedef ANode<NodeData, EdgeData> *iterator;
+
       iterator
-      begin()
+      begin ()
       {
         return &nodes_[0];
       }
+
       iterator
-      end()
+      end ()
       {
         return &nodes_[c_apps_];
       }
+
       ANode<NodeData, EdgeData> &
-      at(int color)
+      at (int color)
       {
-        assert(color < c_apps_);
+        assert (color < c_apps_);
         return nodes_[color];
       }
+
       ANode<NodeData, EdgeData> &
-      local_node()
+      local_node ()
       {
-        assert(color_ < c_apps_);
+        assert (color_ < c_apps_);
         return nodes_[color_];
       }
+
       int
-      local_node_color()
+      local_node_color ()
       {
         return color_;
       }
+
       virtual void
-      reset()
+      reset ()
       {
         for (int i = 0; i < c_apps_; ++i)
-          nodes_[i].reset();
+          nodes_[i].reset ();
       }
+
       void
-      depthFirst(ANode<NodeData, EdgeData> &x,
+      depthFirst (ANode<NodeData, EdgeData> &x,
           std::vector<AEdge<NodeData, EdgeData> > & path)
       {
         if (x.in_path)
           {
-            handleLoop(x, path); //x.handle_in_path(path);
+            handleLoop (x, path); //x.handle_in_path(path);
             return;
           }
 
@@ -338,27 +365,29 @@ namespace MUSIC
         x.visited = true;
         x.in_path = true;
 
-        for (int c = 0; c < x.nOutEdges(); ++c)
+        for (int c = 0; c < x.nOutEdges (); ++c)
           {
-            path.push_back(edge(x, c));
-            depthFirst(edge(x, c).post(), path);
-            path.pop_back();
+            path.push_back (edge (x, c));
+            depthFirst (edge (x, c).post (), path);
+            path.pop_back ();
           }
 
         x.in_path = false;
       }
+
     protected:
       virtual AEdge<NodeData, EdgeData>
-      edge(ANode<NodeData, EdgeData> &x, int c)
+      edge (ANode<NodeData, EdgeData> &x, int c)
       {
-        return x.outEdge(c);
+        return x.outEdge (c);
       }
+
       virtual void
-      handleLoop(ANode<NodeData, EdgeData> &x,
+      handleLoop (ANode<NodeData, EdgeData> &x,
           std::vector<AEdge<NodeData, EdgeData> > & path)
       {
       }
-      ;
+
     };
 }
 #endif /* MUSIC_APPLICATION_GRAPH_HH */

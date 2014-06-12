@@ -46,6 +46,7 @@ namespace MUSIC
     ClockState remoteTickInterval;
   };
 
+
   class TemporalNegotiationData
   {
   public:
@@ -59,35 +60,35 @@ namespace MUSIC
     ConnectionDescriptor connection[1];
   };
 
+
   class TemporalNegotiatorGraph : public AGraph<TemporalNegotiationData,
       ConnectionDescriptor>
   {
     double timebase_;
     int nConnections_;
   public:
-    TemporalNegotiatorGraph(double timebase, int nApps, int color) :
-        AGraph<TemporalNegotiationData, ConnectionDescriptor>(color, nApps), timebase_(
+    TemporalNegotiatorGraph (double timebase, int nApps, int color) :
+        AGraph<TemporalNegotiationData, ConnectionDescriptor> (color, nApps), timebase_ (
             timebase)
     {
     }
-    ;
-    void
-    setNConnections(int nConns);
 
+    void
+    setNConnections (int nConns);
     int
-    getNConnections();
+    getNConnections ();
   protected:
     AEdge<TemporalNegotiationData, ConnectionDescriptor>
-    edge(ANode<TemporalNegotiationData, ConnectionDescriptor> &x, int c)
+    edge (ANode<TemporalNegotiationData, ConnectionDescriptor> &x, int c)
     {
-      ConnectionDescriptor& descr = x.data().connection[c];
+      ConnectionDescriptor& descr = x.data ().connection[c];
 
-      return AEdge<TemporalNegotiationData, ConnectionDescriptor>(x,
+      return AEdge<TemporalNegotiationData, ConnectionDescriptor> (x,
           nodes_[descr.remoteNode], descr);
     }
-    ;
+
     void
-    handleLoop(ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
+    handleLoop (ANode<TemporalNegotiationData, ConnectionDescriptor> &x,
         std::vector<AEdge<TemporalNegotiationData, ConnectionDescriptor> > & path);
   };
 
@@ -113,54 +114,53 @@ namespace MUSIC
     TemporalNegotiationData* negotiationData;
 
   public:
-    TemporalNegotiator(Setup* setup);
-    ~TemporalNegotiator();
+    TemporalNegotiator (Setup* setup);
+    ~TemporalNegotiator ();
     void
-    negotiate(Clock& localTime, std::vector<Connection*>* connections);
-
+    negotiate (Clock& localTime, std::vector<Connection*>* connections);
     TemporalNegotiatorGraph*
-    applicationGraph();
+    applicationGraph ();
 
   private:
     void
-    separateConnections(std::vector<Connection*>* connections);
+    separateConnections (std::vector<Connection*>* connections);
     void
-    createNegotiationCommunicator();
+    createNegotiationCommunicator ();
     void
-    collectNegotiationData(ClockState ti);
+    collectNegotiationData (ClockState ti);
     void
-    communicateNegotiationData();
+    communicateNegotiationData ();
     void
-    combineParameters();
+    combineParameters ();
     void
-    loopAlgorithm();
+    loopAlgorithm ();
     void
-    distributeParameters();
+    distributeParameters ();
     void
-    broadcastNegotiationData();
+    broadcastNegotiationData ();
     void
-    receiveNegotiationData();
+    receiveNegotiationData ();
     void
-    fillTemporalNegotiatorGraph();
+    fillTemporalNegotiatorGraph ();
     int
-    negotiationDataSize(int nConnections);
+    negotiationDataSize (int nConnections);
     int
-    negotiationDataSize(int nBlock, int nConnections);
+    negotiationDataSize (int nBlock, int nConnections);
     int
-    computeDefaultMaxBuffered(int maxLocalWidth, int eventSize,
+    computeDefaultMaxBuffered (int maxLocalWidth, int eventSize,
         ClockState tickInterval, double timebase);
     TemporalNegotiationData*
-    allocNegotiationData(int nBlocks, int nConnections);
+    allocNegotiationData (int nBlocks, int nConnections);
     void
-    freeNegotiationData(TemporalNegotiationData*);
+    freeNegotiationData (TemporalNegotiationData*);
     int
-    findNodeColor(int leader);
+    findNodeColor (int leader);
     ConnectionDescriptor*
-    findInputConnection(int node, int port);
+    findInputConnection (int node, int port);
     bool
-    isLeader();
+    isLeader ();
     bool
-    hasPeers();
+    hasPeers ();
   };
 }
 #endif

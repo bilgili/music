@@ -185,7 +185,7 @@ if test "$ac_test_CXXFLAGS" != set; then
     CXXFLAGS="-O3"
   else
   #  CXXFLAGS="-O2"
-    CXXFLAGS="-g -O3"
+    CXXFLAGS="-g -O0"
     if test $CXX = g++; then
       CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
     fi
@@ -240,12 +240,15 @@ AC_ARG_ENABLE(mpi,
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
 if test $MUSIC_USE_MPI = yes ; then 
   MUSIC_USE_MPI=1
-  MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter "
-  TESTDIR="test"
+  MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter eventlogger contsink messagesource"
+  TESTDIR="testsuite"
+  EXAMPLESDIR="examples"
 else
   MUSIC_USE_MPI=0
   MPI_UTILS=""
   TESTDIR=""
+  OPTIONAL_UTILS=""
+  EXAMPLESDIR=""
 fi
 AC_ARG_ENABLE(isend,
               [  --disable-isend          disable isend],
@@ -304,6 +307,10 @@ AC_SUBST(MUSIC_ANYSOURCE)
 AC_SUBST(MPI_UTILS)
 AC_SUBST(OPTIONAL_UTILS)
 AC_SUBST(TESTDIR)
+AC_SUBST(EXAMPLESDIR)
+AC_SUBST(PKGDATADIR)
+AC_SUBST(PKGEXTRABINDIR)
+AC_SUBST(LAUNCHSTYLE)
 
 AC_CONFIG_FILES([
   Makefile

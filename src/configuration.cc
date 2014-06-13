@@ -192,14 +192,12 @@ namespace MUSIC {
   void
   Configuration::getEnv(char *app_name,  std::string* result)
   {
-#if !defined(__bgp__) && !defined(__bgq__)
     char* res = getenv (configEnvVarName);
     if (res == NULL)
       return;
     result->assign (res);
     if (result->find (':') != std::string::npos)
       return;
-#endif
     getEnvFromFile (app_name, result);
   }
 

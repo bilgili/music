@@ -20,6 +20,8 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 #------------------------------------------------------------------------
+AUTOMAKE_OPTIONS = gnits dist-bzip2 dist-zip subdir-objects
+
 noinst_LTLIBRARIES = librudeconfig.la 
 librudeconfig_la_SOURCES = src/AbstractData.cpp \
 	src/Comment.cpp \
@@ -64,7 +66,5 @@ librudeconfig_la_LDFLAGS = -version-info 5:1:2
 #man_MANS = man3/rudeconfig.3
 
 EXTRA_DIST = $(man_MANS)
-
-AUTOMAKE_OPTIONS = gnits dist-bzip2 dist-shar dist-zip
 
 

@@ -208,7 +208,7 @@ AC_CHECK_TYPES([long long])
 AC_CHECK_FUNCS([strrchr mallinfo])
 
 dnl Other checks
-OPTIONAL_PROGRAMS=""
+OPTIONAL_UTILS=""
 AC_CHECK_HEADER([GL/glut.h], OPTIONAL_UTILS+="viewevents ")
 
 AC_LANG_PUSH(C++)
@@ -239,20 +239,24 @@ AC_ARG_ENABLE(mpi,
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
 if test $MUSIC_USE_MPI = yes ; then 
   MUSIC_USE_MPI=1
+  MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter "
+  TESTDIR="test"
 else
   MUSIC_USE_MPI=0
+  MPI_UTILS=""
+  TESTDIR=""
 fi
 AC_ARG_ENABLE(isend,
-              [  --enable-isend          enable isend],
-              MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="no")
+              [  --disable-isend          disable isend],
+              MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="yes")
 if test $MUSIC_ISENDWAITALL = yes ; then 
   MUSIC_ISENDWAITALL=1
 else
   MUSIC_ISENDWAITALL=0
 fi
 AC_ARG_ENABLE(anysource,
-              [  --enable-anysource      enable any source receive],
-              MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="no")
+              [  --disable-anysource      disable any source receive],
+              MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="yes")
 if test $MUSIC_ANYSOURCE = yes ; then 
   MUSIC_ANYSOURCE=1
 else
@@ -296,6 +300,7 @@ AC_SUBST(MUSIC_HAVE_LONG_LONG)
 AC_SUBST(MUSIC_USE_MPI)
 AC_SUBST(MUSIC_ISENDWAITALL)
 AC_SUBST(MUSIC_ANYSOURCE)
+AC_SUBST(MPI_UTILS)
 AC_SUBST(OPTIONAL_UTILS)
 AC_SUBST(SYSGUESS)
 AC_SUBST(PKGDATADIR)

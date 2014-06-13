@@ -1,3 +1,30 @@
+Things to do in preparation for the music-1.2.0 release:
+--- Start music-1.2.0
+
+* E: Make testsuite
+
+* E: (If sufficient time): Better multiconnector communicator creation
+  algorithm
+
+* M: Complete multiconnector implementation (support for abitrary
+  number of apps)
+
+* M: Complete Python bindings
+
+* Test that continuous ports work as expected
+
+** Interpolation/non-interpolated case, also with different buffering
+   and different ITI (inter-tick-interval) for the communication
+   applications.
+
+* Better README
+
+* Update NEWS
+
+* Update manual (/doc) with new configuration file syntax
+
+--- End music-1.2.0
+
 * OrderedIList should be made more generic and handle insertion of
   indices which already exist in the ilist
 

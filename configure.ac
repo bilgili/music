@@ -32,6 +32,7 @@ Please set them manually.])
         changequote({, })
       fi
     fi
+    LAUNCHSTYLE=_openmpi
     changequote([, ])
     ;;
   mpixlcxx_r)
@@ -79,6 +80,7 @@ Please set them manually.])
 
   *)
     SYSGUESS=unknown
+    LAUNCHSTYLE=
     ;;
 esac
 echo "SYSGUESS=$SYSGUESS"
@@ -213,6 +215,7 @@ AC_LANG_PUSH(C++)
 save_CXX="$CXX"
 save_LIBS="$LIBS"
 dnl Must use $CXX, not $MPI_CXX, here
+
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
@@ -230,6 +233,8 @@ int main (int argc, char **argv)
 AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=yes
 )
+AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+
 AC_ARG_ENABLE(mpi,
               [  --disable-mpi           disable mpi support],
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
@@ -259,7 +264,6 @@ else
   MUSIC_ANYSOURCE=0
 fi
 
-AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 LIBS="$save_LIBS"
 CXX="$save_CXX"
 AC_LANG_POP(C++)
@@ -275,6 +279,19 @@ if test $ac_cv_type_long_long = yes; then
 else
   MUSIC_HAVE_LONG_LONG=0
 fi
+
+if test "$prefix" = NONE; then
+   PKGDATADIR=`eval echo $ac_default_prefix/share/$PACKAGE-$PACKAGE_VERSION`
+else
+   PKGDATADIR=`eval echo $prefix/share/$PACKAGE-$PACKAGE_VERSION`
+fi
+
+if test "$prefix" = NONE; then
+   PKGEXTRABINDIR=`eval echo $ac_default_prefix/lib/$PACKAGE-$PACKAGE_VERSION`
+else
+   PKGEXTRABINDIR=`eval echo $prefix/lib/$PACKAGE-$PACKAGE_VERSION`
+fi
+
 
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)
@@ -294,9 +311,13 @@ AC_CONFIG_FILES([
   src/Makefile
   src/music/music-config.hh
   src/music/version.hh
-  test/Makefile
   rudeconfig/Makefile
   utils/Makefile
+  examples/Makefile
+  testsuite/Makefile
+  testsuite/music_tests.sh
+  testsuite/unittests/catch/Makefile
+  testsuite/sanitytests/Makefile
   music/Makefile
   doc/Makefile
 ])

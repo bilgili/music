@@ -58,8 +58,8 @@ namespace MUSIC {
 
   public:
     //*fixme* should not create subconnectors with uninitialized members
-    Subconnector ():type_(MPI::BYTE),flushed(false){};
-    Subconnector (MPI::Datatype type): type_ (type) { }
+    Subconnector ():type_(MPI::BYTE), flushed(false){};
+    Subconnector (MPI::Datatype type):type_ (type), flushed(false) { }
     Subconnector (MPI::Datatype type,
 		  MPI::Intercomm intercomm,
 		  int remoteLeader,

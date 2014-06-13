@@ -5,4 +5,4 @@ stoptime=1.0
 [to]
   np=2
   binary=./contsink
-  from.contdata -> to.contdata [7]
+  from.contdata -> to.contdata [7,collective]

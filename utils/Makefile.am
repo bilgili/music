@@ -6,11 +6,13 @@ bin_PROGRAMS = music @MPI_UTILS@ @OPTIONAL_UTILS@
 EXTRA_PROGRAMS = eventsource eventsink eventselect eventgenerator \
 	         eventcounter viewevents
 
+EXTRA_PROGRAMS = viewevents
+
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
-music_SOURCES = music.cc application_mapper.cc application_mapper.hh
-music_CXXFLAGS = $(MUSIC_INCLUDE) -I$(top_srcdir) @MPI_CXXFLAGS@
-music_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
+ music_SOURCES = music.cc application_mapper.cc application_mapper.hh
+ music_CXXFLAGS = $(MUSIC_INCLUDE) -I$(top_srcdir) @MPI_CXXFLAGS@
+ music_LDADD = $(top_builddir)/src/libmusic.la $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la @MPI_LDFLAGS@
 
 eventsource_SOURCES = eventsource.cc datafile.h datafile.cc
 eventsource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
@@ -35,6 +37,18 @@ eventcounter_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
 viewevents_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU 
+
+ contsink_SOURCES = contsink.cc
+ contsink_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ contsink_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+ messagesource_SOURCES = messagesource.cc
+ messagesource_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ messagesource_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
+
+ viewevents_SOURCES = viewevents.cpp VisualiseNeurons.cpp VisualiseNeurons.h
+ viewevents_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
+ viewevents_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@  -lglut -lGL -lGLU 
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)

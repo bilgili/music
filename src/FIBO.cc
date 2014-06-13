@@ -23,8 +23,7 @@ namespace MUSIC {
 
   FIBO::FIBO (int es)
   {
-    if (es > 0)
-      configure (es);
+    configure (es);
   }
 
   
@@ -33,7 +32,8 @@ namespace MUSIC {
   {
     elementSize = es;
     size_ = elementSize * nInitial;
-    buffer.resize (size_);
+    if (es > 0)
+      buffer.resize (size_);
     current = 0;
   }
 

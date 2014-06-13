@@ -29,7 +29,8 @@
 #include "music/connector.hh"
 #include "music/scheduler.hh"
 #include "music/scheduler_agent.hh"
-namespace MUSIC {
+namespace MUSIC
+{
 
   /*
    * This is the Runtime object in the MUSIC API
@@ -37,19 +38,22 @@ namespace MUSIC {
    * It is documented in section 4.4 of the MUSIC manual
    */
 
-  class Runtime {
+  class Runtime
+  {
   public:
     Runtime (Setup* s, double h);
     ~Runtime ();
-    
-    MPI::Intracomm communicator ();
 
-    void finalize ();
+    MPI::Intracomm
+    communicator ();
 
-    void tick ();
+    void
+    finalize ();
+    void
+    tick ();
+    double
+    time ();
 
-    double time ();
-    
   private:
     Clock localTime;
     //Clock nextComm;
@@ -60,8 +64,6 @@ namespace MUSIC {
     std::vector<Port*> ports;
     std::vector<TickingPort*> tickingPorts;
     std::vector<Connector*> connectors;
-    //std::vector<Connector*> cCache;
-   // std::vector<Subconnector*> schedule;
     std::vector<PostCommunicationConnector*> postCommunication;
     std::vector<PreCommunicationConnector*> preCommunication;
     Scheduler *scheduler;
@@ -70,50 +72,24 @@ namespace MUSIC {
     static bool isInstantiated_;
 
     typedef std::vector<Connection*> Connections;
-  //  typedef std::vector<OutputSubconnector*> OutputSubconnectors;
-  //  typedef std::vector<InputSubconnector*> InputSubconnectors;
- //   OutputSubconnectors outputSubconnectors;
- //   InputSubconnectors inputSubconnectors;
-    /* remedius
-     * new type of subconnectors- CollectiveSubconnectors was introduced
-     * in order to implement collective communication
-     */
-  //  typedef std::vector<CollectiveSubconnector*> CollectiveSubconnectors;
-    //typedef std::vector<Subconnector*> Subconnectors;
-    
-    void takeTickingPorts (Setup* s);
-    void connectToPeers (Connections* connections);
-    void specializeConnectors (Connections* connections);
- //   void spatialNegotiation (OutputSubconnectors&, InputSubconnectors&, CollectiveSubconnectors&);
-    void spatialNegotiation ();
-/*    void buildSchedule (
-			OutputSubconnectors&,
-			InputSubconnectors&,
-			CollectiveSubconnectors& );*/
-    void takePreCommunicators ();
-    void takePostCommunicators ();
-    void buildTables (Setup* s);
-    void temporalNegotiation (Setup* s, Scheduler *scheduler, Connections* connections);
-    void initialize ();
-    /* remedius
-     * cast Subconnector* returned by spatialNegotiation() to an appropriate type of Subconnector:
-     * OutputSubconnectors, InputSubconnectors or CollectiveSubconnectors.
-     * Type separation is needed by buildSchedule() function.
-     */
-/*    template<class Target>
-    class Subconnector2Target {
-    public:
-    	Target* operator ()( Subconnector* value ) const
-    	{  return dynamic_cast<Target*>(value);  }
-    };*/
-   // int rankToNode(ApplicationMap* applicationMap);
- /*   class MDCriteriaSorter
-    {
-    	std::string app_name_;
-    public:
-    	MDCriteriaSorter(std::string app_name):app_name_(app_name){};
-    	bool operator() (const Connector* c1, const Connector* c2);
-    };*/
+    void
+    takeTickingPorts (Setup* s);
+    void
+    connectToPeers (Connections* connections);
+    void
+    specializeConnectors (Connections* connections);
+    void
+    spatialNegotiation ();
+    void
+    takePreCommunicators ();
+    void
+    takePostCommunicators ();
+    void
+    buildTables (Setup* s);
+    void
+    temporalNegotiation (Setup* s, Connections* connections);
+    void
+    initialize (Setup* s);
   };
 
 }

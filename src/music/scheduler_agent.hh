@@ -5,34 +5,67 @@
 #include "music/multibuffer.hh"
 #if MUSIC_USE_MPI
 
-namespace MUSIC {
+namespace MUSIC
+{
   class Scheduler;
-  typedef  std::vector< Scheduler::SConnection> SConnectionV;
+  typedef std::pair<Scheduler::SConnection, Scheduler::SConnData> SConnectionP;
+  typedef std::vector< SConnectionP > SConnectionPV;
   class SchedulerAgent
   {
   protected:
     Scheduler *scheduler_;
-    SchedulerAgent(Scheduler *scheduler);
+    SchedulerAgent (Scheduler *scheduler);
     class CommObject
     {
     public:
-      CommObject():time(-1.0){};
-      CommObject(double time_):time(time_){};
-      virtual ~CommObject(){}
+      CommObject () :
+          time (-1.0)
+      {
+      }
+      ;
+      CommObject (double time_) :
+          time (time_)
+      {
+      }
+      ;
+      virtual
+      ~CommObject ()
+      {
+      }
       double time;
-      void reset(){time = -1.0;}
-      bool empty(){return time < 0;}
+      void
+      reset ()
+      {
+        time = -1.0;
+      }
+      bool
+      empty ()
+      {
+        return time < 0;
+      }
     };
-    virtual bool fillSchedule() = 0;
+    virtual bool
+    fillSchedule () = 0;
   public:
-    virtual ~SchedulerAgent(){};
-    virtual void initialize()=0;
-    virtual bool tick(Clock& localTime)=0;
-    virtual void preFinalize (std::set<int> &cnn_ports) { };
-    virtual void finalize (std::set<int> &cnn_ports) = 0;
+    virtual
+    ~SchedulerAgent ()
+    {
+    }
+    ;
+    virtual void
+    initialize ()=0;
+    virtual bool
+    tick (Clock& localTime)=0;
+    virtual void
+    preFinalize (std::set<int> &cnn_ports)
+    {
+    }
+    ;
+    virtual void
+    finalize (std::set<int> &cnn_ports) = 0;
   };
 
-  class MulticommAgent: public virtual SchedulerAgent
+  class MulticommAgent : public virtual SchedulerAgent
   {
     static const int N_PLANNING_CYCLES = 100;
 
@@ -46,52 +79,72 @@ namespace MUSIC {
     {
       MulticommAgent &multCommObj_;
     public:
-      Filter1(MulticommAgent &multCommObj);
-      bool operator()(const Scheduler::SConnection &conn);
+      Filter1 (MulticommAgent &multCommObj);
+      bool
+      operator() (SConnectionP &conn);
     };
 
     class Filter2
     {
       MulticommAgent &multCommObj_;
     public:
-      Filter2(MulticommAgent &multCommObj);
-      bool operator()(const Scheduler::SConnection &conn);
+      Filter2 (MulticommAgent &multCommObj);
+      bool
+      operator() (SConnectionP &conn);
     };
 
-    class MultiCommObject: public CommObject
+    class MultiCommObject : public CommObject
     {
     private:
       unsigned int multiId_;
       unsigned int proxyId_;
     public:
-      MultiCommObject (double time_,
-		       unsigned int multiId,
-		       unsigned int proxyId)
-	: CommObject (time_), multiId_ (multiId), proxyId_ (proxyId) {};
-      unsigned int multiId () const { return multiId_; }
-      unsigned int proxyId () const { return proxyId_; }
+      MultiCommObject (double time_, unsigned int multiId, unsigned int proxyId) :
+          CommObject (time_), multiId_ (multiId), proxyId_ (proxyId)
+      {
+      }
+      ;
+      unsigned int
+      multiId () const
+      {
+        return multiId_;
+      }
+      unsigned int
+      proxyId () const
+      {
+        return proxyId_;
+      }
     };
 
     std::vector<MultiCommObject> schedule;
   public:
-    MulticommAgent(Scheduler *scheduler);
-    ~MulticommAgent();
-    void initialize();
-    void createMultiConnectors (Clock& localTime,
-                                  MPI::Intracomm comm,
-                                  int leader,
-                                  std::vector<Connector*>& connectors);
-    bool create (Clock& localTime);
-    bool tick (Clock& localTime);
-    void preFinalize (std::set<int> &cnn_ports);
-    void finalize (std::set<int> &cnn_ports);
+    MulticommAgent (Scheduler *scheduler);
+    ~MulticommAgent ();
+    void
+    initialize ();
+    void
+    createMultiConnectors (Clock& localTime, MPI::Intracomm comm, int leader,
+        std::vector<Connector*>& connectors);
+    bool
+    create (Clock& localTime);
+    bool
+    tick (Clock& localTime);
+    void
+    preFinalize (std::set<int> &cnn_ports);
+    void
+    finalize (std::set<int> &cnn_ports);
 
   private:
-    std::vector<bool>* multiProxies;    
-    std::vector<Connector*> connectorsFromMultiId (unsigned int multiId);
-    bool fillSchedule();
-    void NextMultiConnection(SConnectionV &candidates);
-    void scheduleMulticonn(Clock &time,SConnectionV::iterator first, SConnectionV::iterator last);
+    std::vector<bool>* multiProxies;
+    std::vector<Connector*>
+    connectorsFromMultiId (unsigned int multiId);
+    bool
+    fillSchedule ();
+    void
+    NextMultiConnection (SConnectionPV &candidates);
+    void
+    scheduleMulticonn (Clock &time, SConnectionPV::iterator first,
+        SConnectionPV::iterator last);
 
     friend class Filter1;
     friend class Filter2;
@@ -99,34 +152,69 @@ namespace MUSIC {
     Filter2 *filter2;
   };
 
-  class UnicommAgent: public virtual SchedulerAgent
+  class UnicommAgent : public virtual SchedulerAgent
   {
-    class UniCommObject: public CommObject
+    class UniCommObject : public CommObject
     {
     public:
       Connector *connector;
-      UniCommObject():CommObject(){};
-      UniCommObject(double time_, Connector *connector_):CommObject(time_),connector(connector_){};
+      UniCommObject () :
+          CommObject ()
+      {
+      }
+      ;
+      UniCommObject (double time_, Connector *connector_) :
+          CommObject (time_), connector (connector_)
+      {
+      }
+      ;
     };
     UniCommObject schedule;
-    bool fillSchedule();
+    bool
+    fillSchedule ();
   public:
-    UnicommAgent(Scheduler *scheduler);
-    ~UnicommAgent(){};
-    void initialize(){};
-    bool tick(Clock& localTime);
-    void finalize (std::set<int> &cnn_ports);
+    UnicommAgent (Scheduler *scheduler);
+    ~UnicommAgent ()
+    {
+    }
+    ;
+    void
+    initialize ()
+    {
+    }
+    ;
+    bool
+    tick (Clock& localTime);
+    void
+    finalize (std::set<int> &cnn_ports);
   };
 
   class DummyAgent : public SchedulerAgent
   {
   protected:
-    bool fillSchedule () { return true; }
+    bool
+    fillSchedule ()
+    {
+      return true;
+    }
   public:
-    DummyAgent (Scheduler* scheduler) : SchedulerAgent (scheduler) { }
-    void initialize () { }
-    bool tick (Clock& localTime) { return true; }
-    void finalize (std::set<int> &cnn_ports) { }
+    DummyAgent (Scheduler* scheduler) :
+        SchedulerAgent (scheduler)
+    {
+    }
+    void
+    initialize ()
+    {
+    }
+    bool
+    tick (Clock& localTime)
+    {
+      return true;
+    }
+    void
+    finalize (std::set<int> &cnn_ports)
+    {
+    }
   };
 }
 #endif

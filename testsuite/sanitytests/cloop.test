@@ -19,16 +19,16 @@ cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 np=1
 stoptime=1.0
 [A]
-  binary=${TEST_BINARY}/contdelay
+  binary=${TEST_EXTRABINDIR}/contdelay
   args=-d 0.1 -b 1000
 [B]
-  binary=${TEST_BINARY}/contdelay
+  binary=${TEST_EXTRABINDIR}/contdelay
   args=-d 0.1 -b 1000
 [from]
-  binary=${TEST_BINARY}/clocksource
+  binary=${TEST_EXTRABINDIR}/clocksource
   args=-b 5
 [to]
-  binary=${TEST_BINARY}/contsink
+  binary=${TEST_BINDIR}/contsink
 
 from.clock -> A.in [1,${method}]
 A.out -> B.in [1,${method}]

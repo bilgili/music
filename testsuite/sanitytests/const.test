@@ -19,10 +19,10 @@ cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 stoptime=1.0
 [from]
   np=2
-  binary=${TEST_BINARY}/constsource
+  binary=${TEST_EXTRABINDIR}/constsource
 [to]
   np=2
-  binary=${TEST_BINARY}/contsink
+  binary=${TEST_BINDIR}/contsink
   from.contdata -> to.contdata [7, ${method}]
 EOF
 

@@ -16,7 +16,7 @@ echo "Communication method: ${method}"
 
 # this is music configuration file
 cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
-binary=${TEST_BINARY}/launchtest
+binary=${TEST_EXTRABINDIR}/launchtest
 np=3
 [1]
   args=hej du glade

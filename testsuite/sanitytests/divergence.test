@@ -18,14 +18,14 @@ echo "Communication method: ${method}"
 cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 stoptime=1.0
 [from]
-  binary=${TEST_BINARY}/eventsource
+  binary=${TEST_BINDIR}/eventsource
   args=10 ${MUSIC_DATA_PATH}/spikes
   np=1
 [to]
-  binary=${TEST_BINARY}/eventlogger
+  binary=${TEST_BINDIR}/eventlogger
   args=-a
   np=2
-  from.out -> to.in [10,${method},table]
+  from.out -> to.in [10,${method}]
 EOF
 
 }

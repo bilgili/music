@@ -187,25 +187,28 @@ echo >> "${TEST_LOGFILE}" "user name\t:\t${INFO_USER}"
 echo >> "${TEST_LOGFILE}" "kernel version\t:\t${INFO_VER}"
 echo >> "${TEST_LOGFILE}" "======================="
 
-TEST_BASEDIR="@prefix@/@libdir@/@PACKAGE@_@PACKAGE_VERSION@"
+TEST_BASEDIR="@PKGEXTRABINDIR@"
 echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
 
 CODES_SUCCESS=' 0 Success'
 CODES_FAILURE=\
 ' 1 Failed: missed assertion,'
 for test_prefix in test_ ; do
-    for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}*") ; do
+    for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}") ; do
 	if requestedTest "${test_name}" ; then
 	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
 	fi
     done
 done
 
-TEST_BASEDIR="@TESTSUITE_BASEDIR@"
+TEST_BASEDIR="@PKGDATADIR@/tests"
 echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}" 
 
-TEST_BINARY="@prefix@/@bindir@"
-export TEST_BINARY
+TEST_BINDIR="@prefix@/@bindir@"
+export TEST_BINDIR
+
+TEST_EXTRABINDIR="@PKGEXTRABINDIR@"
+export TEST_EXTRABINDIR
 
 CMP="${CMP-cmp}"
 export CMP

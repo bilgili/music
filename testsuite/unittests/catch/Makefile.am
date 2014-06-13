@@ -2,7 +2,7 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-testlibdir =  $(libdir)/@PACKAGE@_@PACKAGE_VERSION@
+testlibdir =  $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
 testlib_PROGRAMS =  test_ag #test_tng 
 
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src

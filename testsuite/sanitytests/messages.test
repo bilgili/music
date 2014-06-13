@@ -19,10 +19,10 @@ cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 np=2
 stoptime=1.0
 [from]
-  binary=${TEST_BINARY}/messagesource
+  binary=${TEST_BINDIR}/messagesource
   args=-b 1 ${MUSIC_DATA_PATH}/messages
 [to]
-  binary=${TEST_BINARY}/eventlogger
+  binary=${TEST_BINDIR}/eventlogger
   args=-b 2
   from.out -> to.message [10, ${method}]
 EOF

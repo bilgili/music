@@ -7,10 +7,10 @@ stoptime=1.1
   binary=./eventdelay
   args=-d 0.1 -L 2 -b 2
 [from]
-  binary=eventsource
+  binary=./eventsource
   args=-b 5 10 spikes
 [to]
-  binary=eventlogger
+  binary=./eventlogger
   args=-b 5
 
 

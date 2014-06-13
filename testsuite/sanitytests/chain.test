@@ -19,15 +19,15 @@ cat <<EOF > "${MUSIC_DATA_PATH}/${music_conf}"
 stoptime=1.0
 [from]
   np=2
-  binary=${TEST_BINARY}/eventsource
+  binary=${TEST_BINDIR}/eventsource
   args=-b 2 10 ${MUSIC_DATA_PATH}/spikes
 [mid]
   np=1
-  binary=${TEST_BINARY}/eventdelay
+  binary=${TEST_EXTRABINDIR}/eventdelay
   args=-d 0.3
 [to]
   np=1
-  binary=${TEST_BINARY}/eventlogger
+  binary=${TEST_BINDIR}/eventlogger
   args=-b 2
   from.out -> mid.in [10, ${method}]
   mid.out -> to.in [10, ${method}]

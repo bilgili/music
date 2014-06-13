@@ -276,9 +276,15 @@ else
 fi
 
 if test "$prefix" = NONE; then
-   TESTSUITE_BASEDIR=`eval echo $ac_default_prefix/share/$PACKAGE\_$PACKAGE_VERSION`
+   PKGDATADIR=`eval echo $ac_default_prefix/share/$PACKAGE-$PACKAGE_VERSION`
 else
-   TESTSUITE_BASEDIR=`eval echo $prefix/share/$PACKAGE\_$PACKAGE_VERSION`
+   PKGDATADIR=`eval echo $prefix/share/$PACKAGE-$PACKAGE_VERSION`
+fi
+
+if test "$prefix" = NONE; then
+   PKGEXTRABINDIR=`eval echo $ac_default_prefix/lib/$PACKAGE-$PACKAGE_VERSION`
+else
+   PKGEXTRABINDIR=`eval echo $prefix/lib/$PACKAGE-$PACKAGE_VERSION`
 fi
 
 
@@ -292,7 +298,8 @@ AC_SUBST(MUSIC_ISENDWAITALL)
 AC_SUBST(MUSIC_ANYSOURCE)
 AC_SUBST(OPTIONAL_UTILS)
 AC_SUBST(SYSGUESS)
-AC_SUBST(TESTSUITE_BASEDIR)
+AC_SUBST(PKGDATADIR)
+AC_SUBST(PKGEXTRABINDIR)
 AC_SUBST(LAUNCHSTYLE)
 
 AC_CONFIG_FILES([
@@ -303,6 +310,7 @@ AC_CONFIG_FILES([
   src/music/version.hh
   rudeconfig/Makefile
   utils/Makefile
+  examples/Makefile
   testsuite/Makefile
   testsuite/music_tests.sh
   testsuite/unittests/catch/Makefile

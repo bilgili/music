@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(music, 1.1.11)
+AC_INIT(music, 1.1.12)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
@@ -320,6 +320,7 @@ AC_CONFIG_FILES([
   src/music/version.hh
   rudeconfig/Makefile
   utils/Makefile
+  extras/Makefile
   examples/Makefile
   testsuite/Makefile
   testsuite/music_tests.sh

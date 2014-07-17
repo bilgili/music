@@ -17,6 +17,11 @@ waveconsumer_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
+EXTRA_DIST = messages.music wavetest.music \
+		viewevents.music demo.music demolarge.music \
+		neuronGrid.data neuronGridLARGE.data \
+		spikes0.dat spikes1.dat README
+
 install-data-hook:
 	mkdir -p $(DESTDIR)@PKGDATADIR@/examples
 	@INSTALL_PROGRAM@  messages.music wavetest.music \

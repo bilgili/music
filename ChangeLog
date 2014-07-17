@@ -1,3 +1,7 @@
+2014-07-17  Mikael Djurfeldt  <mdj@jessie.pdc.kth.se>
+
+	* Version 1.1.12
+
 2014-07-16  Mikael Djurfeldt  <mdj@jessie.pdc.kth.se>
 
 	* Version 1.1.11
@@ -168,7 +172,7 @@
 2007-11-01  Mikael Djurfeldt  <mikael@djurfeldt.com>
 
 	* configure.ac: Added AC_CONFIG_SUBDIRS(rudeconfig).
-					 
+
 	* rudeconfig: Added.
 
 2007-10-25  Mikael Djurfeldt  <mikael@djurfeldt.com>

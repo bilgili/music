@@ -65,6 +65,8 @@ namespace MUSIC
       ConnectionDescriptor descr;
       Connector *connector;
       bool isLoopConnected;
+
+
       void
       reset ()
       {
@@ -73,6 +75,8 @@ namespace MUSIC
         sSend.reset ();
         isLoopConnected = false;
       }
+
+
       void
       postponeNextSend (Clock newTime)
       {
@@ -81,8 +85,10 @@ namespace MUSIC
       }
     };
 
+
     typedef ANode<SApplData, SConnData> SNode;
     typedef AEdge<SApplData, SConnData> SConnection;
+
 
     class SGraph : public AGraph<SApplData, SConnData>
     {
@@ -95,14 +101,17 @@ namespace MUSIC
       }
       ;
 
+
       void
       setTempColor (int tmp_color)
       {
         tmp_color_ = tmp_color;
       }
-      void
-      handleLoop (SNode &x, std::vector<SConnection> & path);
+
+
+      void handleLoop (SNode &x, std::vector<SConnection> & path);
     };
+
 
   private:
     SGraph *nodes;
@@ -123,13 +132,12 @@ namespace MUSIC
     Scheduler ();
     ~Scheduler ();
 
-    void
-    initialize (TemporalNegotiatorGraph *appl_graph,
+    void initialize (TemporalNegotiatorGraph *appl_graph,
         std::vector<Connector*>& connectors);
-    void
-    finalize (Clock& localTime, std::vector<Connector*>& connectors);
-    void
-    reset (int self_node);
+
+    void finalize (Clock& localTime, std::vector<Connector*>& connectors);
+
+    void reset (int self_node);
 
 #if 0
     void createMultiConnectors (Clock localTime,
@@ -154,14 +162,14 @@ namespace MUSIC
         std::vector<std::pair<double, Connector *> > &schedule);
 
 #endif
-    void
-    setAgent (SchedulerAgent* agent);
-    void
-    initializeAgentState ();
+    void setAgent (SchedulerAgent* agent);
+
+    void initializeAgentState ();
+
     AEdge<Scheduler::SApplData, Scheduler::SConnData>
     pushForward ();
-    void
-    tick (Clock& localTime);
+
+    void tick (Clock& localTime);
 
     bool
     isLocalConnection (SConnection &edge)
@@ -192,19 +200,18 @@ namespace MUSIC
 
   private:
 
-    void
-    reset ();
-    void
-    setApplications (TemporalNegotiatorGraph *appl_graph);
-    void
-    setConnections (TemporalNegotiatorGraph *appl_graph,
+    void reset ();
+
+    void setApplications (TemporalNegotiatorGraph *appl_graph);
+
+    void setConnections (TemporalNegotiatorGraph *appl_graph,
         std::vector<Connector*>& connectors);
-    double
-    nextApplicationReceive (SNode &node);
-    void
-    advanceConnection (SConnData &data);
-    void
-    advanceConnectionClocks (SConnData &data);
+
+    Clock nextApplicationReceive (SNode &node);
+
+    void advanceConnection (SConnData &data);
+
+    void advanceConnectionClocks (SConnData &data);
   };
 
 }

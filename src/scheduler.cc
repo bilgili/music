@@ -27,6 +27,7 @@
 #include <cmath>
 #include <iostream>
 #include <set>
+#include <climits>
 
 #ifdef MUSIC_DEBUG
 #include <cstdlib>
@@ -155,11 +156,12 @@ namespace MUSIC
             iter_conn = 0;
           }
 
+
         for (iter_node = nodes->begin (); iter_node < nodes->end ();
             iter_node++)
           {
-            if (nextApplicationReceive (*iter_node)
-                > (*iter_node).data ().localTime.time ())
+            Clock next_recv = nextApplicationReceive (*iter_node);
+            if ((*iter_node).data ().localTime < next_recv)
               (*iter_node).data ().localTime.tick ();
           }
         iter_node = nodes->begin ();
@@ -484,16 +486,17 @@ namespace MUSIC
   }
 
 
-  double
+  Clock
   Scheduler::nextApplicationReceive (SNode &node)
   {
     SNode::edge_iterator in_conn;
-    double nextTime = std::numeric_limits<double>::infinity ();
+    Clock nextTime;
+    nextTime.set(ClockState(LLONG_MAX));
     for (in_conn = node.begin_i (); in_conn < node.end_i (); ++in_conn)
       {
         SConnData &data = (*in_conn)->data ();
-        if (data.nextReceive.time () < nextTime)
-          nextTime = data.nextReceive.time ();
+        if (data.nextReceive < nextTime)
+          nextTime = data.nextReceive;
       }
     return nextTime;
   }

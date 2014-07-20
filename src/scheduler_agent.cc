@@ -179,7 +179,7 @@ namespace MUSIC
       {
         continue_ = fillSchedule ();
         for (comm = schedule.begin ();
-            comm != schedule.end () && (*comm).time <= localTime.time ();
+            comm != schedule.end () && (*comm).time <= localTime;
             ++comm)
           {
             unsigned int multiId = (*comm).multiId ();
@@ -223,7 +223,7 @@ namespace MUSIC
       {
         continue_ = fillSchedule ();
         for (comm = schedule.begin ();
-            comm != schedule.end () && (*comm).time <= localTime.time ();
+            comm != schedule.end () && (*comm).time <= localTime;
             ++comm)
           {
 
@@ -328,7 +328,7 @@ namespace MUSIC
           multiId |= (*it).second.connector->idFlag ();
         MUSIC_LOGR ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
-    schedule.push_back (MultiCommObject (time.time (), multiId, proxyId));
+    schedule.push_back (MultiCommObject (time, multiId, proxyId));
   }
 
 
@@ -405,10 +405,10 @@ namespace MUSIC
       return false;
     if (scheduler_->isLocalConnection (last_sconn))
       {
-        double nextComm = (
+        Clock nextComm = (
             scheduler_->self_node () == last_sconn.post ().data ().color ?
-                last_sconn.data ().nextReceive.time () :
-                last_sconn.data ().nextSend.time ());
+                last_sconn.data ().nextReceive :
+                last_sconn.data ().nextSend);
         schedule.time = nextComm;
         schedule.connector = last_sconn.data ().connector;
         MUSIC_LOGR (" :Scheduled communication:"<< last_sconn.preNode ()->getId () <<"->"
@@ -429,7 +429,7 @@ namespace MUSIC
     do
       {
         continue_ = fillSchedule ();
-        if (!schedule.empty () && schedule.time <= localTime.time ())
+        if (!schedule.empty () && schedule.time <= localTime)
           {
             schedule.connector->tick ();
             schedule.reset ();

@@ -264,7 +264,8 @@ namespace MUSIC {
   int
   Configuration::Leader()
   {
-    return applications_->lookup (app_name_)->leader ();
+    ApplicationInfo* info = applications_->lookup (app_name_);
+    return info == 0 ? -1 : info->leader ();
   }
 
 

@@ -23,35 +23,77 @@
 #include <map>
 namespace MUSIC {
 
-  class ApplicationInfo {
+  class ApplicationInfo
+  {
     std::string name_;
-    int leader_;
     int nProc_;
-    int color_;
+    int color_; //used for convenience
+    int leader_;
+
   public:
-    ApplicationInfo (std::string name, int l, int n, int c)
-      : name_ (name), leader_ (l), nProc_ (n),  color_(c) { }
-    std::string name () { return name_; }
-    int color (){return color_;}
-    int leader () { return leader_; }
-    int nProc () { return nProc_; }
+    ApplicationInfo (std::string name, int n, int c) :
+        name_ (name), nProc_ (n), color_ (c), leader_(-1)
+    {
+    }
+
+
+    std::string
+    name ()
+    {
+      return name_;
+    }
+
+
+    int
+    color ()
+    {
+      return color_;
+    }
+
+
+    int
+    nProc ()
+    {
+      return nProc_;
+    }
+
+
+    int
+    leader ()
+    {
+      return leader_;
+    }
+
+
+    void
+    setLeader( int leader)
+    {
+      leader_ = leader;
+    }
   };
 
-  class ApplicationMap : public std::vector<ApplicationInfo> {
-	 std::map<int,int> leaderIdHook_;
+
+  class ApplicationMap : public std::vector<ApplicationInfo>
+  {
+
   public:
-    ApplicationMap () { }
-    ApplicationMap (std::istringstream& in, int color);
+    ApplicationMap ();
+
     ApplicationInfo* lookup (std::string appName);
-    ApplicationInfo* applicationFromRank (int rank);
+
+    ApplicationInfo* lookup (int color);
+
     int nProcesses ();
-    void add (std::string name, int l, int n, int c);
+
+    void add (std::string name, int n, int c);
+
     void write (std::ostringstream& out);
-    std::map<int,int> LeaderIdHook(){return leaderIdHook_;}
-  private:
-    void read (std::istringstream& in, int nApp, std::vector<int> appColor2Leader);
+
+    void read (std::istringstream& in);
+
 #if MUSIC_USE_MPI
-    std::vector<int> assignLeaders(int nLeaders, int color);
+    std::map<int, int>
+    assignLeaders (std::string my_app_label);
 #endif
   };
 

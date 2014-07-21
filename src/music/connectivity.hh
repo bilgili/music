@@ -23,15 +23,26 @@
 #include <map>
 
 namespace MUSIC {
-/* remedius
- * Communication Type (<COLLECTIVE, POINTTOPOINT>) and
- * Processing Method (<TREE, TABLE>) configuration options were added.
- * According class' fields and class' methods, methods' parameters were added to the ConnectorInfo class.
+/*
+ * Communication Type (<COLLECTIVE, POINTTOPOINT>)
+ * Processing Method (<TREE, TABLE>)
  */
-  class ConnectorInfo {
+  class ConnectorInfo
+  {
   public:
-    enum CommunicationType { COLLECTIVE, POINTTOPOINT };
-    enum ProcessingMethod { TREE, TABLE };
+
+    enum CommunicationType
+    {
+      COLLECTIVE, POINTTOPOINT
+    };
+
+
+    enum ProcessingMethod
+    {
+      TREE, TABLE
+    };
+
+
     static int maxPortCode_;
     std::string recApp_;
     std::string recPort_;
@@ -40,103 +51,181 @@ namespace MUSIC {
     int nProc_;
     int commType_;
     int procMethod_;
+
   public:
-    ConnectorInfo () { }
-    ConnectorInfo (std::string recApp,
-		   std::string recName,
-		   int recCode,
-		   int rLeader,
-		   int nProc,
-		   int commType,
-		   int procMethod
-			)
-      : recApp_ (recApp),
-	recPort_ (recName),
-	recCode_ (recCode),
-	remoteLeader_ (rLeader),
-	nProc_ (nProc),
-	commType_(commType),
-	procMethod_(procMethod)
-    { }
-    static void registerPortCode (int portCode);
-    static int allocPortCode () { return ++maxPortCode_; }
-    std::string receiverAppName () const { return recApp_; }
-    std::string receiverPortName () const { return recPort_; }
-    int receiverPortCode () const { return recCode_; }
-    int remoteLeader () const { return remoteLeader_; }
-    void setRemoteLeader (int leader) { remoteLeader_ = leader; }
+    ConnectorInfo ()
+    {
+    }
+
+
+    ConnectorInfo (std::string recApp, std::string recName, int recCode,
+        int rLeader, int nProc, int commType, int procMethod) :
+        recApp_ (recApp), recPort_ (recName), recCode_ (recCode), remoteLeader_ (
+            rLeader), nProc_ (nProc), commType_ (commType), procMethod_ (
+            procMethod)
+    {
+    }
+
+
+    static void
+    registerPortCode (int portCode);
+
+
+    static int
+    allocPortCode ()
+    {
+      return ++maxPortCode_;
+    }
+
+
+    std::string
+    receiverAppName () const
+    {
+      return recApp_;
+    }
+
+
+    std::string
+    receiverPortName () const
+    {
+      return recPort_;
+    }
+
+
+    int
+    receiverPortCode () const
+    {
+      return recCode_;
+    }
+
+
+    int
+    remoteLeader () const
+    {
+      return remoteLeader_;
+    }
+
+
+    void
+    setRemoteLeader (int leader)
+    {
+      remoteLeader_ = leader;
+    }
+
+
     // NOTE: nProcesses should have "remote" in name
-    int nProcesses () const { return nProc_; }
-    int communicationType() const {return commType_;}
-    int processingMethod() const {return procMethod_;}
+    int
+    nProcesses () const
+    {
+      return nProc_;
+    }
+
+
+    int
+    communicationType () const
+    {
+      return commType_;
+    }
+
+
+    int
+    processingMethod () const
+    {
+      return procMethod_;
+    }
   };
 
 
   typedef std::vector<ConnectorInfo> PortConnectorInfo;
 
 
-  class ConnectivityInfo {
+  class ConnectivityInfo
+  {
+
   public:
-    enum PortDirection { OUTPUT, INPUT };
+    enum PortDirection
+    {
+      OUTPUT, INPUT
+    };
+
 
     static const int NO_WIDTH = -1;
+
   private:
     std::string portName_;
     PortDirection dir_;
     int width_;
     PortConnectorInfo portConnections_;
+
   public:
-    ConnectivityInfo (std::string portName, PortDirection dir, int width)
-      : portName_ (portName), dir_ (dir), width_ (width) { }
-    std::string portName () { return portName_; }
-    PortDirection direction () { return dir_; }
-    int width () { return width_; } // NO_WIDTH if no width specified
-    PortConnectorInfo& connections () { return portConnections_; }
-    void addConnection (std::string recApp,
-			std::string recName,
-			int recCode,
-			int rLeader,
-			int nProc,
-			int commType,
-			int procMethod
-			);
+    ConnectivityInfo (std::string portName, PortDirection dir, int width) :
+        portName_ (portName), dir_ (dir), width_ (width)
+    {
+    }
+
+
+    std::string
+    portName ()
+    {
+      return portName_;
+    }
+
+
+    PortDirection
+    direction ()
+    {
+      return dir_;
+    }
+
+
+    int
+    width ()
+    {
+      return width_;
+    } // NO_WIDTH if no width specified
+
+
+    PortConnectorInfo&
+    connections ()
+    {
+      return portConnections_;
+    }
+
+
+    void  addConnection (std::string recApp, std::string recName, int recCode,
+        int rLeader, int nProc, int commType, int procMethod);
   };
 
-  class Connectivity {
+
+  class Connectivity
+  {
     std::vector<ConnectivityInfo> connections_;
     std::map<std::string, int> connectivityMap;
 
-   // void read (std::istringstream& in);
-    void read (std::istringstream& in, std::map<int, int> leaderIdHook);
   public:
-    Connectivity () { }
-   // Connectivity (std::istringstream& in);
-    /*
-     * remedius
-     * leaderIdHook parameter was added, since there could be a case when
-     *  non sequential distribution of the ranks among the applications took place,
-     *  it's always the case for BGP machine.
-     *  leaderIdHook maps sequential leaderId to the actualId.
-     */
-    Connectivity (std::istringstream& in, std::map<int, int> leaderIdHook);
+    Connectivity ()
+    {
+    }
+
     static const int NO_CONNECTIVITY = 0;
-    void add (std::string localPort,
-	      ConnectivityInfo::PortDirection dir,
-	      int width,
-	      std::string recApp,
-	      std::string recPort,
-	      int recPortCode,
-	      int remoteLeader,
-	      int remoteNProc,
-		  int commType,
-		  int procMethod
-			);
+
+    void  add (std::string localPort, ConnectivityInfo::PortDirection dir, int width,
+        std::string recApp, std::string recPort, int recPortCode,
+        int remoteLeader, int remoteNProc, int commType, int procMethod);
+
     ConnectivityInfo* info (std::string portName);
+
     bool isConnected (std::string portName);
+
     ConnectivityInfo::PortDirection direction (std::string portName);
+
     int width (std::string portName);
+
     PortConnectorInfo connections (std::string portName);
+
     void write (std::ostringstream& out);
+
+    void read (std::istringstream& in, std::map<int, int> leaders);
   };
 
 }

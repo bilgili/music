@@ -14,6 +14,7 @@ libmusic_la_SOURCES = \
 	array_data.cc music/array_data.hh \
 	configuration.cc music/configuration.hh \
 	application_map.cc music/application_map.hh \
+	application_mapper.cc music/application_mapper.hh \
 	ioutils.cc music/ioutils.hh \
 	connectivity.cc music/connectivity.hh \
 	spatial.cc music/spatial.hh \
@@ -45,7 +46,7 @@ libmusic_la_SOURCES = \
 
 libmusic_la_HEADERS = music.hh
 libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
-libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la \
+libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la \
 	-version-info 1:0:0 -export-dynamic -Wl,-z,defs @MPI_LDFLAGS@
 libmusic_ladir = $(includedir)
 
@@ -70,6 +71,7 @@ musicinclude_HEADERS = music/runtime.hh music/setup.hh \
 		       music/linear_index.hh music/array_data.hh \
 		       music/configuration.hh music/connectivity.hh \
 		       music/application_map.hh music/ioutils.hh \
+		       music/application_mapper.hh \
 		       music/application_graph.hh \
 		       music/spatial.hh music/temporal.hh music/error.hh \
 		       music/debug.hh music/port.hh music/clock.hh \

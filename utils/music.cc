@@ -23,7 +23,7 @@
 
 #include <music/version.hh>
 
-#include "application_mapper.hh"
+#include "music/application_mapper.hh"
 #include "mpidep/mpidep.hh"
 
 extern "C" {
@@ -45,7 +45,7 @@ usage (int rank)
 		<< "  -h, --help            print this help message" << std::endl
 		<< "  -m, --map             print application rank map" << std::endl
 //		<< "  -f, --file-map        creates a file with the list of environment variable of each application" << std::endl
-		<< "  -e, --export-scripts  export launcher scripts" << std::endl
+//		<< "  -e, --export-scripts  export launcher scripts" << std::endl
 		<< "  -v, --version         prints version of MUSIC library" << std::endl
 		<< std::endl
 		<< "Report bugs to <music-bugs@incf.org>." << std::endl;
@@ -70,8 +70,7 @@ print_map (MUSIC::Configuration* config)
     }
 }
 
-// NOTE: This must match the definition in src/configuration.cc
-const static char* const configEnvVarName = "_MUSIC_CONFIG_";
+/*const static char* const configEnvVarName = "_MUSIC_CONFIG_";
 const static char* const mapFName = "music.map";
 void
 export_scripts (MUSIC::ApplicationMapper* map)
@@ -112,7 +111,7 @@ void export_map(MUSIC::ApplicationMapper* map)
 		  map_file <<  getenv (configEnvVarName) << std::endl;
 	    }
 	  map_file.close ();
-}
+}*/
 
 
 void
@@ -178,8 +177,8 @@ main (int argc, char *argv[])
 	{
 	  {"help",           no_argument,       0, 'h'},
 	  {"map",            required_argument, 0, 'm'},
-	  {"export-scripts", required_argument,       0, 'e'},
-	  {"file-map",        required_argument,       0, 'f'},
+//	  {"export-scripts", required_argument,       0, 'e'},
+//	  {"file-map",        required_argument,       0, 'f'},
 	  {"version",        no_argument,       0, 'v'},
 	  {0, 0, 0, 0}
 	};
@@ -187,7 +186,7 @@ main (int argc, char *argv[])
       int option_index = 0;
 
       // the + below tells getopt_long not to reorder argv
-      int c = getopt_long (argc, argv, "+hm:e:vf:", longOptions, &option_index);
+      int c = getopt_long (argc, argv, "+hm:v", longOptions, &option_index);
       /* detect the end of the options */
       if (c == -1)
 	break;
@@ -200,12 +199,12 @@ main (int argc, char *argv[])
 	case 'm':
 	  do_print_map = true;
 	  continue;
-	case 'e':
+/*	case 'e':
 	  do_export_scripts = true;
 	  continue;
 	case 'f':
 		do_export_map = true;
-	  continue;
+	  continue;*/
 	case 'v':
 	  print_version (rank);
 
@@ -226,15 +225,16 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  MUSIC::ApplicationMapper map (configFile, rank);
-
+  MUSIC::Configuration config;
+  MUSIC::ApplicationMapper mapper (&config);
+  mapper.map (configFile, rank);
   if (do_print_map)
     {
       if (rank <= 0)
-	print_map (map.config ());
+	print_map (&config);
     }
 
-  if (do_export_scripts)
+  /*  if (do_export_scripts)
     {
       if (rank <= 0)
 	export_scripts (&map);
@@ -244,8 +244,8 @@ main (int argc, char *argv[])
 	  if (rank <=0)
 		  export_map(&map);
 
-  }
-  if (do_print_map || do_export_scripts || do_export_map)
+  }*/
+  if (do_print_map) //|| do_export_scripts || do_export_map)
     return 0;
   
   if (rank == -1)
@@ -256,7 +256,7 @@ main (int argc, char *argv[])
       exit (1);
     }
 
-  launch (map.config (), argv);
+  launch (&config, argv);
 
   return 0;
 }

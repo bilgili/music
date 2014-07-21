@@ -1,4 +1,4 @@
-SUBDIRS = mpidep src rudeconfig utils extras @TESTDIR@ music doc @EXAMPLESDIR@
+SUBDIRS = mpidep rudeconfig src utils @TESTDIR@ music doc @EXAMPLESDIR@
 
 debdir=../@PACKAGE_NAME@-@PACKAGE_VERSION@
 

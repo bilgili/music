@@ -407,12 +407,14 @@ namespace MUSIC {
       }
   }
 
- EventOutputPort::~EventOutputPort()
+
+  EventOutputPort::~EventOutputPort()
  {
    if (router != NULL)
      delete router;
  }
   
+
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
@@ -459,8 +461,6 @@ namespace MUSIC {
   }
   
   
-
-  
   void
   EventOutputPort::insertEvent (double t, GlobalIndex id)
   {
@@ -474,6 +474,7 @@ namespace MUSIC {
     router->processEvent (t, id);
   }
 
+
   void
   EventOutputPort::buildTable ()
   {
@@ -482,12 +483,14 @@ namespace MUSIC {
     router->buildTable ();
   }
 
+
   EventInputPort::EventInputPort (Setup* s, std::string id)
     : Port (s, id)
   {
 
   }
   
+
   void
   EventInputPort::map (IndexMap* indices,
 		       EventHandlerGlobalIndex* handleEvent,

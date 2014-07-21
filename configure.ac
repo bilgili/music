@@ -180,17 +180,20 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   esac
   echo "$MPI_LDFLAGS"
 fi
-if test "$ac_test_CXXFLAGS" != set; then
-  if test "$CXXFLAGS" = "-O2"; then
-    CXXFLAGS="-O3"
-  else
+
+CXXFLAGS="-g -O3"
+
+#if test "$ac_test_CXXFLAGS" != set; then
+#  if test "$CXXFLAGS" = "-O2"; then
+#    CXXFLAGS="-O3"
+#  else
   #  CXXFLAGS="-O2"
-    CXXFLAGS="-g -O0"
-    if test $CXX = g++; then
-      CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
-    fi
-  fi
+#    CXXFLAGS="-g -O0"
+if test $CXX = g++; then
+	CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
 fi
+#  fi
+#fi
 
 AM_PATH_PYTHON
 AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])

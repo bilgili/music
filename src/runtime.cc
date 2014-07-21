@@ -102,6 +102,7 @@ namespace MUSIC
         temporalNegotiation (s, connections);
         // final initialization before simulation starts
         initialize (s);
+
       }
 
     delete s;
@@ -427,6 +428,7 @@ namespace MUSIC
   void
   Runtime::tick ()
   {
+
     // Update local time
     localTime.tick ();
     // ContPorts do some per-tick initialization here

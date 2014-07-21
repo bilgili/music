@@ -27,56 +27,75 @@
 #include "music/connectivity.hh"
 
 namespace MUSIC {
-//#define __bgp__
+
   class Configuration {
+  public:
+      static const char* const configEnvVarName;
+      typedef std::map<std::string, std::string> ConfigDict;
   private:
-    static const char* const configEnvVarName;
-    /* remedius
-     * name of the file that contains mapping of the ranks to applications
-     * and according configEnvVarName.
-     */
-    static const char* const mapFileName;
-    bool launchedByMusic_;
-    bool postponeSetup_;
-    std::string applicationName_;
-    int color_;
-    int leader_;
-    Configuration* defaultConfig;
+
+    std::string app_name_;
+
     ApplicationMap* applications_;
     Connectivity* connectivityMap_;
 
-    std::map<std::string, std::string> dict;
-    void write (std::ostringstream& env, Configuration* mask);
-#if MUSIC_USE_MPI
-    void getEnvFromFile (char *app_name, std::string* result);
-    void getEnv (char *app_name, std::string* result);
+    Configuration* defaultConfig_;
 
-    /* remedius
-     * Parses <map_file> in order to read configEnvVarName(<result>) that suites current rank.
-     */
-    void parseMapFile(char *app_name, std::string map_file, std::string *result);
-#endif
+    std::map<std::string, std::string> dict_;
+
+
   public:
+
+    Configuration ();
+
 #if MUSIC_USE_MPI
-    Configuration (char *app_name);
+    Configuration (std::string configStr);
 #endif
-    Configuration (std::string name, int color, Configuration* def);
+
     ~Configuration ();
-    bool launchedByMusic () { return launchedByMusic_; }
-    bool postponeSetup () { return postponeSetup_; }
+
     void writeEnv ();
-    int color () { return color_; }
-    int leader () { return leader_; }
+
     bool lookup (std::string name);
+
     bool lookup (std::string name, std::string* result);
+
     bool lookup (std::string name, int* result);
+
     bool lookup (std::string name, double* result);
+
     void insert (std::string name, std::string value);
-    std::string ApplicationName();
+
+    const ConfigDict &getDict();
+
+    void setDict(const ConfigDict &dict);
+
+    void resetDict();
+
+    std::string Name();
+
+    void setName( std::string name);
+
+    int Color ();
+
+    int Leader ();
+
     ApplicationMap* applications ();
-    void setApplications (ApplicationMap*);
+
     Connectivity* connectivityMap ();
-    void setConnectivityMap (Connectivity* c);
+
+    Configuration* defaultConfig();
+
+  private:
+
+    void init ();
+
+#if MUSIC_USE_MPI
+    void parse (std::string configStr);
+#endif
+
+    void write (std::ostringstream& env, Configuration* mask);
+
   };
 
 }

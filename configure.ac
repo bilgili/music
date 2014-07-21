@@ -323,7 +323,6 @@ AC_CONFIG_FILES([
   src/music/version.hh
   rudeconfig/Makefile
   utils/Makefile
-  extras/Makefile
   examples/Makefile
   testsuite/Makefile
   testsuite/music_tests.sh

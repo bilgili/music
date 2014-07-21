@@ -41,24 +41,11 @@ namespace MUSIC
 
 
   Runtime::Runtime (Setup* s, double h)
+    : mAgent (0)
   {
     checkInstantiatedOnce (isInstantiated_, "Runtime");
     s->maybePostponedSetup ();
 
-    scheduler = new Scheduler ();
-    if (s->launchedByMusic ())
-      {
-        sAgents.push_back (mAgent = new MulticommAgent (scheduler));
-        sAgents.push_back (new UnicommAgent (scheduler));
-        scheduler->setAgent (sAgents[0]);
-        scheduler->setAgent (sAgents[1]);
-      }
-    else
-      {
-        sAgents.push_back (new DummyAgent (scheduler));
-        scheduler->setAgent (sAgents[0]);
-        scheduler->initializeAgentState ();
-      }
     app_name = s->applicationName ();
     leader_ = s->leader ();
 
@@ -80,6 +67,7 @@ namespace MUSIC
 
     Connections* connections = s->connections ();
 
+    scheduler = new Scheduler ();
     if (s->launchedByMusic ())
       {
         takeTickingPorts (s);
@@ -100,9 +88,23 @@ namespace MUSIC
         takePostCommunicators ();
         // negotiate timing constraints for synchronizers
         temporalNegotiation (s, connections);
+
+	if (needsMultiCommunication ())
+	  {
+	    sAgents.push_back (mAgent = new MulticommAgent (scheduler));
+	    scheduler->setAgent (mAgent);
+	  }
+	sAgents.push_back (new UnicommAgent (scheduler));
+	scheduler->setAgent (sAgents[sAgents.size () - 1]);
+
         // final initialization before simulation starts
         initialize (s);
-
+      }
+    else
+      {
+	sAgents.push_back (new DummyAgent (scheduler));
+	scheduler->setAgent (sAgents[0]);
+	scheduler->initializeAgentState ();
       }
 
     delete s;
@@ -143,6 +145,16 @@ namespace MUSIC
     isInstantiated_ = false;
   }
 
+
+  bool
+  Runtime::needsMultiCommunication ()
+  {
+    std::vector<Connector*>::iterator c;
+    for (c = connectors.begin (); c != connectors.end (); ++c)
+      if ((*c)->needsMultiCommunication ())
+	return true;
+    return false;
+  }
 
   void
   Runtime::takeTickingPorts (Setup* s)
@@ -276,7 +288,8 @@ namespace MUSIC
   {
     scheduler->initialize (s->temporalNegotiator ()->applicationGraph (),
         connectors);
-    mAgent->createMultiConnectors (localTime, comm, leader_, connectors);
+    if (mAgent)
+      mAgent->createMultiConnectors (localTime, comm, leader_, connectors);
     // scheduler->nextCommunication (localTime, schedule);
     scheduler->tick (localTime);
     // compensate for first localTime.tick () in Runtime::tick ()

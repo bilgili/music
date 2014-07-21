@@ -72,6 +72,7 @@ namespace MUSIC
     static bool isInstantiated_;
 
     typedef std::vector<Connection*> Connections;
+    bool needsMultiCommunication ();
     void
     takeTickingPorts (Setup* s);
     void

@@ -29,6 +29,8 @@
 #include <assert.h>
 #include "music/application_mapper.hh"
 
+#include "rudeconfig/src/config.h"
+
 #if MUSIC_USE_MPI
   #include <mpi.h>
 #endif

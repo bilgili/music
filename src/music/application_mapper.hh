@@ -21,11 +21,13 @@
 #include <istream>
 #include <map>
 
-
-
 #include <music/configuration.hh>
-#include "rudeconfig/src/config.h"
 #include "config.h"
+
+namespace rude {
+  class Config;
+}
+
 namespace MUSIC {
 
 

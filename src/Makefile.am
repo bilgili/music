@@ -45,7 +45,7 @@ libmusic_la_SOURCES = \
 	music/version.hh version.cc 
 
 libmusic_la_HEADERS = music.hh
-libmusic_la_CXXFLAGS = @MPI_CXXFLAGS@
+libmusic_la_CXXFLAGS = -I$(top_srcdir) @MPI_CXXFLAGS@
 libmusic_la_LDFLAGS = $(top_builddir)/mpidep/libmpidep.la $(top_builddir)/rudeconfig/librudeconfig.la \
 	-version-info 1:0:0 -export-dynamic -Wl,-z,defs @MPI_LDFLAGS@
 libmusic_ladir = $(includedir)

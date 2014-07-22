@@ -37,6 +37,7 @@ namespace MUSIC {
 					    ConnectorInfo::maxPortCode_);
   }
 
+
   void
   ConnectivityInfo::addConnection (std::string recApp,
 				   std::string recName,
@@ -56,15 +57,6 @@ namespace MUSIC {
 					       procMethod));
   }
 
-
-/*  Connectivity::Connectivity (std::istringstream& in)
-  {
-    read (in);
-  }*/
-  Connectivity::Connectivity (std::istringstream& in, std::map<int, int> leaderIdHook)
-  {
-    read (in, leaderIdHook);
-  }
 
   void
   Connectivity::add (std::string localPort,
@@ -177,8 +169,9 @@ namespace MUSIC {
       }
   }
   
+
   void
-  Connectivity::read (std::istringstream& in, std::map<int, int> leaderIdHook)
+  Connectivity::read (std::istringstream& in, std::map<int, int> leaders)
   {
     int nPorts;
     in >> nPorts;
@@ -208,9 +201,10 @@ namespace MUSIC {
 	    in >> recPortCode;
 	    ConnectorInfo::registerPortCode (recPortCode);
 	    in.ignore ();
-	    int rLeader;
-	    in >> rLeader;
-	    rLeader = leaderIdHook[rLeader];
+	    // leader information is not available through configuration string
+	    // application color is used instead
+	    int color;
+	    in >> color;
 	    in.ignore ();
 	    int nProc;
 	    in >> nProc;
@@ -226,7 +220,7 @@ namespace MUSIC {
 		 recApp,
 		 recPort,
 		 recPortCode,
-		 rLeader,
+		 leaders[color],
 		 nProc,
 		 commType,
 		 procMethod
@@ -236,7 +230,7 @@ namespace MUSIC {
 		       << ", width = " << width
 		       << ", recApp = " << recApp
 		       << ", recPort = " << recPort
-		       << ", rLeader = " << rLeader
+		       << ", rLeader = " << leaders[color]
 		       << ", nProc = " << nProc
 		       << ", commType = " << commType
 		       << ", procMethod = " << procMethod

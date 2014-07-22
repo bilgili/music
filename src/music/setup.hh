@@ -29,9 +29,10 @@
 #include <music/index_map.hh>
 #include <music/linear_index.hh>
 #include <music/cont_data.hh>
-#include <music/configuration.hh>
 #include <music/connector.hh>
 #include <music/temporal.hh>
+#include <music/configuration.hh>
+
 
 using std::string;
 
@@ -48,6 +49,9 @@ namespace MUSIC {
    */
   
   class Setup {
+    static const char* const configEnvVarName;
+    static const char* const opConfigFileName;
+    static const char* const opAppLabel;
   public:
     Setup (int& argc, char**& argv);
 
@@ -86,6 +90,9 @@ namespace MUSIC {
     int& argc_;
     char**& argv_;
 
+    bool launchedByMusic_;
+    bool postponeSetup_;
+
     // Since we don't want to expose this internal interface to the
     // user we put the member functions in the private part and give
     // these classes access through a friend declaration.  Classes are
@@ -114,9 +121,13 @@ namespace MUSIC {
     ConnectivityInfo* portConnectivity (const std::string localName);
 
     ApplicationMap* applicationMap ();
+
     int applicationColor();
+
     std::string applicationName();
+
     int leader ();
+
     int nProcs ();
 
     ConnectivityInfo::PortDirection
@@ -143,6 +154,17 @@ namespace MUSIC {
     TemporalNegotiator* temporalNegotiator () { return temporalNegotiator_; }
     
     void errorChecks ();
+
+    bool launchedWithExec (std::string &configStr);
+
+    bool launchedMPMD (int argc, char** argv, std::string& config);
+
+    void loadConfigFile (std::string filename, std::string &result);
+
+    bool getOption (int argc, char** argv, std::string option, std::string& result);
+
+
+
   };
   
 }

@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce configure.
-AC_INIT(music, 1.1.10)
+AC_INIT(music, 1.1.14)
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER([config.h])
 AM_MAINTAINER_MODE
@@ -8,7 +8,7 @@ if test "$MPI_CXX" != ""; then
   CXX="$MPI_CXX"
 fi
 
-AC_PROG_CXX([mpiCC mpixlcxx_r mpixlcxx mpicxx CC])
+AC_PROG_CXX([mpiCC mpixlcxx mpixlcxx_r mpicxx CC])
 MPI_CXX="$CXX"
 
 AC_MSG_CHECKING([which MPI system we think we are using])
@@ -32,6 +32,7 @@ Please set them manually.])
         changequote({, })
       fi
     fi
+    LAUNCHSTYLE=_openmpi
     changequote([, ])
     ;;
   mpixlcxx_r)
@@ -43,7 +44,7 @@ Please set them manually.])
     ;;
   mpixlcxx)
     MPI_C=mpixlc
-    SYSGUESS=bgl
+    SYSGUESS=bgq
     CXX="$MPI_CXX"
     #CC="`echo $MPI_CXX | sed -e 's/xlcxx$/xlc/;s/cxx$/cc/'`"
     CC="$MPI_C"
@@ -70,8 +71,16 @@ Please set them manually.])
       SYSGUESS=unknown
     fi
     ;;
+  xlC)
+    MPI_C=xlc
+    SYSGUESS=bgq_seq
+    CXX="$MPI_CXX"
+    CC="$MPI_C"
+    ;;
+
   *)
     SYSGUESS=unknown
+    LAUNCHSTYLE=
     ;;
 esac
 echo "SYSGUESS=$SYSGUESS"
@@ -93,12 +102,16 @@ else
       MPI_CXXFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
       enable_shared=no
       ;;
-    bgl)
-      MPI_CXXFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+    bgq)
+      MPI_CXXFLAGS="-qarch=qp -qtune=qp -qhot -qnostrict"
       enable_shared=no
       ;;
     cray_xe6)
       MPI_CXXFLAGS=""
+      ;;
+    bgq_seq)
+      MPI_CXXFLAGS=""
+      enable_shared=no
       ;;
     *)
       AC_MSG_ERROR([
@@ -125,12 +138,16 @@ else
       MPI_CFLAGS="-qarch=450 -qtune=450 -qhot -qnostrict"
       enable_shared=no
       ;;
-    bgl)
-      MPI_CFLAGS="-qarch=440 -qtune=440 -qhot -qnostrict"
+    bgq)
+      MPI_CFLAGS="-qarch=qp -qtune=qp -qhot -qnostrict"
       enable_shared=no
       ;;
     cray_xe6)
       MPI_CFLAGS=""
+      ;;
+    bgq_seq)
+      MPI_CFLAGS=""
+      enable_shared=no
       ;;
     *)
       AC_MSG_ERROR([
@@ -153,7 +170,7 @@ else
     openmpi)
       MPI_LDFLAGS="`mpicxx -showme:link`"
       ;;
-    bgp|bgl|cray_xe6)
+    bgp|bgq|cray_xe6|bgq_seq)
       MPI_LDFLAGS=""
       ;;
     *)
@@ -163,17 +180,20 @@ Could not determine proper value for MPI_LDFLAGS.  Please see README.])
   esac
   echo "$MPI_LDFLAGS"
 fi
-if test "$ac_test_CXXFLAGS" != set; then
-  if test "$CXXFLAGS" = "-O2"; then
-    CXXFLAGS="-O3"
-  else
+
+CXXFLAGS="-g -O3"
+
+#if test "$ac_test_CXXFLAGS" != set; then
+#  if test "$CXXFLAGS" = "-O2"; then
+#    CXXFLAGS="-O3"
+#  else
   #  CXXFLAGS="-O2"
-    CXXFLAGS="-g -O3"
-    if test $CXX = g++; then
-      CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
-    fi
-  fi
+#    CXXFLAGS="-g -O0"
+if test $CXX = g++; then
+	CXXFLAGS="-pedantic -Wall -Wno-long-long $CXXFLAGS"
 fi
+#  fi
+#fi
 
 AM_PATH_PYTHON
 AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
@@ -191,55 +211,65 @@ AC_CHECK_TYPES([long long])
 AC_CHECK_FUNCS([strrchr mallinfo])
 
 dnl Other checks
-OPTIONAL_PROGRAMS=""
+OPTIONAL_UTILS=""
 AC_CHECK_HEADER([GL/glut.h], OPTIONAL_UTILS+="viewevents ")
 
 AC_LANG_PUSH(C++)
 save_CXX="$CXX"
 save_LIBS="$LIBS"
 dnl Must use $CXX, not $MPI_CXX, here
+
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
 AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
 
 AC_MSG_CHECKING([for MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=no
-AC_COMPILE_IFELSE([
+AC_COMPILE_IFELSE(
+  [AC_LANG_SOURCE([
 #include <mpi.h>
 int main (int argc, char **argv)
 {
   int res = MPI::Init_thread (argc, argv, 0);
 }
-],
+])],
 AC_DEFINE(HAVE_CXX_MPI_INIT_THREAD, 1, [Define to 1 if you have the MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=yes
 )
+AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
+
 AC_ARG_ENABLE(mpi,
               [  --disable-mpi           disable mpi support],
               MUSIC_USE_MPI="$enableval", MUSIC_USE_MPI="yes")
 if test $MUSIC_USE_MPI = yes ; then 
   MUSIC_USE_MPI=1
+  MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter eventlogger contsink messagesource"
+  TESTDIR="testsuite"
+  EXAMPLESDIR="examples"
 else
   MUSIC_USE_MPI=0
+  MPI_UTILS=""
+  TESTDIR=""
+  OPTIONAL_UTILS=""
+  EXAMPLESDIR=""
 fi
 AC_ARG_ENABLE(isend,
-              [  --enable-isend          enable isend],
-              MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="no")
+              [  --disable-isend          disable isend],
+              MUSIC_ISENDWAITALL="$enableval", MUSIC_ISENDWAITALL="yes")
 if test $MUSIC_ISENDWAITALL = yes ; then 
   MUSIC_ISENDWAITALL=1
 else
   MUSIC_ISENDWAITALL=0
 fi
 AC_ARG_ENABLE(anysource,
-              [  --enable-anysource      enable any source receive],
-              MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="no")
+              [  --disable-anysource      disable any source receive],
+              MUSIC_ANYSOURCE="$enableval", MUSIC_ANYSOURCE="yes")
 if test $MUSIC_ANYSOURCE = yes ; then 
   MUSIC_ANYSOURCE=1
 else
   MUSIC_ANYSOURCE=0
 fi
 
-AC_MSG_RESULT($ac_have_cxx_mpi_init_thread)
 LIBS="$save_LIBS"
 CXX="$save_CXX"
 AC_LANG_POP(C++)
@@ -256,6 +286,19 @@ else
   MUSIC_HAVE_LONG_LONG=0
 fi
 
+if test "$prefix" = NONE; then
+   PKGDATADIR=`eval echo $ac_default_prefix/share/$PACKAGE-$PACKAGE_VERSION`
+else
+   PKGDATADIR=`eval echo $prefix/share/$PACKAGE-$PACKAGE_VERSION`
+fi
+
+if test "$prefix" = NONE; then
+   PKGEXTRABINDIR=`eval echo $ac_default_prefix/lib/$PACKAGE-$PACKAGE_VERSION`
+else
+   PKGEXTRABINDIR=`eval echo $prefix/lib/$PACKAGE-$PACKAGE_VERSION`
+fi
+
+
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)
 AC_SUBST(MPI_LDFLAGS)
@@ -264,7 +307,13 @@ AC_SUBST(MUSIC_HAVE_LONG_LONG)
 AC_SUBST(MUSIC_USE_MPI)
 AC_SUBST(MUSIC_ISENDWAITALL)
 AC_SUBST(MUSIC_ANYSOURCE)
+AC_SUBST(MPI_UTILS)
 AC_SUBST(OPTIONAL_UTILS)
+AC_SUBST(TESTDIR)
+AC_SUBST(EXAMPLESDIR)
+AC_SUBST(PKGDATADIR)
+AC_SUBST(PKGEXTRABINDIR)
+AC_SUBST(LAUNCHSTYLE)
 
 AC_CONFIG_FILES([
   Makefile
@@ -272,9 +321,13 @@ AC_CONFIG_FILES([
   src/Makefile
   src/music/music-config.hh
   src/music/version.hh
-  test/Makefile
   rudeconfig/Makefile
   utils/Makefile
+  examples/Makefile
+  testsuite/Makefile
+  testsuite/music_tests.sh
+  testsuite/unittests/catch/Makefile
+  testsuite/sanitytests/Makefile
   music/Makefile
   doc/Makefile
 ])

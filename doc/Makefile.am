@@ -46,13 +46,13 @@ music-manual.stamp1: music-manual.tex music-rfc.bib music-c-int.h wavetest.music
 	touch music-manual.stamp1
 
 wavetest.music:
-	ln -s $(srcdir)/../test/wavetest.music
+	ln -s $(srcdir)/../examples/wavetest.music
 
 waveproducer.cc:
-	ln -s $(srcdir)/../test/waveproducer.cc
+	ln -s $(srcdir)/../examples/waveproducer.cc
 
 waveconsumer.cc:
-	ln -s $(srcdir)/../test/waveconsumer.cc
+	ln -s $(srcdir)/../examples/waveconsumer.cc
 
 $(figures): figures/%.pdf : figures/%.asy
 	test -d figures || mkdir figures

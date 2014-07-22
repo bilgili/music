@@ -74,6 +74,7 @@ namespace MUSIC {
     void set (ClockState state) { state_ = state; }
     bool operator>= (const Clock& ref) const { return state_ >= ref.state_; }
     bool operator<= (const Clock& ref) const { return state_ <= ref.state_; }
+    bool operator< (const Clock& ref) const { return state_ < ref.state_; }
     bool operator!= (const Clock& ref) const {return state_ != ref.state_;}
     bool operator== (const Clock& ref) const { return state_ == ref.state_; }
   };

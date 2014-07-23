@@ -2,8 +2,14 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-examplesdir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
-examples_PROGRAMS = waveproducer waveconsumer 	 
+exbindir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
+exbin_PROGRAMS = waveproducer waveconsumer 	 
+
+exdatadir = $(datadir)/@PACKAGE@-@PACKAGE_VERSION@/examples
+dist_exdata_DATA = messages.music wavetest.music \
+			viewevents.music demo.music demolarge.music \
+			neuronGrid.data neuronGridLARGE.data \
+			spikes0.dat spikes1.dat README
 
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
@@ -16,17 +22,3 @@ waveconsumer_CXXFLAGS = $(MUSIC_INCLUDE) @MPI_CXXFLAGS@
 waveconsumer_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-
-EXTRA_DIST = messages.music wavetest.music \
-		viewevents.music demo.music demolarge.music \
-		neuronGrid.data neuronGridLARGE.data \
-		spikes0.dat spikes1.dat README
-
-install-data-hook:
-	mkdir -p $(DESTDIR)@PKGDATADIR@/examples
-	@INSTALL_PROGRAM@  messages.music wavetest.music \
-			viewevents.music demo.music demolarge.music \
-			neuronGrid.data neuronGridLARGE.data \
-			spikes0.dat spikes1.dat README \
-			$(DESTDIR)@PKGDATADIR@/examples
-

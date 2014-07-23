@@ -298,6 +298,7 @@ else
    PKGEXTRABINDIR=`eval echo $prefix/lib/$PACKAGE-$PACKAGE_VERSION`
 fi
 
+#TEST_SH_LIST=${srcdir}/*.test
 
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)
@@ -314,6 +315,7 @@ AC_SUBST(EXAMPLESDIR)
 AC_SUBST(PKGDATADIR)
 AC_SUBST(PKGEXTRABINDIR)
 AC_SUBST(LAUNCHSTYLE)
+#AC_SUBST([TEST_SH_LIST])
 
 AC_CONFIG_FILES([
   Makefile
@@ -329,6 +331,7 @@ AC_CONFIG_FILES([
   testsuite/unittests/catch/Makefile
   testsuite/sanitytests/Makefile
   music/Makefile
+  music/predict_rank.py
   doc/Makefile
 ])
 

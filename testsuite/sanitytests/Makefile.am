@@ -2,9 +2,16 @@
 
 ACLOCAL = $(top_srcdir)/aclocal.sh
 
-testdir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
-test_PROGRAMS = clocksource constsource contdelay eventdelay \
+testbindir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
+testbin_PROGRAMS = clocksource constsource contdelay eventdelay \
 		multiport launchtest
+
+testshdir = $(datadir)/@PACKAGE@-@PACKAGE_VERSION@/tests
+dist_testsh_DATA = events.test chain.test run_test \
+			divergence.test fork.test loop.test \
+			cloop.test const.test contclock.test \
+			launchtest.test messages.test \
+			multicomm.test multiport.test
 
 MUSIC_INCLUDE = -I$(top_srcdir)/src -I$(top_builddir)/src
 
@@ -34,12 +41,3 @@ launchtest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-
-install-data-hook:
-	mkdir -p $(DESTDIR)@PKGDATADIR@/tests
-	@INSTALL_PROGRAM@ events.test chain.test run_test \
-			divergence.test fork.test loop.test \
-			cloop.test const.test contclock.test \
-			launchtest.test messages.test \
-			multicomm.test multiport.test \
-			  $(DESTDIR)@PKGDATADIR@/tests

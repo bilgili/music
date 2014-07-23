@@ -14,5 +14,11 @@ debian-source: dist
 
 EXTRA_DIST = BUGS
 
-dist-hook:
-	rm $(distdir)/TODO
+#dist-hook:
+#	rm $(distdir)/TODO
+
+distuninstallcheck:
+        @:
+
+#uninstall:
+#	@echo "make: uninstall target is not supported."

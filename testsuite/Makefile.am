@@ -6,4 +6,4 @@ SUBDIRS 	= unittests/catch sanitytests
 EXTRA_DIST	= $(SUBDIRS)
 
 install-data-hook:
-	@INSTALL_PROGRAM@ music_tests.sh $(DESTDIR)$(bindir)
+	@INSTALL_PROGRAM@ $(srcdir)/music_tests.sh $(DESTDIR)$(bindir)

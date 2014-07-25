@@ -33,6 +33,8 @@ Please set them manually.])
       fi
     fi
     LAUNCHSTYLE=_openmpi
+    TESTDIR=testsuite
+    EXTRAS=extras
     changequote([, ])
     ;;
   mpixlcxx_r)
@@ -80,7 +82,6 @@ Please set them manually.])
 
   *)
     SYSGUESS=unknown
-    LAUNCHSTYLE=
     ;;
 esac
 echo "SYSGUESS=$SYSGUESS"
@@ -244,12 +245,10 @@ AC_ARG_ENABLE(mpi,
 if test $MUSIC_USE_MPI = yes ; then 
   MUSIC_USE_MPI=1
   MPI_UTILS="eventsource eventsink eventselect eventgenerator eventcounter eventlogger contsink messagesource"
-  TESTDIR="testsuite"
   EXAMPLESDIR="examples"
 else
   MUSIC_USE_MPI=0
   MPI_UTILS=""
-  TESTDIR=""
   OPTIONAL_UTILS=""
   EXAMPLESDIR=""
 fi
@@ -312,9 +311,11 @@ AC_SUBST(MPI_UTILS)
 AC_SUBST(OPTIONAL_UTILS)
 AC_SUBST(TESTDIR)
 AC_SUBST(EXAMPLESDIR)
+AC_SUBST(EXTRAS)
 AC_SUBST(PKGDATADIR)
 AC_SUBST(PKGEXTRABINDIR)
 AC_SUBST(LAUNCHSTYLE)
+AM_CONDITIONAL([LAUNCHSTYLE_SET], [test ! -z "$LAUNCHSTYLE"])
 #AC_SUBST([TEST_SH_LIST])
 
 AC_CONFIG_FILES([
@@ -333,6 +334,7 @@ AC_CONFIG_FILES([
   music/Makefile
   music/predict_rank.py
   doc/Makefile
+  extras/Makefile
 ])
 
 AC_OUTPUT

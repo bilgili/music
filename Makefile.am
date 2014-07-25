@@ -1,4 +1,4 @@
-SUBDIRS = mpidep rudeconfig src utils @TESTDIR@ music doc @EXAMPLESDIR@
+SUBDIRS = mpidep rudeconfig src utils @TESTDIR@ @EXTRAS@ music doc @EXAMPLESDIR@
 
 debdir=../@PACKAGE_NAME@-@PACKAGE_VERSION@
 
@@ -16,6 +16,14 @@ EXTRA_DIST = BUGS
 
 #dist-hook:
 #	rm $(distdir)/TODO
+installcheck-local:
+if LAUNCHSTYLE_SET
+	/bin/sh $(DESTDIR)$(bindir)/music_tests.sh
+else
+	echo "checkinstall target is not supported. Try to reconfigure with other MPI package (i.e. CXX=mpiCC if supported)"
+endif
+
+
 
 distuninstallcheck:
         @:

@@ -20,7 +20,8 @@ installcheck-local:
 if LAUNCHSTYLE_SET
 	/bin/sh $(DESTDIR)$(bindir)/music_tests.sh
 else
-	echo "checkinstall target is not supported. Try to reconfigure with other MPI package (i.e. CXX=mpiCC if supported)"
+	@echo "checkinstall target is not supported for current MUSIC installation. Try to recompile MUSIC with other MPI implementation (i.e. ./configure CXX=mpiCC if supported)"
+	@exit 1
 endif
 
 

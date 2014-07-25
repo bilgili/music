@@ -6,8 +6,8 @@ testbindir = $(libdir)/@PACKAGE@-@PACKAGE_VERSION@
 testbin_PROGRAMS = clocksource constsource contdelay eventdelay \
 		multiport launchtest
 
-testshdir = $(datadir)/@PACKAGE@-@PACKAGE_VERSION@/tests
-dist_testsh_DATA = events.test chain.test run_test \
+#testshdir = $(datadir)/@PACKAGE@-@PACKAGE_VERSION@/tests
+#dist_testsh_DATA = events.test chain.test run_test \
 			divergence.test fork.test loop.test \
 			cloop.test const.test contclock.test \
 			launchtest.test messages.test \
@@ -41,3 +41,18 @@ launchtest_LDADD = $(top_builddir)/src/libmusic.la @MPI_LDFLAGS@
 
 
 MKDEP = gcc -M $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+EXTRA_DIST = events.test chain.test run_test \
+			divergence.test fork.test loop.test \
+			cloop.test const.test contclock.test \
+			launchtest.test messages.test \
+			multicomm.test multiport.test
+
+install-data-hook:
+	mkdir -p $(DESTDIR)@PKGDATADIR@/tests
+	@INSTALL_PROGRAM@ events.test chain.test run_test \
+			divergence.test fork.test loop.test \
+			cloop.test const.test contclock.test \
+			launchtest.test messages.test \
+			multicomm.test multiport.test \
+			  $(DESTDIR)@PKGDATADIR@/tests

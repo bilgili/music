@@ -12,13 +12,12 @@ usage ()
     fi
     
     cat <<EOF
-Usage: run_tests.sh [options ...]
+Usage: run_tests.sh [tests] [options ...]
 
 Options:
 
     --help              Print program options and exit
     --output-dir=/path  Output directory (default: ./reports)
-    --test-name=""      Names of the tests to run
 
 EOF
 
@@ -133,11 +132,12 @@ while test $# -gt 0 ; do
 	--output-dir=*)
 	    TEST_OUTDIR="$( echo "$1" | sed 's/^--output-dir=//' )"
 	    ;;
-	--test-name=*)
-	    TEST_NAME="$( echo "$1" | sed 's/^--test-name=//' )"
-	    ;;
+#	--test-name=*)
+#	    TEST_NAME="$( echo "$1" | sed 's/^--test-name=//' )"
+#	    ;;
 	*)
-	    usage 1 "$1"
+	    TEST_NAME="${TEST_NAME} $1"
+#	    usage 1 "$1"
 	    ;;
 	esac
         shift
@@ -193,7 +193,7 @@ echo >> "${TEST_LOGFILE}" "Running tests from ${TEST_BASEDIR}"
 CODES_SUCCESS=' 0 Success'
 CODES_FAILURE=\
 ' 1 Failed: missed assertion,'
-for test_prefix in test_ ; do
+for test_prefix in test_ launchtest ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}") ; do
 	if requestedTest "${test_name}" ; then
 	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"

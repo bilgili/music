@@ -32,7 +32,7 @@ Please set them manually.])
         changequote({, })
       fi
     fi
-    LAUNCHSTYLE=_openmpi
+    LAUNCHSTYLE=_mpirun
     TESTDIR=testsuite
     EXTRAS=extras
     changequote([, ])
@@ -78,6 +78,9 @@ Please set them manually.])
     SYSGUESS=bgq_seq
     CXX="$MPI_CXX"
     CC="$MPI_C"
+    LAUNCHSTYLE=_mpirun
+    TESTDIR=testsuite
+    EXTRAS=extras
     ;;
 
   *)

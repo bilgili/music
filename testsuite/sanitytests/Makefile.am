@@ -50,6 +50,7 @@ EXTRA_DIST = events.test chain.test run_test \
 
 install-data-hook:
 	mkdir -p $(DESTDIR)@PKGDATADIR@/tests
+	cd $(srcdir);\
 	@INSTALL_PROGRAM@ events.test chain.test run_test \
 			divergence.test fork.test loop.test \
 			cloop.test const.test contclock.test \

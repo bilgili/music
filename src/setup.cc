@@ -151,6 +151,7 @@ namespace MUSIC {
       }
   }
 
+
   bool
   Setup::getOption (int argc, char** argv, std::string option, std::string& result)
   {

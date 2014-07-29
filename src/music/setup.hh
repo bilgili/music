@@ -163,8 +163,6 @@ namespace MUSIC {
 
     bool getOption (int argc, char** argv, std::string option, std::string& result);
 
-
-
   };
   
 }

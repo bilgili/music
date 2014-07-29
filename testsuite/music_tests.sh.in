@@ -17,6 +17,7 @@ Usage: run_tests.sh [tests] [options ...]
 Options:
 
     --help              Print program options and exit
+    --showme-tests      Print test names and exit
     --output-dir=/path  Output directory (default: ./reports)
 
 EOF
@@ -50,6 +51,12 @@ requestedTest()
     else
 	return 1
     fi
+}
+
+list_test()
+{
+    TEST_TOTAL=$(( ${TEST_TOTAL} + 1 ))
+    echo "Test #${TEST_TOTAL} '${test_name}'"
 }
 
 run_test()
@@ -132,9 +139,9 @@ while test $# -gt 0 ; do
 	--output-dir=*)
 	    TEST_OUTDIR="$( echo "$1" | sed 's/^--output-dir=//' )"
 	    ;;
-#	--test-name=*)
-#	    TEST_NAME="$( echo "$1" | sed 's/^--test-name=//' )"
-#	    ;;
+	--showme-tests)
+	    EXEC=list_test
+	    ;;
 	*)
 	    TEST_NAME="${TEST_NAME} $1"
 #	    usage 1 "$1"
@@ -157,6 +164,7 @@ TIME_PARAM="-p"
 
 TEST_OUTDIR=${TEST_OUTDIR:-"$( pwd )/reports"}
 TEST_NAME=${TEST_NAME:-""}
+EXEC=${EXEC:-"run_test"}
 TEST_LOGFILE="${TEST_OUTDIR}/output.log"
 TEST_RETFILE="${TEST_OUTDIR}/output.ret"
 TEST_RUNFILE="${TEST_OUTDIR}/runtest.sh"
@@ -196,7 +204,7 @@ CODES_FAILURE=\
 for test_prefix in test_ launchtest ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep "${test_prefix}") ; do
 	if requestedTest "${test_name}" ; then
-	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	    "$EXEC" "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
 	fi
     done
 done
@@ -224,7 +232,7 @@ CODES_FAILURE=\
 for test_ext in test ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep ".*\.${test_ext}\$") ; do
 	if requestedTest "${test_name}"  ; then
-	    run_test "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
+	    "$EXEC" "${test_name}" "${CODES_SUCCESS}" "${CODES_FAILURE}"
 	fi
     done
 done

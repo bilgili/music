@@ -72,19 +72,19 @@ namespace MUSIC
 
 
     virtual void
-    initialize ()=0;
+    initialize (std::vector<Connector*>& connectors)=0;
 
 
     virtual bool
     tick (Clock& localTime)=0;
 
-
+#if 0
     virtual void
     preFinalize (std::set<int> &cnn_ports)
     {
     }
     ;
-
+#endif
 
     virtual void
     finalize (std::set<int> &cnn_ports) = 0;
@@ -139,7 +139,6 @@ namespace MUSIC
       }
       ;
 
-
       unsigned int
       multiId () const
       {
@@ -163,18 +162,22 @@ namespace MUSIC
 
     ~MulticommAgent ();
 
-    void initialize ();
+    void initialize (std::vector<Connector*>& connectors);
 
+#if 0
     void
     createMultiConnectors (Clock& localTime, MPI::Intracomm comm, int leader,
         std::vector<Connector*>& connectors);
 
+
     bool create (Clock& localTime);
+#endif
 
     bool tick (Clock& localTime);
 
+#if 0
     void preFinalize (std::set<int> &cnn_ports);
-
+#endif
     void finalize (std::set<int> &cnn_ports);
 
   private:
@@ -236,7 +239,7 @@ namespace MUSIC
 
 
     void
-    initialize ()
+    initialize (std::vector<Connector*>& connectors)
     {
     }
     ;
@@ -267,7 +270,7 @@ namespace MUSIC
 
 
     void
-    initialize ()
+    initialize (std::vector<Connector*>& connectors)
     {
     }
 

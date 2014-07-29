@@ -36,10 +36,11 @@
 namespace MUSIC
 {
 
-  Scheduler::Scheduler () :
+  Scheduler::Scheduler (MPI::Intracomm comm, int leader) :
       nodes (NULL), appl_data_ (NULL), conn_data_ (NULL)
   {
-
+    comm_ = comm;
+    leader_ = leader;
   }
 
 
@@ -73,14 +74,18 @@ namespace MUSIC
 
     pushForward ();
 
+    std::vector<SchedulerAgent *>::iterator agent;
+    for (agent = agents_.begin(); agent != agents_.end(); agent++)
+      (*agent)->initialize(connectors);
+
     initializeAgentState ();
+
   }
 
 
   void
   Scheduler::setAgent (SchedulerAgent* agent)
   {
-    agent->initialize ();
     agents_.push_back (agent);
   }
 
@@ -447,7 +452,8 @@ namespace MUSIC
   Scheduler::tick (Clock& localTime)
   {
     // tick is done when at least one of the agent will schedule the future communication
-    //this algorithm is based on the fact that nextSConnection return strictly time ordered SConnections
+    // next tick will start from the last successful agent
+    // this algorithm is based on temporally ordered SConnections
     bool done = false;
 
     for (; !done; cur_agent_++)
@@ -467,15 +473,21 @@ namespace MUSIC
     /* remedius
      * set of receiver port codes that still has to be finalized
      */
+
     std::set<int> cnn_ports;
     for (std::vector<Connector*>::iterator c = connectors.begin ();
         c != connectors.end (); ++c)
+#if 0
       if (! (*c)->needsMultiCommunication ())
-        cnn_ports.insert ( (*c)->receiverPortCode ());
-
+#endif
+        {
+          cnn_ports.insert ( (*c)->receiverPortCode ());
+        }
+#if 0
     for (std::vector<SchedulerAgent*>::iterator a = agents_.begin ();
         a != agents_.end (); ++a)
       (*a)->preFinalize (cnn_ports);
+#endif
 
     for (; !cnn_ports.empty (); cur_agent_++)
       {

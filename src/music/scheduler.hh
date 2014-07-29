@@ -127,9 +127,11 @@ namespace MUSIC
     SConnData *conn_data_;
 
     int color_;
+    int leader_;
+    MPI::Intracomm comm_;
   public:
 
-    Scheduler ();
+    Scheduler (MPI::Intracomm comm, int leader);
     ~Scheduler ();
 
     void initialize (TemporalNegotiatorGraph *appl_graph,
@@ -198,6 +200,17 @@ namespace MUSIC
       return last_sconn_;
     }
 
+    int
+    getLeader ()
+    {
+      return leader_;
+    }
+
+    MPI::Intracomm
+    comm ()
+    {
+      return comm_;
+    }
   private:
 
     void reset ();

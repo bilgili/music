@@ -67,7 +67,7 @@ namespace MUSIC
 
     Connections* connections = s->connections ();
 
-    scheduler = new Scheduler ();
+    scheduler = new Scheduler (comm, leader_);
     if (s->launchedByMusic ())
       {
         takeTickingPorts (s);
@@ -88,14 +88,17 @@ namespace MUSIC
         takePostCommunicators ();
         // negotiate timing constraints for synchronizers
         temporalNegotiation (s, connections);
-
-	if (needsMultiCommunication ())
-	  {
-	    sAgents.push_back (mAgent = new MulticommAgent (scheduler));
-	    scheduler->setAgent (mAgent);
-	  }
-	sAgents.push_back (new UnicommAgent (scheduler));
-	scheduler->setAgent (sAgents[sAgents.size () - 1]);
+#if 0
+        if (needsMultiCommunication ())
+          {
+#endif
+        sAgents.push_back (mAgent = new MulticommAgent (scheduler));
+        scheduler->setAgent (mAgent);
+#if 0
+      }
+#endif
+        sAgents.push_back (new UnicommAgent (scheduler));
+        scheduler->setAgent (sAgents[sAgents.size () - 1]);
 
         // final initialization before simulation starts
         initialize (s);
@@ -288,8 +291,10 @@ namespace MUSIC
   {
     scheduler->initialize (s->temporalNegotiator ()->applicationGraph (),
         connectors);
+#if 0
     if (mAgent)
-      mAgent->createMultiConnectors (localTime, comm, leader_, connectors);
+      mAgent->initialize (localTime, comm, leader_, connectors);
+#endif
     // scheduler->nextCommunication (localTime, schedule);
     scheduler->tick (localTime);
     // compensate for first localTime.tick () in Runtime::tick ()

@@ -24,7 +24,10 @@ namespace MUSIC
   MulticommAgent::MulticommAgent (Scheduler *scheduler) :
       SchedulerAgent (scheduler)
   {
-
+    multiProxies = NULL;
+    multiBuffer_ = NULL;
+    filter1 = NULL;
+    filter2 = NULL;
   }
 
 
@@ -103,20 +106,38 @@ namespace MUSIC
         ++connector)
       if (*connector != NULL)
         delete *connector;
-    delete multiBuffer_;
-    delete filter1;
-    delete filter2;
+    if (multiProxies != NULL)
+      delete multiProxies;
+    if (multiBuffer_ != NULL)
+      delete multiBuffer_;
+    if (filter1 != NULL)
+      delete filter1;
+    if (filter2 != NULL)
+      delete filter2;
   }
+
 
 
   void
-  MulticommAgent::initialize ()
+  MulticommAgent::initialize (std::vector<Connector*>& connectors)
   {
     filter1 = new Filter1 (*this);
     filter2 = new Filter2 (*this);
+    multiBuffer_ = new MultiBuffer (scheduler_->comm(), scheduler_->getLeader(), connectors);
+    //contains the multiconnectors which were created (I'm included)
+    multiConnectors.resize (Connector::idRange ());
+    //denotes multiIds which were created (I'm not included)
+    multiProxies = new std::vector<bool>;
+    multiProxies->resize (Connector::proxyIdRange ());
+    for (unsigned int i = 0; i < Connector::idRange (); ++i)
+      multiConnectors[i] = NULL;
+    for (unsigned int i = 0; i < Connector::proxyIdRange (); ++i)
+      (*multiProxies)[i] = false;
+
   }
 
 
+#if 0
   void
   MulticommAgent::createMultiConnectors (Clock& localTime, MPI::Intracomm comm,
       int leader, std::vector<Connector*>& connectors)
@@ -155,6 +176,7 @@ namespace MUSIC
     delete multiProxies;
   }
 
+#endif
 
   std::vector<Connector*>
   MulticommAgent::connectorsFromMultiId (unsigned int multiId)
@@ -169,7 +191,7 @@ namespace MUSIC
     return connectors;
   }
 
-
+#if 0
   bool
   MulticommAgent::create (MUSIC::Clock &localTime)
   {
@@ -212,28 +234,41 @@ namespace MUSIC
     return !schedule.empty ();
   }
 
+#endif
 
   bool
   MulticommAgent::tick (MUSIC::Clock &localTime)
   {
-
     std::vector<MultiCommObject>::iterator comm;
     bool continue_;
     do
       {
         continue_ = fillSchedule ();
         for (comm = schedule.begin ();
-            comm != schedule.end () && (*comm).time <= localTime;
-            ++comm)
+            comm != schedule.end () && (*comm).time <= localTime; ++comm)
           {
-
             unsigned int multiId = (*comm).multiId ();
-            if (multiId != 0)
+            unsigned int proxyId = (*comm).proxyId ();
+            // if we participate in the multicommunication but the multiconnector was not yet created
+            if (multiId != 0 && multiConnectors[multiId] == NULL)
+              {
+                std::vector<Connector*> connectors = connectorsFromMultiId (
+                    multiId);
+                multiConnectors[multiId] = new MultiConnector (multiBuffer_,
+                    connectors);
+
+              }// if we do not participate in the multicommunication and the multiconnector was not yet created
+            else if (multiId == 0 && !((*multiProxies)[proxyId]))
+              {
+                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+                MPI::COMM_WORLD.Barrier ();
+                (*multiProxies)[proxyId] = true;
+              }
+
+            if ( multiId != 0)
               {
                 assert (multiConnectors[multiId] != NULL);
-
                 multiConnectors[multiId]->tick ();
-
               }
           }
         schedule.erase (schedule.begin (), comm);
@@ -246,6 +281,10 @@ namespace MUSIC
   }
 
 
+  // *schedule object can be either non empty or empty
+  // if it's empty it will be filled with collective connectors if appropriate
+  // if it's non empty, it contains collective connectors filled in before
+  // *last_sconn can be either p2p or collective connector
   bool
   MulticommAgent::fillSchedule ()
   {
@@ -258,8 +297,10 @@ namespace MUSIC
     SConnectionPV nextSConnections;
     do
       {
+#if 0
         if (last_sconn.data ().isLoopConnected
             || scheduler_->isLocalConnection (last_sconn))
+#endif
           nextSConnections.push_back (
               std::make_pair (last_sconn, last_sconn.data ()));
 
@@ -280,8 +321,6 @@ namespace MUSIC
   void
   MulticommAgent::NextMultiConnection (SConnectionPV &candidates)
   {
-
-
     time_ = candidates[0].second.nextReceive;
     // std::map<int, Clock> prevCommTime;
     SConnectionPV::iterator iter_bound = candidates.begin ();
@@ -328,10 +367,10 @@ namespace MUSIC
           multiId |= (*it).second.connector->idFlag ();
         MUSIC_LOGR ("("<< (*it).preNode ()->getId () <<" -> "<< (*it).postNode ()->getId () << ") at " << (*it).nextSend().time () << " -> "<< (*it).nextReceive ().time ());
       }
-    schedule.push_back (MultiCommObject (time, multiId, proxyId));
+    schedule.push_back (MultiCommObject (time,  multiId , proxyId));
   }
 
-
+#if 0
   void
   MulticommAgent::preFinalize (std::set<int> &cnn_ports)
   {
@@ -340,12 +379,11 @@ namespace MUSIC
       if (*m != NULL)
         cnn_ports.insert ( (*m)->connectorCode ());
   }
-
+#endif
 
   void
   MulticommAgent::finalize (std::set<int> &cnn_ports)
   {
-
     std::vector<MultiCommObject>::iterator comm;
     bool continue_;
     do
@@ -355,15 +393,42 @@ namespace MUSIC
             comm != schedule.end () && !cnn_ports.empty (); ++comm)
           {
             unsigned int multiId = (*comm).multiId ();
+            unsigned int proxyId = (*comm).proxyId ();
+            // if we participate in the multicommunication but the multiconnector was not yet created
+            if (multiId != 0 && multiConnectors[multiId] == NULL)
+              {
+                std::vector<Connector*> connectors = connectorsFromMultiId (
+                    multiId);
+                multiConnectors[multiId] = new MultiConnector (multiBuffer_,
+                    connectors);
+              } // if we do not participate in the multicommunication and the multiconnector was not yet created
+            else if (multiId == 0 && ! ( (*multiProxies)[proxyId]))
+              {
+
+                MPI::COMM_WORLD.Create (MPI::GROUP_EMPTY);
+                MPI::COMM_WORLD.Barrier ();
+                (*multiProxies)[proxyId] = true;
+
+              }
             if (multiId != 0)
               {
                 MultiConnector* m = multiConnectors[multiId];
+#if 0
                 if (cnn_ports.find (m->connectorCode ()) == cnn_ports.end ())
                   continue;
+#endif
                 if (m->isFinalized ())
                 // an output port was finalized in tick ()
                   {
+#if 0
                     cnn_ports.erase (m->connectorCode ());
+#endif
+                    std::vector<Connector*> conns = connectorsFromMultiId (multiId);
+                    std::vector<Connector *>::iterator it;
+                    for(it = conns.begin(); it != conns.end(); ++it)
+                      cnn_ports.erase ((*it)->receiverPortCode());
+                    continue;
+#if 0
                     // Sometimes the scheduler fails to generate all
                     // multiConnectors during finalization.  Here, we
                     // weed out multiConnectors that were finalized as
@@ -376,10 +441,12 @@ namespace MUSIC
                               != cnn_ports.end ()) && (*m)->isFinalized ())
                         cnn_ports.erase ( (*m)->connectorCode ());
                     continue;
+#endif
                   }
                 // finalize () needs to come after isFinalized check
                 // since it can itself set finalized state
                 m->finalize ();
+
                 m->tick ();
               }
           }
@@ -395,6 +462,10 @@ namespace MUSIC
   }
 
 
+  // *schedule object can be either non empty or empty
+  // if it's empty it will be filled with p2p connector if appropriate
+  // if it's non empty, it contains p2p connectors filled in before
+  // *last_sconn can be either p2p or collective connector
   bool
   UnicommAgent::fillSchedule ()
   {

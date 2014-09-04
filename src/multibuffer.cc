@@ -895,13 +895,13 @@ namespace MUSIC {
 	recvcounts_[rank ()] = recvc;
 	comm_.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			 recvcounts_, 1, MPI::INT);
-	checkRestructure ();
-	fillBuffers ();
-#ifdef MUSIC_DEBUG
-	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
-#endif
+	checkRestructure (); // sets doAllgather_
 	if (doAllgather_)
 	  {
+	    fillBuffers ();
+#ifdef MUSIC_DEBUG
+	    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
+#endif
 	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			      buffer_, recvcounts_, displs_, MPI::BYTE);
 	    processReceived ();

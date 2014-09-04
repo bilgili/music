@@ -19,6 +19,7 @@
 #ifndef MUSIC_MULTIBUFFER_HH
 
 #define MUSIC_TWOSTAGE_ALLGATHER
+#define MUSIC_ZERO_DISPLACEMENTS
 
 #include "music/music-config.hh"
 
@@ -325,6 +326,9 @@ namespace MUSIC {
     std::string id_; // used for debugging
     int* recvcounts_;
     int* displs_;
+#ifdef MUSIC_ZERO_DISPLACEMENTS
+    int* zdispls_;
+#endif
     bool recvcountInvalid_;
     bool restructuring_;
     //int rank_;

@@ -336,6 +336,7 @@ namespace MUSIC {
 #ifdef MUSIC_TWOSTAGE_ALLGATHER
     static const int TWOSTAGE_FINALIZE_FLAG = MultiBuffer::TWOSTAGE_FINALIZE_FLAG;
     bool twostage_;
+    bool doAllgather_;
 #endif
 
     bool writeSizes ();

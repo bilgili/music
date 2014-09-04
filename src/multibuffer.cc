@@ -804,12 +804,15 @@ namespace MUSIC {
   MultiConnector::checkRestructure ()
   {
     bool dataFits = true;
+    doAllgather_ = false;
     int r = 0;
     for (BlockPtrs::iterator b = block_.begin ();
 	 b != block_.end ();
 	 ++r, ++b)
       {
 	int size = recvcounts_[r];
+	if (size)
+	  doAllgather_ = true;
 	if (size & TWOSTAGE_FINALIZE_FLAG)
 	  {
 	    block_[r]->setFinalizeFlag (buffer_);
@@ -897,9 +900,12 @@ namespace MUSIC {
 #ifdef MUSIC_DEBUG
 	dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-	comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			  buffer_, recvcounts_, displs_, MPI::BYTE);
-	processReceived ();
+	if (doAllgather_)
+	  {
+	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
+			      buffer_, recvcounts_, displs_, MPI::BYTE);
+	    processReceived ();
+	  }
       }
     else
 #endif

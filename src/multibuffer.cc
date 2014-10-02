@@ -649,11 +649,6 @@ namespace MUSIC {
 
     recvcounts_ = new int[size ()];
     displs_ = new int[size ()];
-#ifdef MUSIC_ZERO_DISPLACEMENTS
-    zdispls_ = new int[size ()];
-    for (int r = 0; r < size (); ++r)
-      zdispls_[r] = 0;
-#endif
 
     blank_ = new bool[size ()];
     int i = 0;
@@ -816,15 +811,13 @@ namespace MUSIC {
 	 ++r, ++b)
       {
 	int size = recvcounts_[r];
+	if (size)
+	  doAllgather_ = true;
 	if (size & TWOSTAGE_FINALIZE_FLAG)
 	  {
-	    if (size & ~TWOSTAGE_FINALIZE_FLAG)
-	      doAllgather_ = true;
 	    block_[r]->setFinalizeFlag (buffer_);
 	    recvcounts_[r] &= ~TWOSTAGE_FINALIZE_FLAG;
 	  }
-	else if (size)
-	  doAllgather_ = true;	  
 	BufferInfoPtrs::iterator bipi = (*b)->begin ();
 	if (bipi != (*b)->end ())
 	  {
@@ -903,23 +896,14 @@ namespace MUSIC {
 	comm_.Allgather (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			 recvcounts_, 1, MPI::INT);
 	checkRestructure (); // sets doAllgather_
-#ifndef MUSIC_ZERO_DISPLACEMENTS
 	if (doAllgather_)
-#endif
 	  {
 	    fillBuffers ();
 #ifdef MUSIC_DEBUG
 	    dumprecvc (id_, recvcounts_, displs_, comm_.Get_size ());
 #endif
-#ifdef MUSIC_ZERO_DISPLACEMENTS
-	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
-			      buffer_, recvcounts_,
-			      doAllgather_ ? displs_ : zdispls_,
-			      MPI::BYTE);
-#else
 	    comm_.Allgatherv (MPI::IN_PLACE, 0, MPI::DATATYPE_NULL,
 			      buffer_, recvcounts_, displs_, MPI::BYTE);
-#endif
 	    processReceived ();
 	  }
       }

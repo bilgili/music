@@ -1,3 +1,4 @@
+from mpi4py.libmpi cimport *
 from mpi4py.MPI cimport *
 
 ctypedef object wrapIntracomm_func (MPI_Comm comm)

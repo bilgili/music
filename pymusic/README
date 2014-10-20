@@ -2,5 +2,5 @@
 2. python setup.py build_ext --inplace
 3. Edit paths and libraries in Makefile
 4. make
-5. mpirun -np 4 helloworld.music
+5. mpirun -np 4 music helloworld.music
 

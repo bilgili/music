@@ -228,7 +228,8 @@ export MUSIC_BINARY
 CODES_SUCCESS=' 0 Success'
 CODES_FAILURE=\
 ' 2 Failed: error in tested code block,'\
-' 10 Failed: unknown error,'
+' 10 Failed: unknown error,'\
+' 15 Failed: timeout,'
 for test_ext in test ; do
     for test_name in $(ls "${TEST_BASEDIR}" | grep ".*\.${test_ext}\$") ; do
 	if requestedTest "${test_name}"  ; then

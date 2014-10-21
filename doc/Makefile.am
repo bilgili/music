@@ -59,4 +59,5 @@ $(figures): figures/%.pdf : figures/%.asy
 	asy -f pdf -o $@ $<
 
 $(linked_mans):
+	cd $(srcdir)
 	ln eventcounter.1 $@

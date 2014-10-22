@@ -177,33 +177,21 @@ run_test()
     chmod 755 "${TEST_RUNFILE}"
     
     time_dirty="$( /bin/sh -c "time ${TIME_PARAM} '${TEST_RUNFILE}' " 2>&1 )"
-
 #    rm -f "${TEST_RUNFILE}"
+
+    TIME_ELAPSED="$( echo "${time_dirty}" | awk 'NR == 1 { print $2 ; }' )"
+    TIME_TOTAL="$( awk "BEGIN { print (${TIME_TOTAL} + ${TIME_ELAPSED}) ; }" )"
 
     echo ++++++++++++++
     echo $PWD
     echo ++++++++++++++
-    echo $TEST_TMPDIR
-    echo ++++++++++++++
-    ls $TEST_TMPDIR
-    echo ++++++++++++++
-    echo "${TEST_RETFILE}"
+    echo "TEST_RETFILE: ${TEST_RETFILE}"
+    echo "TEST_OUTFILE: ${TEST_OUTFILE}"
+    echo "TEST_LOGFILE: ${TEST_LOGFILE}"
     echo ++++++++++++++
     ls $( dirname "${TEST_RETFILE}")
     echo ++++++++++++++
-    ls $( dirname dirname "${TEST_RETFILE}")
-    echo ++++++++++++++
-    echo "${TEST_OUTFILE}"
-    echo ++++++++++++++
-    ls $( dirname "${TEST_OUTFILE}")
-    echo ++++++++++++++
-    ls $( dirname dirname "${TEST_OUTFILE}")
-    echo ++++++++++++++
-    echo "${TEST_LOGFILE}"
-    echo ++++++++++++++
-    ls $( dirname "${TEST_LOGFILE}")
-    echo ++++++++++++++
-    ls $( dirname dirname "${TEST_LOGFILE}")
+    cat ${TEST_RUNFILE}
     echo ++++++++++++++
 
     exit_code="$(cat "${TEST_RETFILE}")"

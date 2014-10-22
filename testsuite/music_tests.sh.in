@@ -180,6 +180,20 @@ run_test()
 
     rm -f "${TEST_RUNFILE}"
 
+    echo $PWD
+
+    echo "${TEST_RETFILE}"
+    ls $( dirname "${TEST_RETFILE}")
+    ls $( dirname dirname "${TEST_RETFILE}")
+
+    echo "${TEST_OUTFILE}"
+    ls $( dirname "${TEST_OUTFILE}")
+    ls $( dirname dirname "${TEST_OUTFILE}")
+
+    echo "${TEST_LOGFILE}"
+    ls $( dirname "${TEST_LOGFILE}")
+    ls $( dirname dirname "${TEST_LOGFILE}")
+
     exit_code="$(cat "${TEST_RETFILE}")"
     
     sed 's/^/   > /g' "${TEST_OUTFILE}" >> "${TEST_LOGFILE}"

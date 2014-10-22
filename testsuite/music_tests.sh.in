@@ -180,19 +180,31 @@ run_test()
 
 #    rm -f "${TEST_RUNFILE}"
 
+    echo ++++++++++++++
     echo $PWD
-
+    echo ++++++++++++++
+    echo $TEST_TMPDIR
+    echo ++++++++++++++
+    ls $TEST_TMPDIR
+    echo ++++++++++++++
     echo "${TEST_RETFILE}"
+    echo ++++++++++++++
     ls $( dirname "${TEST_RETFILE}")
+    echo ++++++++++++++
     ls $( dirname dirname "${TEST_RETFILE}")
-
+    echo ++++++++++++++
     echo "${TEST_OUTFILE}"
+    echo ++++++++++++++
     ls $( dirname "${TEST_OUTFILE}")
+    echo ++++++++++++++
     ls $( dirname dirname "${TEST_OUTFILE}")
-
+    echo ++++++++++++++
     echo "${TEST_LOGFILE}"
+    echo ++++++++++++++
     ls $( dirname "${TEST_LOGFILE}")
+    echo ++++++++++++++
     ls $( dirname dirname "${TEST_LOGFILE}")
+    echo ++++++++++++++
 
     exit_code="$(cat "${TEST_RETFILE}")"
     

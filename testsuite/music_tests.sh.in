@@ -269,7 +269,7 @@ INFO_VER="$(uname -r)"
 
 
 TIME_PARAM="-p"
-/bin/sh -c "time ${TIMEPARAM} uname" >/dev/null 2>&1 || TIME_PARAM=""
+/bin/sh -c "time ${TIME_PARAM} uname" >/dev/null 2>&1 || TIME_PARAM=""
 
 TEST_OUTDIR=${TEST_OUTDIR:-"$( pwd )/reports"}
 TEST_NAME=${TEST_NAME:-""}

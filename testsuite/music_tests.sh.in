@@ -35,7 +35,7 @@ ask_results ()
     echo "***     - '${TEST_OUTDIR}'"
     echo "***     - '${TEST_TMPDIR}'"
     echo "***"
-    echo "*** to the mikael@djurfeldt.com."
+    echo "*** to mikael@djurfeldt.com."
     echo "***"
     echo
 }

@@ -178,7 +178,7 @@ run_test()
     
     time_dirty="$( /bin/sh -c "time ${TIME_PARAM} '${TEST_RUNFILE}' " 2>&1 )"
 
-    rm -f "${TEST_RUNFILE}"
+#    rm -f "${TEST_RUNFILE}"
 
     echo $PWD
 

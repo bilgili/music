@@ -5,7 +5,6 @@
 # Compatible with Python >= 2.6, Cython
 # Not PYPY apparently
 
-import cython
 from libc.stdlib cimport malloc, free
 
 from mpi4py import MPI

@@ -6,7 +6,7 @@ BUILT_SOURCES = pymusic.cpp pybuffer.cpp
 pybuffer.cpp: pybuffer.pyx pybuffer.pxd
 	cd $(top_srcdir)/pymusic; $(PYTHON) -c \
 	"from Cython.Build import cythonize; \
-	cythonize('pybuffer.pyx', verbose=1, aliases)"
+	cythonize('pybuffer.pyx', verbose=1)"
 
 pymusic.cpp: pymusic.pyx pymusic.pxd
 	cd $(top_srcdir)/pymusic; $(PYTHON) -c \

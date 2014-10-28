@@ -2,7 +2,6 @@
 # distutils: language = c++
 #
 
-import cython
 from libc.stdlib cimport malloc, free
 
 import mpi4py.MPI as MPI

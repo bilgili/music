@@ -299,6 +299,58 @@ fi
 
 #TEST_SH_LIST=${srcdir}/*.test
 
+AC_ARG_WITH([python],
+    [AS_HELP_STRING([--without-python], [ignore the presence of Python and disable PyMUSIC])])
+
+AS_IF([test "x$with_python" != "xno"],
+      [AM_PATH_PYTHON([2.6], [have_python=yes], [have_python=no])],
+      [have_python=no])
+
+AS_IF([test "x$have_python" = "xyes"], [
+    PYTHON_INC=`$PYTHON -c 'import sys; from distutils import sysconfig; sys.stdout.write(sysconfig.get_python_inc())'`
+    AC_CHECK_FILE(["${PYTHON_INC}/Python.h"], 
+    		  [PYMUSIC_CPPFLAGS="-I${PYTHON_INC}"; PYBUFFER_CPPFLAGS="-I${PYTHON_INC}"],
+                  [have_python=no])
+])
+
+AC_MSG_CHECKING([whether to build PyMUSIC])
+AS_IF([test "x$have_python" = "xyes"], [],
+      [AS_IF([test "x$with_python" = "xyes"],
+             [AC_MSG_ERROR([PyMUSIC requested, but Python not found])])])
+AC_MSG_RESULT([$have_python])
+
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
+                      [PYMUSIC_CXXFLAGS="-fno-strict-aliasing"; PYBUFFER_CXXFLAGS="-fno-strict-aliasing"],
+		      [])
+
+# FIXME: this means that --without-python make will not recurse into pymusic subdir
+if test "x$have_python" = "xyes"; then
+    PYMUSIC_SUBDIR="pymusic"
+else
+    PYMUSIC_SUBDIR=""
+fi
+
+AM_CONDITIONAL([HAVE_PYTHON], [test "x$have_python" = "xyes"])
+
+# if Python is found, configure and compile PyMUSIC
+if test "x$have_python" = "xyes" ; then
+ AC_CONFIG_FILES(pymusic/Makefile)
+ AC_CONFIG_FILES(pymusic/setup.py)
+fi
+
+
+AC_SUBST([HAVE_PYTHON])
+AC_SUBST([PYMUSIC_SUBDIR])
+AC_SUBST([PYEXECDIR], ${pyexecdir})
+
+AC_SUBST([PYTHON])
+AC_SUBST([PYTHON_VERSION])
+
+AC_SUBST([PYMUSIC_CPPFLAGS])
+AC_SUBST([PYMUSIC_CXXFLAGS])
+AC_SUBST([PYBUFFER_CPPFLAGS])
+AC_SUBST([PYBUFFER_CXXFLAGS])
+
 AC_SUBST(MPI_CXXFLAGS)
 AC_SUBST(MPI_CFLAGS)
 AC_SUBST(MPI_LDFLAGS)
@@ -315,6 +367,7 @@ AC_SUBST(EXTRAS)
 AC_SUBST(PKGDATADIR)
 AC_SUBST(PKGEXTRABINDIR)
 AC_SUBST(LAUNCHSTYLE)
+
 AM_CONDITIONAL([LAUNCHSTYLE_SET], [test ! -z "$LAUNCHSTYLE"])
 #AC_SUBST([TEST_SH_LIST])
 

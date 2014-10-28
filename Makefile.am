@@ -1,4 +1,4 @@
-SUBDIRS = mpidep rudeconfig src utils @TESTDIR@ @EXTRAS@ music doc @EXAMPLESDIR@
+SUBDIRS = mpidep rudeconfig src utils @TESTDIR@ @EXTRAS@ music doc @EXAMPLESDIR@ @PYMUSIC_SUBDIR@
 
 debdir=../@PACKAGE_NAME@-@PACKAGE_VERSION@
 

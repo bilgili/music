@@ -94,7 +94,7 @@ namespace MUSIC {
 			  Index::Type type,
 			  int maxBuffered,
 			  int dataSize);
-
+    friend class Implementer;
   };
 
   class InputPort :   public  virtual Port {
@@ -105,6 +105,7 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered,
 		  bool interpolate);
+    friend class Implementer;
   };
 
   class ContPort :  public virtual Port {
@@ -118,6 +119,8 @@ namespace MUSIC {
 			 public TickingPort {
     void mapImpl (DataMap* indices, int maxBuffered);
     Connector* makeConnector (ConnectorInfo connInfo);
+    friend class Implementer;
+
   public:
     ContOutputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -133,6 +136,8 @@ namespace MUSIC {
 		  int maxBuffered,
 		  bool interpolate);
     Connector* makeConnector (ConnectorInfo connInfo);
+    friend class Implementer;
+
   public:
     ContInputPort (Setup* s, std::string id)
       : Port (s, id) { }
@@ -160,6 +165,12 @@ namespace MUSIC {
     void insertEvent (double t, GlobalIndex id);
     void insertEvent (double t, LocalIndex id);
     EventOutputPort (Setup* s, std::string id);
+
+    void mapImplH (IndexMap* indices,
+		  Index::Type type,
+		  int maxBuffered);
+    void insertEventImpl (double t, int id);
+
   private:
     void setupCleanup () { };
   public: // MDJ 2012-08-07 public for now---see comment in runtime.cc
@@ -169,6 +180,7 @@ namespace MUSIC {
     Connector* makeConnector (ConnectorInfo connInfo);
     void buildTable ();
     friend class Setup;
+    friend class Implementer;
   };
 /* remedius
  * EventInputPort constructor was hided from the user.
@@ -217,6 +229,7 @@ namespace MUSIC {
     EventHandlerLocalIndexProxy cEventHandlerLocalIndex;
 
     friend class Setup;
+    friend class Implementer;
   };
 
 
@@ -238,6 +251,7 @@ namespace MUSIC {
   protected:
     void mapImpl (int maxBuffered);
     Connector* makeConnector (ConnectorInfo connInfo);
+    friend class Implementer;
   };
 
   class MessageInputPort : public MessagePort,
@@ -255,12 +269,15 @@ namespace MUSIC {
 		  double accLatency,
 		  int maxBuffered);
     Connector* makeConnector (ConnectorInfo connInfo);
+    friend class Implementer;
+
   public:
     MessageHandlerProxy*
     allocMessageHandlerProxy (void (*) (double, void*, size_t));
   private:
     MessageHandlerProxy cMessageHandler;
   };
+
 
 }
 #endif

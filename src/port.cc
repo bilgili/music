@@ -414,13 +414,19 @@ namespace MUSIC {
      delete router;
  }
   
+  void 
+  EventOutputPort::mapImplH (IndexMap* indices,
+			    Index::Type type,
+			    int maxBuffered)
+  {
+    mapImpl (indices, type, maxBuffered, (int) sizeof (Event));
+  }
 
   void
   EventOutputPort::map (IndexMap* indices, Index::Type type)
   {
     assertOutput ();
-    int maxBuffered = MAX_BUFFERED_NO_VALUE;
-    mapImpl (indices, type, maxBuffered, sizeof (Event));
+    mapImplH (indices, type, MAX_BUFFERED_NO_VALUE);
   }
 
   
@@ -434,7 +440,7 @@ namespace MUSIC {
       {
 	error ("EventOutputPort::map: maxBuffered should be a positive integer");
       }
-    mapImpl (indices, type, maxBuffered, sizeof (Event));
+    mapImplH (indices, type, maxBuffered);
   }
 
   
@@ -462,18 +468,23 @@ namespace MUSIC {
   
   
   void
-  EventOutputPort::insertEvent (double t, GlobalIndex id)
+  EventOutputPort::insertEventImpl (double t, int id)
   {
     router->processEvent(t, id);
+  }
+
+  void
+  EventOutputPort::insertEvent (double t, GlobalIndex id)
+  {
+    insertEventImpl(t, id);
   }
 
   
   void
   EventOutputPort::insertEvent (double t, LocalIndex id)
   {
-    router->processEvent (t, id);
+    insertEventImpl(t, id);
   }
-
 
   void
   EventOutputPort::buildTable ()

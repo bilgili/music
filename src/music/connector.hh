@@ -60,7 +60,7 @@ namespace MUSIC {
 	       MPI::Intracomm c,
 	       MPI::Intercomm ic);
     virtual ~Connector () { }
-    virtual Connector* specialize (Clock& localTime) { return this; }
+    virtual Connector* specialize (Clock& /* localTime */) { return this; }
 
     std::string receiverAppName () const { return info.receiverAppName (); }
     std::string receiverPortName () const { return info.receiverPortName (); }
@@ -73,8 +73,8 @@ namespace MUSIC {
     void createIntercomm ();
     void freeIntercomm ();
     virtual void
-    spatialNegotiation (std::vector<OutputSubconnector*>& osubconn,
-			std::vector<InputSubconnector*>& isubconn) { }
+    spatialNegotiation (std::vector<OutputSubconnector*>& /* osubconn */,
+			std::vector<InputSubconnector*>& /* isubconn */) { }
     virtual void initialize () = 0;
     virtual void prepareForSimulation () { }
     virtual void tick (bool& requestCommunication) = 0;

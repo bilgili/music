@@ -42,7 +42,7 @@ SourceDest::SourceDest(const char *srcApp, const char *srcObj, const char *destA
 	d_comment = comment ? comment : "";
 }
 
-void SourceDest::acceptWriter(AbstractWriter& writer) const
+void SourceDest::acceptWriter(AbstractWriter&) const
 {
   std::cout << "writer.visitSourceDest not implemented yet!";
   std::cout << "\nsrcApp: \"" << d_srcApp << "\", srcObj: \"" << d_srcObj << "\"";

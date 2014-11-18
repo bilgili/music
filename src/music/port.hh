@@ -40,6 +40,7 @@ namespace MUSIC {
   public:
     Port () { }
     Port (Setup* s, std::string identifier);
+    virtual ~Port() { }
     virtual void buildTable () { };
     virtual void setupCleanup () { };
     bool isConnected ();

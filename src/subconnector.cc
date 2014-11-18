@@ -256,7 +256,9 @@ namespace MUSIC {
     if (synch->communicate ())
       send ();
     else
+    {
       MUSIC_LOGRE ("will not send");
+    }
   }
 
 

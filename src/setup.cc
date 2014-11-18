@@ -65,7 +65,7 @@ namespace MUSIC {
 
 
   void
-  Setup::init (int& argc, char**& argv)
+  Setup::init (int&, char**&)
   {
     int myRank = MPI::COMM_WORLD.Get_rank ();
     config_ = new Configuration ();

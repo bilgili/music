@@ -592,7 +592,7 @@ int ConfigImpl::getNumDataMembers(const char *key) const
 	}
 }
 
-const char * ConfigImpl::getStringValue(const char *name, int index) const
+const char * ConfigImpl::getStringValue(const char *name, int) const
 {
 	return d_file->getStringValue(name);
 }
@@ -602,7 +602,7 @@ void ConfigImpl::addStringValue(const char *name, const char *value)
 	d_file->setStringValue(name, value);
 }
 
-bool ConfigImpl::deleteData(const char *name, int index)
+bool ConfigImpl::deleteData(const char *name, int)
 {
 	return d_file->deleteData(name);
 }

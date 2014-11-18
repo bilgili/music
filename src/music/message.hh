@@ -49,12 +49,13 @@ namespace MUSIC {
 
   class MessageHandler {
   public:
+    virtual ~MessageHandler() { }
     virtual void operator () (double t, void* msg, size_t size) = 0;
   };
   
   class MessageHandlerDummy : public MessageHandler {
   public:
-    virtual void operator () (double t, void* msg, size_t size) { };
+    virtual void operator () (double, void*, size_t) { };
   };
   
   class MessageHandlerProxy

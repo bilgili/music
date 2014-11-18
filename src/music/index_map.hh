@@ -62,6 +62,7 @@ namespace MUSIC {
   public:
     class IteratorImplementation {
     public:
+      virtual ~IteratorImplementation() { }
       virtual const IndexInterval operator* () = 0;
       virtual const IndexInterval* dereference () = 0;
       virtual bool isEqual (IteratorImplementation* i) const = 0;
@@ -100,7 +101,7 @@ namespace MUSIC {
       iterator& operator++ ();
     };
     
-    
+    virtual ~IndexMap() { }
     virtual iterator begin () = 0;
     virtual const iterator end () const = 0;
 

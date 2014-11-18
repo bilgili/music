@@ -89,7 +89,7 @@ namespace MUSIC {
     std::map<std::string, int>::iterator info
       = connectivityMap.find (portName);
     if (info == connectivityMap.end ())
-      return NO_CONNECTIVITY;
+      return (ConnectivityInfo*)NO_CONNECTIVITY;
     else
       return &connections_[info->second];
   }
@@ -134,7 +134,7 @@ namespace MUSIC {
       {
 	out << ':' << i->first << ':';
 	ConnectivityInfo* ci = &connections_[i->second];
-	out << ci->direction () << ':' << ci->width () << ':';
+	out << (unsigned int)ci->direction () << ':' << ci->width () << ':';
 	PortConnectorInfo conns = ci->connections ();
 	out << conns.size ();
 	PortConnectorInfo::iterator c;

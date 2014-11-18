@@ -82,7 +82,7 @@ Writer::~Writer()
 }
 
 
-void Writer::visitFile(const File& configfile) const
+void Writer::visitFile(const File&) const
 {
 
 }

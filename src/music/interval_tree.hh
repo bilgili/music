@@ -57,6 +57,7 @@ namespace MUSIC {
   public:
     class Action {
     public:
+      virtual ~Action() { }
       virtual void operator() (DataType& data) = 0;
     };
   private:

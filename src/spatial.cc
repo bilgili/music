@@ -516,7 +516,11 @@ namespace MUSIC {
 				      MPI::Intercomm intercomm,
 				      int remoteNProc,
 				      // only for debugging:
+#ifdef MUSIC_DEBUG
 				      Connector* connector)
+#else
+				      Connector*)
+#endif
   {
     comm = c;
     nProcesses = comm.Get_size ();
@@ -576,7 +580,11 @@ namespace MUSIC {
 				     MPI::Intercomm intercomm,
 				     int remoteNProc,
 				      // only for debugging:
+#ifdef MUSIC_DEBUG
 				     Connector* connector)
+#else
+				     Connector*)
+#endif
   {
     comm = c;
     nProcesses = comm.Get_size ();

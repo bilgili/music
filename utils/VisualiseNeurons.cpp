@@ -480,7 +480,7 @@ void VisualiseNeurons::displayWrapper() {
   }
 }
 
-void VisualiseNeurons::rotateTimerWrapper(int v) {
+void VisualiseNeurons::rotateTimerWrapper(int) {
   VisualiseNeurons *vn = 0;
 
   for(unsigned int i = 0; i < objTable_.size(); i++) {
@@ -500,7 +500,7 @@ void VisualiseNeurons::rotateTimerWrapper(int v) {
 
 
 
-void* VisualiseNeurons::runMusic(void *arg) {
+void* VisualiseNeurons::runMusic(void *) {
   VisualiseNeurons *vn = 0;
 
   for(unsigned int i = 0; i < objTable_.size(); i++) {

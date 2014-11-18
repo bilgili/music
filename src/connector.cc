@@ -78,7 +78,7 @@ namespace MUSIC {
   void
   OutputConnector::spatialNegotiation
   (std::vector<OutputSubconnector*>& osubconn,
-   std::vector<InputSubconnector*>& isubconn)
+   std::vector<InputSubconnector*>&)
   {
     std::map<int, OutputSubconnector*> subconnectors;
     for (NegotiationIterator i
@@ -111,7 +111,7 @@ namespace MUSIC {
 
 
   void
-  OutputConnector::addRoutingInterval (IndexInterval i, OutputSubconnector* s)
+  OutputConnector::addRoutingInterval (IndexInterval, OutputSubconnector*)
   {
     // Default: Do nothing
   }
@@ -121,7 +121,7 @@ namespace MUSIC {
   // NOTE: code repetition (OutputConnector::spatialNegotiation)
   void
   InputConnector::spatialNegotiation
-  (std::vector<OutputSubconnector*>& osubconn,
+  (std::vector<OutputSubconnector*>&,
    std::vector<InputSubconnector*>& isubconn)
   {
     std::map<int, InputSubconnector*> subconnectors;
@@ -156,7 +156,7 @@ namespace MUSIC {
 
 
   void
-  InputConnector::addRoutingInterval (IndexInterval i, InputSubconnector* s)
+  InputConnector::addRoutingInterval (IndexInterval, InputSubconnector*)
   {
     // Default: Do nothing
   }
@@ -590,8 +590,8 @@ namespace MUSIC {
 
 
   void
-  MessageOutputConnector::addRoutingInterval (IndexInterval i,
-					      OutputSubconnector* osubconn)
+  MessageOutputConnector::addRoutingInterval (IndexInterval,
+					      OutputSubconnector*)
   {
     if (!bufferAdded)
       {

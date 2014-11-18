@@ -32,12 +32,13 @@ namespace MUSIC {
 
   class EventHandlerGlobalIndex {
   public:
+    virtual ~EventHandlerGlobalIndex() { }
     virtual void operator () (double t, GlobalIndex id) = 0;
   };
   
   class EventHandlerGlobalIndexDummy : public EventHandlerGlobalIndex {
   public:
-    virtual void operator () (double t, GlobalIndex id) { };
+    virtual void operator () (double, GlobalIndex) { };
   };
   
   class EventHandlerGlobalIndexProxy
@@ -55,12 +56,13 @@ namespace MUSIC {
   
   class EventHandlerLocalIndex {
   public:
+    virtual ~EventHandlerLocalIndex() { }
     virtual void operator () (double t, LocalIndex id) = 0;
   };
 
   class EventHandlerLocalIndexDummy : public EventHandlerLocalIndex {
   public:
-    virtual void operator () (double t, LocalIndex id) { };
+    virtual void operator () (double, LocalIndex) { };
   };
 
   class EventHandlerLocalIndexProxy

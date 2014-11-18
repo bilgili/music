@@ -64,11 +64,15 @@ extern "C" {
  * argc and argv (MPICH) or through the environment (OpenMPI).
  *
  * return -1 on failure
- */ 
+ */
 
 int
 getRank (int argc, char *argv[])
 {
+  // Some system configurations don't need these variables. Shutting up
+  // warnings.
+  (void)argc;
+  (void)argv;
 #ifdef BGL
   BGLPersonality p;
   rts_get_personality (&p, sizeof (p));
@@ -196,6 +200,7 @@ getConfig (int rank, int argc, char** argv)
     confname = getFirstArg (argc, argv);
   return new std::ifstream (confname.c_str ());
 #else
+  (void)rank;
   return new std::ifstream (getFirstArg (argc, argv).c_str ());
 #endif
 }

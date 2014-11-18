@@ -57,7 +57,7 @@ std::vector<int> counters;
 
 class MyEventHandlerLocal: public MUSIC::EventHandlerLocalIndex {
 public:
-  void operator () (double t, MUSIC::LocalIndex id)
+  void operator () (double, MUSIC::LocalIndex id)
   {
     ++counters[id];
   }

@@ -65,8 +65,8 @@ namespace MUSIC {
     int width_;
     PortConnectorInfo portConnections_;
   public:
-    ConnectivityInfo (std::string portName, PortDirection dir, int width)
-      : portName_ (portName), dir_ (dir), width_ (width) { }
+    ConnectivityInfo (std::string name, PortDirection dir, int portWidth)
+      : portName_ (name), dir_ (dir), width_ (portWidth) { }
     std::string portName () { return portName_; }
     PortDirection direction () { return dir_; }
     int width () { return width_; } // NO_WIDTH if no width specified

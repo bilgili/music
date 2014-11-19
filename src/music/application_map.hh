@@ -28,8 +28,8 @@ namespace MUSIC {
     int leader_;
     int nProc_;
   public:
-    ApplicationInfo (std::string name, int l, int n)
-      : name_ (name), leader_ (l), nProc_ (n) { }
+    ApplicationInfo (std::string appName, int l, int n)
+      : name_ (appName), leader_ (l), nProc_ (n) { }
     std::string name () { return name_; }
     int leader () { return leader_; }
     int nProc () { return nProc_; }

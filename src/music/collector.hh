@@ -40,7 +40,7 @@ namespace MUSIC {
       // interval information can be "recompiled" for space and time
       // efficiency
       int length () const { return end (); }
-      void setLength (int length) { setEnd (length); }
+      void setLength (int l) { setEnd (l); }
     };
 
     class IntervalCalculator : public IntervalTree<int, IndexInterval>::Action {

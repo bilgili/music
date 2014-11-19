@@ -38,7 +38,7 @@ namespace MUSIC {
     void* base_;
   public:
     DataMap () { };
-    DataMap (void* base) : base_ (base) { };
+    DataMap (void* b) : base_ (b) { };
     virtual ~DataMap () { };
     virtual DataMap* copy () = 0;
     void* base () const { return base_; }

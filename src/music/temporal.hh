@@ -109,10 +109,10 @@ namespace MUSIC {
     ApplicationNode* post_;
     ConnectionDescriptor* connection_;
   public:
-    ConnectionEdge (ApplicationNode& pre,
-		    ApplicationNode& post,
+    ConnectionEdge (ApplicationNode& preNode,
+		    ApplicationNode& postNode,
 		    ConnectionDescriptor& descr)
-      : pre_ (&pre), post_ (&post), connection_ (&descr) { }
+      : pre_ (&preNode), post_ (&postNode), connection_ (&descr) { }
     ApplicationNode& pre () { return *pre_; }
     ApplicationNode& post () { return *post_; }
     ClockState latency () { return connection_->accLatency;}

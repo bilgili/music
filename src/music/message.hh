@@ -36,10 +36,10 @@ namespace MUSIC {
     } u;
     
   public:
-    MessageHeader (double t, int size)
+    MessageHeader (double time, int msgSize)
     {
-      u.header.t = t;
-      u.header.size = size;
+      u.header.t = time;
+      u.header.size = msgSize;
     }
 
     double t () { return u.header.t; }

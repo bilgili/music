@@ -28,8 +28,8 @@ namespace MUSIC {
     Interval (int b, int e) : begin_ (b), end_ (e) { }
     int begin () const { return begin_; }
     int end () const { return end_; }
-    void setBegin (int begin) { begin_ = begin; }
-    void setEnd (int end) { end_ = end; }
+    void setBegin (int x) { begin_ = x; }
+    void setEnd (int x) { end_ = x; }
     bool operator< (const Interval& data) const
     {
       return begin () < data.begin ();

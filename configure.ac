@@ -12,6 +12,7 @@ AC_PROG_CXX([mpiCC mpixlcxx mpicxx CC])
 MPI_CXX="$CXX"
 
 AC_MSG_CHECKING([which MPI system we think we are using])
+echo "$MPI_CXX"
 case "$MPI_CXX" in
   mpiCC)
     changequote({, })
@@ -47,7 +48,10 @@ Please set them manually.])
     CXX="$MPI_CXX"
     if mpich2version >/dev/null 2>/dev/null; then
        SYSGUESS=mpich2
-       AC_DEFINE(HAVE_MPICH2, 1, [Define to 1 if you have MPICH2.])
+       AC_DEFINE(MPICH2, 1, [Define to 1 if you have MPICH2.])
+    elif test "`mpichversion | grep MVAPICH2`" != "" ; then
+       SYSGUESS=mvapich2
+       AC_DEFINE(MVAPICH2, 1, [Define to 1 if you have MVAPICH2.])
     else
        SYSGUESS=bgl
     fi
@@ -74,7 +78,7 @@ if test "$MPI_CXXFLAGS" != ""; then
   echo "$MPI_CXXFLAGS"
 else
   case "$SYSGUESS" in
-    mpich|mpich2)
+    mpich|mpich2|mvapich2)
       changequote(<, >)
       MPI_CXXFLAGS="`$MPI_CXX -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
@@ -102,7 +106,7 @@ if test "$MPI_CFLAGS" != ""; then
   echo "$MPI_CFLAGS"
 else
   case "$SYSGUESS" in
-    mpich|mpich2)
+    mpich|mpich2|mvapich2)
       changequote(<, >)
       MPI_CFLAGS="`$MPI_C -compile_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
@@ -130,7 +134,7 @@ if test "$MPI_LDFLAGS" != ""; then
   echo "$MPI_LDFLAGS"
 else
   case "$SYSGUESS" in
-    mpich|mpich2)
+    mpich|mpich2|mvapich2)
       changequote(<, >)
       MPI_LDFLAGS="`$MPI_CXX -link_info | sed -e 's/^[^ ]* //;s/ -c / /'`"
       changequote([, ])
@@ -185,7 +189,9 @@ save_LIBS="$LIBS"
 dnl Must use $CXX, not $MPI_CXX, here
 CXX="$CXX $MPI_CXXFLAGS"
 LIBS="$LIBS $MPI_LDFLAGS"
-AC_CHECK_FUNCS([rts_get_personality ompi_comm_free])
+
+AC_CHECK_FUNCS([rts_get_personality], [AC_DEFINE([BGL], [1], [BlueGene MPI.])])
+AC_CHECK_FUNCS([ompi_comm_free], [AC_DEFINE([OPENMPI], [1], [Open MPI.])] )
 
 AC_MSG_CHECKING([for MPI::Init_thread method])
 ac_have_cxx_mpi_init_thread=no

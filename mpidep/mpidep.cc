@@ -31,22 +31,6 @@ extern "C" {
 
 // Implementation-dependent code
 
-#ifndef CRAY_XE6
-#ifdef HAVE_RTS_GET_PERSONALITY
-#define BGL
-#else
-#ifdef HAVE_OMPI_COMM_FREE
-#define OPENMPI
-#else
-#ifdef HAVE_MPICH2
-#define MPICH2
-#else
-#define MPICH
-#endif
-#endif
-#endif
-#endif
-
 #ifdef BGL
 #include <rts.h>
 #endif
@@ -82,8 +66,8 @@ getRank (int argc, char *argv[])
   return rank;
 #endif
 #ifdef MPICH2
-  char *pmi_rank = getenv("PMI_RANK");
   int rank;
+  char *pmi_rank = getenv("PMI_RANK");
   if (pmi_rank==NULL)
     return -1;
   else {
@@ -91,6 +75,17 @@ getRank (int argc, char *argv[])
     if (rank<0) return -1;
     return rank;
   }
+#endif
+#ifdef MVAPICH2
+  // Check for the slurm environment
+  int rank = -1;
+  const char *slurm_rank = getenv("SLURM_PROCID");
+  if (slurm_rank != NULL ) {
+    rank = atoi(slurm_rank);
+    if (rank < 0 )
+        rank = -1;
+  }
+  return rank;
 #endif
 #ifdef MPICH
   int seenP4arg = 0;

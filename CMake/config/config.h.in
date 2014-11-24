@@ -1,3 +1,2 @@
-#cmakedefine HAVE_RTS_GET_PERSONALITY
-#cmakedefine HAVE_OMPI_COMM_FREE
 #cmakedefine HAVE_CXX_MPI_INIT_THREAD
+#define ${MPI_IMPLEMENTATION}
